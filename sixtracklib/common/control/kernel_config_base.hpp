@@ -11,6 +11,7 @@
     #include <cstdio>
     #include <ostream>
     #include <string>
+    #include <vector>
 #endif /* !defined( SIXTRKL_NO_SYSTEM_INCLUDES ) */
 
 #endif /* C++, Host */
@@ -38,37 +39,49 @@ namespace SIXTRL_CXX_NAMESPACE
 
         public:
 
-        using arch_id_t   = _arch_base_t::arch_id_t;
-        using size_type   = _arch_base_t::size_type;
-        using kernel_id_t = SIXTRL_CXX_NAMESPACE::arch_kernel_id_t;
+        using arch_id_t     = _arch_base_t::arch_id_t;
+        using size_type     = _arch_base_t::size_type;
+        using kernel_id_t   = SIXTRL_CXX_NAMESPACE::arch_kernel_id_t;
+        using node_id_t     = SIXTRL_CXX_NAMESPACE::node_id_t;
+        using platform_id_t = node_id_t::platform_id_t;
+        using device_id_t   = node_id_t::device_id_t;
+        using variant_t     = SIXTRL_CXX_NAMESPACE::kernel_config_variant_t;
 
-        static constexpr size_type MAX_WORK_ITEMS_DIM  = size_type{ 3 };
-        static constexpr size_type MAX_WORK_GROUPS_DIM = size_type{ 3 };
+        static constexpr platform_id_t ILLEGAL_PLATFORM_ID =
+            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_PATFORM_ID;
 
-        static constexpr size_type DEFAULT_WORK_ITEMS_DIM  = size_type{ 1 };
-        static constexpr size_type DEFAULT_WORK_GROUPS_DIM = size_type{ 1 };
+        static constexpr platform_id_t ILLEGAL_DEVICE_ID =
+            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_DEVICE_ID;
 
         static constexpr kernel_id_t ILLEGAL_KERNEL_ID =
             SIXTRL_CXX_NAMESPACE::ARCH_ILLEGAL_KERNEL_ID;
 
-        SIXTRL_HOST_FN explicit KernelConfigBase(
-            arch_id_t const arch_id,
+        SIXTRL_HOST_FN KernelConfigBase( arch_id_t const arch_id,
             char const* SIXTRL_RESTRICT arch_str,
-            char const* SIXTRL_RESTRICT config_str = nullptr,
-            size_type const work_items_dim = size_type{ 1 },
-            size_type const work_groups_dim = size_type{ 1 } );
+            size_type const num_kernel_args = size_type{ 0 },
+            char const* SIXTRL_RESTRICT kernel_name_str = nullptr,
+            variant_t const variant_flags =
+                SIXTRL_CXX_NAMESPACE::KERNEL_CONFIG_VARIANT_DEBUG_MODE,
+            char const* SIXTRL_RESTRICT config_str = nullptr );
+
+        SIXTRL_HOST_FN KernelConfigBase( arch_id_t const arch_id,
+            std::string const& SIXTRL_RESTRICT_REF arch_str,
+            size_type const num_kernel_args = size_type{ 0 },
+            std::string const& SIXTRL_RESTRICT_REF kernel_name = std::string{},
+            variant_t const variant_flags =
+                SIXTRL_CXX_NAMESPACE::KERNEL_CONFIG_VARIANT_DEBUG_MODE,
+            std::string const& SIXTRL_RESTRICT_REF config_str = std::string{} );
 
         SIXTRL_HOST_FN KernelConfigBase(
-            KernelConfigBase const& other );
+            KernelConfigBase const& other ) = default;
 
-        SIXTRL_HOST_FN KernelConfigBase(
-            KernelConfigBase&& other ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN KernelConfigBase& operator=(
-            KernelConfigBase const& rhs );
+        SIXTRL_HOST_FN KernelConfigBase( KernelConfigBase&& other ) = default;
 
         SIXTRL_HOST_FN KernelConfigBase& operator=(
-            KernelConfigBase&& rhs ) SIXTRL_NOEXCEPT;
+            KernelConfigBase const& rhs ) = default;
+
+        SIXTRL_HOST_FN KernelConfigBase& operator=(
+            KernelConfigBase&& rhs ) = default;
 
         SIXTRL_HOST_FN virtual ~KernelConfigBase() = default;
 
@@ -107,141 +120,48 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN size_type numWorkItems(
-            size_type const index ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN variant_t variantFlags() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool areVariantFlagsSet(
+            variant_t const var_flags ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type workItemsDim() const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN size_type totalNumWorkItems() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool variantDebugMode() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool variantReleaseMode() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type const*
-        workItemsBegin() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type const*
-        workItemsEnd() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type* workItemsBegin() SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN size_type* workItemsEnd() SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN status_t setNumWorkItems(
-            size_type const work_items_a ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setNumWorkItems(
-            size_type const work_items_a,
-            size_type const work_items_b ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setNumWorkItems(
-            size_type const work_items_a, size_type const work_items_b,
-                size_type const work_item_c ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setNumWorkItems(
-            size_type const work_items_dim,
-            size_type const* SIXTRL_RESTRICT work_itms_begin ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void setVariantFlags(
+            variant_t const variant_flags ) SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN size_type workItemOffset(
-            size_type const index ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool hasNodes() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type numNodes() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type const*
-        workItemOffsetsBegin() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_id_t const* nodesBegin() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_id_t const* nodesEnd()   const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type const*
-        workItemOffsetsEnd() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_id_t const* ptrNode(
+            size_type const num_node_in_list ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type* workItemOffsetsBegin() SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN size_type* workItemOffsetsEnd() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_id_t* nodesBegin() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_id_t* nodesEnd()   SIXTRL_NOEXCEPT;
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        SIXTRL_HOST_FN node_id_t* ptrNode(
+            size_type const num_node_in_list ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_t setWorkItemOffset(
-            size_type const offset_a ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t assignToNode( node_id_t const& node );
 
-        SIXTRL_HOST_FN status_t setWorkItemOffset(
-            size_type const offset_a,
-            size_type const offset_b ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool isAssignedToNode(
+            node_id_t const& node_id ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_t setWorkItemOffset(
-            size_type const offset_a, size_type const offset_b,
-                size_type const offset_c ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool isAssignedToNode( platform_id_t const platform_id,
+                device_id_t const device_id ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_t setWorkItemOffset(
-            size_type const offset_dim,
-            size_type const* SIXTRL_RESTRICT offsets_begin ) SIXTRL_NOEXCEPT;
-
-        /* ----------------------------------------------------------------- */
-
-        SIXTRL_HOST_FN size_type workGroupSize(
-            size_type const index ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type workGroupsDim() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type const*
-        workGroupSizesBegin() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type const*
-        workGroupSizesEnd() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type* workGroupSizesBegin() SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN size_type* workGroupSizesEnd() SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN status_t setWorkGroupSizes(
-            size_type const work_groups_a ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setWorkGroupSizes( size_type const work_groups_a,
-                size_type const  work_groups_b ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setWorkGroupSizes(
-            size_type const work_groups_a, size_type const work_groups_b,
-                size_type const work_groups_c ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setWorkGroupSizes( size_type const work_groups_dim,
-            size_type const* SIXTRL_RESTRICT work_grps_begin ) SIXTRL_NOEXCEPT;
-
-        /* ----------------------------------------------------------------- */
-
-        SIXTRL_HOST_FN size_type preferredWorkGroupMultiple(
-            size_type const index ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type const*
-        preferredWorkGroupMultiplesBegin() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type const*
-        preferredWorkGroupMultiplesEnd() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type*
-        preferredWorkGroupMultiplesBegin() SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type*
-        preferredWorkGroupMultiplesEnd() SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN status_t setPreferredWorkGroupMultiple(
-            size_type const work_groups_a ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setPreferredWorkGroupMultiple(
-            size_type const work_groups_a,
-            size_type const work_groups_b ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setPreferredWorkGroupMultiple(
-            size_type const work_groups_a, size_type const work_groups_b,
-                size_type const work_groups_c ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setPreferredWorkGroupMultiple(
-            size_type const work_groups_dim,
-            size_type const* SIXTRL_RESTRICT pref_work_groups_multiple
-        ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t detachFromNode( node_id_t const& node );
+        SIXTRL_HOST_FN status_t detachFromNode(
+            platform_id_t const platform_id, device_id_t const device_id );
 
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN void clear();
-
-        SIXTRL_HOST_FN void reset( size_type work_items_dim,
-            size_type work_groups_dim );
 
         SIXTRL_HOST_FN bool needsUpdate() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN status_t update();
@@ -268,55 +188,47 @@ namespace SIXTRL_CXX_NAMESPACE
 
         protected:
 
-        virtual void doPrintToOutputStream(
+        SIXTRL_HOST_FN virtual void doPrintToOutputStream(
             std::ostream& SIXTRL_RESTRICT_REF output ) const;
 
-        virtual void doReset( size_type work_items_dim,
-            size_type work_groups_dim );
+        SIXTRL_HOST_FN virtual status_t doUpdate();
 
-        virtual status_t doUpdate();
+        SIXTRL_HOST_FN virtual status_t doAssignToNode(
+            node_id_t const& SIXTRL_RESTRICT_REF node );
 
-        virtual void doClear();
+        SIXTRL_HOST_FN virtual status_t doDetachFromNode(
+            platform_id_t const platform_id,
+            device_id_t const device_id );
 
-        SIXTRL_HOST_FN void doSetNumWorkItemsValue(
-            size_type const index, size_type const value ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN virtual void doClear();
 
-        SIXTRL_HOST_FN void doSetWorkItemOffsetValue(
-            size_type const index, size_type const value ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_id_t const* doFindNodeByPlatformIdAndDeviceId(
+            platform_id_t const plartform_id,
+            device_id_t const device_id ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void doSetWorkGroupSizeValue(
-            size_type const index, size_type const value ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN void doSetPreferredWorkGroupMultiple(
-            size_type const index, size_type const value ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_id_t* doFindNodeByPlatformIdAndDeviceId(
+            platform_id_t const plartform_id,
+            device_id_t const device_id ) SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN void doSetNeedsUpdateFlag(
-            bool const needs_update = true ) SIXTRL_NOEXCEPT;
+            bool const needs_update ) SIXTRL_NOEXCEPT;
 
         private:
 
         SIXTRL_HOST_FN void doClearBaseImpl() SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void doResetBaseImpl( size_type work_items_dim,
-            size_type work_groups_dim ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t doAssignToNodeBaseImpl(
+            node_id_t const& SIXTRL_RESTRICT_REF node );
 
-        SIXTRL_HOST_FN void doPerformWorkItemsCopyBaseImpl(
-            KernelConfigBase const& other ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t doDetachFromNodeBaseImpl(
+            platform_id_t const platform_id, device_id_t const device_id );
 
-        SIXTRL_HOST_FN void doPerformWorkGroupsCopyBaseImpl(
-            KernelConfigBase const& other ) SIXTRL_NOEXCEPT;
-
+        std::vector< node_id_t > m_nodes;
         std::string m_name;
 
-        size_type   m_work_items[ MAX_WORK_ITEMS_DIM ];
-        size_type   m_work_item_offsets[ MAX_WORK_ITEMS_DIM ];
-        size_type   m_work_groups[ MAX_WORK_GROUPS_DIM ];
-        size_type   m_pref_work_groups_multiple[ MAX_WORK_GROUPS_DIM ];
-
-        size_type   m_work_items_dim;
-        size_type   m_work_groups_dim;
         size_type   m_num_kernel_args;
         kernel_id_t m_kernel_id;
+        variant_t   m_variant_flags;
 
         bool        m_needs_update;
     };

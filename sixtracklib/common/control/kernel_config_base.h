@@ -71,221 +71,68 @@ SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfig_set_num_arguments)(
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)
-NS(KernelConfig_get_work_items_dim)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(kernel_config_variant_t)
+NS(KernelConfig_get_variant_flags)(
     const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t)
-NS(KernelConfig_get_num_work_items_by_dim)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfig_are_variant_flags_set)(
     const NS(KernelConfigBase) *const SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const index );
+    NS(kernel_config_variant_t) const flags_to_check );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)
-NS(KernelConfig_get_total_num_work_items)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfig_is_variant_debug_mode)(
     const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t) const*
-NS(KernelConfig_get_const_work_items_begin)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfig_is_variant_release_mode)(
     const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t) const*
-NS(KernelConfig_get_const_work_items_end)(
-    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)*
-NS(KernelConfig_get_work_items_begin)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)*
-NS(KernelConfig_get_work_items_end)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config );
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_num_work_items_1d)(
+SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfig_set_variant_flags)(
     NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_items_a );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_num_work_items_2d)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_items_a,
-    NS(ctrl_size_t) const work_items_b );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_num_work_items_3d)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_items_a,
-    NS(ctrl_size_t) const work_items_b,
-    NS(ctrl_size_t) const work_item_c );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_num_work_items)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_items_dim,
-    NS(ctrl_size_t) const* SIXTRL_RESTRICT work_itms_begin );
+    NS(kernel_config_variant_t) const variant_flags );
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t)
-NS(KernelConfig_get_work_item_offset_by_dim)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfig_has_nodes)(
+    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t) NS(KernelConfig_get_num_nodes)(
+    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodeId) const* NS(KernelConfig_get_const_node)(
     const NS(KernelConfigBase) *const SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const index );
+    NS(arch_size_t) const num_node_in_list );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t) const*
-NS(KernelConfig_get_const_work_item_offsets_begin)(
-    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t) const*
-NS(KernelConfig_get_const_work_item_offsets_end)(
-    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)*
-NS(KernelConfig_work_item_offsets_begin)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)*
-NS(KernelConfig_work_item_offsets_end)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config );
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_work_item_offset_1d)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodeId)* NS(KernelConfig_get_node)(
     NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const offset_a );
+    NS(arch_size_t) const num_node_in_list );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_work_item_offset_2d)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelConfig_assign_to_node)(
     NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const offset_a,
-    NS(ctrl_size_t) const offset_b );
+    const NS(NodeId) *const SIXTRL_RESTRICT ptr_node );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_work_item_offset_3d)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const offset_a,
-    NS(ctrl_size_t) const offset_b,
-    NS(ctrl_size_t) const offset_c );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_work_item_offset)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const offset_dim,
-    NS(ctrl_size_t) const* SIXTRL_RESTRICT offsets_begin );
-
-/* ------------------------------------------------------------------------- */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t)
-NS(KernelConfig_get_work_group_size_by_dim)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfig_is_assigned_to_node)(
     const NS(KernelConfigBase) *const SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const index );
+    const NS(NodeId) *const SIXTRL_RESTRICT ptr_node );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t)
-NS(KernelConfig_get_work_groups_dim)(
-    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t) const*
-NS(KernelConfig_get_const_work_group_sizes_begin)(
-    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t) const*
-NS(KernelConfig_get_const_work_group_sizes_end)(
-    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)*
-NS(KernelConfig_get_work_group_sizes_begin)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)*
-NS(KernelConfig_work_group_sizes_end)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config );
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_work_group_sizes_1d)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_groups_a );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_work_group_sizes_2d)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_groups_a,
-    NS(ctrl_size_t) const work_groups_b );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_work_group_sizes_3d)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_groups_a,
-    NS(ctrl_size_t) const work_groups_b,
-    NS(ctrl_size_t) const work_groups_c );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_work_group_sizes)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_groups_dim,
-    NS(ctrl_size_t) const* SIXTRL_RESTRICT work_grps_begin );
-
-/* ------------------------------------------------------------------------- */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t)
-NS(KernelConfig_get_preferred_work_group_multiple_by_dim)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool
+NS(KernelConfig_is_assigned_to_node_with_platform_and_device_id)(
     const NS(KernelConfigBase) *const SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const index );
+    NS(node_platform_id_t) const platform_id,
+    NS(node_device_id_t) const device_id );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t) const*
-NS(KernelConfig_get_const_preferred_work_group_multiples_begin)(
-    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(KernelConfig_detach_from_node)( NS(KernelConfigBase)* SIXTRL_RESTRICT conf,
+    const NS(NodeId) *const SIXTRL_RESTRICT ptr_node );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN  NS(ctrl_size_t) const*
-NS(KernelConfig_get_const_preferred_work_group_multiples_end)(
-    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)*
-NS(KernelConfig_get_preferred_work_group_multiples_begin)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_size_t)*
-NS(KernelConfig_get_preferred_work_group_multiples_end)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config );
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_preferred_work_group_multiple_1d)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_groups_a );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_preferred_work_group_multiple_2d)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_groups_a,
-    NS(ctrl_size_t) const work_groups_b );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_preferred_work_group_multiple_3d)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_groups_a,
-    NS(ctrl_size_t) const work_groups_b,
-    NS(ctrl_size_t) const work_groups_c );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
-NS(KernelConfig_set_preferred_work_group_multiple)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) const work_groups_dim,
-    NS(ctrl_size_t) const* SIXTRL_RESTRICT pref_work_groups_multiple );
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(KernelConfig_detach_from_node_with_platform_id_and_device_id)(
+    NS(KernelConfigBase)* SIXTRL_RESTRICT conf,
+    NS(node_platform_id_t) const platform_id,
+    NS(node_device_id_t) const device_id );
 
 /* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfig_clear)(
     NS(KernelConfigBase)* SIXTRL_RESTRICT config );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfig_reset)(
-    NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    NS(ctrl_size_t) work_items_dim,
-    NS(ctrl_size_t) work_groups_dim );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfig_needs_update)(
     const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
