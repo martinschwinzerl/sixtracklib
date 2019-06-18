@@ -40,14 +40,6 @@ SIXTRL_ARGPTR_DEC ::NS(NodeId)* NS(NodeId_new_from_string)(
         ? new st::NodeId( node_id_str ) : nullptr;
 }
 
-SIXTRL_ARGPTR_DEC ::NS(NodeId)* NS(NodeId_new_detailed)(
-    ::NS(node_platform_id_t) const platform_id,
-    ::NS(node_device_id_t) const device_id,
-    ::NS(node_index_t) const node_index )
-{
-    return new st::NodeId( platform_id, device_id, node_index );
-}
-
 bool NS(NodeId_is_valid)( SIXTRL_ARGPTR_DEC
     const ::NS(NodeId) *const SIXTRL_RESTRICT node_id )
 {
@@ -68,37 +60,6 @@ bool NS(NodeId_is_valid)( SIXTRL_ARGPTR_DEC
         ? node_id->deviceId() : st::NODE_ILLEGAL_DEVICE_ID;
 }
 
-bool NS(NodeId_has_node_index)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node_id )
-{
-    return ( ( node_id != nullptr ) && ( node_id->hasIndex() ) );
-}
-
-::NS(node_index_t) NS(NodeId_get_node_index)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node_id )
-{
-    return ( node_id != nullptr )
-        ? node_id->index() : st::NODE_UNDEFINED_INDEX;
-}
-
-void NS(NodeId_clear)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node_id )
-{
-    if( node_id != nullptr ) node_id->clear();
-}
-
-void NS(NodeId_reset)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node_id,
-    ::NS(node_platform_id_t) const platform_id,
-    ::NS(node_device_id_t) const device_id,
-    ::NS(node_index_t) const node_index )
-{
-    if( node_id != nullptr )
-    {
-        node_id->reset( platform_id, device_id, node_index );
-    }
-}
-
 void NS(NodeId_set_platform_id)(
     SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node_id,
     ::NS(node_platform_id_t) const platform_id )
@@ -113,30 +74,180 @@ void NS(NodeId_set_device_id)(
     if( node_id != nullptr ) node_id->setDeviceId( device_id );
 }
 
-void NS(NodeId_set_index)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node_id,
+/* ------------------------------------------------------------------------ */
+
+bool NS(NodeId_has_controllers)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node )
+{
+    return ( ( node != nullptr ) && ( node->hasController() ) );
+}
+
+::NS(arch_size_t) NS(NodeId_get_num_of_controllers)(
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node )
+{
+    return ( node != nullptr )
+        ? node->numControllers() : ::NS(arch_size_t){ 0 };
+}
+
+bool NS(NodeId_is_attached_to_controller)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+{
+    return ( ( node != nullptr ) &&
+             ( node->isAttachedToController)( ptr_controller ) );
+}
+
+bool NS(NodeId_has_node_index)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+{
+    return ( ( node != nullptr ) &&
+             ( node->hasNodeIndex( ptr_controller ) ) );
+}
+
+::NS(node_index_t) ::NS(NodeId_get_node_index)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+{
+    return ( node != nullptr )
+        ? node->nodeIndex( ptr_controller ) : ::NS(NODE_UNDEFINED_INDEX);
+}
+
+::NS(arch_status_t) NS(NodeId_set_node_index)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller,
     ::NS(node_index_t) const node_index )
 {
-    if( node_id != nullptr ) node_id->setIndex( node_index );
+    return ( node != nullptr )
+        ? node->setNodeIndex( ptr_controller, node_index )
+        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+}
+
+bool NS(NodeId_is_selected)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node )
+{
+    return ( ( node != nullptr ) && ( node->isSelected() ) );
+}
+
+bool NS(NodeId_is_selected_by_controller)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+{
+    return ( ( node != nullptr ) &&
+             ( node->isSelectedByController( ptr_controller ) );
+}
+
+::NS(ControllerBase) const* NS(NodeId_get_const_selecting_controller)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node )
+{
+    return ( node != nullptr ) ? node->ptrSelectingController() : nullptr;
+}
+
+::NS(arch_status_t) NS(NodeId_set_selected_controller)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+{
+    return ( node != nullptr )
+        ? node->setPtrSelectedController( ptr_controller )
+        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+}
+
+void NS(NodeId_unselect_controller)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node )
+{
+    if( node != nullptr ) node->unselectController();
+}
+
+::NS(arch_status_t) NS(NodeId_attach_to_controller)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller,
+    ::NS(node_index_t) const node_index )
+{
+    return ( node != nullptr )
+        ? node->attachToController( ptr_controller, node_index )
+        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+}
+
+::NS(arch_status_t) NS(NodeId_detach_from_controller)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+{
+    return ( node != nullptr )
+        ? node->detachFromController( ptr_controller )
+        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+}
+
+::NS(ControllerBase) const* NS(NodeId_get_const_controller)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    ::NS(arch_size_t) const num_of_controller_in_sequence )
+{
+    return ( node != nullptr )
+        ? node->ptrController( num_of_controller_in_sequence ) : nullptr;
+}
+
+/* ------------------------------------------------------------------------- */
+
+::NS(arch_status_t) NS(NodeId_from_node_id_str)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    char const* SIXTRL_RESTRICT node_id_str )
+{
+    return ( node != nullptr )
+        ? node->fromNodeIdStr( node_id_str )
+        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+}
+
+
+::NS(arch_status_t) NS(NodeId_to_node_id_str)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    ::NS(arch_size_t) const output_str_capacity,
+    char* SIXTRL_RESTRICT output_str )
+{
+    return ( node != nullptr )
+        ? node->toNodeIdStr( output_str_capacity, output_str )
+        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+}
+
+/* ------------------------------------------------------------------------- */
+
+void NS(NodeId_print)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    ::FILE* SIXTRL_RESTRICT fp )
+{
+    if( node != nullptr ) node->print( fp );
+}
+
+void NS(NodeId_print_out)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node )
+{
+    if( node != nullptr ) node->printOut();
+}
+
+::NS(arch_size_t) NS(NodeId_required_str_capacity)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node )
+{
+    return ( node != nullptr )
+        ? node->requiredStringCapacity() : ::NS(arch_size_t){ 0 };
 }
 
 ::NS(arch_status_t) NS(NodeId_to_string)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node_id,
-    SIXTRL_ARGPTR_DEC char* SIXTRL_RESTRICT node_id_str,
-    ::NS(buffer_size_t) const node_id_str_capacity )
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    ::NS(arch_size_t) const output_str_capacity,
+    char* SIXTRL_RESTRICT output_str )
 {
-    return ( node_id != nullptr )
-        ? node_id->toString( node_id_str, node_id_str_capacity )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
+    return ( node != nullptr )
+        ? node->toString( output_str_capacity, output_str )
+        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
 }
 
-::NS(arch_status_t) NS(NodeId_from_string)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node_id,
-    SIXTRL_ARGPTR_DEC const char *const SIXTRL_RESTRICT node_id_str )
+/* ------------------------------------------------------------------------- */
+
+void NS(NodeId_clear)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node_id )
 {
-    return ( node_id != nullptr )
-        ? node_id->fromString( node_id_str ) : st::ARCH_STATUS_GENERAL_FAILURE;
+    if( node_id != nullptr ) node_id->clear();
 }
+
+/* ------------------------------------------------------------------------- */
 
 int NS(NodeId_compare)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT lhs,
@@ -164,21 +275,6 @@ bool NS(NodeId_are_equal)(
 }
 
 /* ------------------------------------------------------------------------- */
-
-void NS(NodeId_print_out)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node_id )
-{
-    ::NS(NodeId_print)( stdout, node_id );
-}
-
-void NS(NodeId_print)( ::FILE* SIXTRL_RESTRICT output,
-    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node_id )
-{
-    if( node_id != nullptr )
-    {
-        st::printNodeId( output, *node_id );
-    }
-}
 
 ::NS(ctrl_status_t) NS(NodeId_extract_node_id_str_from_config_str)(
     char const* SIXTRL_RESTRICT config_str, char* SIXTRL_RESTRICT node_id_str,
