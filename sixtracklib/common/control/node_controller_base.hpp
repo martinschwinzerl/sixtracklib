@@ -301,6 +301,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN virtual void doClear() override;
 
+        SIXTRL_HOST_FN virtual bool doCheckIsNodeInitialized(
+            node_index_t const node_index );
+
+        SIXTRL_HOST_FN virtual status_t doInitializeNode(
+            node_index_t const node_index );
+
         SIXTRL_HOST_FN virtual status_t doSelectNode(
             node_index_t const node_index );
 

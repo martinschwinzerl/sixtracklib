@@ -1062,6 +1062,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
                     SIXTRL_ASSERT(
                         ( platform_id == node_id_t::ILLEGAL_PLATFORM_ID ) ||
+                        ( ptr_node_id->platformId() ==
+                            node_id_t::ILLEGAL_PLATFORM_ID ) ||
                         ( platform_id == ptr_node_id->platformId() ) );
 
                     if( platform_id != node_id_t::ILLEGAL_PLATFORM_ID )
