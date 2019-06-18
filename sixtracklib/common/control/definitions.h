@@ -18,6 +18,7 @@ typedef SIXTRL_UINT32_T      NS(arch_kernel_id_t);
 typedef NS(arch_status_t)    NS(ctrl_status_t);
 typedef NS(arch_size_t)      NS(ctrl_size_t);
 typedef NS(arch_kernel_id_t) NS(ctrl_kernel_id_t);
+typedef SIXTRL_UINT16_T      NS(kernel_config_variant_t);
 
 typedef SIXTRL_INT64_T       NS(node_platform_id_t);
 typedef SIXTRL_INT64_T       NS(node_device_id_t);
@@ -196,6 +197,13 @@ SIXTRL_STATIC_VAR NS(arch_debugging_t) const
 SIXTRL_STATIC_VAR NS(arch_kernel_id_t) const
     NS(ARCH_ILLEGAL_KERNEL_ID) = ( NS(arch_kernel_id_t) )0xFFFFFFFF;
 
+SIXTRL_STATIC_VAR NS(kernel_config_variant_t) const
+    NS(KERNEL_CONFIG_VARIANT_NONE) = ( NS(kernel_config_variant_t) )0;
+
+SIXTRL_STATIC_VAR NS(kernel_config_variant_t) const
+    NS(KERNEL_CONFIG_VARIANT_DEBUG_MODE) =
+        ( NS(kernel_config_variant_t) )0x8000;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 SIXTRL_STATIC_VAR NS(node_platform_id_t) const NS(NODE_ILLEGAL_PATFORM_ID) =
@@ -215,19 +223,20 @@ SIXTRL_STATIC_VAR NS(node_index_t) const NS(NODE_UNDEFINED_INDEX) =
 
 namespace SIXTRL_CXX_NAMESPACE
 {
-    typedef ::NS(ctrl_status_t)       ctrl_status_t;
-    typedef ::NS(ctrl_size_t)         ctrl_size_t;
-    typedef ::NS(ctrl_kernel_id_t)    ctrl_kernel_id_t;
+    typedef ::NS(ctrl_status_t)             ctrl_status_t;
+    typedef ::NS(ctrl_size_t)               ctrl_size_t;
+    typedef ::NS(ctrl_kernel_id_t)          ctrl_kernel_id_t;
+    typedef ::NS(kernel_config_variant_t)   kernel_config_variant_t;
 
-    typedef ::NS(arch_status_t)       arch_status_t;
-    typedef ::NS(arch_id_t)           arch_id_t;
-    typedef ::NS(arch_size_t)         arch_size_t;
-    typedef ::NS(arch_debugging_t)    arch_debugging_t;
-    typedef ::NS(arch_kernel_id_t)    arch_kernel_id_t;
+    typedef ::NS(arch_status_t)             arch_status_t;
+    typedef ::NS(arch_id_t)                 arch_id_t;
+    typedef ::NS(arch_size_t)               arch_size_t;
+    typedef ::NS(arch_debugging_t)          arch_debugging_t;
+    typedef ::NS(arch_kernel_id_t)          arch_kernel_id_t;
 
-    typedef ::NS(node_platform_id_t)  node_platform_id_t;
-    typedef ::NS(node_device_id_t)    node_device_id_t;
-    typedef ::NS(node_index_t)        node_index_t;
+    typedef ::NS(node_platform_id_t)        node_platform_id_t;
+    typedef ::NS(node_device_id_t)          node_device_id_t;
+    typedef ::NS(node_index_t)              node_index_t;
 
     typedef enum
     {
@@ -311,6 +320,14 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_kernel_id_t
         ARCH_ILLEGAL_KERNEL_ID = static_cast< arch_kernel_id_t >( 0xFFFFFFFF );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_config_variant_t
+        KERNEL_CONFIG_VARIANT_NONE =
+            static_cast< kernel_config_variant_t >( 0 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_config_variant_t
+        KERNEL_CONFIG_VARIANT_DEBUG_MODE = static_cast<
+            kernel_config_variant_t >( 0x8000 );
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
