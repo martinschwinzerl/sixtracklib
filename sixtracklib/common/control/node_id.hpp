@@ -80,8 +80,23 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_FN platform_id_t platformId() const SIXTRL_NOEXCEPT;
         SIXTRL_FN device_id_t   deviceId() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_FN void setPlatformId( platform_id_t const id ) SIXTRL_NOEXCEPT;
-        SIXTRL_FN void setDeviceId( device_id_t const id ) SIXTRL_NOEXCEPT;
+        SIXTRL_FN status_t setPlatformId(
+            platform_id_t const id ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_FN status_t setDeviceId(
+            device_id_t const id ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_FN platform_device_pair_t const&
+        platformDeviceIdPair() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_FN platform_device_pair_t&
+        platformDeviceIdPair() SIXTRL_NOEXCEPT;
+
+        SIXTRL_FN platform_device_pair_t const*
+        ptrPlatformDeviceIdPair() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_FN platform_device_pair_t*
+        ptrPlatformDeviceIdPair() SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
@@ -106,6 +121,11 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN bool isSelectedByController( controller_base_t const&
             SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT;
 
+        SIXTRL_HOST_FN bool isDefault() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN bool isDefaultForController( controller_base_t const&
+            SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT;
+
         SIXTRL_HOST_FN controller_base_t const*
         ptrSelectingController() const SIXTRL_NOEXCEPT;
 
@@ -115,7 +135,7 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN status_t setSelectedController(
             controller_base_t const& SIXTRL_RESTRICT_REF ctrl ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void unselectController() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t resetSelectingController() SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN status_t attachToController(
             controller_base_t const& SIXTRL_RESTRICT_REF ctrl,
@@ -123,12 +143,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN status_t detachFromController( controller_base_t const&
             SIXTRL_RESTRICT_REF ctrl ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN controller_base_t const*
-        controllersBegin() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN controller_base_t const*
-        controllersEnd() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN controller_base_t const* ptrController(
             size_type const num_of_controller_in_list ) const SIXTRL_NOEXCEPT;

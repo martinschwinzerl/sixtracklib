@@ -71,16 +71,40 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->m_platform_device_pair.device_id;
     }
 
-    void NodeId::setPlatformId(
+    NodeId::status_t NodeId::setPlatformId(
         NodeId::platform_id_t const platform_id ) SIXTRL_NOEXCEPT
     {
         this->m_platform_device_pair.platform_id = id;
     }
 
-    void NodeId::setDeviceId(
+    NodeId::status_t NodeId::setDeviceId(
         NodeId::device_id_t const device_id ) SIXTRL_NOEXCEPT
     {
         this->m_platform_device_pair.device_id = id;
+    }
+
+    NodeId::platform_device_pair_t const&
+    NodeId::platformDeviceIdPair() const SIXTRL_NOEXCEPT
+    {
+        return this->m_platform_device_pair;
+    }
+
+    NodeId::platform_device_pair_t&
+    NodeId::platformDeviceIdPair SIXTRL_NOEXCEPT
+    {
+        return this->m_platform_device_pair;
+    }
+
+    NodeId::platform_device_pair_t const*
+    NodeId::ptrPlatformDeviceIdPair() const SIXTRL_NOEXCEPT
+    {
+        return &this->m_platform_device_pair;
+    }
+
+    NodeId::platform_device_pair_t*
+    NodeId::ptrPlatformDeviceIdPair() SIXTRL_NOEXCEPT
+    {
+        return &this->m_platform_device_pair;
     }
 
     /* --------------------------------------------------------------------- */
@@ -196,6 +220,53 @@ namespace SIXTRL_CXX_NAMESPACE
                  ( this->m_ptr_selected_by_controller == &ctrl ) );
     }
 
+    bool NodeId::isDefault() const SIXTRL_NOEXCEPT
+    {
+        bool is_default = false;
+
+        if( this->numControllers() > 0 )
+        {
+            for( auto ptr_ctrl : this->m_available_on_controllers )
+            {
+                if( ptr_ctrl == nullptr ) break;
+
+                if( this->isDefaultForController( *ptr_ctrl ) )
+                {
+                    is_default = true;
+                    break;
+                }
+            }
+        }
+
+        return is_default;
+    }
+
+    bool NodeId::isDefaultForController( NodeId::controller_base_t const&
+            SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT
+    {
+        using base_ctrl_t = st::NodeId::controller_base_t:
+        using node_ctrl_t = st::NodeControllerBase;
+
+        bool is_default = false;
+
+        base_ctrl_t const* ptr_ctrl = &ctrl;
+        node_ctrl_t const* ptr_node_ctrl = st::asNodeController( ptr_ctrl );
+
+        if( ( ptr_node_ctrl != nullptr ) &&
+            ( ptr_node_ctrl->hasDefaultNode() ) &&
+            ( ptr_node_ctrl->ptrDefaultNode() != nullptr ) &&
+            ( ptr_node_ctrl->ptrDefaultNode()->platformId() ==
+              this->platformId() ) &&
+            ( ptr_node_ctrl->ptrDefaultNode()->deviceId() ==
+              this->deviceId() ) &&
+            ( this->isAttachedToController( ptr_base_ctrl ) ) )
+        {
+            is_default = true;
+        }
+
+        return is_default;
+    }
+
     NodeId::controller_base_t const*
     NodeId::ptrSelectingController() const SIXTRL_NOEXCEPT
     {
@@ -227,11 +298,22 @@ namespace SIXTRL_CXX_NAMESPACE
         }
         else if( this->m_ptr_selected_by_controller != nullptr )
         {
-            this->unselectController();
+            this->m_ptr_selected_by_controller = nullptr;
             status = st::ARCH_STATUS_SUCCESS;
         }
 
         return status;
+    }
+
+    NodeId::status_t NodeId::setSelectedController( NodeId::controller_base_t
+        const& SIXTRL_RESTRICT_REF ctrl ) SIXTRL_NOEXCEPT
+    {
+        return this->setPtrSelectedController( &ctrl );
+    }
+
+    NodeId::status_t NodeId::resetSelectingController() SIXTRL_NOEXCEPT
+    {
+        return this->setPtrSelectedController( nullptr );
     }
 
     NodeId::status_t NodeId::attachToController(
@@ -300,7 +382,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
             if( this->m_ptr_selected_by_controller == &ctrl )
             {
-                this->unselectController();
+                this->resetSelectingController();
             }
 
             auto map_it = this->m_ptr_ctrl_to_node_index_map.find( &ctrl );
@@ -335,25 +417,6 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     NodeId::controller_base_t const*
-    NodeId::controllersBegin() const SIXTRL_NOEXCEPT
-    {
-        return this->m_available_on_controllers.data();
-    }
-
-    NodeId::controller_base_t const*
-    NodeId::controllersEnd() const SIXTRL_NOEXCEPT
-    {
-        NodeId::controller_base_t const* end_ptr = this->controllersBegin();
-
-        if( end_ptr != nullptr )
-        {
-            std::advance( end_ptr, this->numOfControllers() );
-        }
-
-        return end_ptr;
-    }
-
-    NodeId::controller_base_t const*
     NodeId::ptrController( NodeId::size_type const
         num_of_controller_in_list ) const SIXTRL_NOEXCEPT
     {
@@ -362,8 +425,8 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( !this->m_available_on_controllers.empty() ) &&
             ( num_of_controller_in_list < this->numControllers() ) )
         {
-            ptr_ctrl = this->controllersBegin();
-            std::advance( ptr_ctrl, num_of_controller_in_list );
+            ptr_ctrl = this->m_available_on_controllers[
+                num_of_controller_in_list ];
         }
 
         return ptr_ctrl;

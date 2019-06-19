@@ -54,13 +54,21 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_platform_id_t) NS(NodeId_get_platform_id)(
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_device_id_t) NS(NodeId_get_device_id)(
     SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN void NS(NodeId_set_platform_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(NodeId_set_platform_id)(
     SIXTRL_ARGPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node,
     NS(node_platform_id_t) const platform_id );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN void NS(NodeId_set_device_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(NodeId_set_device_id)(
     SIXTRL_ARGPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node,
     NS(node_device_id_t) const device_id );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodePlatformNodeIdPair) const*
+NS(NodeId_get_const_platform_id_platform_id_pair)(
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodePlatformNodeIdPair)*
+NS(NodeId_get_platform_id_platform_id_pair)(
+    SIXTRL_ARGPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node );
 
 /* ------------------------------------------------------------------------- */
 
@@ -99,6 +107,13 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeId_is_selected_by_controller)(
     SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
     const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller );
 
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeId_is_default)(
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeId_is_default_for_controller)(
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
+    const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller );
+
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(ControllerBase) const*
 NS(NodeId_get_const_selecting_controller)(
     SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node );
@@ -108,7 +123,8 @@ NS(NodeId_set_selected_controller)(
     SIXTRL_ARGPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node,
     const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN void NS(NodeId_unselect_controller)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(NodeId_reset_selecting_controller)(
     SIXTRL_ARGPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(NodeId_attach_to_controller)(
@@ -142,18 +158,22 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(NodeId_to_node_id_str)(
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(NodeId_print)(
     SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
-    FILE* SIXTRL_RESTRICT fp );
+    FILE* SIXTRL_RESTRICT fp,
+    const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_ctrl );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(NodeId_print_out)(
-    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node );
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
+    const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_ctrl );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t) NS(NodeId_required_str_capacity)(
-    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node );
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
+    const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_ctrl );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(NodeId_to_string)(
     SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
     NS(arch_size_t) const output_str_capacity,
-    char* SIXTRL_RESTRICT output_str );
+    char* SIXTRL_RESTRICT output_str,
+    const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_ctrl );
 
 /* ------------------------------------------------------------------------- */
 
@@ -167,7 +187,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeId_are_equal)(
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_status_t)
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
 NS(NodeId_extract_node_id_str_from_config_str)(
     char const* SIXTRL_RESTRICT config_str, char* SIXTRL_RESTRICT node_id_str,
     NS(buffer_size_t) const max_node_id_str_len );

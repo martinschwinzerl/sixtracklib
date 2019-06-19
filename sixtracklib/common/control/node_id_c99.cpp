@@ -74,6 +74,19 @@ void NS(NodeId_set_device_id)(
     if( node_id != nullptr ) node_id->setDeviceId( device_id );
 }
 
+NS(NodePlatformNodeIdPair) const*
+NS(NodeId_get_const_platform_id_platform_id_pair)(
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node )
+{
+    return ( node != nullptr ) ? &node->platformDeviceIdPair() : nullptr;
+}
+
+NS(NodePlatformNodeIdPair)* NS(NodeId_get_platform_id_platform_id_pair)(
+    SIXTRL_ARGPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node )
+{
+    return ( node != nullptr ) ? &node->platformDeviceIdPair() : nullptr;
+}
+
 /* ------------------------------------------------------------------------ */
 
 bool NS(NodeId_has_controllers)(
@@ -134,7 +147,21 @@ bool NS(NodeId_is_selected_by_controller)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
 {
     return ( ( node != nullptr ) &&
-             ( node->isSelectedByController( ptr_controller ) );
+             ( node->isSelectedByController( ptr_controller ) ) );
+}
+
+bool NS(NodeId_is_default)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node )
+{
+    return ( ( node != nullptr ) && ( node->isDefault() ) );
+}
+
+bool NS(NodeId_is_default_for_controller)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+{
+    return ( ( node != nullptr ) &&
+             ( node->isDefaultForController( ptr_controller ) ) );
 }
 
 ::NS(ControllerBase) const* NS(NodeId_get_const_selecting_controller)(
@@ -152,10 +179,12 @@ bool NS(NodeId_is_selected_by_controller)(
         : ::NS(ARCH_STATUS_GENERAL_FAILURE);
 }
 
-void NS(NodeId_unselect_controller)(
+NS(arch_status_t) NS(NodeId_reset_selecting_controller)(
     SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node )
 {
-    if( node != nullptr ) node->unselectController();
+    return ( node != nullptr )
+        ? node->resetSelectingController()
+        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
 }
 
 ::NS(arch_status_t) NS(NodeId_attach_to_controller)(
@@ -211,31 +240,36 @@ void NS(NodeId_unselect_controller)(
 
 void NS(NodeId_print)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
-    ::FILE* SIXTRL_RESTRICT fp )
+    ::FILE* SIXTRL_RESTRICT fp,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_ctrl )
 {
-    if( node != nullptr ) node->print( fp );
+    if( node != nullptr ) node->print( fp, ptr_ctrl );
 }
 
 void NS(NodeId_print_out)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node )
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_ctrl )
 {
-    if( node != nullptr ) node->printOut();
+    if( node != nullptr ) node->printOut( ptr_ctrl );
 }
 
 ::NS(arch_size_t) NS(NodeId_required_str_capacity)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node )
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_ctrl )
 {
     return ( node != nullptr )
-        ? node->requiredStringCapacity() : ::NS(arch_size_t){ 0 };
+        ? node->requiredStringCapacity( ptr_ctrl )
+        : ::NS(arch_size_t){ 0 };
 }
 
 ::NS(arch_status_t) NS(NodeId_to_string)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
     ::NS(arch_size_t) const output_str_capacity,
-    char* SIXTRL_RESTRICT output_str )
+    char* SIXTRL_RESTRICT output_str,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_ctrl )
 {
     return ( node != nullptr )
-        ? node->toString( output_str_capacity, output_str )
+        ? node->toString( output_str_capacity, output_str, ptr_ctrl )
         : ::NS(ARCH_STATUS_GENERAL_FAILURE);
 }
 
@@ -276,7 +310,7 @@ bool NS(NodeId_are_equal)(
 
 /* ------------------------------------------------------------------------- */
 
-::NS(ctrl_status_t) NS(NodeId_extract_node_id_str_from_config_str)(
+::NS(arch_status_t) NS(NodeId_extract_node_id_str_from_config_str)(
     char const* SIXTRL_RESTRICT config_str, char* SIXTRL_RESTRICT node_id_str,
     ::NS(buffer_size_t) const node_id_str_capacity )
 {
