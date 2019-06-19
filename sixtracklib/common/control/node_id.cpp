@@ -534,6 +534,34 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* ----------------------------------------------------------------- */
 
+    bool NodeId::hasArchIds() const SIXTRL_NOEXCEPT
+    {
+        return !this->m_arch_ids_counter.empty();
+    }
+
+    NodeId::size_type NodeId::numArchIds() const SIXTRL_NOEXCEPT
+    {
+
+    }
+
+    NodeId::arch_id_t const* NodeId::archIdsBegin() const SIXTRL_NOEXCEPT
+    {
+
+    }
+
+    NodeId::arch_id_t const* NodeId::archIdsEnd()   const SIXTRL_NOEXCEPT
+    {
+
+    }
+
+    NodeId::size_type NodeId::numControllers(
+        NodeId::arch_id_t const arch_id ) const SIXTRL_NOEXCEPT
+    {
+
+    }
+
+    /* ----------------------------------------------------------------- */
+
     void NodeId::print( std::ostream& SIXTRL_RESTRICT_REF os )
     {
         os << this->toNodeIdStr();

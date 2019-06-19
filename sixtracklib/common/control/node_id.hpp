@@ -39,6 +39,8 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         public:
 
+        using arch_info_t = SIXTRL_CXX_NAMESPACE::ArchInfo;
+        using arch_id_t = arch_info_t::arch_id_t;
         using size_type = SIXTRL_CXX_NAMESPACE::ctrl_size_t;
         using status_t = SIXTRL_CXX_NAMESPACE::arch_status_t;
         using platform_id_t = SIXTRL_CXX_NAMESPACE::platform_id_t;
@@ -165,6 +167,17 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
+        SIXTRL_HOST_FN bool hasArchIds() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type numArchIds() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN arch_id_t const* archIdsBegin() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN arch_id_t const* archIdsEnd() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type numControllers(
+            arch_id_t const arch_id ) const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
         SIXTRL_HOST_FN void print( std::ostream& SIXTRL_RESTRICT_REF os );
         SIXTRL_HOST_FN void print( ::FILE* SIXTRL_RESTRICT fp );
         SIXTRL_HOST_FN void printOut();
@@ -186,12 +199,16 @@ namespace SIXTRL_CXX_NAMESPACE
         using ptr_ctrl_to_node_index_map_t =
             std::map< controller_base_t const*, node_index_t >;
 
-        using ptr_ctrl_list_t = std::vector< controller_base_t const* >;
+        using ptr_ctrl_list_t   = std::vector< controller_base_t const* >;
+        using arch_id_counter_t = std::map< arch_id_t, size_type >;
+        using arch_id_list_t    = std::vector< arch_id_t >;
 
         ptr_ctrl_to_node_index_map_t  m_ptr_ctrl_to_node_index_map;
         ptr_ctrl_list_t               m_available_on_controllers;
+        arch_id_counter_t             m_arch_ids_counter;
+        arch_id_list_t                m_arch_ids_list;
         platform_device_pair_t        m_platform_device_pair;
-        controller_base_t*               m_ptr_selected_by_controller;
+        controller_base_t*            m_ptr_selected_by_controller;
     };
 
     SIXTRL_HOST_FN std::ostream& operator<<(
