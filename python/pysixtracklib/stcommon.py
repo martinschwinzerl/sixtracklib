@@ -930,6 +930,13 @@ st_node_index_p = ct.POINTER(st_node_index_t)
 st_NodeId_p = ct.c_void_p
 st_NullNodeId = ct.cast(0, st_NodeId_p)
 
+class st_PlatformDeviceIdPair( ct.Structure ):
+    _fields_ = [("platform_id", st_node_platform_id_t),
+                ("device_id", st_node_device_id_t)]
+
+st_PlatformDeviceIdPair_p = ct.POINTER( st_PlatformDeviceIdPair )
+st_NullPlatformDeviceIdPair = ct.cast( 0, st_PlatformDeviceIdPair_p )
+
 st_NodeId_create = sixtracklib.st_NodeId_create
 st_NodeId_create.argtypes = None
 st_NodeId_create.restype = st_NodeId_p
@@ -964,11 +971,22 @@ st_NodeId_get_device_id.restype = st_node_device_id_t
 
 st_NodeId_set_platform_id = sixtracklib.st_NodeId_set_platform_id
 st_NodeId_set_platform_id.argtypes = [ st_NodeId_p, st_node_platform_id_t ]
-st_NodeId_set_platform_id.restype = None
+st_NodeId_set_platform_id.restype = st_arch_status_t
 
 st_NodeId_set_device_id = sixtracklib.st_NodeId_set_device_id
 st_NodeId_set_device_id.argtypes = [ st_NodeId_p, st_node_device_id_t ]
-st_NodeId_set_device_id.restype = None
+st_NodeId_set_device_id.restype = st_arch_status_t
+
+st_NodeId_get_const_platform_id_platform_id_pair = \
+    sixtracklib.st_NodeId_get_const_platform_id_platform_id_pair
+st_NodeId_get_const_platform_id_platform_id_pair.argtypes = [ st_NodeId_p ]
+st_NodeId_get_const_platform_id_platform_id_pair.restype = \
+    st_PlatformDeviceIdPair_p
+
+st_NodeId_get_platform_id_platform_id_pair = \
+    sixtracklib.st_NodeId_get_platform_id_platform_id_pair
+st_NodeId_get_platform_id_platform_id_pair.argtypes = [ st_NodeId_p ]
+st_NodeId_get_platform_id_platform_id_pair.restype = st_PlatformDeviceIdPair_p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1015,6 +1033,16 @@ st_NodeId_is_selected_by_controller.argtypes = [
     st_NodeId_p, st_ControllerBase_p ];
 st_NodeId_is_selected_by_controller.restype = ct.c_bool
 
+st_NodeId_is_default = sixtracklib.st_NodeId_is_default
+st_NodeId_is_default.argtypes = [ st_NodeId_p ]
+st_NodeId_is_default.restype = ct.c_bool
+
+st_NodeId_is_default_for_controller = \
+    sixtracklib.st_NodeId_is_default_for_controller
+st_NodeId_is_default_for_controller.argtypes = [
+    st_NodeId_p, st_ControllerBase_p ];
+st_NodeId_is_default_for_controller.restype = ct.c_bool
+
 st_NodeId_get_const_selecting_controller = \
     sixtracklib.st_NodeId_get_const_selecting_controller
 st_NodeId_get_const_selecting_controller.argtypes = [ st_NodeId_p ]
@@ -1026,9 +1054,10 @@ st_NodeId_set_selected_controller.argtypes = [
         st_NodeId_p, st_ControllerBase_p ]
 st_NodeId_set_selected_controller.restype = st_arch_status_t
 
-st_NodeId_unselect_controller = sixtracklib.st_NodeId_unselect_controller
-st_NodeId_unselect_controller.argtypes = [ st_NodeId_p ]
-st_NodeId_unselect_controller.restype = None
+st_NodeId_reset_selecting_controller = \
+    sixtracklib.st_NodeId_reset_selecting_controller
+st_NodeId_reset_selecting_controller.argtypes = [ st_NodeId_p ]
+st_NodeId_reset_selecting_controller.restype = st_arch_status_t
 
 st_NodeId_attach_to_controller = sixtracklib.st_NodeId_attach_to_controller
 st_NodeId_attach_to_controller.argtypes = [
@@ -1056,15 +1085,16 @@ st_NodeId_to_node_id_str.restype = st_arch_status_t
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 st_NodeId_print_out = sixtracklib.st_NodeId_print_out
-st_NodeId_print_out.argtypes = [ st_NodeId_p ]
+st_NodeId_print_out.argtypes = [ st_NodeId_p, st_ControllerBase_p ]
 st_NodeId_print_out.restype = None
 
 st_NodeId_required_str_capacity = sixtracklib.st_NodeId_required_str_capacity
-st_NodeId_required_str_capacity.argtypes = [ st_NodeId_p ]
+st_NodeId_required_str_capacity.argtypes = [ st_NodeId_p, st_ControllerBase_p ]
 st_NodeId_required_str_capacity.restype = st_arch_size_t
 
 st_NodeId_to_string = sixtracklib.st_NodeId_to_string
-st_NodeId_to_string.argtypes = [ st_NodeId_p, st_arch_size_t, ct.c_char_p ]
+st_NodeId_to_string.argtypes = [
+        st_NodeId_p, st_arch_size_t, ct.c_char_p, st_ControllerBase_p ]
 st_NodeId_to_string.restype = st_arch_status_t
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1083,7 +1113,7 @@ st_NodeId_extract_node_id_str_from_config_str = \
     sixtracklib.st_NodeId_extract_node_id_str_from_config_str
 st_NodeId_extract_node_id_str_from_config_str.argtypes = [
     ct.c_char_p, ct.c_char_p, st_buffer_size_t ]
-st_NodeId_extract_node_id_str_from_config_str.restype = st_ctrl_status_t
+st_NodeId_extract_node_id_str_from_config_str.restype = st_arch_status_t
 
 
 # -----------------------------------------------------------------------------
@@ -1095,6 +1125,16 @@ st_NullNodeInfoBase = ct.cast(0, st_NodeInfoBase_p)
 st_NodeInfo_delete = sixtracklib.st_NodeInfo_delete
 st_NodeInfo_delete.argtypes = [st_NodeInfoBase_p]
 st_NodeInfo_delete.restype = None
+
+st_NodeInfo_has_node_id = sixtracklib.st_NodeInfo_has_node_id
+st_NodeInfo_has_node_id.argtypes = [ st_NodeInfoBase_p ]
+st_NodeInfo_has_node_id.restype = ct.c_bool
+
+st_NodeInfo_owns_node_id = sixtracklib.st_NodeInfo_owns_node_id
+st_NodeInfo_owns_node_id.argtypes = [ st_NodeInfoBase_p ]
+st_NodeInfo_owns_node_id.restype = ct.c_bool
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 st_NodeInfo_get_ptr_const_node_id = \
     sixtracklib.st_NodeInfo_get_ptr_const_node_id
@@ -1109,21 +1149,87 @@ st_NodeInfo_get_device_id = sixtracklib.st_NodeInfo_get_device_id
 st_NodeInfo_get_device_id.argtypes = [st_NodeInfoBase_p]
 st_NodeInfo_get_device_id.restype = st_node_device_id_t
 
+st_NodeInfo_has_controllers = sixtracklib.st_NodeInfo_has_controllers
+st_NodeInfo_has_controllers.argtypes = [ st_NodeInfoBase_p ]
+st_NodeInfo_has_controllers.restype = ct.c_bool
+
+st_NodeInfo_get_num_of_controllers = \
+    sixtracklib.st_NodeInfo_get_num_of_controllers
+st_NodeInfo_get_num_of_controllers.argtypes = [ st_NodeInfoBase_p ]
+st_NodeInfo_get_num_of_controllers.restype = ct.c_bool
+
+st_NodeInfo_is_attached_to_controller = \
+    sixtracklib.st_NodeInfo_is_attached_to_controller
+st_NodeInfo_is_attached_to_controller.argtypes = [
+        st_NodeInfoBase_p, st_ControllerBase_p ]
+st_NodeInfo_is_attached_to_controller.restype = ct.c_bool
+
 st_NodeInfo_has_node_index = sixtracklib.st_NodeInfo_has_node_index
-st_NodeInfo_has_node_index.argtypes = [st_NodeInfoBase_p]
+st_NodeInfo_has_node_index.argtypes = [ st_NodeInfoBase_p, st_ControllerBase_p ]
 st_NodeInfo_has_node_index.restype = ct.c_bool
 
 st_NodeInfo_get_node_index = sixtracklib.st_NodeInfo_get_node_index
-st_NodeInfo_get_node_index.argtypes = [st_NodeInfoBase_p]
+st_NodeInfo_get_node_index.argtypes = [ st_NodeInfoBase_p, st_ControllerBase_p ]
 st_NodeInfo_get_node_index.restype = st_node_index_t
 
-st_NodeInfo_is_default_node = sixtracklib.st_NodeInfo_is_default_node
-st_NodeInfo_is_default_node.argtypes = [st_NodeInfoBase_p]
-st_NodeInfo_is_default_node.restype = ct.c_bool
+st_NodeInfo_set_node_index = sixtracklib.st_NodeInfo_set_node_index
+st_NodeInfo_set_node_index.argtypes = [
+        st_NodeInfoBase_p, st_ControllerBase_p, st_node_index_t ]
+st_NodeInfo_set_node_index.restype = st_arch_status_t
 
-st_NodeInfo_is_selected_node = sixtracklib.st_NodeInfo_is_selected_node
-st_NodeInfo_is_selected_node.argtypes = [st_NodeInfoBase_p]
-st_NodeInfo_is_selected_node.restype = ct.c_bool
+st_NodeInfo_is_selected = sixtracklib.st_NodeInfo_is_selected
+st_NodeInfo_is_selected.argtypes = [ st_NodeInfoBase_p ]
+st_NodeInfo_is_selected.restype = ct.c_bool
+
+st_NodeInfo_is_selected_by_controller = \
+    sixtracklib.st_NodeInfo_is_selected_by_controller
+st_NodeInfo_is_selected_by_controller.argtypes = [
+        st_NodeInfoBase_p, st_ControllerBase_p ]
+st_NodeInfo_is_selected_by_controller.restype = ct.c_bool
+
+st_NodeInfo_is_default = sixtracklib.st_NodeInfo_is_default
+st_NodeInfo_is_default.argtypes = [ st_NodeInfoBase_p ]
+st_NodeInfo_is_default.restype = ct.c_bool
+
+st_NodeInfo_is_default_for_controller = \
+    sixtracklib.st_NodeInfo_is_default_for_controller
+st_NodeInfo_is_default_for_controller.argtypes = [
+    st_NodeInfoBase_p, st_ControllerBase_p ]
+st_NodeInfo_is_default_for_controller.restype = ct.c_bool
+
+st_NodeInfo_get_const_selecting_controller = \
+    sixtracklib.st_NodeInfo_get_const_selecting_controller
+st_NodeInfo_get_const_selecting_controller.argtypes = [ st_NodeInfoBase_p ]
+st_NodeInfo_get_const_selecting_controller.restype = st_ControllerBase_p
+
+st_NodeInfo_set_selected_controller = \
+    sixtracklib.st_NodeInfo_set_selected_controller
+st_NodeInfo_set_selected_controller.argtypes = [
+        st_NodeInfoBase_p, st_ControllerBase_p ]
+st_NodeInfo_set_selected_controller.restype = st_arch_status_t
+
+st_NodeInfo_reset_selecting_controller = \
+    sixtracklib.st_NodeInfo_reset_selecting_controller
+st_NodeInfo_reset_selecting_controller.argtypes = [ st_NodeInfoBase_p ]
+st_NodeInfo_reset_selecting_controller.restype = st_arch_status_t
+
+st_NodeInfo_attach_to_controller = sixtracklib.st_NodeInfo_attach_to_controller
+st_NodeInfo_attach_to_controller.argtypes = [
+    st_NodeInfoBase_p, st_ControllerBase_p, st_node_index_t ]
+st_NodeInfo_attach_to_controller.restype = st_arch_status_t
+
+st_NodeInfo_detach_from_controller = \
+    sixtracklib.st_NodeInfo_detach_from_controller
+st_NodeInfo_detach_from_controller.argtypes = [
+    st_NodeInfoBase_p, st_ControllerBase_p ]
+st_NodeInfo_detach_from_controller.restype = st_arch_status_t
+
+st_NodeInfo_get_const_controller = sixtracklib.st_NodeInfo_get_const_controller
+st_NodeInfo_get_const_controller.argtypes = [
+        st_NodeInfoBase_p, st_arch_size_t ]
+st_NodeInfo_get_const_controller.restype = st_ControllerBase_p
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 st_NodeInfo_get_arch_id = sixtracklib.st_NodeInfo_get_arch_id
 st_NodeInfo_get_arch_id.argtypes = [st_NodeInfoBase_p]
@@ -1161,19 +1267,21 @@ st_NodeInfo_get_description = sixtracklib.st_NodeInfo_get_description
 st_NodeInfo_get_description.argtypes = [st_NodeInfoBase_p]
 st_NodeInfo_get_description.restype = ct.c_char_p
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 st_NodeInfo_print_out = sixtracklib.st_NodeInfo_print_out
-st_NodeInfo_print_out.argtypes = [st_NodeInfoBase_p]
+st_NodeInfo_print_out.argtypes = [ st_NodeInfoBase_p, st_ControllerBase_p ]
 st_NodeInfo_print_out.restype = None
 
 st_NodeInfo_get_required_output_str_length = \
     sixtracklib.st_NodeInfo_get_required_output_str_length
-st_NodeInfo_get_required_output_str_length.argtypes = [st_NodeInfoBase_p]
+st_NodeInfo_get_required_output_str_length.argtypes = [ st_NodeInfoBase_p ]
 st_NodeInfo_get_required_output_str_length.restype = st_arch_size_t
 
-_st_NodeInfo_convert_to_string = sixtracklib.st_NodeInfo_convert_to_string
-_st_NodeInfo_convert_to_string.argtypes = [
-    st_NodeInfoBase_p, st_arch_size_t, ct.c_char_p]
-_st_NodeInfo_convert_to_string.restype = st_arch_status_t
+st_NodeInfo_convert_to_string = sixtracklib.st_NodeInfo_convert_to_string
+st_NodeInfo_convert_to_string.argtypes = [
+        st_NodeInfoBase_p, st_ControllerBase_p ]
+st_NodeInfo_convert_to_string.restype = st_arch_status_t
 
 # -----------------------------------------------------------------------------
 # NS(KernelConfigBase)
