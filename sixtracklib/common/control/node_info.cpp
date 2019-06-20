@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iomanip>
+#include <limits>
 #include <ostream>
 #include <stdexcept>
 #include <sstream>
@@ -26,34 +27,11 @@ namespace SIXTRL_CXX_NAMESPACE
         const char *const SIXTRL_RESTRICT platform_name,
         const char *const SIXTRL_RESTRICT device_name,
         const char *const SIXTRL_RESTRICT description  ) :
-        st::ArchInfo( arch_id, arch_str ), m_platform_name(),
-        m_device_name(), m_description(), m_ptr_node_id( nullptr ),
-        m_ptr_stored_node_id( new st::NodeId( platform_id, device_id ) )
+        st::ArchInfo( arch_id, arch_str ),
+        m_ptr_ctrl_to_node_index_map(), m_platform_name(), m_device_name(),
+        m_description(), m_unique_id(), m_node_id( platform_id, device_id ),
+        m_ptr_selected_by_controller( nullptr )
     {
-        if( this->m_ptr_stored_node_id.get() != nullptr )
-        {
-            this->doSetPtrNodeId( this->m_ptr_stored_node_id.get() );
-        }
-
-        this->setPlatformName( platform_name );
-        this->setDeviceName( device_name );
-        this->setDescription( description );
-    }
-
-    NodeInfoBase::NodeInfoBase(
-        NodeInfoBase::arch_info_t const* SIXTRL_RESTRICT ptr_arch_info,
-        NodeInfoBase::node_id_t* SIXTRL_RESTRICT ptr_node_id,
-        const char *const SIXTRL_RESTRICT platform_name,
-        const char *const SIXTRL_RESTRICT device_name,
-        const char *const SIXTRL_RESTRICT description ) :
-        st::ArchInfo( ), m_platform_name(), m_device_name(), m_description(),
-        m_ptr_node_id( ptr_node_id ), m_ptr_stored_node_id( nullptr )
-    {
-        if( ptr_arch_info != nullptr )
-        {
-            ArchInfo::operator=( *ptr_arch_info );
-        }
-
         this->setPlatformName( platform_name );
         this->setDeviceName( device_name );
         this->setDescription( description );
@@ -66,31 +44,11 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeInfoBase::device_id_t const device_id,
         std::string const& SIXTRL_RESTRICT_REF platform_name,
         std::string const& SIXTRL_RESTRICT_REF device_name,
-        std::string const& SIXTRL_RESTRICT_REF description ):
-        st::ArchInfo( arch_id, arch_str ), m_platform_name(),
-        m_device_name(), m_description(), m_ptr_node_id( nullptr ),
-        m_ptr_stored_node_id( new st::NodeId( platform_id, device_id ) )
-    {
-        if( this->m_ptr_stored_node_id.get() != nullptr )
-        {
-            this->doSetPtrNodeId( this->m_ptr_stored_node_id.get() );
-        }
-
-        this->setPlatformName( platform_name );
-        this->setDeviceName( device_name );
-        this->setDescription( description );
-    }
-
-
-    NodeInfoBase::NodeInfoBase(
-        NodeInfoBase::arch_info_t const& SIXTRL_RESTRICT_REF arch_info,
-        NodeInfoBase::node_id_t const& SIXTRL_RESTRICT_REF node_id,
-        std::string const& SIXTRL_RESTRICT_REF platform_name,
-        std::string const& SIXTRL_RESTRICT_REF device_name,
         std::string const& SIXTRL_RESTRICT_REF description ) :
-        st::ArchInfo( arch_info ),
-        m_platform_name(), m_device_name(), m_description(),
-        m_ptr_node_id( ptr_node_id ), m_ptr_stored_node_id( nullptr )
+        st::ArchInfo( arch_id, arch_str ),
+        m_ptr_ctrl_to_node_index_map(), m_platform_name(), m_device_name(),
+        m_description(), m_unique_id(), m_node_id( platform_id, device_id ),
+        m_ptr_selected_by_controller( nullptr )
     {
         this->setPlatformName( platform_name );
         this->setDeviceName( device_name );
@@ -99,276 +57,339 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    bool NodeInfoBase::ownsNodeId() const SIXTRL_NOEXCEPT
-    {
-        return ( ( this->m_ptr_stored_node_id.get() != nullptr ) &&
-                 ( this->m_ptr_stored_node_id.get() == this->m_ptr_node_id ) );
-    }
-
-    bool NodeInfoBase::hasNodeId()  const SIXTRL_NOEXCEPT
-    {
-        return ( this->m_ptr_node_id != nullptr );
-    }
-
-    NodeInfoBase::node_id_t const& NodeInfoBase::nodeId() const
-    {
-        if( this->hasNodeId() )
-        {
-            throw std::runtime_error(
-                "NodeInfo* instance has no NodeId member" );
-        }
-
-        return this->m_node_id;
-    }
-
-    NodeInfoBase::node_id_t& NodeInfoBase::nodeId()
-    {
-        return const_cast< NodeInfoBase::node_id_t& >( static_cast<
-            NodeInfoBase const& >( *this ).nodeId() );
-    }
-
-    NodeInfoBase::node_id_t const*
-    NodeInfoBase::ptrNodeId() const SIXTRL_NOEXCEPT
-    {
-        return this->m_ptr_node_id;
-    }
-
-    NodeInfoBase::node_id_t* NodeInfoBase::ptrNodeId() SIXTRL_NOEXCEPT
-    {
-        return this->m_ptr_node_id;
-    }
-
-    NodeInfoBase::platform_id_t NodeInfoBase::platformId() const SIXTRL_NOEXCEPT
-    {
-        return ( this->m_ptr_node_id != nullptr )
-            ? this->m_ptr_node_id->platformId()
-            : st::NodeInfoBase::ILLEGAL_PLATFORM_ID;
-    }
-
-    void NodeInfoBase::setPlatformId(
-        NodeInfoBase::platform_id_t const platform_id ) SIXTRL_NOEXCEPT
-    {
-        NodeInfoBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( this->hasNodeId() )
-        {
-            status = this->m_ptr_node_id->setPlatformId( platform_id );
-        }
-
-        return status;
-    }
-
-    NodeInfoBase::device_id_t NodeInfoBase::deviceId() const SIXTRL_NOEXCEPT
-    {
-        return ( this->m_ptr_node_id != nullptr )
-            ? this->m_ptr_node_id->deviceId()
-            : st::NodeInfoBase::ILLEGAL_DEVICE_ID;
-    }
-
-    NodeInfoBase::status_t NodeInfoBase::setDeviceId(
-        NodeInfoBase::device_id_t const device_id ) SIXTRL_NOEXCEPT
-    {
-        NodeInfoBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( this->hasNodeId() )
-        {
-            status = this->m_ptr_node_id->setDeviceId( device_id );
-        }
-
-        return status;
-    }
-
-    NodeInfoBase::platform_device_pair_t const&
-    NodeInfoBase::platformDeviceIdPair() const
-    {
-        return this->nodeId().platformDeviceIdPair();
-    }
-
-    NodeInfoBase::platform_device_pair_t& NodeInfoBase::platformDeviceIdPair()
-    {
-        return this->nodeId().platformDeviceIdPair();
-    }
-
-    NodeInfoBase::platform_device_pair_t const*
-    NodeInfoBase::ptrPlatformDeviceIdPair() const SIXTRL_NOEXCEPT
-    {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->ptrPlatformDeviceIdPair() : nullptr;
-    }
-
-    NodeInfoBase::platform_device_pair_t&
-    NodeInfoBase::ptrPlatformDeviceIdPair() SIXTRL_NOEXCEPT
-    {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->ptrPlatformDeviceIdPair() : nullptr;
-    }
-
-    /* ----------------------------------------------------------------- */
-
-    bool NodeInfoBase::hasControllers() const SIXTRL_NOEXCEPT
-    {
-        return ( ( this->hasNodeId() ) &&
-                 ( this->ptrNodeId()->hasControllers() ) );
-    }
-
-    NodeInfoBase::size_type
-    NodeInfoBase::numControllers() const SIXTRL_NOEXCEPT
-    {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->numControllers()
-            : NodeInfoBase::size_type{ 0 };
-    }
-
     bool NodeInfoBase::isAttachedToController( NodeInfoBase::controller_base_t
         const& SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->hasNodeId() ) &&
-                 ( this->ptrNodeId()->isAttachedToController( ctrl ) ) );
+        using ptr_ctrl_t = NodeInfoBase::controller_base_t const*;
+
+        bool const is_attached_to_controller = (
+            ( cltr != nullptr ) &&
+            ( !this->m_ptr_ctrl_to_node_index_map.empty() ) &&
+            (  this->m_ptr_ctrl_to_node_index_map.find( ptr_ctrl ) !=
+               this->m_ptr_ctrl_to_node_index_map.end() ) );
+
+        SIXTRL_ASSERT( ( !is_attached_to_controller ) ||
+            ( ( !this->m_available_on_controllers.empty() ) &&
+              (  std::find( this->m_available_on_controllers.begin(),
+                    this->m_available_on_controllers.end(),
+                    [&ctrl]( ptr_ctrl_t ptr_cmp_ctrl ) {
+                        return ( ptr_cmp_ctrl == &ctrl ); } ) ) ) );
+
+        return is_attached_to_controller;
     }
 
     bool NodeInfoBase::hasNodeIndex( NodeInfoBase::controller_base_t const&
         SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->hasNodeId() ) &&
-                 ( this->ptrNodeId()->hasNodeIndex( ctrl ) ) );
+        return ( this->getNodeIndex( ctrl ) != NodeInfoBase::UNDEFINED_INDEX );
     }
 
     NodeInfoBase::node_index_t NodeInfoBase::nodeIndex(
         NodeInfoBase::controller_base_t const& SIXTRL_RESTRICT_REF
             ctrl ) const SIXTRL_NOEXCEPT
     {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->nodeIndex( ctrl )
-            : st::NodeInfoBase::UNDEFINED_INDEX;
+        NodeInfoBase::node_index_t node_index = NodeInfoBase::UNDEFINED_INDEX;
+
+        if( this->hasControllers() )
+        {
+            NodeInfoBase::controller_base_t const* ptr_ctrl = &ctrl;
+
+            auto it = this->m_ptr_ctrl_to_node_index_map.find( ptr_ctrl );
+
+            if( it != this->m_ptr_ctrl_to_node_index_map.end() )
+            {
+                node_index = it->second;
+            }
+        }
+
+        SIXTRL_ASSERT( ( node_index == NodeInfoBase::UNDEFINED_INDEX ) ||
+            ( ( this->isAttachedToController( ctrl ) ) &&
+              ( st::asNodeController( ptr_ctrl ) != nullptr ) &&
+              ( st::asNodeController( ptr_ctrl )->isNodeAvailable(
+                  node_index ) ) ) );
+
+        return node_index;
     }
 
     NodeInfoBase::status_t NodeInfoBase::setNodeIndex(
         NodeInfoBase::controller_base_t const& SIXTRL_RESTRICT_REF ctrl,
         NodeInfoBase::node_index_t const node_index ) SIXTRL_RESTRICT
     {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->setNodeIndex( ctrl, node_index )
-            : st::ARCH_STATUS_GENERAL_FAILURE;
-    }
+        NodeInfoBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        st::NodeControllerBase const* ptr_ctrl = st::asNodeController(
+            &ctrl );
 
-    bool NodeInfoBase::isSelected() const SIXTRL_NOEXCEPT
-    {
-        return ( ( this->hasNodeId() ) && ( this->ptrNodeId()->isSelected() ) );
+        if( ( ptr_ctrl != nullptr ) &&
+            ( this->isAttachedToController( &ctrl ) ) )
+        {
+            it = this->m_ptr_ctrl_to_node_index_map.find( &ctrl );
+
+            if( it != this->m_ptr_ctrl_to_node_index_map.end() )
+            {
+                it->second = node_index;
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+
+        return status;
     }
 
     bool NodeInfoBase::isSelectedByController( controller_base_t const&
         SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->hasNodeId() ) &&
-                 ( this->ptrNodeId()->isSelectedByController( ctrl ) ) );
+        return ( ( this->isAttachedToController( &ctrl ) ) &&
+                 ( this->m_ptr_selected_by_controller == &ctrl ) );
     }
 
     bool NodeInfoBase::isDefault() const SIXTRL_NOEXCEPT
     {
-        return ( ( this->hasNodeId() ) && ( this->isDefault() ) );
+        bool is_default = false;
+
+        if( this->numControllers() > 0 )
+        {
+            for( auto ptr_ctrl : this->m_available_on_controllers )
+            {
+                if( ptr_ctrl == nullptr ) break;
+
+                if( this->isDefaultForController( *ptr_ctrl ) )
+                {
+                    is_default = true;
+                    break;
+                }
+            }
+        }
+
+        return is_default;
     }
 
     bool NodeInfoBase::isDefaultForController( controller_base_t const&
         SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->hasNodeId() ) &&
-                 ( this->ptrNodeId()->isDefaultForController( ctrl ) ) );
-    }
+        using base_ctrl_t = st::NodeId::controller_base_t:
+        using node_ctrl_t = st::NodeControllerBase;
 
-    NodeInfoBase::controller_base_t const*
-    NodeInfoBase::ptrSelectingController() const SIXTRL_NOEXCEPT
-    {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->ptrSelectingController() : nullptr;
+        bool is_default = false;
+
+        base_ctrl_t const* ptr_ctrl = &ctrl;
+        node_ctrl_t const* ptr_node_ctrl = st::asNodeController( ptr_ctrl );
+
+        if( ( ptr_node_ctrl != nullptr ) &&
+            ( ptr_node_ctrl->hasDefaultNode() ) &&
+            ( ptr_node_ctrl->ptrDefaultNode() != nullptr ) &&
+            ( ptr_node_ctrl->ptrDefaultNode()->platformId() ==
+                this->platformId() ) &&
+            ( ptr_node_ctrl->ptrDefaultNode()->deviceId() ==
+                this->deviceId() ) &&
+            ( this->isAttachedToController( ptr_base_ctrl ) ) )
+        {
+            is_default = true;
+        }
+
+        return is_default;
     }
 
     NodeInfoBase::status_t NodeInfoBase::setPtrSelectedController(
         NodeInfoBase::controller_base_t const*
             SIXTRL_RESTRICT ptr_ctrl ) SIXTRL_NOEXCEPT
     {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->setPtrSelectedController( ptr_ctrl )
-            : st::ARCH_STATUS_GENERAL_FAILURE;
-    }
+        NodeInfoBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-    NodeInfoBase::status_t NodeInfoBase::setSelectedController(
-        NodeInfoBase::controller_base_t const&
-            SIXTRL_RESTRICT_REF ctrl ) SIXTRL_NOEXCEPT
-    {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->setSelectedController( ctrl )
-            : st::ARCH_STATUS_GENERAL_FAILURE;
-    }
+        if( ctrl != nullptr )
+        {
+            if( this->isAttachedToController( *ctrl ) )
+            {
+                if( ctrl != this->m_ptr_selected_by_controller )
+                {
+                    this->m_ptr_selected_by_controller = ctrl;
+                }
 
-    NodeInfoBase::status_t
-    NodeInfoBase::resetSelectingController() SIXTRL_NOEXCEPT
-    {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->resetSelectingController()
-            : st::ARCH_STATUS_GENERAL_FAILURE;
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+        else if( this->m_ptr_selected_by_controller != nullptr )
+        {
+            this->m_ptr_selected_by_controller = nullptr;
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
     }
 
     NodeInfoBase::status_t NodeInfoBase::attachToController(
         NodeInfoBase::controller_base_t const& SIXTRL_RESTRICT_REF ctrl,
-        NodeInfoBase::node_index_t const node_index = UNDEFINED_INDEX )
+        NodeInfoBase::node_index_t const node_index )
     {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->attachToController( ctrl, node_index )
-            : st::ARCH_STATUS_GENERAL_FAILURE;
+        using ptr_ctrl_t = NodeInfoBase::controller_base_t const*;
+
+        NodeInfoBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( !this->m_ptr_ctrl_to_node_index_map.empty() )
+        {
+            auto it = this->m_ptr_ctrl_to_node_index_map.find( &ctrl );
+            if( it == this->m_ptr_ctrl_to_node_index_map.end() )
+            {
+                auto ret = this->m_ptr_ctrl_to_node_index_map.emplace(
+                    std::make_pair( &ctrl, node_index ) );
+
+                if( ret.second )
+                {
+                    SIXTRL_ASSERT( this->controllerNumberInList( ctrl ) >=
+                                   this->numControllers() );
+
+                    this->m_available_on_controllers.push_back( &ctrl );
+                    std::sort( this->m_available_on_controllers.begin(),
+                               this->m_available_on_controllers.end() );
+
+                    status = st::ARCH_STATUS_SUCCESS;
+                }
+            }
+            else if( it->second != node_index )
+            {
+                SIXTRL_ASSERT( this->controllerNumberInList( ctrl ) <
+                    this->numControllers() );
+
+                it->second = node_index;
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+
+        return status;
     }
 
     NodeInfoBase::status_t NodeInfoBase::detachFromController(
         NodeInfoBase::controller_base_t const&
             SIXTRL_RESTRICT_REF ctrl ) SIXTRL_NOEXCEPT
     {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->detachFromController( ctrl )
-            : st::ARCH_STATUS_GENERAL_FAILURE;
+        NodeInfoBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( this->isAttachedToController( &ctrl ) )
+        {
+            SIXTRL_ASSERT( !this->m_ptr_ctrl_to_node_index_map.empty() );
+            SIXTRL_ASSERT( !this->m_available_on_controllers.empty() );
+
+            SIXTRL_ASSERT(  this->m_ptr_ctrl_to_node_index_map.size() ==
+                            this->m_available_on_controllers.size() );
+
+            if( this->m_ptr_selected_by_controller == &ctrl )
+            {
+                this->resetSelectingController();
+            }
+
+            auto map_it = this->m_ptr_ctrl_to_node_index_map.find( &ctrl );
+            SIXTRL_ASSERT( map_it != this->m_ptr_ctrl_to_node_index_map.end() );
+
+            this->m_ptr_ctrl_to_node_index_map.erase( map_it );
+
+            auto vec_it = this->m_available_on_controllers.begin();
+            NodeInfoBase::size_type const nn =
+                this->controllerNumberInList( ctrl );
+
+            if( nn < this->numControllers() )
+            {
+                std::advance( vec_it, nn );
+            }
+            else
+            {
+                vec_it = this->m_available_on_controllers.end();
+            }
+
+            SIXTRL_ASSERT( vec_it != this->m_available_on_controllers.end() );
+
+            this->m_available_on_controllers.erase( vec_it );
+
+            SIXTRL_ASSERT( this->m_available_on_controllers.size() ==
+                           this->m_ptr_ctrl_to_node_index_map.size() );
+
+            if( !this->m_available_on_controllers.empty() )
+            {
+                std::sort( this->m_available_on_controllers.begin(),
+                           this->m_available_on_controllers.end() );
+            }
+
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+
+    }
+
+    NodeInfoBase::size_type NodeInfoBase::controllerNumberInList(
+        NodeInfoBase::controller_base_t const& SIXTRL_RESTRICT_REF ctrl
+        ) const SIXTRL_NOEXCEPT
+    {
+        using size_t = NodeInfoBase::size_type;
+
+        NodeInfoBase::size_type num_entry_in_list =
+            std::numeric_limits< size_t >::max();
+
+        SIXTRL_ASSERT( num_entry_in_list > this->numControllers() );
+
+        if( this->isAttachedToController( &ctrl ) )
+        {
+            num_entry_in_list = size_t{ 0 };
+
+            for( auto ptr_ctrl : this->m_available_on_controllers )
+            {
+                if( ptr_ctrl == &ctrl )
+                {
+                    break;
+                }
+
+                ++num_entry_in_list;
+            }
+
+            SIXTRL_ASSERT( ( num_entry_in_list == this->numControllers() ) ||
+                ( this->m_available_on_controllers[ num_entry_in_list ] ==
+                  &ctrl ) );
+
+            if( num_entry_in_list >= this->numControllers() )
+            {
+                num_entry_in_list = this->std::numeric_limits< size_t >::max();
+            }
+        }
+
+        return num_entry_in_list;
     }
 
     NodeInfoBase::controller_base_t const*
-    NodeInfoBase::controllersBegin() const SIXTRL_NOEXCEPT
+    NodeInfoBase::ptrMostRelevantController() const SIXTRL_NOEXCEPT
     {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->controllersBegin() : nullptr;
-    }
+        NodeInfoBase::controller_base_t const* ptr_ctrl = nullptr;
 
-    NodeInfoBase::controller_base_t const*
-    NodeInfoBase::controllersEnd() const SIXTRL_NOEXCEPT
-    {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->controllersEnd() : nullptr;
-    }
+        if( ( this->hasNodeId() ) && ( this->numControllers() > size_t{ 0 } ) )
+        {
+            if( this->ptrNodeId()->isSelected() )
+            {
+                ptr_ctrl = this->nodeIdPtr()->ptrSelectingController();
+            }
+            else
+            {
+                size_t const nn = this->numControllers();
 
-    NodeInfoBase::controller_base_t const* ptrController(
-        NodeInfoBase::size_type const nn ) const SIXTRL_NOEXCEPT
-    {
-        return ( this->hasNodeId() )
-            ? this->ptrNodeId()->ptrController( nn ) : nullptr;
+                for( size_t ii = size_t{ 0 } ; ii < nn ; ++ii )
+                {
+                    NodeInfoBase::controller_base_t const* it =
+                        this->ptrNodeId()->ptrController( ii );
+
+                    if( ( it != nullptr ) && ( this->ptrNodeId(
+                            )->isDefaultForController( *it ) ) )
+                    {
+                        ptr_ctrl = it;
+                        break;
+                    }
+                }
+            }
+
+            if( ptr_ctrl == nullptr )
+            {
+                ptr_ctrl = this->ptrNodeId()->ptrController( size_t{ 0 } );
+            }
+        }
+
+        return ptr_ctrl;
     }
 
     /* --------------------------------------------------------------------- */
-
-    bool NodeInfoBase::hasPlatformName() const SIXTRL_NOEXCEPT
-    {
-        return !this->m_platform_name.empty();
-    }
-
-    std::string const& NodeInfoBase::platformName() const SIXTRL_NOEXCEPT
-    {
-        return this->m_platform_name;
-    }
-
-    char const* NodeInfoBase::ptrPlatformNameStr() const SIXTRL_NOEXCEPT
-    {
-        return this->m_platform_name.c_str();
-    }
-
-    void NodeInfoBase::setPlatformName(
-        std::string const& SIXTRL_RESTRICT_REF platform_name )
-    {
-        this->m_platform_name = platform_name;
-    }
 
     void NodeInfoBase::setPlatformName(
         const char *const SIXTRL_RESTRICT platform_name )
@@ -384,27 +405,6 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     }
 
-    bool NodeInfoBase::hasDeviceName() const SIXTRL_NOEXCEPT
-    {
-        return !this->m_device_name.empty();
-    }
-
-    std::string const& NodeInfoBase::deviceName() const SIXTRL_NOEXCEPT
-    {
-        return this->m_device_name;
-    }
-
-    char const* NodeInfoBase::ptrDeviceNameStr() const SIXTRL_NOEXCEPT
-    {
-        return this->m_device_name.c_str();
-    }
-
-    void NodeInfoBase::setDeviceName(
-        std::string const& SIXTRL_RESTRICT_REF device_name )
-    {
-        this->m_device_name = device_name;
-    }
-
     void NodeInfoBase::setDeviceName(
         const char *const SIXTRL_RESTRICT device_name )
     {
@@ -417,27 +417,6 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             this->m_device_name.clear();
         }
-    }
-
-    bool NodeInfoBase::hasDescription() const SIXTRL_NOEXCEPT
-    {
-        return !this->m_description.empty();
-    }
-
-    std::string const& NodeInfoBase::description() const SIXTRL_NOEXCEPT
-    {
-        return this->m_description;
-    }
-
-    char const* NodeInfoBase::ptrDescriptionStr() const SIXTRL_NOEXCEPT
-    {
-        return this->m_description.c_str();
-    }
-
-    void NodeInfoBase::setDescription(
-        std::string const& SIXTRL_RESTRICT_REF description )
-    {
-        this->m_description = description;
     }
 
     void NodeInfoBase::setDescription(
@@ -456,214 +435,179 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-
-
-    /* --------------------------------------------------------------------- */
-
-    std::ostream& operator<<( std::ostream& SIXTRL_RESTRICT_REF output,
-        NodeInfoBase const& SIXTRL_RESTRICT_REF node_info )
+    NodeInfoBase::size_type NodeInfoBase::requiredOutStringLength(
+        NodeInfoBase::controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) const
     {
-        node_info.doPrintToOutputStream( output, nullptr );
-        return output;
+        return this->toString( ptr_ctrl ).size() +
+            NodeInfoBase::size_type{ 1 };
     }
 
+
     void NodeInfoBase::print( ::FILE* SIXTRL_RESTRICT output,
-        NodeInfoBase::controller_base_t const* ptr_ctrl ) const
+        NodeInfoBase::controller_base_t const*
+            SIXTRL_RESTRICT ptr_controller ) const
     {
         if( output != nullptr )
         {
-            std::ostringstream a2str;
-            this->doPrintToOutputStream( a2str, ptr_ctrl );
-            std::string const str( a2str.str() );
-            const int ret = std::fprintf( output, "%s", str.c_str() );
-            SIXTRL_ASSERT( ret >= 0 );
-            ( void )ret;
+            std::string const str_repr = this->toStrig( ptr_controller );
+
+            if( !str_repr.empty() )
+            {
+                int const ret = std::fprintf( output, "%s", str_repr.c_str() );
+                SIXTRL_ASSERT( ret > 0 );
+                ( void )ret;
+            }
+        }
+    }
+
+
+    void NodeInfoBase::printOut( NodeInfoBase::controller_base_t const*
+        SIXTRL_RESTRICT ptr_controller ) const
+    {
+        this->print( stdout, ptr_controller );
+    }
+
+
+    std::string NodeInfoBase::toString( NodeInfoBase::controller_base_t const*
+        SIXTRL_RESTRICT ptr_controller ) const
+    {
+        std::ostringstream a2str;
+
+        st::arch_status_t status = this->doPrintToOutputStream(
+            a2str, ptr_controller );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            return a2str.str();
         }
 
-        return;
+        return std::string{};
     }
 
-    void NodeInfoBase::printOut(
-        NodeInfoBase::controller_base_t const* ptr_ctrl ) const
-    {
-        this->print( ::stdout, ptr_ctrl );
-    }
-
-
-    NodeInfoBase::size_type
-    NodeInfoBase::requiredOutStringLength(
-        NodeInfoBase::controller_base_t const* ptr_ctrl ) const
-    {
-        std::ostringstream a2str;
-        this->doPrintToOutputStream( a2str, ptr_ctrl );
-        return a2str.str().size(); /* TODO: Find a more efficient method! */
-    }
-
-    std::string NodeInfoBase::toString(
-        NodeInfoBase::controller_base_t const* ptr_ctrl ) const
-    {
-        std::ostringstream a2str;
-        this->doPrintToOutputStream( a2str, ptr_ctrl );
-
-        return a2str.str();
-    }
 
     NodeInfoBase::status_t NodeInfoBase::toString(
         NodeInfoBase::size_type const out_str_capacity,
-        char* SIXTRL_RESTRICT out_str,
-        NodeInfoBase::controller_base_t const* ptr_ctrl ) const
+        char* SIXTRL_RESTRICT out_str, NodeInfoBase::controller_base_t const*
+            SIXTRL_RESTRICT ptr_controller ) const
     {
         using size_t = NodeInfoBase::size_type;
 
         NodeInfoBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( ( out_str_capacity > size_t{ 0 } ) && ( out_str != nullptr ) )
+        if( ( out_str != nullptr ) && ( out_str_capacity > size_t{ 0 } ) )
         {
-            std::memset( out_str, ( int )'\0', out_str_capacity );
+            std::string const str_repr = this->toString( ptr_controller );
 
-            std::ostringstream a2str;
-            this->doPrintToOutputStream( a2str, ptr_ctrl );
-            std::string const temp_str = a2str.str();
-
-            if( !temp_str.empty() )
+            if( ( !str_repr.empty() ) ( str_repr.size() < out_str_capacity ) )
             {
-                std::strncpy( out_str, temp_str.c_str(),
+                std::strncpy( out_str, str_repr.c_str(),
                               out_str_capacity - size_t{ 1 } );
 
-                if( out_str_capacity >= temp_str.size() )
-                {
-                    status = st::ARCH_STATUS_SUCCESS;
-                }
+                status = st::ARCH_STATUS_SUCCESS;
             }
         }
 
         return status;
     }
 
+    std::ostream& operator<<( std::ostream& SIXTRL_RESTRICT_REF output,
+        NodeInfoBase const& SIXTRL_RESTRICT_REF node_info )
+    {
+        node_info.doPrintToOutputStream(
+            output, this->ptrMostRelevantController() );
+
+        return output;
+    }
+
     /* --------------------------------------------------------------------- */
 
-    void NodeInfoBase::doPrintToOutputStream(
+    NodeInfoBase::status_t NodeInfoBase::doPrintToOutputStream(
         std::ostream& SIXTRL_RESTRICT_REF output,
         NodeInfoBase::controller_base_t const* ptr_ctrl ) const
     {
         using size_t = NodeInfoBase::size_type;
 
-        if( ( this->hasNodeId() ) && ( this->numControllers() > size_t{ 0 } ) )
+        NodeInfoBase::status_t status = st::ARCH_STATUS_SUCCESS;
+
+        if( ptr_ctrl != nullptr )
         {
-            if( ptr_ctrl == nullptr )
+            if( this->isAttachedToController( ptr_ctrl ) )
             {
-                if( this->ptrNodeId()->isSelected() )
-                {
-                    ptr_ctrl = this->nodeIdPtr()->ptrSelectingController();
-                }
-                else
-                {
-                    size_t const nn = this->numControllers();
+                output << "Node            : "
+                       << this->ptrNodeId()->toString();
 
-                    for( size_t ii = size_t{ 0 } ; ii < nn ; ++ii )
-                    {
-                        NodeInfoBase::controller_base_t const* it =
-                            this->ptrNodeId()->ptrController( ii );
-
-                        if( ( it != nullptr ) && ( this->ptrNodeId(
-                                )->isDefaultForController( *it ) ) )
-                        {
-                            ptr_ctrl = it;
-                            break;
-                        }
-                    }
+                if( ( ptr_ctrl != nullptr ) &&
+                    ( this->ptrNodeId()->isSelectedByController( ptr_ctrl ) ) )
+                {
+                    output << " [SELECTED]";
                 }
 
-                if( ptr_ctrl == nullptr )
+                if( ( ptr_ctrl != nullptr ) &&
+                    ( this->ptrNodeId()->isDefaultForController( ptr_ctrl ) ) )
                 {
-                    ptr_ctrl = this->ptrNodeId()->ptrController( size_t{ 0 } );
+                    output << " [DEFAULT]";
+                }
+
+                output << "\r\n";
+
+                if( this->ptrNodeId()->numControllers() > size_t{ 0 } )
+                {
+                    output << "num controllers : "
+                           << this->ptrNodeId()->numControllers() << "\r\n";
                 }
             }
-            else if( !this->ptrNodeId()->isAttachedToController( *ptr_ctrl ) )
+            else
             {
-                ptr_ctrl = nullptr;
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
             }
         }
 
-        if( this->hasNodeId() )
+        if( status == st::ARCH_STATUS_SUCCESS )
         {
-            output << "Node            : "
-                   << this->ptrNodeId()->toNodeIdStr();
+            output << "\r\nArchitecture    : id = "
+                   << this->archId();
 
-            if( ( ptr_ctrl != nullptr ) &&
-                ( this->ptrNodeId()->isSelectedByController( ptr_ctrl ) ) )
+            if( this->hasArchStr() )
             {
-                output << " [SELECTED]";
-            }
-
-            if( ( ptr_ctrl != nullptr ) &&
-                ( this->ptrNodeId()->isDefaultForController( ptr_ctrl ) ) )
-            {
-                output << " [DEFAULT]";
+                output << " " << this->archStr();
             }
 
             output << "\r\n";
 
-            if( this->ptrNodeId()->numControllers() > size_t{ 0 } )
+            if( this->hasPlatformName() )
             {
-                output << "num controllers : "
-                       << this->ptrNodeId()->numControllers() << "\r\n";
+                output << "Platform        : "
+                       << this->platformName() << "\r\n";
+            }
+
+            if( this->hasDeviceName() )
+            {
+                output << "Device          : "
+                       << this->deviceName() << "\r\n";
+            }
+
+            if( this->hasDescription() )
+            {
+                output << "Description     : "
+                       << this->description() << "\r\n";
             }
         }
 
-        output << "\r\nArchitecture    : id = " << this->archId();
-
-        if( this->hasArchStr() )
-        {
-            output << " " << this->archStr();
-        }
-
-        output << "\r\n";
-
-        if( this->hasPlatformName() )
-        {
-            output << "Platform        : " << this->platformName() << "\r\n";
-        }
-
-        if( this->hasDeviceName() )
-        {
-            output << "Device          : " << this->deviceName() << "\r\n";
-        }
-
-        if( this->hasDescription() )
-        {
-            output << "Description     : " << this->description() << "\r\n";
-        }
-
-        return;
-    }
-
-    void NodeInfoBase::doUpdateStoredNodeId(
-        NodeInfoBase::stored_node_id_t&& ptr_node_id ) SIXTRL_NOEXCEPT
-    {
-        this->m_ptr_stored_node_id = std::move( ptr_node_id );
-    }
-
-    NodeInfoBase::status_t NodeInfoBase::doSetPtrNodeId(
-        NodeInfoBase::node_id_t* SIXTRL_RESTRICT ptr_node_id ) SIXTRL_NOEXCEPT
-    {
-        NodeInfoBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( ( this->m_ptr_stored_node_id.get() != nullptr ) &&
-            ( ptr_node_id == this->m_ptr_stored_node_id.get() ) )
-        {
-            this->m_ptr_node_id = ptr_node_id;
-            status = st::ARCH_STATUS_SUCCESS;
-        }
-        else if( ( this->m_ptr_stored_node_id.get() == nullptr ) &&
-                 ( this->m_ptr_node_id != nullptr ) &&
-                 ( ptr_node_id == nullptr ) )
-        {
-            this->m_ptr_node_id = ptr_node_id;
-            status = st::ARCH_STATUS_SUCCESS;
-        }
-
         return status;
+    }
+
+    void NodeInfoBase::doSetUniqueIdStr(
+            char const* SIXTRL_RESTRICT_REF unique_id_str )
+    {
+        if( ( unique_id_str != nullptr ) &&
+            ( std::strlen( unique_id_str ) > NodeInfoBase::size_type{ 0 } ) )
+        {
+            this->m_unique_id = unique_id_str;
+        }
+        else
+        {
+            this->m_unique_id.clear();
+        }
     }
 }
 

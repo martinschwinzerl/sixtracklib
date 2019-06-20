@@ -8,6 +8,9 @@
         #include <cstdlib>
         #include <cstring>
         #include <cstdio>
+        #include <map>
+        #include <string>
+        #include <vector>
 #endif /* !defined( SIXTRKL_NO_SYSTEM_INCLUDES ) */
 #endif /* C++, Host */
 
@@ -26,6 +29,7 @@
     #include "sixtracklib/common/control/node_id.hpp"
     #include "sixtracklib/common/control/arch_info.hpp"
     #include "sixtracklib/common/control/controller_base.hpp"
+    #include "sixtracklib/common/control/node_id.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
@@ -34,18 +38,15 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         public:
 
-        using node_id_t     = SIXTRL_CXX_NAMESPACE::NodeId;
-        using platform_id_t = node_id_t::platform_id_t;
-        using device_id_t   = node_id_t::device_id_t;
-        using node_index_t  = node_id_t::index_t;
-        using size_type     = node_id_t::size_type;
-
-        using platform_device_pair_t = node_id_t:platform_device_pair_t;
-        using controller_base_t      = node_id_t::controller_base_t;
-
-        using arch_info_t   = SIXTRL_CXX_NAMESPACE::ArchInfo;
-        using arch_id_t     = arch_info_t::arch_id_t;
-        using status_t      = SIXTRL_CXX_NAMESPACE::arch_status_t;
+        using node_id_t         = SIXTRL_CXX_NAMESPACE::NodeId;
+        using controller_base_t = SIXTRL_CXX_NAMESPACE::ControllerBase;
+        using node_index_t      = SIXTRL_CXX_NAMESPACE::node_index_t;
+        using arch_info_t       = SIXTRL_CXX_NAMESPACE::ArchInfo;
+        using status_t          = SIXTRL_CXX_NAMESPACE::arch_status_t;
+        using size_type         = SIXTRL_CXX_NAMESPACE::arch_size_t;
+        using arch_id_t         = arch_info_t::arch_id_t;
+        using platform_id_t     = node_id_t::platform_id_t;
+        using device_id_t       = node_id_t::device_id_t;
 
         static constexpr ILLEGAL_PLATFORM_ID = node_id_t::ILLEGAL_PLATFORM_ID;
         static constexpr ILLEGAL_DEVICE_ID   = node_id_t::ILLEGAL_DEVICE_ID;
@@ -60,25 +61,11 @@ namespace SIXTRL_CXX_NAMESPACE
             const char *const SIXTRL_RESTRICT device_name = nullptr,
             const char *const SIXTRL_RESTRICT description = nullptr );
 
-        SIXTRL_HOST_FN explicit NodeInfoBase(
-            arch_info_t const* SIXTRL_RESTRICT ptr_arch_info,
-            node_id_t* SIXTRL_RESTRICT ptr_node_id = nullptr,
-            const char *const SIXTRL_RESTRICT platform_name = nullptr,
-            const char *const SIXTRL_RESTRICT device_name = nullptr,
-            const char *const SIXTRL_RESTRICT description = nullptr );
-
         SIXTRL_HOST_FN NodeInfoBase(
             arch_id_t const arch_id,
             std::string const& SIXTRL_RESTRICT_REF arch_str,
             platform_id_t const platform_id,
             device_id_t const device_id,
-            std::string const& SIXTRL_RESTRICT_REF platform_name,
-            std::string const& SIXTRL_RESTRICT_REF device_name,
-            std::string const& SIXTRL_RESTRICT_REF description );
-
-        SIXTRL_HOST_FN explicit NodeInfoBase(
-            arch_info_t const& SIXTRL_RESTRICT_REF arch_info,
-            node_id_t* SIXTRL_RESTRICT ptr_node_id,
             std::string const& SIXTRL_RESTRICT_REF platform_name,
             std::string const& SIXTRL_RESTRICT_REF device_name,
             std::string const& SIXTRL_RESTRICT_REF description );
@@ -97,9 +84,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN bool ownsNodeId() const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN bool hasNodeId()  const SIXTRL_NOEXCEPT;
-
         SIXTRL_HOST_FN node_id_t const& nodeId() const;
         SIXTRL_HOST_FN node_id_t& nodeId();
 
@@ -115,18 +99,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN status_t setDeviceId(
             node_device_id_t const device_id ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN platform_device_pair_t const&
-        platformDeviceIdPair() const;
-
-        SIXTRL_HOST_FN platform_device_pair_t&
-        platformDeviceIdPair();
-
-        SIXTRL_HOST_FN platform_device_pair_t const*
-        ptrPlatformDeviceIdPair() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN platform_device_pair_t&
-        ptrPlatformDeviceIdPair() SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
@@ -183,6 +155,13 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN controller_base_t const* ptrController(
             size_type const num_of_controller_in_list ) const SIXTRL_NOEXCEPT;
 
+        SIXTRL_HOST_FN size_type controllerNumberInList(
+                controller_base_t const& SIXTRL_RESTRICT_REF ctrl
+            ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN controller_base_t const*
+        ptrMostRelevantController() const SIXTRL_NOEXCEPT;
+
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN bool hasPlatformName() const SIXTRL_NOEXCEPT;
@@ -190,10 +169,10 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN char const* ptrPlatformNameStr() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN void setPlatformName(
-            std::string const& SIXTRL_RESTRICT_REF device_name );
+            std::string const& SIXTRL_RESTRICT_REF platform_name );
 
         SIXTRL_HOST_FN void setPlatformName(
-            const char *const SIXTRL_RESTRICT device_name );
+            const char *const SIXTRL_RESTRICT platform_name );
 
         SIXTRL_HOST_FN bool hasDeviceName() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN std::string const& deviceName() const SIXTRL_NOEXCEPT;
@@ -215,31 +194,59 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void setDescription(
             const char *const SIXTRL_RESTRICT description_str );
 
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SIXTRL_HOST_FN bool hasUniqueIdStr() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN std::string const& uniqueIdStr() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN char const* ptrUniqueIdStr() const SIXTRL_NOEXCEPT;
+
+        bool mapsToSame( NodeInfoBase const&
+            SIXTRL_RESTRICT node ) const SIXTRL_NOEXCEPT;
+
+        bool mapsToSame( std::string const&
+            SIXTRL_RESTRICT_REF node ) const SIXTRL_NOEXCEPT;
+
+        bool mapsToSame( char const* SIXTRL_RESTRICT
+            node ) const SIXTRL_NOEXCEPT;
+
         /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN size_type requiredOutStringLength() const;
+
+        SIXTRL_HOST_FN size_type requiredOutStringLength(
+            controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) const;
+
+
+        SIXTRL_HOST_FN void print( ::FILE* SIXTRL_RESTRICT output ) const;
+
+        SIXTRL_HOST_FN void print( ::FILE* SIXTRL_RESTRICT output,
+            controller_base_t const* SIXTRL_RESTRICT ptr_controller ) const;
+
+
+        SIXTRL_HOST_FN void printOut() const;
+
+        SIXTRL_HOST_FN void printOut(
+            controller_base_t const* SIXTRL_RESTRICT ptr_controller ) const;
+
+
+        SIXTRL_HOST_FN std::string toString() const;
+
+        SIXTRL_HOST_FN std::string toString(
+            controller_base_t const* SIXTRL_RESTRICT ptr_controller ) const;
+
+
+        SIXTRL_HOST_FN status_t toString( size_type const out_str_capacity,
+            char* SIXTRL_RESTRICT out_str ) const;
+
+        SIXTRL_HOST_FN status_t toString( size_type const out_str_capacity,
+            char* SIXTRL_RESTRICT out_str,
+            controller_base_t const* SIXTRL_RESTRICT ptr_controller ) const;
+
 
         SIXTRL_HOST_FN friend std::ostream& operator<<(
             std::ostream& SIXTRL_RESTRICT_REF output,
             NodeInfoBase const& SIXTRL_RESTRICT_REF node_info );
-
-        SIXTRL_HOST_FN void print( ::FILE* SIXTRL_RESTRICT output,
-            controller_base_t const* SIXTRL_RESTRICT
-                ptr_controller = nullptr ) const;
-
-        SIXTRL_HOST_FN void printOut( controller_base_t const* SIXTRL_RESTRICT
-                ptr_controller = nullptr ) const;
-
-        SIXTRL_HOST_FN size_type requiredOutStringLength(
-            controller_base_t const* SIXTRL_RESTRICT
-                ptr_controller = nullptr ) const;
-
-        SIXTRL_HOST_FN std::string toString(
-            controller_base_t const* SIXTRL_RESTRICT
-                ptr_controller = nullptr ) const;
-
-        SIXTRL_HOST_FN status_t toString(
-            size_type const out_str_capacity, char* SIXTRL_RESTRICT out_str,
-            controller_base_t const* SIXTRL_RESTRICT ptr_controller = nullptr
-        ) const;
 
         /* ----------------------------------------------------------------- */
 
@@ -254,25 +261,29 @@ namespace SIXTRL_CXX_NAMESPACE
 
         protected:
 
-        using stored_node_id_t = std::unique_ptr< node_id_t >;
-
-        SIXTRL_HOST_FN virtual void doPrintToOutputStream(
+        SIXTRL_HOST_FN virtual status_t doPrintToOutputStream(
             std::ostream& SIXTRL_RESTRICT_REF output
             controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) const;
 
-        SIXTRL_HOST_FN void doUpdateStoredNodeId(
-            stored_node_id_t&& ptr_node_id ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t doSetPtrNodeId(
-            node_id_t* SIXTRL_RESTRICT ptr_node_id ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void doSetUniqueIdStr(
+            char const* SIXTRL_RESTRICT_REF unique_id_str );
 
         private:
 
-        std::string      m_platform_name;
-        std::string      m_device_name;
-        std::string      m_description;
-        node_id_t*       m_ptr_node_id;
-        stored_node_id_t m_ptr_stored_node_id;
+        using ptr_ctrl_to_node_index_map_t =
+            std::map< controller_base_t const*, node_index_t >;
+
+        using ptr_ctrl_list_t = std::vector< controller_base_t const* >;
+
+
+        ptr_ctrl_to_node_index_map_t  m_ptr_ctrl_to_node_index_map;
+        ptr_ctrl_list_t               m_available_on_controllers;
+        std::string                   m_platform_name;
+        std::string                   m_device_name;
+        std::string                   m_description;
+        std::string                   m_unique_id;
+        node_id_t                     m_node_id;
+        controller_base_t*            m_ptr_selected_by_controller;
     };
 }
 
@@ -310,6 +321,313 @@ typedef void NS(NodeInfoBase);
 
 namespace SIXTRL_CXX_NAMESPACE
 {
+    SIXTRL_INLINE NodeInfoBase::node_id_t const& nodeId() const
+    {
+        return this->m_node_id;
+    }
+
+    SIXTRL_INLINE NodeInfoBase::node_id_t& nodeId()
+    {
+        return this->m_node_id;
+    }
+
+    SIXTRL_INLINE NodeInfoBase::node_id_t const*
+    NodeInfoBase::ptrNodeId() const SIXTRL_NOEXCEPT
+    {
+        return &this->m_node_id;
+    }
+
+    SIXTRL_INLINE NodeInfoBase::node_id_t*
+    NodeInfoBase::ptrNodeId() SIXTRL_NOEXCEPT
+    {
+        return &this->m_node_id;
+    }
+
+    SIXTRL_INLINE NodeInfoBase::platform_id_t
+    NodeInfoBase::platformId() const SIXTRL_NOEXCEPT
+    {
+        return this->m_node_id.platformId();
+    }
+
+    SIXTRL_INLINE NodeInfoBase::status_t NodeInfoBase::setPlatformId(
+        NodeInfoBase::platform_id_t const platform_id ) SIXTRL_NOEXCEPT
+    {
+        return this->m_node_id.setPlatformId( platform_id );
+    }
+
+    SIXTRL_INLINE NodeInfoBase::device_id_t
+    NodeInfoBase::deviceId() const SIXTRL_NOEXCEPT
+    {
+        return this->m_node_id.deviceId();
+    }
+
+    SIXTRL_INLINE NodeInfoBase::status_t NodeInfoBase::setDeviceId(
+        NodeInfoBase::device_id_t const device_id ) SIXTRL_NOEXCEPT
+    {
+        return this->m_node_id.setDeviceId( device_id );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE bool NodeInfoBase::hasControllers() const SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( this->m_available_on_controllers.size() ==
+                       this->m_ptr_ctrl_to_node_index_map.size() );
+
+        return !this->m_available_on_controllers.empty();
+    }
+
+    SIXTRL_INLINE NodeInfoBase::size_type
+    NodeInfoBase::numControllers() const SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( this->m_available_on_controllers.size() ==
+                       this->m_ptr_ctrl_to_node_index_map.size() );
+
+        return this->m_available_on_controllers.size();
+    }
+
+    SIXTRL_INLINE bool NodeInfoBase::isSelected() const SIXTRL_NOEXCEPT
+    {
+        return ( ( this->numControllers() > NodeInfoBase::size_type{ 0 } ) &&
+                 ( this->ptrSelectingController() != nullptr ) );
+    }
+
+    SIXTRL_INLINE NodeInfoBase::controller_base_t const*
+    NodeInfoBase::ptrSelectingController() const SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( ( this->ptrSelectingController() == nullptr ) ||
+            ( this->numControllers() > NodeInfoBase::size_type{ 0 } ) &&
+            ( this->isAttachedToController( this->ptrSelectingController() ) )
+        );
+
+        return this->m_ptr_selected_by_controller;
+    }
+
+    SIXTRL_INLINE NodeInfoBase::status_t NodeInfoBase::setSelectedController(
+        NodeInfoBase::controller_base_t const&
+            SIXTRL_RESTRICT_REF ctrl ) SIXTRL_NOEXCEPT
+    {
+        return this->setPtrSelectedController( &ctrl );
+    }
+
+    SIXTRL_INLINE void NodeInfoBase::resetSelectingController() SIXTRL_NOEXCEPT
+    {
+        return this->setPtrSelectedController( nullptr );
+    }
+
+    SIXTRL_INLINE NodeInfoBase::controller_base_t const*
+    NodeInfoBase::controllersBegin() const SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( this->m_available_on_controllers.size() ==
+                       this->m_ptr_ctrl_to_node_index_map.size() );
+
+        return this->m_available_on_controllers.data();
+    }
+
+    SIXTRL_INLINE NodeInfoBase::controller_base_t const*
+    NodeInfoBase::controllersEnd() const SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( this->m_available_on_controllers.size() ==
+                       this->m_ptr_ctrl_to_node_index_map.size() );
+
+        NodeInfoBase::controller_base_t const* ptr = this->controllersBegin();
+
+        if( ( ptr != nullptr ) &&
+            ( this->numControllers() > NodeInfoBase::size_type{ 0 } ) )
+        {
+            std::advance( ptr, this->numControllers() );
+        }
+
+        return ptr;
+    }
+
+    SIXTRL_INLINE NodeInfoBase::controller_base_t const*
+    NodeInfoBase::ptrController( NodeInfoBase::size_type const
+            num_of_controller_in_list ) const SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( this->m_available_on_controllers.size() ==
+                       this->m_ptr_ctrl_to_node_index_map.size() );
+
+        NodeInfoBase::controller_base_t const* ptr = this->controllersBegin();
+
+        if( ptr != nullptr )
+        {
+            if( this->numControllers() > num_of_controller_in_list )
+            {
+                std::advance( ptr, num_of_controller_in_list );
+            }
+            else
+            {
+                ptr = nullptr;
+            }
+        }
+
+        return ptr;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE bool NodeInfoBase::hasPlatformName() const SIXTRL_NOEXCEPT
+    {
+        return !this->m_platform_name.empty();
+    }
+
+    SIXTRL_INLINE std::string const&
+    NodeInfoBase::platformName() const SIXTRL_NOEXCEPT
+    {
+        return this->m_platform_name;
+    }
+
+    SIXTRL_INLINE char const*
+    NodeInfoBase::ptrPlatformNameStr() const SIXTRL_NOEXCEPT
+    {
+        return this->m_platform_name.c_str();
+    }
+
+    SIXTRL_INLINE void NodeInfoBase::setPlatformName(
+        std::string const& SIXTRL_RESTRICT_REF platform_name )
+    {
+        this->setPlatformName( platform_name.c_str() );
+    }
+
+    SIXTRL_INLINE bool NodeInfoBase::hasDeviceName() const SIXTRL_NOEXCEPT
+    {
+        return !this->m_device_name.empty();
+    }
+
+    SIXTRL_INLINE std::string const&
+    NodeInfoBase::deviceName() const SIXTRL_NOEXCEPT
+    {
+        return this->m_device_name;
+    }
+
+    SIXTRL_INLINE char const*
+    NodeInfoBase::ptrDeviceNameStr() const SIXTRL_NOEXCEPT
+    {
+        return this->m_device_name.c_str();
+    }
+
+    SIXTRL_INLINE void NodeInfoBase::setDeviceName(
+        std::string const& SIXTRL_RESTRICT_REF device_name )
+    {
+        this->setDeviceName( device_name.c_str() );
+    }
+
+    SIXTRL_INLINE bool NodeInfoBase::hasDescription() const SIXTRL_NOEXCEPT
+    {
+        return !this->m_description.empty();
+    }
+
+    SIXTRL_INLINE std::string const&
+    NodeInfoBase::description() const SIXTRL_NOEXCEPT
+    {
+        return this->m_description;
+    }
+
+    SIXTRL_INLINE char const*
+    NodeInfoBase::ptrDescriptionStr() const SIXTRL_NOEXCEPT
+    {
+        return this->m_description.c_str();
+    }
+
+    SIXTRL_INLINE void NodeInfoBase::setDescription(
+        std::string const& SIXTRL_RESTRICT_REF description )
+    {
+        this->setDescription( description.c_str() );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE bool NodeInfoBase::hasUniqueIdStr() const SIXTRL_NOEXCEPT
+    {
+        return ( !this->m_unique_id.empty() );
+    }
+
+    SIXTRL_INLINE std::string const&
+    NodeInfoBase::uniqueIdStr() const SIXTRL_NOEXCEPT
+    {
+        return this->m_unique_id;
+    }
+
+    SIXTRL_INLINE char const*
+    NodeInfoBase::ptrUniqueIdStr() const SIXTRL_NOEXCEPT
+    {
+        return ( this->hasUniqueIdStr() ) ? this->m_unique_id.c_str() : nullptr;
+    }
+
+    SIXTRL_INLINE bool NodeInfoBase::mapsToSame(
+        NodeInfoBase const& SIXTRL_RESTRICT_REF node_info ) const SIXTRL_NOEXCEPT
+    {
+        bool maps_to_same = ( this == &node_info );
+
+        if( ( !maps_to_same ) && (node_info.hasUniqueIdStr() ) )
+        {
+            maps_to_same = this->mapsToSame( node_info.ptrUniqueIdStr() );
+        }
+
+        return maps_to_same;
+    }
+
+    SIXTRL_INLINE bool NodeInfoBase::mapsToSame(
+        std::string const& SIXTRL_RESTRICT_REF hw_id_str ) const SIXTRL_NOEXCEPT
+    {
+        return this->mapsToSame( hw_id_str.c_str() );
+    }
+
+    SIXTRL_INLINE bool NodeInfoBase::mapsToSame(
+        char const* SIXTRL_RESTRICT unique_id_str ) const SIXTRL_NOEXCEPT
+    {
+        bool const maps_to_same = ( ( unique_id_str != nullptr ) &&
+            ( std::strlen( unique_id_str ) > NodeInfoBase::size_type{ 0 } ) &&
+            ( this->hasUniqueIdStr() ) &&
+            ( this->uniqueIdStr().compare( unique_id_str ) == 0 ) );
+
+        return maps_to_same;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE NodeInfoBase::size_type
+    NodeInfoBase::requiredOutStringLength() const
+    {
+        return this->requiredOutStringLength(
+            this->ptrMostRelevantController() );
+    }
+
+    SIXTRL_INLINE void NodeInfoBase::print(
+        ::FILE* SIXTRL_RESTRICT output ) const
+    {
+        this->print( output, this->ptrMostRelevantController() );
+    }
+
+    SIXTRL_INLINE void NodeInfoBase::printOut() const
+    {
+        this->printOut( this->ptrMostRelevantController() );
+    }
+
+    SIXTRL_INLINE std::string NodeInfoBase::toString() const
+    {
+        this->toString( this->ptrMostRelevantController() );
+    }
+
+    SIXTRL_INLINE NodeInfoBase::status_t NodeInfoBase::toString(
+        NodeInfoBase::size_type const out_str_capacity,
+        char* SIXTRL_RESTRICT out_str ) const
+    {
+        return this->toString( out_str_capacity, out_str,
+            this->ptrMostRelevantController() );
+    }
+
+    SIXTRL_INLINE std::ostream& operator<<(
+        std::ostream& SIXTRL_RESTRICT_REF output,
+        NodeInfoBase const& SIXTRL_RESTRICT_REF node_info )
+    {
+        node_info.print( output );
+        return output;
+    }
+
+    /* ----------------------------------------------------------------- */
+
     template< class Derived > Derived const* NodeInfoBase::asDerivedNodeInfo(
         NodeInfoBase::arch_id_t const required_arch_id,
         bool requires_exact_match ) const SIXTRL_NOEXCEPT

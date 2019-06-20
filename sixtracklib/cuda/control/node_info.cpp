@@ -24,32 +24,23 @@ namespace SIXTRL_CXX_NAMESPACE
         st::NodeInfoBase( st::ARCHITECTURE_CUDA,
             SIXTRL_ARCHITECTURE_CUDA_STR ),
         m_cu_device_properties(),
-        m_cu_device_index( cuda_dev_index ),
-        m_cu_device_pci_bus_id( "0000:00:00.0" )
+        m_cu_device_index( cuda_dev_index )
     {
 
     }
 
     CudaNodeInfo::CudaNodeInfo(
         CudaNodeInfo::cuda_dev_index_t const cuda_dev_index,
-        ::cudaDeviceProp const& cuda_device_properties, 
-        CudaNodeInfo::platform_id_t const platform_id, 
-        CudaNodeInfo::device_id_t const device_id, 
-        CudaNodeInfo::node_index_t const node_index, 
-        bool const is_default_node, bool const is_selected_node ) :
+        ::cudaDeviceProp const& cuda_device_properties,
+        CudaNodeInfo::platform_id_t const platform_id,
+        CudaNodeInfo::device_id_t const device_id ) :
         st::NodeInfoBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, platform_id, device_id, 
-            nullptr, nullptr, nullptr, is_default_node, is_selected_node ),
+            SIXTRL_ARCHITECTURE_CUDA_STR, platform_id, device_id,
+            nullptr, nullptr, nullptr ),
         m_cu_device_properties( cuda_device_properties ),
-        m_cu_device_index( cuda_dev_index ),
-        m_cu_device_pci_bus_id( "0000:00:00.0" )
+        m_cu_device_index( cuda_dev_index )
     {
         using size_t = CudaNodeInfo::size_type;
-        
-        if( node_index != st::NODE_UNDEFINED_INDEX )
-        {
-            this->setNodeIndex( node_index );
-        }
 
         ::cudaError_t err = ::cudaSuccess;
         int max_num_devices = int{ 0 };
@@ -123,52 +114,12 @@ namespace SIXTRL_CXX_NAMESPACE
                 if( err == ::cudaSuccess )
                 {
                     a2str << " [" << pci_bus_id << "]";
-                    this->m_cu_device_pci_bus_id = &pci_bus_id[ 0 ];
+                    this->doSetUniqueIdStr( &pci_bus_id[ 0 ] );
                 }
 
                 this->setDeviceName( a2str.str() );
             }
         }
-    }
-    
-    bool CudaNodeInfo::hasPciBusId() const SIXTRL_NOEXCEPT
-    {
-        return ( ( !this->m_cu_device_pci_bus_id.empty() ) &&
-                 (  this->m_cu_device_pci_bus_id.compare(
-                     "0000:00:00.0" ) != 0 ) );
-    }
-
-    std::string const& CudaNodeInfo::pciBusId() const SIXTRL_NOEXCEPT
-    {
-        return this->m_cu_device_pci_bus_id;
-    }
-
-    char const* CudaNodeInfo::ptrPciBusIdStr() const SIXTRL_NOEXCEPT
-    {
-        return this->m_cu_device_pci_bus_id.c_str();
-    }
-
-    ::cudaDeviceProp const&
-    CudaNodeInfo::cudaDeviceProperties() const SIXTRL_NOEXCEPT
-    {
-        return this->m_cu_device_properties;
-    }
-
-    ::cudaDeviceProp const*
-    CudaNodeInfo::ptrCudaDeviceProperties() const SIXTRL_NOEXCEPT
-    {
-        return &this->m_cu_device_properties;
-    }
-
-    bool CudaNodeInfo::hasCudaDeviceIndex() const SIXTRL_NOEXCEPT
-    {
-        return ( this->m_cu_device_index != CudaNodeInfo::ILLEGAL_DEV_INDEX );
-    }
-
-    CudaNodeInfo::cuda_dev_index_t
-    CudaNodeInfo::cudaDeviceIndex() const SIXTRL_NOEXCEPT
-    {
-        return this->m_cu_device_index;
     }
 
     void CudaNodeInfo::setCudaDeviceIndex(
@@ -177,52 +128,18 @@ namespace SIXTRL_CXX_NAMESPACE
         this->m_cu_device_index = index;
     }
 
-    CudaNodeInfo::size_type CudaNodeInfo::warpSize() const SIXTRL_NOEXCEPT
+    CudaNodeInfo::status_t CudaNodeInfo::doPrintToOutputStream(
+        std::ostream& SIXTRL_RESTRICT_REF output,
+        CudaNodeInfo::controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) const
     {
-        return static_cast< CudaNodeInfo::size_type >(
-            this->m_cu_device_properties.warpSize );
-    }
+        CudaNodeInfo::status_t status =
+            st::NodeInfoBase::doPrintToOutputStream( output, ptr_ctrl );
 
-    CudaNodeInfo::size_type
-    CudaNodeInfo::computeCapability() const SIXTRL_NOEXCEPT
-    {
-        using size_t = st::CudaNodeInfo::size_type;
-
-        size_t compute_capability = this->m_cu_device_properties.major;
-        compute_capability *= size_t{ 10 };
-        compute_capability += this->m_cu_device_properties.minor;
-
-        return compute_capability;
-    }
-
-    CudaNodeInfo::size_type
-    CudaNodeInfo::numMultiprocessors() const SIXTRL_NOEXCEPT
-    {
-        return static_cast< CudaNodeInfo::size_type >(
-            this->m_cu_device_properties.multiProcessorCount );
-    }
-
-    CudaNodeInfo::size_type
-    CudaNodeInfo::maxThreadsPerBlock() const SIXTRL_NOEXCEPT
-    {
-        return static_cast< CudaNodeInfo::size_type >(
-            this->m_cu_device_properties.maxThreadsPerBlock );
-    }
-
-    CudaNodeInfo::size_type
-    CudaNodeInfo::maxThreadsPerMultiprocessor() const SIXTRL_NOEXCEPT
-    {
-        return static_cast< CudaNodeInfo::size_type >(
-            this->m_cu_device_properties.maxThreadsPerMultiProcessor );
-    }
-
-    void CudaNodeInfo::doPrintToOutputStream(
-        std::ostream& SIXTRL_RESTRICT_REF output ) const
-    {
-        st::NodeInfoBase::doPrintToOutputStream( output );
-
-        output << "cuda device index     : "
-               << this->m_cu_device_index << "\r\n";
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            output << "cuda device index     : "
+                   << this->m_cu_device_index << "\r\n";
+        }
     }
 }
 

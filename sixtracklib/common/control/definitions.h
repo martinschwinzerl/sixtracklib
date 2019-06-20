@@ -31,6 +31,15 @@ typedef enum NS(ctrl_perform_remap_flag_e)
 }
 NS(ctrl_perform_remap_flag_t);
 
+#if !defined( SIXTRL_NODE_ILLEGAL_PLATFORM_ID )
+    #define SIXTRL_NODE_ILLEGAL_PLATFORM_ID -1
+#endif /* !defined( SIXTRL_NODE_ILLEGAL_PLATFORM_ID ) */
+
+#if !defined( SIXTRL_NODE_ILLEGAL_DEVICE_ID )
+    #define SIXTRL_NODE_ILLEGAL_DEVICE_ID -1
+#endif /* !defined( SIXTRL_NODE_ILLEGAL_DEVICE_ID ) */
+
+/* ------------------------------------------------------------------------ */
 /* Predefined  architecture type id's: limit them to 0x0000 - 0x01FF */
 /* For userdefined type id's, the range 0x0200 - 0x03FF is reserved */
 
@@ -207,10 +216,10 @@ SIXTRL_STATIC_VAR NS(kernel_config_variant_t) const
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 SIXTRL_STATIC_VAR NS(node_platform_id_t) const NS(NODE_ILLEGAL_PATFORM_ID) =
-    ( NS(node_platform_id_t) )-1;
+    ( NS(node_platform_id_t) )SIXTRL_NODE_ILLEGAL_PLATFORM_ID;
 
 SIXTRL_STATIC_VAR NS(node_device_id_t) const NS(NODE_ILLEGAL_DEVICE_ID) =
-    ( NS(node_device_id_t) )-1;
+    ( NS(node_device_id_t) )SIXTRL_NODE_ILLEGAL_DEVICE_ID;
 
 SIXTRL_STATIC_VAR NS(node_index_t) const NS(NODE_UNDEFINED_INDEX) =
     ( NS(node_index_t) )0xFFFFFFFF;

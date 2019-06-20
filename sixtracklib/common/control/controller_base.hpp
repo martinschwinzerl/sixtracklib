@@ -77,6 +77,17 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
+        SIXTRL_HOST_FN bool hasName() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN std::string const& name() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN char const* ptrNameStr() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN void setName(
+            std::string const& SIXTRL_RESTRICT_REF name );
+
+        SIXTRL_HOST_FN void setName( char const* SIXTRL_RESTRICT name );
+
+        /* ----------------------------------------------------------------- */
+
         SIXTRL_HOST_FN bool readyForRunningKernel() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN bool readyForSend()          const SIXTRL_NOEXCEPT;
@@ -315,6 +326,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using kernel_config_list_t = std::vector< ptr_kernel_conf_base_t >;
 
         kernel_config_list_t        m_kernel_configs;
+        std::string                 m_name;
         size_type                   m_num_kernels;
 
         kernel_id_t                 m_remap_kernel_id;

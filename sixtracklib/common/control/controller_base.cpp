@@ -33,6 +33,43 @@ namespace SIXTRL_CXX_NAMESPACE
         this->doClear();
     }
 
+    /* --------------------------------------------------------------------- */
+
+    bool ControllerBase::hasName() const SIXTRL_NOEXCEPT
+    {
+        return ( !this->m_name.empty() );
+    }
+
+    std::string const& ControllerBase::name() const SIXTRL_NOEXCEPT
+    {
+        return this->m_name;
+    }
+
+    char const* ControllerBase::ptrNameStr() const SIXTRL_NOEXCEPT
+    {
+        return ( this->hasName() ) ? this->m_name.c_str() : nullptr;
+    }
+
+    void ControllerBase::setName( std::string const& SIXTRL_RESTRICT_REF name )
+    {
+        this->setName( name.c_str() );
+    }
+
+    void ControllerBase::setName( char const* SIXTRL_RESTRICT name )
+    {
+        if( ( name != nullptr ) &&
+            ( std::strlen( name) > ControllerBase::size_type{ 0 } ) )
+        {
+            this->m_name = name;
+        }
+        else
+        {
+            this->m_name.clear();
+        }
+    }
+
+    /* --------------------------------------------------------------------- */
+
     bool ControllerBase::readyForSend() const SIXTRL_NOEXCEPT
     {
         return this->m_ready_for_send;
@@ -505,7 +542,7 @@ namespace SIXTRL_CXX_NAMESPACE
         const char *const SIXTRL_RESTRICT arch_str,
         const char *const SIXTRL_RESTRICT config_str ) :
         ArchDebugBase( arch_id, arch_str, config_str ),
-            m_kernel_configs(),
+            m_kernel_configs(), m_name(),
             m_num_kernels( ControllerBase::size_type{ 0 } ),
             m_remap_kernel_id( ControllerBase::ILLEGAL_KERNEL_ID ),
             m_uses_nodes( false ),
