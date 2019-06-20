@@ -75,7 +75,7 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ARGPTR_DEC size_type* SIXTRL_RESTRICT req_dataptrs = nullptr
         ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_FN static bool CanAddToBuffer(
+        SIXTRL_STATIC SIXTRL_FN bool CanAddToBuffer(
             SIXTRL_BUFFER_ARGPTR_DEC c_buffer_t* SIXTRL_RESTRICT_REF buffer,
             size_type const num_particles,
             SIXTRL_ARGPTR_DEC size_type* SIXTRL_RESTRICT req_objects = nullptr,
