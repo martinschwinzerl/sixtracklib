@@ -1289,12 +1289,12 @@ st_NodeInfo_convert_to_string.restype = st_arch_status_t
 st_KernelConfigBase_p = ct.c_void_p
 st_NullKernelConfigBase = ct.cast(0, st_KernelConfigBase_p)
 st_kernel_id_t = ct.c_uint32
+st_kernel_variant_t = ct.c_uint16
+st_kernel_purpose_t = ct.c_uint32
 
 st_ctrl_size_t = ct.c_uint64
 st_ctrl_size_t_p = ct.POINTER(st_ctrl_size_t)
 st_ctrl_status_t = ct.c_int32
-
-st_kernel_config_variant_t = ct.c_uint16
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1315,6 +1315,8 @@ _st_KernelConfig_get_ptr_arch_string = \
 _st_KernelConfig_get_ptr_arch_string.argtypes = [st_KernelConfigBase_p]
 _st_KernelConfig_get_ptr_arch_string.restype = ct.c_char_p
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 st_KernelConfig_has_kernel_id = sixtracklib.st_KernelConfig_has_kernel_id
 st_KernelConfig_has_kernel_id.argtypes = [st_KernelConfigBase_p]
 st_KernelConfig_has_kernel_id.restype = ct.c_bool
@@ -1323,48 +1325,46 @@ st_KernelConfig_get_kernel_id = sixtracklib.st_KernelConfig_get_kernel_id
 st_KernelConfig_get_kernel_id.argtypes = [st_KernelConfigBase_p]
 st_KernelConfig_get_kernel_id.restype = st_kernel_id_t
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+st_KernelConfig_set_kernel_id = sixtracklib.KernelConfig_set_kernel_id
+st_KernelConfig_set_kernel_id.argtypes = [st_KernelConfigBase_p, st_kernel_id_t]
+st_KernelConfig_set_kernel_id.restype = None
 
 st_KernelConfig_has_name = sixtracklib.st_KernelConfig_has_name
 st_KernelConfig_has_name.argtypes = [st_KernelConfigBase_p]
 st_KernelConfig_has_name.restype = ct.c_bool
 
-_st_KernelConfig_get_ptr_name_string = \
+st_KernelConfig_get_ptr_name_string = \
     sixtracklib.st_KernelConfig_get_ptr_name_string
-_st_KernelConfig_get_ptr_name_string.argtypes = [st_KernelConfigBase_p]
-_st_KernelConfig_get_ptr_name_string.restype = ct.c_char_p
+st_KernelConfig_get_ptr_name_string.argtypes = [st_KernelConfigBase_p]
+st_KernelConfig_get_ptr_name_string.restype = ct.c_char_p
+
+st_KernelConfig_set_name = sixtracklib.st_KernelConfig_set_name
+st_KernelConfig_set_name.argtypes = [ st_KernelConfigBase_p, ct.c_char_p ]
+st_KernelConfig_set_name.restype = None
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 st_KernelConfig_get_num_arguments = \
     sixtracklib.st_KernelConfig_get_num_arguments
 st_KernelConfig_get_num_arguments.argtypes = [st_KernelConfigBase_p]
 st_KernelConfig_get_num_arguments.restype = st_ctrl_size_t
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-st_KernelConfig_clear = sixtracklib.st_KernelConfig_clear
-st_KernelConfig_clear.argtypes = [st_KernelConfigBase_p]
-st_KernelConfig_clear.restype = None
-
-st_KernelConfig_needs_update = sixtracklib.st_KernelConfig_needs_update
-st_KernelConfig_needs_update.argtypes = [st_KernelConfigBase_p]
-st_KernelConfig_needs_update.restype = st_ctrl_status_t
-
-st_KernelConfig_update = sixtracklib.st_KernelConfig_update
-st_KernelConfig_update.argtypes = [st_KernelConfigBase_p]
-st_KernelConfig_update.restype = st_ctrl_status_t
+st_KernelConfig_set_num_arguments = sixtracklib.st_KernelConfig_set_num_arguments
+st_KernelConfig_set_num_arguments.argtypes = [st_KernelConfigBase_p,st_arch_size_t]
+st_KernelConfig_set_num_arguments.restype = st_arch_status_t
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 st_KernelConfig_get_variant_flags = \
     sixtracklib.st_KernelConfig_get_variant_flags
-st_KernelConfig_get_variant_flags.argtypes = [ st_KernelConfigBase_p ]
-st_KernelConfig_get_variant_flags.restype = st_kernel_config_variant_t
+st_KernelConfig_get_variant_flags.argtypes = [st_KernelConfigBase_p]
+st_KernelConfig_get_variant_flags.restype = st_kernel_variant_t
 
-KernelConfig_are_variant_flags_set = \
-    sixtracklib.KernelConfig_are_variant_flags_set
-KernelConfig_are_variant_flags_set.argtypes = [
-    st_KernelConfigBase_p, st_kernel_config_variant_t ]
-KernelConfig_are_variant_flags_set.restype = ct.c_bool
+st_KernelConfig_are_variant_flags_set = \
+    sixtracklib.st_KernelConfig_are_variant_flags_set
+st_KernelConfig_are_variant_flags_set.argtypes = [
+    st_KernelConfigBase_p, st_kernel_variant_t]
+st_KernelConfig_are_variant_flags_set.restype = ct.c_bool
 
 st_KernelConfig_is_variant_debug_mode = \
     sixtracklib.st_KernelConfig_is_variant_debug_mode
@@ -1373,14 +1373,40 @@ st_KernelConfig_is_variant_debug_mode.restype = ct.c_bool
 
 st_KernelConfig_is_variant_release_mode = \
     sixtracklib.st_KernelConfig_is_variant_release_mode
-st_KernelConfig_is_variant_release_mode.argtypes = [ st_KernelConfigBase_p ]
+st_KernelConfig_is_variant_release_mode.argtypes = [st_KernelConfigBase_p]
 st_KernelConfig_is_variant_release_mode.restype = ct.c_bool
 
 st_KernelConfig_set_variant_flags = \
     sixtracklib.st_KernelConfig_set_variant_flags
 st_KernelConfig_set_variant_flags.argtypes = [
-    st_KernelConfigBase_p, st_kernel_config_variant_t ]
-st_KernelConfig_set_variant_flags.restype = None
+    st_KernelConfigBase_p, st_kernel_variant_t]
+st_KernelConfig_set_variant_flags.restype = st_arch_status_t
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+st_KernelConfig_has_specified_purpose = \
+    sixtracklib.st_KernelConfig_has_specified_purpose
+st_KernelConfig_has_specified_purpose.argtypes = [ st_KernelConfigBase_p ]
+st_KernelConfig_has_specified_purpose.restype = ct.c_bool
+
+st_KernelConfig_has_predefined_purpose = \
+    sixtracklib.st_KernelConfig_has_predefined_purpose
+st_KernelConfig_has_predefined_purpose.argtypes = [ st_KernelConfigBase_p ]
+st_KernelConfig_has_predefined_purpose.restype = ct.c_bool
+
+st_KernelConfig_has_userdefined_purpose = \
+    sixtracklib.st_KernelConfig_has_userdefined_purpose
+st_KernelConfig_has_userdefined_purpose.argtypes = [ st_KernelConfigBase_p ]
+st_KernelConfig_has_userdefined_purpose.restype = ct.c_bool
+
+st_KernelConfig_get_purpose = sixtracklib.st_KernelConfig_get_purpose
+st_KernelConfig_get_purpose.argtypes = [ st_KernelConfigBase_p ]
+st_KernelConfig_get_purpose.restype = st_kernel_purpose_t
+
+st_KernelConfig_set_purpose = sixtracklib.st_KernelConfig_set_purpose
+st_KernelConfig_set_purpose.argtypes = [
+    st_KernelConfigBase_p, st_kernel_purpose_t ]
+st_KernelConfig_set_purpose.restype = st_arch_status_t
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1430,6 +1456,37 @@ st_KernelConfig_detach_from_node_with_platform_id_and_device_id.argtypes = [
     st_KernelConfigBase_p, st_node_platform_id_t, st_node_device_id_t ]
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+st_KernelConfig_clear = sixtracklib.st_KernelConfig_clear
+st_KernelConfig_clear.argtypes = [st_KernelConfigBase_p]
+st_KernelConfig_clear.restype = None
+
+st_KernelConfig_needs_update = sixtracklib.st_KernelConfig_needs_update
+st_KernelConfig_needs_update.argtypes = [st_KernelConfigBase_p]
+st_KernelConfig_needs_update.restype = st_ctrl_status_t
+
+st_KernelConfig_performs_auto_update = \
+    sixtracklib.st_KernelConfig_performs_auto_update
+st_KernelConfig_performs_auto_update.argtypes = [ st_KernelConfigBase_p ]
+st_KernelConfig_performs_auto_update.restype = ct.c_bool
+
+st_KernelConfig_update = sixtracklib.st_KernelConfig_update
+st_KernelConfig_update.argtypes = [st_KernelConfigBase_p]
+st_KernelConfig_update.restype = st_ctrl_status_t
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+st_KernelConfig_required_string_representation_capacity = \
+    sixtracklib.st_KernelConfig_required_string_representation_capacity
+st_KernelConfig_required_string_representation_capacity.argtypes = [
+    st_KernelConfigBase_p ]
+st_KernelConfig_required_string_representation_capacity.restype = \
+    st_arch_size_t
+
+st_KernelConfig_to_string = sixtracklib.st_KernelConfig_to_string
+st_KernelConfig_to_string.argtypes = [
+    st_KernelConfigBase_p, st_arch_size_t, ct.c_char_p ]
+st_KernelConfig_to_string.restype = st_arch_status_t
 
 st_KernelConfig_print_out = sixtracklib.st_KernelConfig_print_out
 st_KernelConfig_print_out.argtypes = [st_KernelConfigBase_p]
