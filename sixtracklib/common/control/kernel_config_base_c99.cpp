@@ -83,17 +83,19 @@ void NS(KernelConfig_set_name)( ::NS(KernelConfigBase)* SIXTRL_RESTRICT conf,
 
 /* ------------------------------------------------------------------------- */
 
-::NS(ctrl_size_t) NS(KernelConfig_get_num_arguments)(
+::NS(arch_size_t) NS(KernelConfig_get_num_arguments)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT conf )
 {
-    return ( conf != nullptr ) ? conf->numArguments() : ::NS(ctrl_size_t){ 0 };
+    return ( conf != nullptr ) ? conf->numArguments() : ::NS(arch_size_t){ 0 };
 }
 
-void NS(KernelConfig_set_num_arguments)(
+::NS(arch_status_t) NS(KernelConfig_set_num_arguments)(
     ::NS(KernelConfigBase)* SIXTRL_RESTRICT conf,
-    ::NS(ctrl_size_t) const num_kernel_args )
+    ::NS(arch_size_t) const num_kernel_args )
 {
-    if( conf != nullptr ) conf->setNumArguments( num_kernel_args );
+    return ( conf != nullptr )
+        ? conf->setNumArguments( num_kernel_args )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -103,14 +105,19 @@ void NS(KernelConfig_clear)( ::NS(KernelConfigBase)* SIXTRL_RESTRICT conf )
     if( conf != nullptr ) conf->clear();
 }
 
-
 bool NS(KernelConfig_needs_update)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT conf )
 {
     return ( ( conf != nullptr ) && ( conf->needsUpdate() ) );
 }
 
-::NS(ctrl_status_t) NS(KernelConfig_update)(
+bool NS(KernelConfig_performs_auto_update)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( ( config != nullptr ) && ( config->performsAutoUpdate() ) );
+}
+
+::NS(arch_status_t) NS(KernelConfig_update)(
     ::NS(KernelConfigBase)* SIXTRL_RESTRICT conf )
 {
     return ( conf != nullptr )
@@ -119,7 +126,7 @@ bool NS(KernelConfig_needs_update)(
 
 /* ------------------------------------------------------------------------- */
 
-::NS(kernel_config_variant_t) NS(KernelConfig_get_variant_flags)(
+::NS(kernel_variant_t) NS(KernelConfig_get_variant_flags)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
 {
     return ( config != nullptr )
@@ -128,7 +135,7 @@ bool NS(KernelConfig_needs_update)(
 
 bool NS(KernelConfig_has_variant_flags)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config,
-    NS(kernel_config_variant_t) const flags_to_check )
+    NS(kernel_variant_t) const flags_to_check )
 {
     return ( ( config != nullptr ) &&
              ( config->areVariantFlagsSet( flags_to_check ) ) );
@@ -146,11 +153,48 @@ bool NS(KernelConfig_is_variant_release_mode)(
     return ( ( config != nullptr ) && ( config->variantReleaseMode() ) );
 }
 
-void NS(KernelConfig_set_variant_flags)(
+::NS(arch_status_t) NS(KernelConfig_set_variant_flags)(
     ::NS(KernelConfigBase)* SIXTRL_RESTRICT config,
-    ::NS(kernel_config_variant_t) const variant_flags )
+    ::NS(kernel_variant_t) const variant_flags )
 {
-    if( config != nullptr ) config->setVariantFlags( variant_flags );
+    return ( config != nullptr )
+        ? config->setVariantFlags( variant_flags )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+/* ------------------------------------------------------------------------- */
+
+bool NS(KernelConfig_has_specified_purpose)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( ( config != nullptr ) && ( config->hasSpecifiedPurpose() ) );
+}
+
+bool NS(KernelConfig_has_predefined_purpose)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( ( config != nullptr ) && ( config->hasPredefinedPurpose() ) );
+}
+
+bool NS(KernelConfig_has_userdefined_purpose)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( ( config != nullptr ) && ( config->hasUserdefinedPurpose() ) );
+}
+
+::NS(kernel_purpose_t) NS(KernelConfig_get_purpose)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( config != nullptr )
+        ? config->purpose() : st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
+}
+
+::NS(arch_status_t) NS(KernelConfig_set_purpose)(
+    ::NS(KernelConfigBase)* SIXTRL_RESTRICT config,
+    NS(kernel_purpose_t) const purpose )
+{
+    return ( config != nullptr )
+        ? config->setPurpose( purpose ) : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -230,6 +274,22 @@ NS(KernelConfig_detach_from_node_with_platform_id_and_device_id)(
 }
 
 /* ------------------------------------------------------------------------- */
+
+::NS(arch_size_t) NS(KernelConfig_required_string_representation_capacity)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( config != nullptr )
+        ? config->requiredOutStringLength() : ::NS(arch_size_t){ 0 };
+}
+
+::NS(arch_status_t) NS(KernelConfig_to_string)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config,
+    ::NS(arch_size_t) const out_str_capacity, char* SIXTRL_RESTRICT out_str )
+{
+    return ( config != nullptr )
+        ? config->toString( out_str_capacity, out_str )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
 
 void NS(KernelConfig_print)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT conf,

@@ -45,7 +45,8 @@ namespace SIXTRL_CXX_NAMESPACE
         using node_id_t     = SIXTRL_CXX_NAMESPACE::node_id_t;
         using platform_id_t = node_id_t::platform_id_t;
         using device_id_t   = node_id_t::device_id_t;
-        using variant_t     = SIXTRL_CXX_NAMESPACE::kernel_config_variant_t;
+        using variant_t     = SIXTRL_CXX_NAMESPACE::kernel_variant_t;
+        using purpose_t     = SIXTRL_CXX_NAMESPACE::kernel_purpose_t;
 
         static constexpr platform_id_t ILLEGAL_PLATFORM_ID =
             SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_PATFORM_ID;
@@ -56,20 +57,29 @@ namespace SIXTRL_CXX_NAMESPACE
         static constexpr kernel_id_t ILLEGAL_KERNEL_ID =
             SIXTRL_CXX_NAMESPACE::ARCH_ILLEGAL_KERNEL_ID;
 
+        static constexpr size_type
+            DEFAULT_NUM_KERNEL_ARGUMENTS = size_type{ 0 };
+
+        static constexpr purpose_t DEFAULT_KERNEL_PURPOSE =
+            SIXTRL_CXX_NAMESPACE::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
+
+        static constexpr variant_t DEFAULT_KERNEL_VARIANT =
+            SIXTRL_CXX_NAMESPACE::KERNEL_CONFIG_VARIANT_NONE;
+
         SIXTRL_HOST_FN KernelConfigBase( arch_id_t const arch_id,
             char const* SIXTRL_RESTRICT arch_str,
-            size_type const num_kernel_args = size_type{ 0 },
+            size_type const num_kernel_args = DEFAULT_NUM_KERNEL_ARGUMENTS,
+            purpose_t const purpose = DEFAULT_KERNEL_PURPOSE,
+            variant_t const variant_flags = DEFAULT_KERNEL_VARIANT,
             char const* SIXTRL_RESTRICT kernel_name_str = nullptr,
-            variant_t const variant_flags =
-                SIXTRL_CXX_NAMESPACE::KERNEL_CONFIG_VARIANT_DEBUG_MODE,
             char const* SIXTRL_RESTRICT config_str = nullptr );
 
         SIXTRL_HOST_FN KernelConfigBase( arch_id_t const arch_id,
             std::string const& SIXTRL_RESTRICT_REF arch_str,
-            size_type const num_kernel_args = size_type{ 0 },
+            size_type const num_kernel_args = DEFAULT_NUM_KERNEL_ARGUMENTS,
+            purpose_t const purpose = DEFAULT_KERNEL_PURPOSE,
+            variant_t const variant_flags = DEFAULT_KERNEL_VARIANT,
             std::string const& SIXTRL_RESTRICT_REF kernel_name = std::string{},
-            variant_t const variant_flags =
-                SIXTRL_CXX_NAMESPACE::KERNEL_CONFIG_VARIANT_DEBUG_MODE,
             std::string const& SIXTRL_RESTRICT_REF config_str = std::string{} );
 
         SIXTRL_HOST_FN KernelConfigBase(
@@ -115,20 +125,30 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN void setNumArguments(
-            size_type const num_kernel_args ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t setNumArguments(
+            size_type const num_kernel_args );
 
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN variant_t variantFlags() const SIXTRL_NOEXCEPT;
+
         SIXTRL_HOST_FN bool areVariantFlagsSet(
             variant_t const var_flags ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN bool variantDebugMode() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN bool variantReleaseMode() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void setVariantFlags(
-            variant_t const variant_flags ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t setVariantFlags(
+            variant_t const variant_flags );
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN bool hasSpecifiedPurpose() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool hasPredefinedPurpose() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool hasUserdefinedPurpose() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN purpose_t purpose() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t setPurpose( purpose_t const purpose );
 
         /* ----------------------------------------------------------------- */
 
@@ -164,15 +184,29 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void clear();
 
         SIXTRL_HOST_FN bool needsUpdate() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool performsAutoUpdate() const SIXTRL_NOEXCEPT;
+
         SIXTRL_HOST_FN status_t update();
 
         /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN size_type requiredOutStringLength() const;
+
+        SIXTRL_HOST_FN std::string toString() const;
+
+        SIXTRL_HOST_FN status_t toString( size_type const out_str_capacity,
+            char* SIXTRL_RESTRICT out_str ) const;
+
 
         SIXTRL_HOST_FN void print(
             std::ostream& SIXTRL_RESTRICT_REF output ) const;
 
         SIXTRL_HOST_FN void print( ::FILE* SIXTRL_RESTRICT output ) const;
         SIXTRL_HOST_FN void printOut() const;
+
+        SIXTRL_HOST_FN friend std::ostream& operator<<(
+            std::ostream& SIXTRL_RESTRICT_REF output,
+            NodeInfoBase const& SIXTRL_RESTRICT_REF node_info );
 
         /* ----------------------------------------------------------------- */
 
@@ -188,10 +222,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
         protected:
 
-        SIXTRL_HOST_FN virtual void doPrintToOutputStream(
+        SIXTRL_HOST_FN virtual status_t doPrintToOutputStream(
             std::ostream& SIXTRL_RESTRICT_REF output ) const;
 
         SIXTRL_HOST_FN virtual status_t doUpdate();
+
+        SIXTRL_HOST_FN virtual status_t doSetNeedsUpdate();
 
         SIXTRL_HOST_FN virtual status_t doAssignToNode(
             node_id_t const& SIXTRL_RESTRICT_REF node );
@@ -213,6 +249,9 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void doSetNeedsUpdateFlag(
             bool const needs_update ) SIXTRL_NOEXCEPT;
 
+        SIXTRL_HOST_FN void doSetPerformsAutoUpdatesFlag(
+            bool const performs_auto_updates ) SIXTRL_NOEXCEPT;
+
         private:
 
         SIXTRL_HOST_FN void doClearBaseImpl() SIXTRL_NOEXCEPT;
@@ -227,10 +266,12 @@ namespace SIXTRL_CXX_NAMESPACE
         std::string m_name;
 
         size_type   m_num_kernel_args;
+        purpose_t   m_kernel_purpose;
         kernel_id_t m_kernel_id;
         variant_t   m_variant_flags;
 
         bool        m_needs_update;
+        bool        m_perform_auto_update;
     };
 
     /* ----------------------------------------------------------------- */
