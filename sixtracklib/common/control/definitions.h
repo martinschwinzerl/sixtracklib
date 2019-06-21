@@ -18,7 +18,8 @@ typedef SIXTRL_UINT32_T      NS(arch_kernel_id_t);
 typedef NS(arch_status_t)    NS(ctrl_status_t);
 typedef NS(arch_size_t)      NS(ctrl_size_t);
 typedef NS(arch_kernel_id_t) NS(ctrl_kernel_id_t);
-typedef SIXTRL_UINT16_T      NS(kernel_config_variant_t);
+typedef SIXTRL_UINT16_T      NS(kernel_variant_t);
+typedef SIXTRL_UINT32_T      NS(kernel_purpose_t);
 
 typedef SIXTRL_INT64_T       NS(node_platform_id_t);
 typedef SIXTRL_INT64_T       NS(node_device_id_t);
@@ -206,13 +207,53 @@ SIXTRL_STATIC_VAR NS(arch_debugging_t) const
 SIXTRL_STATIC_VAR NS(arch_kernel_id_t) const
     NS(ARCH_ILLEGAL_KERNEL_ID) = ( NS(arch_kernel_id_t) )0xFFFFFFFF;
 
-SIXTRL_STATIC_VAR NS(kernel_config_variant_t) const
-    NS(KERNEL_CONFIG_VARIANT_NONE) = ( NS(kernel_config_variant_t) )0;
+SIXTRL_STATIC_VAR NS(kernel_variant_t) const
+    NS(KERNEL_CONFIG_VARIANT_NONE) = ( NS(kernel_variant_t) )0;
 
-SIXTRL_STATIC_VAR NS(kernel_config_variant_t) const
+SIXTRL_STATIC_VAR NS(kernel_variant_t) const
     NS(KERNEL_CONFIG_VARIANT_DEBUG_MODE) =
-        ( NS(kernel_config_variant_t) )0x8000;
+        ( NS(kernel_variant_t) )0x8000;
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_REMAP_BUFFER) = ( NS(kernel_purpose_t) )0u;
+
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_FETCH_PARTICLE_ADDRESSES) = 
+        ( NS(kernel_purpose_t) )1u;
+    
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_TRACK_UNTIL_TURN) = ( NS(kernel_purpose_t) )2u;
+    
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_TRACK_ELEM_BY_ELEM) = ( NS(kernel_purpose_t) )3u;
+    
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_TRACK_LINE) = ( NS(kernel_purpose_t) )4u;
+    
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_ASSIGN_BEAM_MONITOR_OUTPUT) = 
+        ( NS(kernel_purpose_t) )5u;
+
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_ASSIGN_ELEM_BY_ELEM_OUTPUT) = 
+        ( NS(kernel_purpose_t) )6u;
+        
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_MAX_PREDEFINED_ID) = 
+        NS(KERNEL_CONFIG_PURPOSE_ASSIGN_ELEM_BY_ELEM_OUTPUT);
+       
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_MAX_RESERVED) = ( NS(kernel_purpose_t) )1022u;
+
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_UNSPECIFIED) = ( NS(kernel_purpose_t) )1023u;
+    
+SIXTRL_STATIC_VAR NS(kernel_purpose_t) const 
+    NS(KERNEL_CONFIG_PURPOSE_MIN_USERDEFINED_ID) = 
+        ( NS(kernel_purpose_t) )1024u;
+    
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 SIXTRL_STATIC_VAR NS(node_platform_id_t) const NS(NODE_ILLEGAL_PATFORM_ID) =
@@ -235,7 +276,8 @@ namespace SIXTRL_CXX_NAMESPACE
     typedef ::NS(ctrl_status_t)             ctrl_status_t;
     typedef ::NS(ctrl_size_t)               ctrl_size_t;
     typedef ::NS(ctrl_kernel_id_t)          ctrl_kernel_id_t;
-    typedef ::NS(kernel_config_variant_t)   kernel_config_variant_t;
+    typedef ::NS(kernel_variant_t)   kernel_variant_t;
+    typedef ::NS(kernel_purpose_t)          kernel_purpose_t;
 
     typedef ::NS(arch_status_t)             arch_status_t;
     typedef ::NS(arch_id_t)                 arch_id_t;
@@ -330,13 +372,58 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_kernel_id_t
         ARCH_ILLEGAL_KERNEL_ID = static_cast< arch_kernel_id_t >( 0xFFFFFFFF );
 
-    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_config_variant_t
-        KERNEL_CONFIG_VARIANT_NONE =
-            static_cast< kernel_config_variant_t >( 0 );
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_variant_t
+        KERNEL_CONFIG_VARIANT_NONE = static_cast< kernel_variant_t >( 0 );
 
-    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_config_variant_t
-        KERNEL_CONFIG_VARIANT_DEBUG_MODE = static_cast<
-            kernel_config_variant_t >( 0x8000 );
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_variant_t
+        KERNEL_CONFIG_VARIANT_DEBUG_MODE = static_cast< kernel_variant_t >( 
+            0x8000 );
+    
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+            
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_REMAP_BUFFER = 
+            static_cast< kernel_purpose_t >( 0 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_FETCH_PARTICLE_ADDRESSES  = 
+            static_cast< kernel_purpose_t >( 1 );
+        
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_TRACK_UNTIL_TURN = 
+            static_cast< kernel_purpose_t >( 2 );
+        
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_TRACK_ELEM_BY_ELEM = 
+            static_cast< kernel_purpose_t >( 3 );
+        
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_TRACK_LINE = 
+            static_cast< kernel_purpose_t >( 4 );
+        
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_ASSIGN_BEAM_MONITOR_OUTPUT = 
+            static_cast< kernel_purpose_t >( 5 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_ASSIGN_ELEM_BY_ELEM_OUTPUT = 
+             static_cast< kernel_purpose_t >( 6 );
+         
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t 
+        KERNEL_CONFIG_PURPOSE_MAX_PREDEFINED_ID = 
+            KERNEL_CONFIG_PURPOSE_ASSIGN_ELEM_BY_ELEM_OUTPUT;            
+           
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_MAX_RESERVED = 
+            static_cast< kernel_purpose_t >( 1022 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_UNSPECIFIED = 
+            static_cast< kernel_purpose_t >( 1023 );
+            
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
+        KERNEL_CONFIG_PURPOSE_MIN_USERDEFINED_ID = 
+            static_cast< kernel_purpose_t >( 1024 );
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
