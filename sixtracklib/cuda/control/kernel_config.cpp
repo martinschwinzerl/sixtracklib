@@ -27,285 +27,693 @@ namespace st = SIXTRL_CXX_NAMESPACE;
 namespace SIXTRL_CXX_NAMESPACE
 {
     CudaKernelConfig::CudaKernelConfig(
+        CudaKernelConfig::size_type const num_kernel_arguments,
+        CudaKernelConfig::purpose_t const purpose,
+        CudaKernelConfig::variant_t const variant_flags,
         CudaKernelConfig::size_type const block_dimensions,
         CudaKernelConfig::size_type const threads_per_block_dimensions,
+        char const* SIXTRL_RESTRICT kernel_name_str,
         CudaKernelConfig::size_type const shared_mem_per_block,
+        CudaKernelConfig::size_type const shared_mem_per_thread,
         CudaKernelConfig::size_type const max_block_size_limit,
         CudaKernelConfig::size_type const warp_size,
         char const* SIXTRL_RESTRICT config_str ) :
         st::KernelConfigBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str, block_dimensions,
-            threads_per_block_dimensions ),
-            m_blocks(), m_threads_per_block(),
+            SIXTRL_ARCHITECTURE_CUDA_STR, num_kernel_arguments,
+            purpose, variant_flags, kernel_name_str, config_str ),
+            m_blocks(), m_threads_per_block(), m_block_offsets( 0u, 0u, 0u ),
+            m_block_dim( CudaKernelConfig::DEFAULT_BLOCK_DIMENSIONS ),
+            m_threads_per_block_dim(
+                CudaKernelConfig::DEFAULT_THREADS_PER_BLOCK_DIMENSIONS ),
             m_warp_size( CudaKernelConfig::DEFAULT_WARP_SIZE ),
-            m_shared_mem_per_block( shared_mem_per_block ),
-            m_max_block_size_limit( max_block_size_limit )
+            m_shared_mem_per_block(
+                CudaKernelConfig::DEFAULT_SHARED_MEM_PER_BLOCK ),
+            m_max_block_size_limit(
+                CudaKernelConfig::DEFAULT_MAX_BLOCK_SIZE_LIMIT )
     {
-        using _this_t = st::CudaKernelConfig;
-        using size_t = _this_t::size_type;
+        CudaKernelConfig::status_t status = this->reset(
+            block_dimensions, threads_per_block_dimensions,
+            shared_mem_per_block, shared_mem_per_thread,
+            max_block_size_limit, warp_size );
 
-        if( warp_size > size_t{ 0 } )
+        this->doSetNeedsUpdateFlag( true );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
         {
-            this->setWarpSize( warp_size );
+            this->doSetPerformsAutoUpdatesFlag( true );
         }
     }
 
     CudaKernelConfig::CudaKernelConfig(
-        std::string const& SIXTRL_RESTRICT_REF name_str,
         CudaKernelConfig::size_type const num_kernel_arguments,
+        CudaKernelConfig::purpose_t const purpose,
+        CudaKernelConfig::variant_t const variant_flags,
+        CudaKernelConfig::size_type const block_dimensions,
+        CudaKernelConfig::size_type const threads_per_block_dimensions,
+        std::string const& SIXTRL_RESTRICT_REF kernel_name_str,
+        CudaKernelConfig::size_type const shared_mem_per_block,
+        CudaKernelConfig::size_type const shared_mem_per_thread,
+        CudaKernelConfig::size_type const max_block_size_limit,
+        CudaKernelConfig::size_type const warp_size,
+        std::string const& SIXTRL_RESTRICT_REF config_str ) :
+            st::KernelConfigBase( st::ARCHITECTURE_CUDA,
+                SIXTRL_ARCHITECTURE_CUDA_STR, num_kernel_arguments, purpose,
+                variant_flags, kernel_name_str, config_str ),
+            m_blocks(), m_threads_per_block(), m_block_offsts( 0u, 0u, 0u ),
+            m_block_dim( CudaKernelConfig::DEFAULT_BLOCK_DIMENSIONS),
+            m_threads_per_block_dim(
+                CudaKernelConfig::DEFAULT_THREADS_PER_BLOCK_DIMENSIONS ),
+            m_warp_size( CudaKernelConfig::DEFAULT_WARP_SIZE ),
+            m_shared_mem_per_block(
+                CudaKernelConfig::DEFAULT_SHARED_MEM_PER_BLOCK ),
+            m_max_block_size_limit(
+                CudaKernelConfig::DEFAULT_MAX_BLOCK_SIZE_LIMIT )
+    {
+        CudaKernelConfig::status_t status = this->reset(
+            block_dimensions, threads_per_block_dimensions,
+                shared_mem_per_block, shared_mem_per_thread,
+                    max_block_size_limit, warp_size );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            this->doSetPerformsAutoUpdatesFlag( true );
+        }
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    CudaKernelConfig::status_t CudaKernelConfig::reset(
         CudaKernelConfig::size_type const block_dimensions,
         CudaKernelConfig::size_type const threads_per_block_dimensions,
         CudaKernelConfig::size_type const shared_mem_per_block,
+        CudaKernelConfig::size_type const shared_mem_per_thread,
         CudaKernelConfig::size_type const max_block_size_limit,
-        CudaKernelConfig::size_type const warp_size,
-        char const* SIXTRL_RESTRICT config_str ) :
-        st::KernelConfigBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str, block_dimensions,
-            threads_per_block_dimensions ),
-            m_blocks(), m_threads_per_block(),
-            m_warp_size( CudaKernelConfig::DEFAULT_WARP_SIZE ),
-            m_shared_mem_per_block( shared_mem_per_block ),
-            m_max_block_size_limit( max_block_size_limit )
+        CudaKernelConfig::size_type const warp_size )
     {
-        using _this_t = st::CudaKernelConfig;
-        using size_t = _this_t::size_type;
+        using size_t = CudaKernelConfig::size_type;
 
-        if( warp_size > size_t{ 0 } )
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_SUCCESS;
+
+        size_t temp_block_dims   = this->blockDimensions();
+        size_t temp_threads_dims= this->threadsPerBlockDimensions();
+        size_t temp_shared_mem_per_block = this->m_shared_mem_per_block;
+        size_t temp_shared_mem_per_thread = this->m_shared_mem_per_thread;
+        size_t temp_max_block_size_limit = this->m_max_block_size_limit;
+        size_t temp_warp_size = this->m_warp_size;
+
+        if( block_dimensions != temp_block_dims )
         {
-            this->setWarpSize( warp_size );
+            if( ( block_dimensions >= size_t{ 1 } ) &&
+                ( block_dimensions <= size_t{ 3 } ) )
+            {
+                temp_block_dims = block_dimensions;
+            }
+            else
+            {
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
+            }
         }
 
-        this->setNumArguments( num_kernel_arguments );
-        this->setName( name_str );
-    }
-
-    CudaKernelConfig::CudaKernelConfig(
-        char const* SIXTRL_RESTRICT name_str,
-        CudaKernelConfig::size_type const num_kernel_arguments,
-        CudaKernelConfig::size_type const block_dimensions,
-        CudaKernelConfig::size_type const threads_per_block_dimensions,
-        CudaKernelConfig::size_type const shared_mem_per_block,
-        CudaKernelConfig::size_type const max_block_size_limit,
-        CudaKernelConfig::size_type const warp_size,
-        char const* SIXTRL_RESTRICT config_str ) :
-        st::KernelConfigBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str, block_dimensions,
-            threads_per_block_dimensions ),
-            m_blocks(), m_threads_per_block(),
-            m_warp_size( CudaKernelConfig::DEFAULT_WARP_SIZE ),
-            m_shared_mem_per_block( shared_mem_per_block ),
-            m_max_block_size_limit( max_block_size_limit )
-    {
-        using _this_t = st::CudaKernelConfig;
-        using size_t = _this_t::size_type;
-
-        if( warp_size > size_t{ 0 } )
+        if( threads_per_block_dimensions != temp_threads_dims)
         {
-            this->setWarpSize( warp_size );
+            if( ( threads_per_block_dimensions >= size_t{ 1 } ) &&
+                ( threads_per_block_dimensions <= size_t{ 3 } ) )
+            {
+                temp_threads_dims= threads_per_block_dimensions;
+            }
+            else
+            {
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
+            }
         }
 
-        this->setNumArguments( num_kernel_arguments );
-        this->setName( name_str );
+        if( shared_mem_per_block != temp_shared_mem_per_block )
+        {
+            temp_shared_mem_per_block = shared_mem_per_block;
+        }
+
+        if( shared_mem_pr_thread != temp_shared_mem_per_thread )
+        {
+            temp_shared_mem_per_thread = shared_mem_per_thread;
+        }
+
+        if( max_block_size_limit != temp_max_block_size_limit )
+        {
+            temp_max_block_size_limit = max_block_size_limit;
+        }
+
+        if( warp_size != temp_warp_size )
+        {
+            if( warp_size > size_t{ 0 } )
+            {
+                temp_warp_size = warp_size;
+            }
+            else
+            {
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
+            }
+        }
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            bool needs_update = false;
+
+            if( temp_block_dims != this->blockDimensions() )
+            {
+                this->m_block_dim = temp_block_dims;
+                needs_update = true;
+            }
+
+            if( temp_threads_dims!= this->threadsPerBlockDimensions() )
+            {
+                this->m_threads_per_block_dim = temp_threads_dim;
+                needs_update = true;
+            }
+
+            if( temp_shared_mem_per_block != this->sharedMemPerBlock() )
+            {
+                this->m_shared_mem_per_block = temp_shared_mem_per_block;
+                needs_update = true;
+            }
+
+            if( temp_shared_mem_per_thread != this->sharedMemPerThread() )
+            {
+                this->m_shared_mem_per_thread = temp_shared_mem_per_thread;
+                needs_update = true;
+            }
+
+            if( temp_max_block_size_limit != this->maxBlockSizeLimit() )
+            {
+                this->m_max_block_size_limit = temp_max_block_size_limit;
+                needs_update = true;
+            }
+
+            if( temp_warp_size != this->warpSize() )
+            {
+                this->m_warp_size = temp_warp_size;
+                needs_update;
+            }
+
+            if( needs_update )
+            {
+                status = this->doSetNeedsUpdate();
+            }
+        }
+
+        return status;
     }
 
-    CudaKernelConfig::size_type
-    CudaKernelConfig::sharedMemPerBlock() const SIXTRL_NOEXCEPT
+    CudaKernelConfig::status_t CudaKernelConfig::setBlockDimensions(
+        CudaKernelConfig::size_type const block_dimensions )
     {
-        return this->m_shared_mem_per_block;
+        using size_t = CudaKernelConfig::size_type;
+
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( block_dimensions == this->blockDimensions() )
+        {
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else if( ( block_dimensions >= size_t{ 1 } ) &&
+                 ( block_dimensions <= size_t{ 3 } ) )
+        {
+            this->m_block_dim = block_dimensions;
+            status = this->doSetNeedsUpdate();
+        }
+
+        return status;
     }
 
-    void CudaKernelConfig::setSharedMemPerBlock(
-        CudaKernelConfig::size_type const shared_mem_per_block ) SIXTRL_NOEXCEPT
+    CudaKernelConfig::status_t CudaKernelConfig::setThreadsPerBlockDimensions(
+        CudaKernelConfig::size_type const threads_per_block_dims )
     {
-        this->m_shared_mem_per_block = shared_mem_per_block;
+        using size_t = CudaKernelConfig::size_type;
+
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( threads_per_block_dims == this->threadsPerBlockDimensions() )
+        {
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else if( ( threads_per_block_dims >= size_t{ 1 } ) &&
+                 ( threads_per_block_dims <= size_t{ 3 } ) )
+        {
+            this->m_threads_per_block_dim = threads_per_block_dims;
+            status = this->doSetNeedsUpdate();
+        }
+
+        return status;
     }
 
-    CudaKernelConfig::size_type
-    CudaKernelConfig::maxBlockSizeLimit() const SIXTRL_NOEXCEPT
+    CudaKernelConfig::status_t CudaKernelConfig::setGridDimensions(
+        CudaKernelConfig::size_type const block_dims,
+        CudaKernelConfig::size_type const threads_per_block_dims )
     {
-        return this->m_max_block_size_limit;
+        using size_t = CudaKernelConfig::size_type;
+
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_SUCCESS;
+
+        size_t temp_block_dims = this->blockDimensions();
+        size_t temp_threads_dims = this->threadsPerBlockDimensions();
+
+        if( block_dimensions != temp_block_dims )
+        {
+            if( ( block_dimensions >= size_t{ 1 } ) &&
+                ( block_dimensions <= size_t{ 3 } ) )
+            {
+                temp_block_dims = block_dimensions;
+            }
+            else
+            {
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
+            }
+        }
+
+        if( threads_per_block_dimensions != this->threadsPerBlockDimensions() )
+        {
+            if( ( threads_per_block_dimensions >= size_t{ 1 } ) &&
+                ( threads_per_block_dimensions <= size_t{ 3 } ) )
+            {
+                temp_threads_dims= threads_per_block_dimensions;
+            }
+            else
+            {
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
+            }
+        }
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            bool needs_update = false;
+
+            if( temp_block_dims != this->blockDimensions() )
+            {
+                this->m_block_dim = temp_block_dims;
+                needs_update = true;
+            }
+
+            if( temp_threads_dims!= this->threadsPerBlockDimensions() )
+            {
+                this->m_threads_per_block_dim = temp_threads_dim;
+                needs_update = true;
+            }
+
+            if( needs_update )
+            {
+                status = this->doSetNeedsUpdate();
+            }
+        }
+
+        return status;
     }
 
-    void CudaKernelConfig::setMaxBlockSizeLimit( CudaKernelConfig::size_type
-        const max_block_size_limit ) SIXTRL_NOEXCEPT
+    CudaKernelConfig::status_t CudaKernelConfig::setSharedMemPerBlock(
+        CudaKernelConfig::size_type const shared_mem_per_block )
     {
-        this->m_max_block_size_limit = max_block_size_limit;
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( shared_mem_per_block == this->m_shared_mem_per_block )
+        {
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else
+        {
+            this->m_shared_mem_per_block = shared_mem_per_block;
+            status = this->doSetNeedsUpdate();
+        }
+
+        return status;
     }
 
-    ::dim3 const& CudaKernelConfig::blocks() const SIXTRL_NOEXCEPT
+    CudaKernelConfig::status_t CudaKernelConfig::setSharedMemPerThread(
+        CudaKernelConfig::size_type const shared_mem_per_thread )
     {
-        return this->m_blocks;
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( shared_mem_per_thread == this->m_shared_mem_per_thread )
+        {
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else
+        {
+            this->m_shared_mem_per_thread = shared_mem_per_thread;
+            status = this->doSetNeedsUpdate();
+        }
+
+        return status;
     }
 
-    ::dim3 const& CudaKernelConfig::threadsPerBlock() const SIXTRL_NOEXCEPT
+    CudaKernelConfig::status_t CudaKernelConfig::setMaxBlockSizeLimit(
+        CudaKernelConfig::size_type const max_block_size_limit )
     {
-        return this->m_threads_per_block;
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( max_block_size_limit == this->m_max_block_size_limit )
+        {
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else
+        {
+            this->m_max_block_size_limit = max_block_size_limit;
+            status = this->doSetNeedsUpdate();
+        }
+
+        return status;
     }
 
-    ::dim3 const* CudaKernelConfig::ptrBlocks() const SIXTRL_NOEXCEPT
+    CudaKernelConfig::status_t CudaKernelConfig::setWarpSize(
+        CudaKernelConfig::size_type const warp_size )
     {
-        return ( !this->needsUpdate() ) ? &this->m_blocks : nullptr;
-    }
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-    ::dim3 const* CudaKernelConfig::ptrThreadsPerBlock() const SIXTRL_NOEXCEPT
-    {
-        return ( !this->needsUpdate() ) ? &this->m_threads_per_block : nullptr;
-    }
-
-    CudaKernelConfig::size_type
-    CudaKernelConfig::warpSize() const SIXTRL_NOEXCEPT
-    {
-        return this->m_warp_size;
-    }
-
-    void CudaKernelConfig::setWarpSize(
-        CudaKernelConfig::size_type const warp_size ) SIXTRL_NOEXCEPT
-    {
-        if( warp_size > CudaKernelConfig::size_type{ 0 } )
+        if( warp_size == this->warpSize() )
+        {
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else if( warp_size > CudaKernelConfig::size_type{ 0 } )
         {
             this->m_warp_size = warp_size;
+            status = this->doSetNeedsUpdate();
         }
 
-        return;
+        return status;
     }
+
+    /* --------------------------------------------------------------------- */
+
+    CudaKernelConfig::status_t CudaKernelConfig::setGrid(
+        ::dim3 const& SIXTRL_RESTRICT_REF blocks,
+        ::dim3 const& SIXTRL_RESTRICT_REF threads_per_block,
+        ::dim3 const& SIXTRL_RESTRICT_REF block_offsets )
+    {
+        using _this_t = CudaKernelConfig;
+        using  size_t = _this_t::size_type;
+
+        _this_t::status_t status = st::ARCH_STATUS_SUCCESS;
+
+        ::dim3 temp_blocks = this->m_blocks;
+        ::dim3 temp_block_offsts = this->m_block_offsts;
+        ::dim3 temp_threads_per_block = this->m_threads_per_block;
+
+        size_t const block_dims= this->blockDimensions();
+        size_t const threads_dims= this->theadsDimensions();
+
+        if( !_this_t::AreDim3ObjectsEqual( blocks, temp_blocks, num_blocks ) )
+        {
+            status = _this_t::AssignToDim3( temp_blocks, blocks_dim, blocks.x,
+                     blocks.y, blocks.z, size_t{ 1 }  );
+        }
+
+        if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+            ( !_this_t::AreDim3ObjectsEqual( threads_per_block,
+                 temp_threads_per_block, threads_dims) ) )
+        {
+            status = CudaKernelConfig::AssignToDim3( temp_threads_per_block,
+                threads_dim, threads_per_block.x, threads_per_block.y,
+                    threads_per_block.z, size_t{ 1 } );
+        }
+
+        if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+            ( !_this_t::AreDim3ObjectsEqual(
+                block_offsets, temp_block_offsets, block_dims) ) )
+        {
+            status = CudaKernelConfig::AssignToDim3( temp_block_offsets,
+                blocks_dim, block_offsets.x, block_offsets.y,
+                    block_offsets.z, size_t{ 0 } );
+        }
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            bool needs_update = false;
+
+            if( !_this_t::AreDim3ObjectsEqual(
+                    temp_blocks, this->m_blocks, block_dims) )
+            {
+                this->m_blocks = temp_blocks;
+                needs_update = true;
+            }
+
+            if( !_this_t::AreDim3ObjectsEqual( temp_threads_per_block,
+                    this->m_threads_per_block, threads_dims) )
+            {
+                this->m_threads_per_block = temp_threads_per_block;
+                needs_update = true;
+            }
+
+            if( !_this_t::AreDim3ObjectsEqual(
+                    temp_block_offsets, this->m_block_offsts, block_dims) )
+            {
+                this->m_block_offsets = temp_block_offsets;
+                needs_update = true;
+            }
+
+            if( needs_update )
+            {
+                status = this->doSetNeedsUpdate();
+            }
+        }
+
+        return status;
+    }
+
+    CudaKernelConfig::status_t CudaKernelConfig::setBlocks(
+        ::dim3 const& blocks ) SIXTRL_NOEXCEPT
+    {
+        return this->setBlocks( blocks.x, blocks.y, blocks.z );
+    }
+
+    CudaKernelConfig::status_t CudaKernelConfig::setBlocks(
+        CudaKernelConfig::size_type const x_blocks,
+        CudaKernelConfig::size_type const y_blocks,
+        CudaKernelConfig::size_type const z_blocks )  SIXTRL_NOEXCEPT
+    {
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( this->blockDimensions() > CudaKernelConfig::size_type{ 0 } )
+        {
+            static constexpr unsigned int ONE = unsigned int{ 1 };
+
+            if( ( x_blocks != this->m_blocks.x ) ||
+                ( y_blocks != this->m_blocks.y ) ||
+                ( z_blocks != this->m_blocks.z ) )
+            {
+                ::dim3 temp_blocks;
+
+                status = CudaKernelConfig::AssignToDim3( temp_blocks,
+                    this->blockDimensions(), x_blocks, y_blocks, z_blocks );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    this->m_blocks = temp_blocks;
+                    this->doSetNeedsUpdate();
+                }
+            }
+            else if( ( this->m_blocks.x >= ONE ) &&
+                     ( this->m_blocks.y >= ONE ) &&
+                     ( this->m_blocks.z >= ONE ) )
+            {
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+
+        return status;
+    }
+
+    CudaKernelConfig::status_t CudaKernelConfig::setThreadsPerBlock(
+        ::dim3 const& SIXTRL_RESTRICT_REF threads_per_block ) SIXTRL_NOEXCEPT
+    {
+        return this->setThreadsPerBlock( threads_per_block.x,
+            threads_per_block.y, threads_per_block.z );
+    }
+
+    CudaKernelConfig::status_t CudaKernelConfig::setThreadsPerBlock(
+        CudaKernelConfig::size_type const x_threads,
+        CudaKernelConfig::size_type const y_threads,
+        CudaKernelConfig::size_type const z_threads ) SIXTRL_NOEXCEPT
+    {
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( this->threadsPerBlockDimensions() >
+            CudaKernelConfig::size_type{ 0 } )
+        {
+            static constexpr unsigned int ONE = unsigned int{ 1 };
+
+            if( ( x_threads != this->m_threads_per_block.x ) ||
+                ( y_threads != this->m_threads_per_block.y ) ||
+                ( z_threads != this->m_threads_per_block.z ) )
+            {
+                ::dim3 temp_threads;
+
+                status = CudaKernelConfig::AssignToDim3( temp_threads,
+                    this->threadsPerBlockDimensions(),
+                        x_threads.x, y_threads, z_threads, ONE );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    this->m_threads_per_block = temp_threads;
+                    this->doSetNeedsUpdate();
+                }
+            }
+            else if( ( this->m_threads_per_block.x >= ONE ) &&
+                     ( this->m_threads_per_block.y >= ONE ) &&
+                     ( this->m_threads_per_block.z >= ONE ) )
+            {
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+
+        return status;
+    }
+
+    CudaKernelConfig::status_t CudaKernelConfig::setBlockOffsets(
+        ::dim3 const& SIXTRL_RESTRICT_REF block_offsets ) SIXTRL_NOEXCEPT
+    {
+        return this->setBlockOffsets(
+            block_offsets.x, block_offsets.y, block_offsets.z );
+    }
+
+    CudaKernelConfig::status_t CudaKernelConfig::setThreadsPerBlock(
+        CudaKernelConfig::size_type const x_block_offset,
+        CudaKernelConfig::size_type const y_block_offset,
+        CudaKernelConfig::size_type const z_block_offset ) SIXTRL_NOEXCEPT
+    {
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        CudaKernelConfig::size_type const block_dims = this->blockDimensions();
+
+        if( block_dims > CudaKernelConfig::size_type{ 0 } )
+        {
+            if( ( x_block_offset != this->m_block_offsets.x ) ||
+                ( y_block_offset != this->m_block_offsets.y ) ||
+                ( z_block_offset != this->m_block_offsets.z ) )
+            {
+                ::dim3 temp_block_offsets;
+
+                status = CudaKernelConfig::AssignToDim3( temp_block_offsets,
+                    block_dims, x_block_offset, y_block_offset, z_block_offset,
+                        CudaKernelConfig::size_type{ 0 } );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    this->m_block_offsets = temp_block_offsets;
+                    this->doSetNeedsUpdate();
+                }
+            }
+            else
+            {
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
 
     CudaKernelConfig::status_t CudaKernelConfig::doUpdate()
     {
-        bool success = false;
-
         using size_t = CudaKernelConfig::size_type;
 
-        size_t const items_dim = this->workItemsDim();
-        size_t const wgroups_dim = this->workGroupsDim();
+        CudaKernelConfig::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( ( items_dim > size_t{ 0 } ) && ( wgroups_dim == items_dim ) )
+        size_t const block_dims = this->blockDimensions();
+        size_t const threads_dims = this->threadsPerBlockDimensions();
+
+        if( ( block_dims >= size_t{ 1 } ) &&
+            ( block_dims <= size_t{ 3 } ) &&
+            ( threads_dims >= size_t{ 1 } ) &&
+            ( threads_dims <= size_t{ 3 } ) &&
+            ( this->totalNumBlocks() > size_t{ 0 } ) &&
+            ( this->totalNumThreadsPerBlock() > size_t{ 0 } ) )
         {
-            size_t ii = size_t{ 0 };
-            success = true;
-
-            size_t num_blocks[]  = { size_t{ 1 }, size_t{ 1 }, size_t{ 1 } };
-            size_t num_threads[] = { size_t{ 1 }, size_t{ 1 }, size_t{ 1 } };
-
-            for( ; ii < items_dim ; ++ii )
-            {
-                size_t const wgsize = this->workGroupSize( ii );
-                size_t const num_items = this->numWorkItems( ii );
-
-                if( ( wgsize == size_t{ 0 } ) ||
-                    ( num_items == size_t{ 0 } ) )
-                {
-                    success = false;
-                    break;
-                }
-
-                num_threads[ ii ] = wgsize;
-                num_blocks[ ii ]  = num_items / wgsize;
-
-                if( size_t{ 0 } != ( num_items % wgsize ) )
-                {
-                    ++num_blocks[ ii ];
-                }
-            }
-
-            if( success )
-            {
-                size_t const total_num_blocks =
-                    num_blocks[ 0 ] * num_blocks[ 1 ] * num_blocks[ 2 ];
-
-                this->m_blocks.x = num_blocks[ 0 ];
-                this->m_blocks.y = num_blocks[ 1 ];
-                this->m_blocks.z = num_blocks[ 2 ];
-
-                size_t const threads_per_block =
-                    num_threads[ 0 ] * num_threads[ 1 ] * num_threads[ 2 ];
-
-                this->m_threads_per_block.x = num_threads[ 0 ];
-                this->m_threads_per_block.y = num_threads[ 1 ];
-                this->m_threads_per_block.z = num_threads[ 2 ];
-
-                success = ( ( total_num_blocks  > size_t{ 0 } ) &&
-                            ( threads_per_block > size_t{ 0 } ) );
-            }
+            this->doSetNeedsUpdateFlag( false );
+            status = st::ARCH_STATUS_SUCCESS;
         }
 
-        return ( success )
-            ? st::ARCH_STATUS_SUCCESS : st::ARCH_STATUS_GENERAL_FAILURE;
+        return status;
     }
 
-    CudaKernelConfig::size_type
-    CudaKernelConfig::totalNumBlocks() const SIXTRL_NOEXCEPT
-    {
-        return ( !this->needsUpdate() )
-            ? ( this->m_blocks.x * this->m_blocks.y * this->m_blocks.z )
-            : CudaKernelConfig::size_type{ 0 };
-    }
-
-    CudaKernelConfig::size_type
-    CudaKernelConfig::totalNumThreadsPerBlock() const SIXTRL_NOEXCEPT
-    {
-        return ( !this->needsUpdate() )
-            ? ( this->m_threads_per_block.x * this->m_threads_per_block.y *
-                this->m_threads_per_block.z )
-            : CudaKernelConfig::size_type{ 0 };
-    }
-
-    CudaKernelConfig::size_type
-    CudaKernelConfig::totalNumThreads() const SIXTRL_NOEXCEPT
-    {
-        return this->totalNumBlocks() * this->totalNumThreadsPerBlock();
-    }
-
-    void CudaKernelConfig::doPrintToOutputStream(
+    CudaKernelConfig::status_t CudaKernelConfig::doPrintToOutputStream(
         std::ostream& SIXTRL_RESTRICT_REF output ) const
     {
         using size_t = KernelConfigBase::size_type;
 
-        if( this->needsUpdate() )
+        CudaKernelConfig::status_t status =
+            st::KernelConfigBase::doPrintToOutputStream( output );
+
+        if( status != st::ARCH_STATUS_SUCCESS ) return status;
+
+        if( this->blockDimensions() > size_t{ 0 }  )
         {
-            output << "!!! WARNING: Preliminary values, "
-                   << "call update() before using !!!\r\n\r\n";
+            output << "Blocks dimensions     : "
+                   << this->blockDimensions() << "\r\n"
+                   << "Blocks                : [ "
+                   << std::setw( 6 ) << this->m_blocks.x;
+
+            if( this->blockDimensions() > size_t{ 1 } )
+            {
+                output << "," << std::setw( 6 ) << this->m_blocks.y;
+            }
+
+            if( this->blockDimensions() > size_t{ 2 } )
+            {
+                output << "," << std::setw( 6 ) << this->m_blocks.z;
+            }
+
+            output << " ]\r\n";
+
+            if( this->hasBlockOffsets() )
+            {
+                output << "Block offsets         : [ "
+                       << std::setw( 6 ) << this->m_block_offsets.x;
+
+                if( this->blockDimensions() > size_t{ 1 } )
+                {
+                    output << "," << std::setw( 6 ) << this->m_block_offsets.y;
+                }
+
+                if( this->blockDimensions() > size_t{ 2 } )
+                {
+                    output << "," << std::setw( 6 ) << this->m_block_offsets.z;
+                }
+
+                output << " ]\r\n";
+            }
         }
 
-        if( this->hasName() )
+        if( this->threadsPerBlockDimensions() > size_t{ 0 } )
         {
-            output << "kernel name          : " << this->name() << "\r\n";
+            size_t const threads_dims = this->threadsPerBlockDimensions();
+
+            output << "Threads/block dim.    : " << threads_dims << "\r\n"
+                   << "Threads/block         : [ "
+                   << std::setw( 6 ) << this->m_threads_per_block.x;
+
+            if( this->blockDimensions() > size_t{ 1 } )
+            {
+                output << "," << std::setw( 6 ) << this->m_threads_per_block.y;
+            }
+
+            if( this->blockDimensions() > size_t{ 2 } )
+            {
+                output << "," << std::setw( 6 ) << this->m_threads_per_block.z;
+            }
+
+            output << " ]\r\n";
         }
 
-        output << "num kernel arguments : "
-               << std::setw( 6 ) << this->numArguments() << "\r\n";
-
-        if( this->workItemsDim() > size_t{ 0 } )
-        {
-            output << "block dim            : " << this->workItemsDim()
-                   << "blocks               : [ "
-                   << std::setw( 5 ) << this->blocks().x << " / "
-                   << std::setw( 5 ) << this->blocks().y << " / "
-                   << std::setw( 5 ) << this->blocks().z << " ]\r\n";
-        }
-
-        if( this->workGroupsDim() > size_t{ 0 } )
-        {
-            output << "threads grid dim     : " << this->workItemsDim()
-                   << "threads per block    : [ "
-                   << std::setw( 5 ) << this->threadsPerBlock().x << " / "
-                   << std::setw( 5 ) << this->threadsPerBlock().y << " / "
-                   << std::setw( 5 ) << this->threadsPerBlock().z
-                   << " ]\r\n";
-        }
-
-        output << "shared mem per block : "
-               << std::setw( 6 ) << this->sharedMemPerBlock()
-               << " bytes\r\n"
-               << "warp size            : "
-               << std::setw( 6 ) << this->warpSize() << " threads\r\n";
+        output << "Shared mem/block      : "
+               << this->sharedMemPerBlock() << " bytes\r\n";
 
         if( this->maxBlockSizeLimit() > size_t{ 0 } )
         {
-            output << "max block size limit : " << std::setw( 6 )
-                   << this->maxBlockSizeLimit() << "\r\n";
+            output << "Max block size limit  : "
+               << this->maxBlockSizeLimit() << "\r\n";
         }
 
-        return;
+        output << "Warp Size             : "
+               << this->warpSize() << " threads\r\n";
+
+        return status;
     }
 }
 
