@@ -40,6 +40,7 @@ set( SIXTRL_COMMON_CONTROL_CXX_HEADERS
      arch_base.hpp
      node_id.hpp
      node_info.hpp
+     node_store.hpp
      kernel_config_base.hpp
      controller_base.hpp
      node_controller_base.hpp
@@ -51,10 +52,9 @@ set( SIXTRL_COMMON_CONTROL_CXX_SOURCES
      arch_info_c99.cpp
      arch_base.cpp
      arch_base_c99.cpp
-     node_id.cpp
-     node_id_c99.cpp
      node_info.cpp
      node_info_c99.cpp
+     node_store.cpp
      kernel_config_base.cpp
      kernel_config_base_c99.cpp
      controller_base.cpp
