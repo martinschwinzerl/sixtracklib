@@ -20,18 +20,6 @@ void NS(NodeInfo_delete)( ::NS(NodeInfoBase)* SIXTRL_RESTRICT node_info )
 
 /* ------------------------------------------------------------------------- */
 
-bool NS(NodeInfo_has_node_id)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
-{
-    return ( ( info != nullptr ) && ( info->hasNodeId() ) );
-}
-
-bool NS(NodeInfo_owns_node_id)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
-{
-    return ( ( info != nullptr ) && ( info->ownsNodeId() ) );
-}
-
 ::NS(NodeId) const* NS(NodeInfo_get_ptr_const_node_id)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
 {
@@ -74,146 +62,6 @@ bool NS(NodeInfo_owns_node_id)(
     return ( info != nullptr )
         ? info->setDeviceId( device_id )
         : st::ARCH_STATUS_GENERAL_FAILURE;
-}
-
-::NS(NodePlatformNodeIdPair) const*
-NS(NodeInfo_get_const_platform_id_platform_id_pair)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
-{
-    return ( info != nullptr )? info->ptrPlatformDeviceIdPair() : nullptr;
-}
-
-::NS(NodePlatformNodeIdPair)* NS(NodeInfo_get_platform_id_platform_id_pair)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeInfoBase)* SIXTRL_RESTRICT info )
-{
-    return ( info != nullptr )? info->ptrPlatformDeviceIdPair() : nullptr;
-}
-
-/* ------------------------------------------------------------------------- */
-
-bool NS(NodeInfo_has_controllers)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info )
-{
-    return ( ( info != nullptr ) && ( info->hasControllers() ) );
-}
-
-::NS(arch_size_t) NS(NodeInfo_get_num_of_controllers)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info )
-{
-    return ( info != nullptr )
-        ? info->numControllers() : ::NS(arch_size_t){ 0 };
-}
-
-bool NS(NodeInfo_is_attached_to_controller)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info,
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
-{
-    return ( ( info != nullptr ) &&
-             ( info->isAttachedToController( ptr_controller ) ) );
-}
-
-bool NS(NodeInfo_has_node_index)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info,
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
-{
-    return ( ( info != nullptr ) && ( info->hasNodeIndex( ptr_controller ) ) );
-}
-
-::NS(node_index_t) NS(NodeInfo_get_node_index)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info,
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
-{
-    return ( info != nullptr )
-        ? info->getNodeIndex( ptr_controller )
-        : st::NodeInfoBase::UNDEFINED_INDEX;
-}
-
-::NS(arch_status_t) NS(NodeInfo_set_node_index)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeInfo)* SIXTRL_RESTRICT info,
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller,
-    ::NS(node_index_t) const node_index )
-{
-    return ( info != nullptr )
-        ? indo->setNodeIndex( ptr_cotnroller, node_index )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
-}
-
-bool NS(NodeInfo_is_selected)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info )
-{
-    return ( ( info != nullptr ) && ( info->isSelected() ) );
-}
-
-bool NS(NodeInfo_is_selected_by_controller)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info,
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
-{
-    return ( ( info != nullptr ) &&
-             ( info->isSelectedByController( ptr_controller ) ) );
-}
-
-bool NS(NodeInfo_is_default)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info )
-{
-    return ( ( info != nullptr ) && ( info->isDefault() ) );
-}
-
-bool NS(NodeInfo_is_default_for_controller)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info,
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
-{
-    return ( ( info != nullptr ) &&
-             ( info->isDefaultForController( ptr_controller ) ) );
-}
-
-::NS(ControllerBase) const* NS(NodeInfo_get_const_selecting_controller)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info )
-{
-    return ( info != nullptr ) ? info->ptrSelectingController() : nullptr;
-}
-
-::NS(arch_status_t) NS(NodeInfo_set_selected_controller)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeInfo)* SIXTRL_RESTRICT info,
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
-{
-    return ( info != nullptr )
-        ? info->setPtrSelectedController( ptr_controller )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
-}
-
-::NS(arch_status_t) NS(NodeInfo_reset_selecting_controller)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeInfo)* SIXTRL_RESTRICT info )
-{
-    return ( info != nullptr )
-        ? info->resetSelectingController()
-        : st::ARCH_STATUS_GENERAL_FAILURE;
-}
-
-::NS(arch_status_t) NS(NodeInfo_attach_to_controller)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeInfo)* SIXTRL_RESTRICT info,
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller,
-    ::NS(node_index_t) const node_index )
-{
-    return ( info != nullptr )
-        ? info->attachToController( ptr_controller, node_index )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
-}
-
-::NS(arch_status_t) NS(NodeInfo_detach_from_controller)(
-    SIXTRL_ARGPTR_DEC ::NS(NodeInfo)* SIXTRL_RESTRICT info,
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
-{
-    return ( info != nullptr )
-        ? info->detachFromController( ptr_controller )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
-}
-
-::NS(ControllerBase) const* NS(NodeInfo_get_const_controller)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfo) *const SIXTRL_RESTRICT info,
-    ::NS(arch_size_t) const num_of_controller_in_sequence )
-{
-    return ( info != nullptr )
-        ? info->ptrController( num_of_controller_in_sequence ) : nullptr;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -297,42 +145,116 @@ void NS(NodeInfo_set_description)(
 
 /* ------------------------------------------------------------------------- */
 
-void NS(NodeInfo_print)( SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const
-    SIXTRL_RESTRICT info, ::FILE* SIXTRL_RESTRICT output,
-    const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+::NS(arch_size_t) NS(NodeInfo_get_max_selection_count)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
 {
-    if( ( info != nullptr ) && ( output != nullptr ) )
-    {
-        info->print( output, ptr_controller );
-    }
+    return ( info != nullptr )
+        ? info->maxSelectionCount() : ::NS(arch_size_t){ 0 };
+}
+
+bool NS(NodeInfo_is_attached_to_any_controller)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
+{
+    return ( ( info != nullptr ) &&
+             ( info->isAttachedToAnyController() ) );
+}
+
+bool NS(NodeInfo_is_attached_to_controller)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
+    const ::NS(ControllerBase) *const ctrl )
+{
+    return ( ( info != nullptr ) && ( ctrl != nullptr ) &&
+             ( info->isAttachedToController( *ctrl ) ) );
+}
+
+::NS(arch_size_t) NS(NodeInfo_get_num_attached_controllers)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
+{
+    return ( info != nullptr )
+        ? info->numAttachedControllers() : ::NS(arch_size_t){ 0 };
+}
+
+bool NS(NodeInfo_is_selected_by_any_controller)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
+{
+    return ( ( info != nullptr ) && ( info->isSelectedByAnyController() ) );
+}
+
+bool NS(NodeInfo_is_selected_by_controller)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    return ( ( info != nullptr ) && ( ctrl != nullptr ) &&
+             ( info->isSelectedByAnyController( *ctrl ) ) );
+}
+
+::NS(arch_size_t) NS(NodeInfo_get_num_selecting_controllers)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
+{
+    return ( info != nullptr )
+        ? info->numSelectingControllers() : ::NS(arch_size_t){ 0 };
+}
+
+/* ------------------------------------------------------------------------- */
+
+bool NS(NodeInfo_has_unique_id_string)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
+{
+    return ( ( info != nullptr ) && ( info->hasUniqueIdStr() ) );
+}
+
+char const* NS(NodeInfo_get_unique_id_string)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
+{
+    return ( info != nullptr ) ? info->ptrUniqueIdStr() : nullptr;
+}
+
+bool NS(NodeInfo_maps_to_same)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT other )
+{
+    return ( ( info != nullptr ) && ( other != nullptr ) &&
+             ( info->mapsToSame( *other ) ) );
+}
+
+bool NS(NodeInfo_maps_to_same_unique_id_string)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
+    char const* SIXTRL_RESTRICT unique_id_str )
+{
+    return ( ( info != nullptr ) && ( info->mapsToSame( unique_id_str ) ) );
+}
+
+/* ------------------------------------------------------------------------- */
+
+::NS(arch_size_t) NS(NodeInfo_required_out_string_length)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    return ( info != nullptr )
+        ? info->requiredOutStringLength( ctrl ) : ::NS(arch_size_t){ 0 };
+}
+
+void NS(NodeInfo_print)( const NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
+    ::FILE* SIXTRL_RESTRICT output,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    if( info != nullptr ) info->print( output, ctrl );
 }
 
 void NS(NodeInfo_print_out)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
-    const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
-    if( info != nullptr ) info->printOut( ptr_controller );
+    if( info != nullptr) info->printOut( ctrl );
 }
 
-
-::NS(arch_size_t) NS(NodeInfo_get_required_output_str_length)(
-    SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
-    const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
+::NS(arch_status_t) NS(NodeInfo_to_string)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
+    ::NS(arch_size_t) const out_string_capacity, char* SIXTRL_RESTRICT out_str,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
     return ( info != nullptr )
-        ? info->requiredOutStringLength( ptr_controller )
-        : ::NS(arch_size_t){ 0 };
-}
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
-NS(NodeInfo_convert_to_string)(
-    SIXTRL_ARGPTR_DEC const NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
-    NS(arch_size_t) const out_string_capacity,
-    char* SIXTRL_RESTRICT out_string,
-    const NS(ControllerBase) *const SIXTRL_RESTRICT ptr_controller )
-{
-    return ( info != nullptr )
-        ? info->toString( out_string_capacity, out_string, ptr_controller )
+        ? info->toString( out_string_capacity, out_str, ctrl )
         : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 

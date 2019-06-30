@@ -48,27 +48,36 @@ namespace SIXTRL_CXX_NAMESPACE
         using platform_id_t     = node_id_t::platform_id_t;
         using device_id_t       = node_id_t::device_id_t;
 
-        static constexpr ILLEGAL_PLATFORM_ID = node_id_t::ILLEGAL_PLATFORM_ID;
-        static constexpr ILLEGAL_DEVICE_ID   = node_id_t::ILLEGAL_DEVICE_ID;
-        static constexpr UNDEFINED_INDEX     = node_id_t::UNDEFINED_INDEX;
+        static constexpr arch_id_t ARCH_ILLEGAL = node_id_t::ARCH_ILLEGAL;
+
+        static constexpr platform_id_t ILLEGAL_PLATFORM_ID =
+            node_id_t::ILLEGAL_PLATFORM_ID;
+
+        static constexpr device_id_t ILLEGAL_DEVICE_ID =
+            node_id_t::ILLEGAL_DEVICE_ID;
+
+        static constexpr node_index_t UNDEFINED_INDEX =
+            node_id_t::UNDEFINED_INDEX;
+
+        /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN explicit NodeInfoBase(
             arch_id_t const arch_id,
             const char *const SIXTRL_RESTRICT arch_str,
-            platform_id_t const platform_id = ILLEGAL_PATFORM_ID,
-            device_id_t const device_id = ILLEGAL_DEVICE_ID,
             const char *const SIXTRL_RESTRICT platform_name = nullptr,
             const char *const SIXTRL_RESTRICT device_name = nullptr,
-            const char *const SIXTRL_RESTRICT description = nullptr );
+            const char *const SIXTRL_RESTRICT description = nullptr,
+            platform_id_t const platform_id = ILLEGAL_PATFORM_ID,
+            device_id_t const device_id = ILLEGAL_DEVICE_ID );
 
         SIXTRL_HOST_FN NodeInfoBase(
             arch_id_t const arch_id,
             std::string const& SIXTRL_RESTRICT_REF arch_str,
-            platform_id_t const platform_id,
-            device_id_t const device_id,
-            std::string const& SIXTRL_RESTRICT_REF platform_name,
-            std::string const& SIXTRL_RESTRICT_REF device_name,
-            std::string const& SIXTRL_RESTRICT_REF description );
+            std::string const& SIXTRL_RESTRICT_REF platform_name = std::string{},
+            std::string const& SIXTRL_RESTRICT_REF device_name = std::string{},
+            std::string const& SIXTRL_RESTRICT_REF description = std::string{},
+            platform_id_t const platform_id = ILLEGAL_PATFORM_ID,
+            device_id_t const device_id = ILLEGAL_DEVICE_ID );
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -99,68 +108,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN status_t setDeviceId(
             node_device_id_t const device_id ) SIXTRL_NOEXCEPT;
-
-        /* ----------------------------------------------------------------- */
-
-        SIXTRL_HOST_FN bool hasControllers() const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN size_type numControllers() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isAttachedToController( controller_base_t const&
-            SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool hasNodeIndex( controller_base_t const&
-            SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_index_t nodeIndex( controller_base_t const&
-            SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setNodeIndex(
-            controller_base_t const& SIXTRL_RESTRICT_REF ctrl,
-            node_index_t const node_index ) SIXTRL_RESTRICT;
-
-        SIXTRL_HOST_FN bool isSelected() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isSelectedByController( controller_base_t const&
-            SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isDefault() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isDefaultForController( controller_base_t const&
-            SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN controller_base_t const*
-        ptrSelectingController() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setPtrSelectedController(
-            controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t setSelectedController(
-            controller_base_t const& SIXTRL_RESTRICT_REF ctrl ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN void resetSelectingController() SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t attachToController(
-            controller_base_t const& SIXTRL_RESTRICT_REF ctrl,
-            node_index_t const node_index = UNDEFINED_INDEX );
-
-        SIXTRL_HOST_FN status_t detachFromController( controller_base_t const&
-            SIXTRL_RESTRICT_REF ctrl ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN controller_base_t const*
-        controllersBegin() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN controller_base_t const*
-        controllersEnd() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN controller_base_t const* ptrController(
-            size_type const num_of_controller_in_list ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type controllerNumberInList(
-                controller_base_t const& SIXTRL_RESTRICT_REF ctrl
-            ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN controller_base_t const*
-        ptrMostRelevantController() const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
@@ -212,41 +159,42 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN size_type requiredOutStringLength() const;
-
         SIXTRL_HOST_FN size_type requiredOutStringLength(
-            controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) const;
-
-
-        SIXTRL_HOST_FN void print( ::FILE* SIXTRL_RESTRICT output ) const;
+            controller_base_t const* SIXTRL_RESTRICT ctrl = nullptr ) const;
 
         SIXTRL_HOST_FN void print( ::FILE* SIXTRL_RESTRICT output,
-            controller_base_t const* SIXTRL_RESTRICT ptr_controller ) const;
-
-
-        SIXTRL_HOST_FN void printOut() const;
+            controller_base_t const* SIXTRL_RESTRICT ctrl = nullptr ) const;
 
         SIXTRL_HOST_FN void printOut(
-            controller_base_t const* SIXTRL_RESTRICT ptr_controller ) const;
-
-
-        SIXTRL_HOST_FN std::string toString() const;
+            controller_base_t const* SIXTRL_RESTRICT ctrl = nullptr ) const;
 
         SIXTRL_HOST_FN std::string toString(
-            controller_base_t const* SIXTRL_RESTRICT ptr_controller ) const;
-
-
-        SIXTRL_HOST_FN status_t toString( size_type const out_str_capacity,
-            char* SIXTRL_RESTRICT out_str ) const;
+            controller_base_t const* SIXTRL_RESTRICT ctrl = nullptr ) const;
 
         SIXTRL_HOST_FN status_t toString( size_type const out_str_capacity,
             char* SIXTRL_RESTRICT out_str,
-            controller_base_t const* SIXTRL_RESTRICT ptr_controller ) const;
-
+            controller_base_t const* SIXTRL_RESTRICT ctrl = nullptr ) const;
 
         SIXTRL_HOST_FN friend std::ostream& operator<<(
             std::ostream& SIXTRL_RESTRICT_REF output,
             NodeInfoBase const& SIXTRL_RESTRICT_REF node_info );
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN size_type maxSelectionCount() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN bool isAttachedToAnyController() const;
+        SIXTRL_HOST_FN size_type numAttachedControllers() const;
+
+        SIXTRL_HOST_FN bool isAttachedToController(
+            controller_base_t const& SIXTRL_RESTRICT controller ) const;
+
+        SIXTRL_HOST_FN bool isSelectedByAnyController() const;
+
+        SIXTRL_HOST_FN bool isSelectedByController(
+            controller_base_t const& SIXTRL_RESTRICT controller ) const;
+
+        SIXTRL_HOST_FN size_type numSelectingControllers() const;
 
         /* ----------------------------------------------------------------- */
 
@@ -261,12 +209,18 @@ namespace SIXTRL_CXX_NAMESPACE
 
         protected:
 
+        static constexpr size_type
+            DEFAULT_MAX_SELECTION_COUNTER = size_type{ 1 };
+
         SIXTRL_HOST_FN virtual status_t doPrintToOutputStream(
-            std::ostream& SIXTRL_RESTRICT_REF output
+            std::ostream& SIXTRL_RESTRICT_REF output,
             controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) const;
 
         SIXTRL_HOST_FN void doSetUniqueIdStr(
             char const* SIXTRL_RESTRICT_REF unique_id_str );
+
+        SIXTRL_HOST_FN void doSetMaxSelectionCount(
+            size_type const max_selection_count ) SIXTRL_NOEXCEPT;
 
         private:
 
@@ -275,15 +229,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
         using ptr_ctrl_list_t = std::vector< controller_base_t const* >;
 
-
-        ptr_ctrl_to_node_index_map_t  m_ptr_ctrl_to_node_index_map;
-        ptr_ctrl_list_t               m_available_on_controllers;
-        std::string                   m_platform_name;
-        std::string                   m_device_name;
-        std::string                   m_description;
-        std::string                   m_unique_id;
-        node_id_t                     m_node_id;
-        controller_base_t*            m_ptr_selected_by_controller;
+        std::string  m_platform_name;
+        std::string  m_device_name;
+        std::string  m_description;
+        std::string  m_unique_id;
+        size_type    m_max_selection_cnt;
+        node_id_t    m_node_id;
     };
 }
 
@@ -365,6 +316,20 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeInfoBase::device_id_t const device_id ) SIXTRL_NOEXCEPT
     {
         return this->m_node_id.setDeviceId( device_id );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE NodeInfoBase::size_type
+    NodeInfoBase::maxSelectionCount() const SIXTRL_NOEXCEPT
+    {
+        return this->m_max_selection_cnt;
+    }
+
+    SIXTRL_INLINE void NodeInfoBase::doSetMaxSelectionCount(
+        NodeInfoBase::size_type const max_selection_count ) SIXTRL_NOEXCEPT
+    {
+        this->m_max_selection_cnt = max_selection_count;
     }
 
     /* --------------------------------------------------------------------- */
@@ -552,24 +517,27 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE char const*
     NodeInfoBase::ptrUniqueIdStr() const SIXTRL_NOEXCEPT
     {
-        return ( this->hasUniqueIdStr() ) ? this->m_unique_id.c_str() : nullptr;
+        return ( this->hasUniqueIdStr() )
+            ? this->m_unique_id.c_str() : nullptr;
     }
 
     SIXTRL_INLINE bool NodeInfoBase::mapsToSame(
-        NodeInfoBase const& SIXTRL_RESTRICT_REF node_info ) const SIXTRL_NOEXCEPT
+        NodeInfoBase const& SIXTRL_RESTRICT_REF info ) const SIXTRL_NOEXCEPT
     {
-        bool maps_to_same = ( this == &node_info );
+        bool maps_to_same = ( this == &info );
 
-        if( ( !maps_to_same ) && (node_info.hasUniqueIdStr() ) )
+        if( ( !maps_to_same ) && (info.hasUniqueIdStr() ) )
         {
-            maps_to_same = this->mapsToSame( node_info.ptrUniqueIdStr() );
+            maps_to_same = this->mapsToSame( info.ptrUniqueIdStr() );
         }
 
         return maps_to_same;
     }
 
+    /* --------------------------------------------------------------------- */
+
     SIXTRL_INLINE bool NodeInfoBase::mapsToSame(
-        std::string const& SIXTRL_RESTRICT_REF hw_id_str ) const SIXTRL_NOEXCEPT
+        std::string const& SIXTRL_RESTRICT_REF hwid_str ) const SIXTRL_NOEXCEPT
     {
         return this->mapsToSame( hw_id_str.c_str() );
     }
@@ -586,47 +554,6 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     /* --------------------------------------------------------------------- */
-
-    SIXTRL_INLINE NodeInfoBase::size_type
-    NodeInfoBase::requiredOutStringLength() const
-    {
-        return this->requiredOutStringLength(
-            this->ptrMostRelevantController() );
-    }
-
-    SIXTRL_INLINE void NodeInfoBase::print(
-        ::FILE* SIXTRL_RESTRICT output ) const
-    {
-        this->print( output, this->ptrMostRelevantController() );
-    }
-
-    SIXTRL_INLINE void NodeInfoBase::printOut() const
-    {
-        this->printOut( this->ptrMostRelevantController() );
-    }
-
-    SIXTRL_INLINE std::string NodeInfoBase::toString() const
-    {
-        this->toString( this->ptrMostRelevantController() );
-    }
-
-    SIXTRL_INLINE NodeInfoBase::status_t NodeInfoBase::toString(
-        NodeInfoBase::size_type const out_str_capacity,
-        char* SIXTRL_RESTRICT out_str ) const
-    {
-        return this->toString( out_str_capacity, out_str,
-            this->ptrMostRelevantController() );
-    }
-
-    SIXTRL_INLINE std::ostream& operator<<(
-        std::ostream& SIXTRL_RESTRICT_REF output,
-        NodeInfoBase const& SIXTRL_RESTRICT_REF node_info )
-    {
-        node_info.print( output );
-        return output;
-    }
-
-    /* ----------------------------------------------------------------- */
 
     template< class Derived > Derived const* NodeInfoBase::asDerivedNodeInfo(
         NodeInfoBase::arch_id_t const required_arch_id,
