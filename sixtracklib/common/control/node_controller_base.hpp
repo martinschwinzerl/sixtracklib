@@ -20,6 +20,7 @@
     #include "sixtracklib/common/control/node_id.h"
     #include "sixtracklib/common/control/node_info.h"
     #include "sixtracklib/common/control/controller_base.hpp"
+    #include "sixtracklib/common/control/node_store.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus   ) && !defined( _GPUCODE ) && \
@@ -44,197 +45,99 @@ namespace SIXTRL_CXX_NAMESPACE
 
         using node_id_t         = SIXTRL_CXX_NAMESPACE::NodeId;
         using node_info_base_t  = SIXTRL_CXX_NAMESPACE::NodeInfoBase;
+        using node_store_t      = SIXTRL_CXX_NAMESPACE::NodeStore;
         using platform_id_t     = node_id_t::platform_id_t;
         using device_id_t       = node_id_t::device_id_t;
         using node_index_t      = node_id_t::index_t;
+        using lockable_t        = node_store_t::lockable_t;
+        using lock_t            = node_store_t::lock_t;
 
-        static SIXTRL_CONSTEXPR_OR_CONST size_type UNDEFINED_INDEX =
+        static SIXTRL_CONSTEXPR_OR_CONST platform_id_t ILLEGAL_PLATFORM_ID =
+            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_PATFORM_ID;
+
+        static SIXTRL_CONSTEXPR_OR_CONST device_id_t ILLEGAL_DEVICE_ID =
+            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_PATFORM_ID;
+
+        static SIXTRL_CONSTEXPR_OR_CONST node_index_t UNDEFINED_INDEX =
             SIXTRL_CXX_NAMESPACE::NODE_UNDEFINED_INDEX;
 
-        SIXTRL_HOST_FN node_index_t numAvailableNodes() const SIXTRL_NOEXCEPT;
+        /* ----------------------------------------------------------------- */
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        SIXTRL_HOST_FN node_store_t const& nodeStore() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_store_t const* ptrNodeStore() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool hasDefaultNode() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_index_t numAvailableNodes() const;
+        SIXTRL_HOST_FN bool isSyncWithNodeStore() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t registerNodeStoreChange() SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN node_id_t const*
-        ptrDefaultNodeId() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t syncWithNodeStore();
+        SIXTRL_HOST_FN status_t syncWithNodeStore(
+            lock_t const& SIXTRL_RESTRICT_REF lock );
 
-        SIXTRL_HOST_FN node_info_base_t const*
-        ptrDefaultNodeInfoBase() const SIXTRL_NOEXCEPT;
+        /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN node_index_t defaultNodeIndex() const SIXTRL_NOEXCEPT;
+        template< typename... Args >
+        SIXTRL_HOST_FN bool isNodeAvailable( Args&&... args ) const;
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
+        template< typename... Args >
         SIXTRL_HOST_FN bool isNodeAvailable(
-            node_index_t const node_index ) const SIXTRL_RESTRICT;
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            Args&&... args ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool isNodeAvailable(
-            node_id_t const& node_id ) const SIXTRL_NOEXCEPT;
+        /* ---------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN bool isNodeAvailable(
-            platform_id_t const platform_index,
-            device_id_t const device_index ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool isNodeInitialized(
+            node_index_t const node_index ) const;
 
-        SIXTRL_HOST_FN bool isNodeAvailable(
-            char const* node_id_str ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t initializeNode(
+            node_index_t const node_index );
 
-        SIXTRL_HOST_FN bool isNodeAvailable(
-            std::string const& node_id_str ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN bool isDefaultNode(
-            char const* node_id_str ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isDefaultNode( std::string const&
-            SIXTRL_RESTRICT_REF node_id_str ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isDefaultNode(
-            node_id_t const& node_id ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isDefaultNode( platform_id_t const platform_index,
-            device_id_t const device_index ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isDefaultNode(
-            node_index_t const node_index ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN bool isSelectedNode(
-            char const* node_id_str ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isSelectedNode( std::string const&
-            SIXTRL_RESTRICT_REF node_id_str ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isSelectedNode(
-            node_id_t const& node_id ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isSelectedNode( platform_id_t const platform_index,
-            device_id_t const device_index ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool isSelectedNode(
-            node_index_t const node_index ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN node_index_t nodeIndex(
-            node_id_t const& SIXTRL_RESTRICT_REF node_id
-            ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_index_t nodeIndex(
-            platform_id_t const platform_id,
-            device_id_t const device_id ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_index_t nodeIndex(
-            node_info_base_t const* SIXTRL_RESTRICT
-                ptr_node_info ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_index_t nodeIndex(
-            char const* SIXTRL_RESTRICT node_id_str ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_index_t nodeIndex(
-            std::string const& SIXTRL_RESTRICT_REF
-                node_id_str ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN node_index_t
-        minAvailableNodeIndex() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_index_t
-        maxAvailableNodeIndex() const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN size_type availableNodeIndices(
-            size_type const max_num_node_indices,
-            node_index_t* SIXTRL_RESTRICT node_indices_begin
-        ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type availableNodeIds(
-            size_type const max_num_node_ids,
-            node_id_t* SIXTRL_RESTRICT node_ids_begin ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type availableBaseNodeInfos(
-            size_type const max_num_node_infos,
-            node_info_base_t const** SIXTRL_RESTRICT ptr_node_infos_begin
-        ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN node_id_t const* ptrNodeId(
-            char const* SIXTRL_RESTRICT node_id_str ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_id_t const* ptrNodeId( std::string const&
-            SIXTRL_RESTRICT_REF node_id_str ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_id_t const* ptrNodeId(
-            platform_id_t const platform_index,
-            device_id_t const device_index ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_id_t const* ptrNodeId(
-            node_index_t const index ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN node_info_base_t const* ptrNodeInfoBase(
-            node_index_t const index ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_info_base_t const* ptrNodeInfoBase(
-            platform_id_t const platform_idx,
-            device_id_t const device_idx ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_info_base_t const* ptrNodeInfoBase(
-            node_id_t const& node_id ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_info_base_t const* ptrNodeInfoBase(
-            char const* SIXTRL_RESTRICT node_id_str ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_info_base_t const* ptrNodeInfoBase(
-            std::string const& SIXTRL_RESTRICT_REF node_id_str
-            ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* ---------------------------------------------------------------- */
 
         SIXTRL_HOST_FN bool hasSelectedNode() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN node_index_t selectedNodeIndex() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN node_id_t const*
-        ptrSelectedNodeId() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_info_base_t const*
-        ptrSelectedNodeInfoBase() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN std::string
-        selectedNodeIdStr() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN char const*
-        ptrSelectedNodeIdStr() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN std::string const&
+            selectedNodeIdStr() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN status_t selectedNodeIdStr(
-            char* SIXTRL_RESTRICT node_str,
-            size_type const max_str_length ) const SIXTRL_NOEXCEPT;
+            size_type const node_id_str_capacity,
+            char* SIXTRL_RESTRICT node_id_str_begin ) const SIXTRL_NOEXCEPT;
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        SIXTRL_HOST_FN char const*
+            ptrSelectedNodeIdStr() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_id_t const* ptrSelectedNodeId() const;
+        SIXTRL_HOST_FN node_id_t const* ptrSelectedNodeId(
+            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_info_base_t const* ptrSelectedNodeInfoBase() const;
+        SIXTRL_HOST_FN node_info_base_t const* ptrSelectedNodeInfoBase(
+            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
+        template< typename... Args >
+        SIXTRL_HOST_FN bool isSelectedNode( Args&&... args ) const;
+
+        template< typename... Args >
+        SIXTRL_HOST_FN bool isSelectedNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            Args&&... args ) const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN bool usesAutoSelect() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_t selectNode( node_index_t const index );
-        SIXTRL_HOST_FN status_t selectNode( node_id_t const& node_id );
+        template< typename Args... >
+        SIXTRL_HOST_FN status_t selectNode( Args&&... args );
+
+        template< typename Args... >
         SIXTRL_HOST_FN status_t selectNode(
-            platform_id_t const platform_idx, device_id_t const device_idx );
+            lock_t const& SIXTRL_RESTRICT_REF lock, Args&&... args );
 
-        SIXTRL_HOST_FN status_t selectNode( char const* node_id_str );
-        SIXTRL_HOST_FN status_t selectNode( std::string const& node_id_str );
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN bool canChangeSelectedNode() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN bool
-        canDirectlyChangeSelectedNode() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool canDirectlyChangeSelectedNode() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN status_t changeSelectedNode(
             node_index_t const new_selected_node_index );
@@ -243,44 +146,131 @@ namespace SIXTRL_CXX_NAMESPACE
             node_index_t const current_selected_node_index,
             node_index_t const new_selected_node_index );
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN bool canUnselectNode() const SIXTRL_NOEXCEPT;
-
         SIXTRL_HOST_FN status_t unselectNode();
-        SIXTRL_HOST_FN status_t unselectNode( node_index_t const index );
-        SIXTRL_HOST_FN status_t unselectNode( node_id_t const& node_id );
+
+        template< typename Args... >
+        SIXTRL_HOST_FN status_t unselectNode( Args&&... args );
+
+        template< typename Args... >
         SIXTRL_HOST_FN status_t unselectNode(
-            platform_id_t const platform_idx, device_id_t const device_idx );
+            lock_t const& SIXTRL_RESTRICT_REF lock, Args&&... args );
 
-        SIXTRL_HOST_FN status_t unselectNode( char const* node_id_str );
-        SIXTRL_HOST_FN status_t unselectNode( std::string const& node_id_str );
+        /* ----------------------------------------------------------------- */
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        SIXTRL_HOST_FN bool hasDefaultNode() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_index_t defaultNodeIndex() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void printAvailableNodesInfo() const;
+        SIXTRL_HOST_FN node_id_t const* ptrDefaultNodeId() const;
+        SIXTRL_HOST_FN node_id_t const* ptrDefaultNodeId(
+            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void printAvailableNodesInfo(
-            std::ostream& SIXTRL_RESTRICT_REF os ) const;
+        SIXTRL_HOST_FN node_info_base_t const* ptrDefaultNodeInfoBase() const;
+        SIXTRL_HOST_FN node_info_base_t const* ptrDefaultNodeInfoBase(
+            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void printAvailableNodesInfo(
-            ::FILE* SIXTRL_RESTRICT output ) const;
+        template< typename... Args >
+        SIXTRL_HOST_FN bool isDefaultNode( Args&&... args ) const;
 
-        SIXTRL_HOST_FN std::string availableNodesInfoToString() const;
-        SIXTRL_HOST_FN void storeAvailableNodesInfoToCString(
-            char* SIXTRL_RESTRICT nodes_info_str,
-            size_type const nodes_info_str_capacity,
-            size_type* SIXTRL_RESTRICT ptr_required_max_nodes_info_str_length
-        ) const;
+        template< typename... Args >
+        SIXTRL_HOST_FN bool isDefaultNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            Args&&... args ) const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
+        template< typename... Args >
+        SIXTRL_HOST_FN node_index_t nodeIndex( Args&&... args ) const;
+
+        template< typename... Args >
+        SIXTRL_HOST_FN node_index_t nodeIndex(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            Args&&... args ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_id_t const* nodeIndex(
+            arch_id_t const arch_id,
+            platform_id_t const platform_id,
+            device_id_t const device_id ) const;
+
+        SIXTRL_HOST_FN node_id_t const* nodeIndex(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            arch_id_t const arch_id,
+            platform_id_t const platform_id,
+            device_id_t const device_id ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_id_t const* nodeIndex(
+            platform_id_t const platform_id,
+            device_id_t const device_id ) const;
+
+        SIXTRL_HOST_FN node_id_t const* nodeIndex(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            platform_id_t const platform_id,
+            device_id_t const device_id ) const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
+        template< typename... Args >
+        SIXTRL_HOST_FN node_id_t const* ptrNodeId( Args&&... args ) const;
+
+        template< typename... Args >
+        SIXTRL_HOST_FN node_id_t const* ptrNodeId(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            Args&&... args ) const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
+        template< typename... Args >
+        SIXTRL_HOST_FN node_id_t const* ptrNodeInfoBase(
+            Args&&... args ) const;
+
+        template< typename... Args >
+        SIXTRL_HOST_FN node_id_t const* ptrNodeInfoBase(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            Args&&... args ) const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN node_index_t const*
+            nodeIndicesBegin() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_index_t const*
+            nodeIndicesEnd() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_id_t const*
+            nodeIdsBegin() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_id_t const* nodeIdsEnd() const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN void printAvailableNodeInfos(
+            std::ostream& SIXTRL_RESTRICT_REF output ) const;
+
+        SIXTRL_HOST_FN void printNodeInfos() const;
+
+
+        SIXTRL_HOST_FN size_type requiredNodeInfosStrCapacity() const;
+
+        SIXTRL_HOST_FN std::string nodeInfosToString() const;
+
+        SIXTRL_HOST_FN status_t nodeInfosToString(
+            size_type capacity, char* SIXTRL_RESTRICT node_info_str) const;
+
+        /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN virtual ~NodeControllerBase() SIXTRL_NOEXCEPT;
 
         protected:
 
         using ptr_node_info_base_t = std::unique_ptr< node_info_base_t >;
+        using node_index_buffer_t  = std::vector< node_index_t >;
+        using node_id_buffer_t     = std::vector< node_id_t >;
+        using node_id_str_buffer_t = std::vector< char >;
 
-        static SIXTRL_CONSTEXPR_OR_CONST size_type NODE_ID_STR_CAPACITY =
-            size_type{ 18 };
+        static SIXTRL_CONSTEXPR_OR_CONST size_type
+            NODE_ID_STR_CAPACITY = size_type{ 64 };
 
         SIXTRL_HOST_FN NodeControllerBase(
             arch_id_t const arch_id,
@@ -304,6 +294,9 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN virtual bool doCheckIsNodeInitialized(
             node_index_t const node_index );
 
+        SIXTRL_HOST_FN virtual status_t doSyncWithNodeStore(
+            node_store_t* SIXTRL_RESTRICT ptr_node_store );
+
         SIXTRL_HOST_FN virtual status_t doInitializeNode(
             node_index_t const node_index );
 
@@ -318,6 +311,8 @@ namespace SIXTRL_CXX_NAMESPACE
             node_index_t const selected_node_index );
 
         /* ----------------------------------------------------------------- */
+
+
 
         SIXTRL_HOST_FN node_index_t doFindAvailableNodesIndex(
             platform_id_t const platform_idx,
@@ -367,19 +362,18 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN status_t doSelectNodeNodeControllerBaseImpl(
             node_index_t const node_index ) SIXTRL_NOEXCEPT;
 
-        std::vector< ptr_node_info_base_t > m_available_nodes;
-        std::vector< char > m_selected_node_id_str;
+        node_store_t&        m_node_store;
+        node_index_buffer_t  m_available_node_indices;
+        node_id_str_buffer_t m_selected_node_id_str;
 
-        node_id_t const* m_ptr_default_node_id;
-        node_id_t const* m_ptr_selected_node_id;
+        node_index_t         m_selected_node_index;
+        node_index_t         m_default_node_index;
 
-        node_index_t m_min_available_node_index;
-        node_index_t m_max_available_node_index;
-
-        bool m_can_directly_change_selected_node;
-        bool m_node_change_requires_kernels;
-        bool m_can_unselect_node;
-        bool m_use_autoselect;
+        bool                 m_can_directly_change_selected_node;
+        bool                 m_node_change_requires_kernels;
+        bool                 m_can_unselect_node;
+        bool                 m_use_autoselect;
+        bool                 m_nodes_are_sync;
     };
 
     SIXTRL_STATIC SIXTRL_HOST_FN NodeControllerBase const* asNodeController(
