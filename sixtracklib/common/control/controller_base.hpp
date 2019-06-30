@@ -7,7 +7,9 @@
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
     #include <cstddef>
     #include <cstdlib>
+    #include <cstdio>
     #include <stdexcept>
+    #include <ostream>
     #include <string>
     #include <memory>
     #include <vector>
@@ -61,7 +63,7 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_CXX_NAMESPACE::ctrl_perform_remap_flag_t;
 
 
-        static SIXTRL_CONSTEXPR_OR_CONST arch_id_t ILLEGAL_ARCH_ID =
+        static SIXTRL_CONSTEXPR_OR_CONST arch_id_t ARCH_ILLEGAL =
             SIXTRL_CXX_NAMESPACE::ARCHITECTURE_ILLEGAL;
 
         static SIXTRL_CONSTEXPR_OR_CONST arch_id_t NO_ARCH_ID =
@@ -252,6 +254,8 @@ namespace SIXTRL_CXX_NAMESPACE
             arch_id_t const requ_arch_id,
             bool const exact_match_required = false ) SIXTRL_NOEXCEPT;
 
+        /* ================================================================= */
+
         protected:
 
         using ptr_kernel_conf_base_t = std::unique_ptr< kernel_config_base_t >;
@@ -292,6 +296,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN virtual status_t doSwitchDebugMode(
             bool const is_in_debug_mode ) override;
+
+        SIXTRL_HOST_FN virtual status_t doPrintToOutputStream(
+            std::ostream& SIXTRL_RESTRICT_REF output ) const;
 
         /* ----------------------------------------------------------------- */
 

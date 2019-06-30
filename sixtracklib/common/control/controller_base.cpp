@@ -4,9 +4,13 @@
 
 #include <cstddef>
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <limits>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
+#include <memory>
 #include <vector>
 
 #include "sixtracklib/common/definitions.h"
@@ -537,6 +541,114 @@ namespace SIXTRL_CXX_NAMESPACE
 
     }
 
+    /* ===================================================================== */
+
+    void ControllerBase::print(
+        std::ostream& SIXTRL_RESTRICT_REF output ) const
+    {
+        this->doPrintToOutputStream( output );
+    }
+
+    void ControllerBase::print( ::FILE* SIXTRL_RESTRICT output ) const
+    {
+        ControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( output != nullptr )
+        {
+            std::ostringstream a2str;
+            status = this->doPrintToOutputStream( a2str );
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                std::string const temp_str = a2str.str();
+
+                ControllerBase::size_type ret = std::fprintf(
+                    output, "%s", temp_str.c_str() );
+
+                SIXTRL_ASSERT( ret > ControllerBase::size_type{ 0 } );
+                ( void )ret;
+            }
+        }
+
+        return std::string{};
+    }
+
+    void ControllerBase::printOut()
+    {
+        this->print( std::cout );
+    }
+
+    std::ostream& ControllerBase::operator<<(
+        std::ostream& SIXTRL_RESTRICT_REF output,
+        st::ControllerBase const& SIXTRL_RESTRICT_REF controller )
+    {
+        controller.print( output );
+        return output;
+    }
+
+    ControllerBase::size_type ControllerBase::requiredOutStringLength() const
+    {
+        ControllerBase::size_type capacity = ControllerBase::size_type{ 0 };
+
+        std::ostringstream a2str;
+        if( st::ARCH_STATUS_SUCCESS == this->doPrintToOutputStream( a2str ) )
+        {
+            capacity = a2str.str().size();
+        }
+
+        return capacity;
+    }
+
+    std::string ControllerBase::toString() const
+    {
+        std::ostringstream a2str;
+
+        if( st::ARCH_STATUS_SUCCESS != this->doPrintToOutputStream( a2str ) )
+        {
+            a2str.str( "" );
+        }
+
+        return a2str.str();
+    }
+
+    ControllerBase::status_t ControllerBase::toString(
+        ControllerBase::size_type const str_repr_capacity,
+        char* SIXTRL_RESTRICT str_repr_begin ) const SIXTRL_NOEXCEPT
+    {
+        using size_t = ControllerBase::size_type;
+
+        ControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( str_repr_capacity > size_t{ 0 } ) &&
+            ( str_repr_begin != nullptr ) )
+        {
+            std::memset( str_repr_begin, static_cast< int >( '\0' ),
+                         str_repr_capacity );
+
+            std::ostringstream a2str;
+            status = this->doPrintToOutputStream( a2str );
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                std::string const temp_str = a2str.str();
+
+                if( temp_str.size() < str_repr_capacity )
+                {
+                    std::strncpy( str_repr_begin, temp_str.c_str(),
+                                  str_repr_capacity - size_t{ 1 } );
+                }
+                else
+                {
+                    status = st::ARCH_STATUS_GENERAL_FAILURE;
+                }
+            }
+        }
+
+        return status;
+    }
+
+    /* ===================================================================== */
+
     ControllerBase::ControllerBase(
         ControllerBase::arch_id_t const arch_id,
         const char *const SIXTRL_RESTRICT arch_str,
@@ -609,6 +721,37 @@ namespace SIXTRL_CXX_NAMESPACE
         }
 
         return st::ARCH_STATUS_GENERAL_FAILURE;
+    }
+
+
+    ControllerBase::status_t ControllerBase::doPrintToOutputStream(
+        std::ostream& SIXTRL_RESTRICT_REF output ) const
+    {
+        ControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( this->archId() != st::ARCHITECTURE_ILLEGAL )
+        {
+            if( this->hasName() )
+            {
+                output << "Controller      : " << this->name() << "\r\n";
+            }
+
+            output << "Architecture    : " << this->archId();
+
+            if( this->hasArchStr() )
+            {
+                output << "( " << this->archStr() << " )\r\n";
+            }
+
+            if( this->isInDebugMode() )
+            {
+                output << "Debug mode      : true\r\n";
+            }
+
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
     }
 
     /* --------------------------------------------------------------------- */
