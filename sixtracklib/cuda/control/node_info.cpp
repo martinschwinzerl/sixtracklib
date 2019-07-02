@@ -13,6 +13,7 @@
 #include "sixtracklib/common/control/definitions.h"
 #include "sixtracklib/common/control/node_id.hpp"
 #include "sixtracklib/common/control/node_info.hpp"
+#include "sixtracklib/common/control/node_store.hpp"
 #include "sixtracklib/common/control/arch_info.hpp"
 
 namespace st = SIXTRL_CXX_NAMESPACE;
@@ -20,48 +21,83 @@ namespace st = SIXTRL_CXX_NAMESPACE;
 namespace SIXTRL_CXX_NAMESPACE
 {
     CudaNodeInfo::CudaNodeInfo(
-        CudaNodeInfo::cuda_dev_index_t const cuda_dev_index ) :
-        st::NodeInfoBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR ),
-        m_cu_device_properties(),
-        m_cu_device_index( cuda_dev_index )
-    {
-
-    }
-
-    CudaNodeInfo::CudaNodeInfo(
         CudaNodeInfo::cuda_dev_index_t const cuda_dev_index,
-        ::cudaDeviceProp const& cuda_device_properties,
-        CudaNodeInfo::platform_id_t const platform_id,
         CudaNodeInfo::device_id_t const device_id ) :
         st::NodeInfoBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, platform_id, device_id,
-            nullptr, nullptr, nullptr ),
-        m_cu_device_properties( cuda_device_properties ),
-        m_cu_device_index( cuda_dev_index )
+            SIXTRL_ARCHITECTURE_CUDA_STR ), m_device_properties()
     {
-        using size_t = CudaNodeInfo::size_type;
+        using size_t = st::CudaNodeInfo::size_type;
+        using dev_index_t = st::CudaNodeInfo::cuda_dev_index_t;
 
-        ::cudaError_t err = ::cudaSuccess;
-        int max_num_devices = int{ 0 };
-
-        if( cuda_device_properties.major >= 2 )
+        if( cuda_dev_index >= dev_index_t{ 0 } )
         {
+            CudaNodeInfo::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+            ::cudaError_t err = ::cudaSuccess;
+            int max_num_devices = int{ 0 };
+
             err = ::cudaGetDeviceCount( &max_num_devices );
 
-            if( err != ::cudaSuccess )
+            if( err == ::cudaSuccess )
             {
-                max_num_devices = int{ 0 };
+                if( static_cast< dev_index_t >(
+                        max_num_devices ) > cuda_dev_index )
+                {
+                    status = this->setPlatformId( cuda_dev_index );
+
+                    if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+                        ( device_id != st::NodeStore::ILLEGAL_DEVICE_ID ) )
+                    {
+                        status = this->setDeviceId( device_id );
+                    }
+                }
+            }
+
+            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+                ( err == ::cudaSuccess ) )
+            {
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+                err = ::cudaGetDeviceProperties(
+                    &this->m_device_properties, cuda_dev_index );
+
+                if( err == ::cudaSuccess )
+                {
+                    status = this->doInitFromDeviceProperties(
+                        this->m_device_properties );
+                }
+            }
+
+            SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+            ( void )status;
+        }
+    }
+
+    CudaNodeInfo::status_t CudaNodeInfo::doPrintToOutputStream(
+        std::ostream& SIXTRL_RESTRICT_REF output,
+        CudaNodeInfo::controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) const
+    {
+        CudaNodeInfo::status_t status =
+            st::NodeInfoBase::doPrintToOutputStream( output, ptr_ctrl );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            if( this->cudaDeviceIndex() >= CudaNodeInfo::cuda_dev_index_t{ 0 } )
+            {
+                output << "Cuda dev index  : "
+                       << this->cudaDeviceIndex()
+                       << "\r\n";
             }
         }
-        else if( cuda_dev_index != CudaNodeInfo::ILLEGAL_DEV_INDEX )
-        {
-            max_num_devices = cuda_dev_index + 1;
-        }
+    }
 
-        if( ( err == ::cudaSuccess ) &&
-            ( cuda_dev_index != CudaNodeInfo::ILLEGAL_DEV_INDEX ) &&
-            ( max_num_devices > cuda_dev_index ) )
+    CudaNodeInfo::status_t CudaNodeInfo::doInitFromDeviceProperties(
+        CudaNodeInfo::cuda_dev_index_t const cuda_dev_index,
+        ::cudaDeviceProp const& SIXTRL_RESTRICT_REF properties )
+    {
+        CudaNodeInfo::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( properties.major >= 2 ) && ( properties.minor >= 0 ) )
         {
             std::ostringstream a2str;
 
@@ -90,18 +126,19 @@ namespace SIXTRL_CXX_NAMESPACE
 
             a2str.str( "" );
             a2str << "compute_capability="
-                  << cuda_device_properties.major << "."
-                  << cuda_device_properties.minor << "; "
+                  << properties.major << "." << properties.minor << "; "
                   << "multiprocessor_count="
-                  << this->m_cu_device_properties.multiProcessorCount
+                  << properties.multiProcessorCount
                   << ";";
 
             this->setDescription( a2str.str() );
 
-            if( std::strlen( cuda_device_properties.name ) > size_t{ 0 } )
+            if( std::strlen( properties.name ) > size_t{ 0 } )
             {
                 a2str.str( "" );
-                a2str << cuda_device_properties.name;
+                a2str << properties.name;
+
+                this->setPlatformName( a2str );
 
                 char pci_bus_id[] =
                 {
@@ -109,37 +146,26 @@ namespace SIXTRL_CXX_NAMESPACE
                     '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'
                 };
 
-                err = ::cudaDeviceGetPCIBusId( pci_bus_id, 16, cuda_dev_index );
+                err = ::cudaDeviceGetPCIBusId(
+                    pci_bus_id, 16u, cuda_dev_index );
 
                 if( err == ::cudaSuccess )
                 {
                     a2str << " [" << pci_bus_id << "]";
                     this->doSetUniqueIdStr( &pci_bus_id[ 0 ] );
                 }
+                else
+                {
+                    a2str << " device";
+                }
 
                 this->setDeviceName( a2str.str() );
+
+                status = st::ARCH_STATUS_SUCCESS;
             }
         }
-    }
 
-    void CudaNodeInfo::setCudaDeviceIndex(
-        CudaNodeInfo::cuda_dev_index_t const index ) SIXTRL_NOEXCEPT
-    {
-        this->m_cu_device_index = index;
-    }
-
-    CudaNodeInfo::status_t CudaNodeInfo::doPrintToOutputStream(
-        std::ostream& SIXTRL_RESTRICT_REF output,
-        CudaNodeInfo::controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) const
-    {
-        CudaNodeInfo::status_t status =
-            st::NodeInfoBase::doPrintToOutputStream( output, ptr_ctrl );
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            output << "cuda device index     : "
-                   << this->m_cu_device_index << "\r\n";
-        }
+        return status;
     }
 }
 

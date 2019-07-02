@@ -56,17 +56,8 @@ namespace SIXTRL_CXX_NAMESPACE
                 SIXTRL_CXX_NAMESPACE::ARCH_CUDA_DEFAULT_WARP_SIZE;
 
         SIXTRL_HOST_FN explicit CudaNodeInfo(
-            cuda_dev_index_t const cuda_dev_index = ILLEGAL_DEV_INDEX );
-
-        SIXTRL_HOST_FN CudaNodeInfo(
             cuda_dev_index_t const cuda_dev_index,
-            ::cudaDeviceProp const& cuda_device_properties,
-            platform_id_t const platform_id = node_id_t::ILLEGAL_PLATFORM_ID,
-            device_id_t const device_id = node_id_t::ILLEGAL_DEVICE_ID,
-            node_index_t const node_index = node_id_t::UNDEFINED_INDEX,
-            bool const is_default_node = false,
-            bool const is_selected_node = false );
-
+            device_id_t const device_id = node_id_t::ILLEGAL_DEVICE_ID );
 
         SIXTRL_HOST_FN CudaNodeInfo( CudaNodeInfo const& other ) = default;
         SIXTRL_HOST_FN CudaNodeInfo( CudaNodeInfo&& other ) = default;
@@ -88,11 +79,8 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN ::cudaDeviceProp const*
         ptrCudaDeviceProperties() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool hasCudaDeviceIndex() const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN cuda_dev_index_t cudaDeviceIndex() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN void setCudaDeviceIndex(
-            cuda_dev_index_t const index ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN cuda_dev_index_t
+            cudaDeviceIndex() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN size_type warpSize() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN size_type computeCapability() const SIXTRL_NOEXCEPT;
@@ -108,9 +96,11 @@ namespace SIXTRL_CXX_NAMESPACE
             std::ostream& SIXTRL_RESTRICT_REF output,
             controller_base_t const* SIXTRL_RESTRICT ptr_ctrl ) const override;
 
+        SIXTRL_HOST_FN status_t doInitFromDeviceProperties(
+            ::cudaDeviceProp const& SIXTRL_RESTRICT_REF device_properties );
+
         private:
-        ::cudaDeviceProp    m_cu_device_properties;
-        cuda_dev_index_t    m_cu_device_index;
+        ::cudaDeviceProp    m_device_properties;
     };
 
     SIXTRL_HOST_FN CudaNodeInfo const* NodeInfo_as_cuda_node_info(
@@ -169,26 +159,22 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE ::cudaDeviceProp const&
     CudaNodeInfo::cudaDeviceProperties() const SIXTRL_NOEXCEPT
     {
-        return this->m_cu_device_properties;
+        return this->m_device_properties;
     }
 
     SIXTRL_INLINE ::cudaDeviceProp const*
     CudaNodeInfo::ptrCudaDeviceProperties() const SIXTRL_NOEXCEPT
     {
-        return &this->m_cu_device_properties;
+        return &this->m_device_properties;
     }
 
     /* --------------------------------------------------------------------- */
 
-    SIXTRL_INLINE bool CudaNodeInfo::hasCudaDeviceIndex() const SIXTRL_NOEXCEPT
-    {
-        return ( this->m_cu_device_index != CudaNodeInfo::ILLEGAL_DEV_INDEX );
-    }
-
     SIXTRL_INLINE CudaNodeInfo::cuda_dev_index_t
     CudaNodeInfo::cudaDeviceIndex() const SIXTRL_NOEXCEPT
     {
-        return this->m_cu_device_index;
+        return static_cast< CudaNodeInfo::cuda_dev_index_t >(
+            this->platformId() );
     }
 
     /* --------------------------------------------------------------------- */
@@ -197,7 +183,7 @@ namespace SIXTRL_CXX_NAMESPACE
     CudaNodeInfo::warpSize() const SIXTRL_NOEXCEPT
     {
         return static_cast< CudaNodeInfo::size_type >(
-            this->m_cu_device_properties.warpSize );
+            this->m_device_properties.warpSize );
     }
 
     SIXTRL_INLINE CudaNodeInfo::size_type
@@ -205,9 +191,9 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         using size_t = st::CudaNodeInfo::size_type;
 
-        size_t compute_capability = this->m_cu_device_properties.major;
+        size_t compute_capability = this->m_device_properties.major;
         compute_capability *= size_t{ 10 };
-        compute_capability += this->m_cu_device_properties.minor;
+        compute_capability += this->m_device_properties.minor;
 
         return compute_capability;
     }
@@ -216,21 +202,21 @@ namespace SIXTRL_CXX_NAMESPACE
     CudaNodeInfo::numMultiprocessors() const SIXTRL_NOEXCEPT
     {
         return static_cast< CudaNodeInfo::size_type >(
-            this->m_cu_device_properties.multiProcessorCount );
+            this->m_device_properties.multiProcessorCount );
     }
 
     SIXTRL_INLINE CudaNodeInfo::size_type
     CudaNodeInfo::maxThreadsPerBlock() const SIXTRL_NOEXCEPT
     {
         return static_cast< CudaNodeInfo::size_type >(
-            this->m_cu_device_properties.maxThreadsPerBlock );
+            this->m_device_properties.maxThreadsPerBlock );
     }
 
     SIXTRL_INLINE CudaNodeInfo::size_type
     CudaNodeInfo::maxThreadsPerMultiprocessor() const SIXTRL_NOEXCEPT
     {
         return static_cast< CudaNodeInfo::size_type >(
-            this->m_cu_device_properties.maxThreadsPerMultiProcessor );
+            this->m_device_properties.maxThreadsPerMultiProcessor );
     }
 
     /* --------------------------------------------------------------------- */
