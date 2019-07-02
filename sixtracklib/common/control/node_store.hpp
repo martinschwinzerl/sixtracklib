@@ -86,7 +86,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ArchIdIter begin, ArchIdIter end,
             size_type* SIXTRL_RESTRICT ptr_num_architectures ) const;
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
         SIXTRL_HOST_FN size_type numArchitectures(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
@@ -129,6 +129,9 @@ namespace SIXTRL_CXX_NAMESPACE
             platform_id_t const platform_id,
             char const* SIXTRL_RESTRICT platform_name );
 
+        SIXTRL_HOST_FN bool hasNode(
+            node_id_t const& SIXTRL_RESTRICT_REF node_id ) const;
+
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
         SIXTRL_HOST_FN bool hasPlatform(
@@ -168,6 +171,11 @@ namespace SIXTRL_CXX_NAMESPACE
             arch_id_t const arch_id,
             platform_id_t const platform_id,
             char const* SIXTRL_RESTRICT platform_name );
+
+        SIXTRL_HOST_FN bool hasNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_id_t const& SIXTRL_RESTRICT_REF node_id
+        ) const SIXTRL_NOEXCEPT;
 
     /* --------------------------------------------------------------------- */
 
@@ -367,9 +375,18 @@ namespace SIXTRL_CXX_NAMESPACE
             node_index_t const node_index,
             controller_base_t& SIXTRL_RESTRICT_REF controller );
 
+        SIXTRL_HOST_FN status_t attachAllArchitectureNodesToController(
+             controller_base_t& SIXTRL_RESTRICT_REF controller );
+
         SIXTRL_HOST_FN status_t detachNodeFromController(
             node_index_t const node_index,
             controller_base_t const& SIXTRL_RESTRICT_REF controller );
+
+        SIXTRL_HOST_FN status_t detachAllNodesFromController(
+            controller_base_t const& SIXTRL_RESTRICT_REF controller );
+
+        SIXTRL_HOST_FN status_t detachAllNodesByArchitecture(
+            arch_id_t const arch_id );
 
         SIXTRL_HOST_FN status_t detachNodeFromAllControllers(
             node_index_t const node_index );
@@ -378,8 +395,7 @@ namespace SIXTRL_CXX_NAMESPACE
             node_index_t const node_index ) const;
 
         SIXTRL_HOST_FN bool isNodeAttachedToAnyController(
-            node_index_t const node_index,
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+            node_index_t const node_index ) const;
 
         SIXTRL_HOST_FN bool isNodeAttachedToController(
             node_index_t const node_index,
@@ -414,10 +430,21 @@ namespace SIXTRL_CXX_NAMESPACE
             node_index_t const node_index,
             controller_base_t& SIXTRL_RESTRICT_REF controller );
 
+        SIXTRL_HOST_FN status_t attachAllArchitectureNodesToController(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            controller_base_t& SIXTRL_RESTRICT_REF controller );
+
         SIXTRL_HOST_FN status_t detachNodeFromController(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             node_index_t const node_index,
             controller_base_t const& SIXTRL_RESTRICT_REF controller );
+
+        SIXTRL_HOST_FN status_t detachAllNodesFromController(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            controller_base_t const& SIXTRL_RESTRICT_REF controller );
+
+        SIXTRL_HOST_FN status_t detachAllNodesByArchitecture(
+            lock_t const& SIXTRL_RESTRICT_REF lock, arch_id_t const arch_id );
 
         SIXTRL_HOST_FN status_t detachNodeFromAllControllers(
             lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -618,6 +645,7 @@ namespace SIXTRL_CXX_NAMESPACE
 }
 
 typedef SIXTRL_CXX_NAMESPACE::NodeStore NS(NodeStore);
+typedef SIXTRL_CXX_NAMESPACE::NodeStore::lock_t NS(NodeStoreLock);
 
 #else
 
@@ -626,6 +654,7 @@ extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
 typedef void NS(NodeStore);
+typedef void NS(NodeStoreLock);
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
@@ -633,20 +662,6 @@ typedef void NS(NodeStore);
 
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) && \
          !defined( __CUDACC__  ) && !defined( __CUDA_ARCH__ ) */
-
-#if defined( __cplusplus ) && !defined( _GPUCODE )
-extern "C" {
-#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodeStore)* NS(NodeStore_get_ptr)( void );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodeStore) const*
-    NS(NodeStore_get_const_ptr)( void );
-
-#if defined( __cplusplus ) && !defined( _GPUCODE )
-}
-#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
-
 
 /* ************************************************************************* */
 /* ******  Implementation of inline and template member functions    ******* */
@@ -909,6 +924,27 @@ namespace SIXTRL_CXX_NAMESPACE
             ? this->platformIdByName(
                 lock, arch_id, std::string{ platform_name } )
             : NodeStore::ILLEGAL_PLATFORM_ID;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE bool NodeStore::hasNode(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeStore::node_id_t const& SIXTRL_RESTRICT_REF node_id ) const
+    {
+        NodeStore::lock_t lock( *this->lockable() );
+        this->checkLockAndThrowOnError( lock );
+        return this->hasNode( lock, node_id );
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    SIXTRL_INLINE bool NodeStore::hasNode(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeStore::node_id_t const& SIXTRL_RESTRICT_REF node_id ) const
+    {
+        return ( ( node_id.valid() ) && ( this->checkLock( lock ) ) &&
+            ( this->findNodeIndex( node_id ) != NodeStore::UNDEFINED_INDEX ) );
     }
 
     /* --------------------------------------------------------------------- */
@@ -1440,6 +1476,16 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->attachNodetoController( lock, node_index, controller );
     }
 
+    SIXTRL_INLINE NodeStore::status_t
+    NodeStore::attachAllArchitectureNodesToController(
+        NodeStore::controller_base_t& SIXTRL_RESTRICT_REF controller )
+    {
+        NodeStore::lock_t lock( *this->lockable() );
+        this->checkLockAndThrowOnError( lock );
+        return this->attachAllArchitectureNodesToController(
+            lock, controller );
+    }
+
     SIXTRL_INLINE NodeStore::status_t NodeStore::detachNodeFromController(
         NodeStore::node_index_t const node_index,
         NodeStore::controller_base_t& SIXTRL_RESTRICT_REF controller )
@@ -1447,6 +1493,22 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::lock_t lock( *this->lockable() );
         this->checkLockAndThrowOnError( lock );
         return this->detachNodeFromController( lock, node_index, controller );
+    }
+
+    SIXTRL_INLINE NodeStore::status_t NodeStore::detachAllNodesFromController(
+        NodeStore::controller_base_t const& SIXTRL_RESTRICT_REF controller )
+    {
+        NodeStore::lock_t lock( *this->lockable() );
+        this->checkLockAndThrowOnError( lock );
+        return this->detachAllNodesFromController( lock, controller );
+    }
+
+    SIXTRL_INLINE NodeStore::status_t NodeStore::detachAllNodesByArchitecture(
+        NodeStore::arch_id_t const arch_id )
+    {
+        NodeStore::lock_t lock( *this->lockable() );
+        this->checkLockAndThrowOnError( lock );
+        return this->detachAllNodesByArchitecture( lock, arch_id );
     }
 
     SIXTRL_INLINE NodeStore::status_t NodeStore::detachNodeFromAllControllers(

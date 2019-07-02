@@ -47,6 +47,8 @@ namespace st = SIXTRL_CXX_NAMESPACE;
 
 namespace SIXTRL_CXX_NAMESPACE
 {
+    /* --------------------------------------------------------------------- */
+
     NodeStore::size_type NodeStore::numArchitectures( NodeStore::lock_t const&
         SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
@@ -67,6 +69,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return num_architectures;
     }
 
+    /* --------------------------------------------------------------------- */
+
     bool NodeStore::hasArchitecture(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock
         NodeStore::arch_id_t const arch_id ) const SIXTRL_NOEXCEPT
@@ -82,6 +86,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return is_available;
     }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::status_t NodeStore::doAddArchitecture(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -112,6 +118,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return status;
     }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::platform_id_t NodeStore::doGetNextPlatformId(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -168,6 +176,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return is_available;
     }
 
+    /* --------------------------------------------------------------------- */
+
     bool NodeStore::hasPlatform(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::arch_id_t const arch_id,
@@ -176,6 +186,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->hasPlatform( lock, arch_id,
             this->platformIdByName( lock, name ) );
     }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::size_type NodeStore::numPlatforms(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -220,6 +232,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return num_platforms;
     }
 
+    /* --------------------------------------------------------------------- */
+
     NodeStore::platform_id_t NodeStore::platformIdByName(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::arch_id_t const arch_id,
@@ -259,6 +273,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return platform_id;
     }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::status_t NodeStore::addPlatformNameMapping(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -349,6 +365,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
+    /* --------------------------------------------------------------------- */
+
     NodeStore::status_t NodeStore::addPlatformNameMapping(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::arch_id_t const arch_id,
@@ -367,7 +385,7 @@ namespace SIXTRL_CXX_NAMESPACE
             lock, arch_id, platform_id, platform_name );
     }
 
-
+    /* --------------------------------------------------------------------- */
 
     NodeStore::status_t NodeStore::doAddPlatform(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -392,6 +410,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return status;
     }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::device_id_t NodeStore::doGetNextDeviceId(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -513,6 +533,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return num_ctrls;
     }
 
+    /* --------------------------------------------------------------------- */
 
     bool NodeStore::hasController(
         NodeStore::controller_base_t const& controller, NodeStore::lock_t
@@ -539,6 +560,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return has_controller;
     }
 
+    /* --------------------------------------------------------------------- */
+
     NodeStore::size_type NodeStore::numControllers(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::arch_id_t const arch_id ) const SIXTRL_NOEXCEPT
@@ -558,6 +581,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return num_ctrls;
     }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::status_t NodeStore::doAddController(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -647,6 +672,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return index;
     }
 
+    /* --------------------------------------------------------------------- */
+
     NodeStore::node_index_t NodeStore::findNodeIndex(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_info_base_t const*
@@ -669,6 +696,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return index;
     }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::node_index_t NodeStore::findNodeIndex(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -764,6 +793,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return ( this->ptrNodeInfoBase( lock, index ) != nullptr );
     }
 
+    /* --------------------------------------------------------------------- */
+
     NodeStore::node_id_t const* NodeStore::ptrNodeId(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_index_t const index ) const SIXTRL_NOEXCEPT
@@ -777,6 +808,8 @@ namespace SIXTRL_CXX_NAMESPACE
             ? ptr_node_info->ptrNodeId() : nullptr;
     }
 
+    /* --------------------------------------------------------------------- */
+
     NodeStore::node_info_base_t const* NodeStore::ptrNodeInfoBase(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_index_t const index ) const SIXTRL_NOEXCEPT
@@ -788,6 +821,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ? this->m_stored_node_infos[ index ].get() : nullptr;
     }
 
+    /* --------------------------------------------------------------------- */
 
     NodeStore::node_info_base_t* NodeStore::ptrNodeInfoBase(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -809,6 +843,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->doAddNode( lock, std::move( ptr_stored_node_info ) );
     }
 
+    /* --------------------------------------------------------------------- */
+
     NodeStore::status_t NodeStore::attachNodeToController(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_index_t const index,
@@ -829,6 +865,108 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
+    /* --------------------------------------------------------------------- */
+
+    NodeStore::status_t NodeStore::attachAllArchitectureNodesToController(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeStore::controller_base_t& SIXTRL_RESTRICT_REF controller )
+    {
+        using size_t        = NodeStore::size_type;
+        using node_id_t     = NodeStore::node_id_t;
+        using index_t       = NodeStore::node_index_t;
+        using platform_id_t = NodeStore::platform_id_t;
+        using device_id_t   = NodeStore::device_id_t;
+
+        NodeStore::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        NodeStore::arch_id_t const arch_id = controller.archId();
+
+        size_t const num_nodes_to_assign = this->numNodes( lock, arch_id );
+
+        if( ( arch_id != NodeStore::ARCH_ILLEGAL ) &&
+            ( this->checkLock( lock ) ) &&
+            ( this->hasArchitecture( lock, arch_id ) ) &&
+            ( num_nodes_to_assign > size_t{ 0 } ) )
+        {
+            auto ait_pair = this->m_arch_to_platforms.equal_range( arch_id );
+            auto arch_it  = ait_pair->first;
+            auto arch_end = ait_pair->second;
+
+            SIXTRL_ASSERT( ( arch_it != arch_end ) &&
+                ( arch_it != this->m_arch_to_platforms.end() ) );
+
+            status = st::ARCH_STATUS_SUCCESS;
+
+            for( ; arch_it != arch_end ; ++arch_it )
+            {
+                platform_id_t const platform_id = arch_it->second;
+                SIXTRL_ASSERT( platform_id != NodeStore::ILLEGAL_PLATFORM_ID );
+                SIXTRL_ASSERT( arch_id == arch_it->first );
+
+                devices_it = this->m_arch_platform_to_devices.find( *arch_it );
+
+                if( ( devices_it != this->m_arch_platform_to_devices.end() ) &&
+                    ( !devices_it->second.empty() ) )
+                {
+                    auto dev_it  = devices_it->second.begin();
+                    auto dev_end = devices_it->second.end();
+
+                    for( ; dev_it != dev_end ; ++dev_it )
+                    {
+                        status = st::ARCH_STATUS_GENERAL_FAILURE;
+                        device_id_t const device_id = *dev_it;
+
+                        if( device_id != NodeSore::ILLEGAL_DEVICE_ID )
+                        {
+                            node_id_t const nid(
+                                arch_id, platform_id, device_id );
+
+                            SIXTRL_ASSERT( nid.valid() );
+
+                            auto it = this->m_node_id_to_node_index.find( nid );
+
+                            if( it != this->m_node_id_to_node_index.end() )
+                            {
+                                index_t const index = it->second;
+
+                                SIXTRL_ASSERT( this->isNodeAvailable(
+                                    lock, index ) );
+
+                                SIXTRL_ASSERT( this->ptrNodeInfoBase(
+                                    lock, index ) != nullptr );
+
+                                SIXTRL_ASSERT( this->ptrNodeInfoBase(
+                                    lock, index )->nodeId() == nid );
+
+                                if( !this->isNodeAttachedToController(
+                                        lock, index, &controller ) )
+                                {
+                                    status = this->attachNodeToController(
+                                        lock, index, &controller );
+                                }
+                                else
+                                {
+                                    status = st::ARCH_STATUS_SUCCESS;
+                                }
+                            }
+                        }
+
+                        if( status != st::ARCH_STATUS_SUCCESS )
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( this->numNodes( lock, controller ) == num_nodes_to_assign ) );
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
     NodeStore::status_t NodeStore::detachNodeFromController(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_index_t const index,
@@ -836,6 +974,145 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         return this->doDetachNodeFromController( lock, index, controller );
     }
+
+    /* --------------------------------------------------------------------- */
+
+    NodeStore::status_t NodeStore::detachAllNodesFromController(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeStore::controller_base_t const& SIXTRL_RESTRICT_REF controller )
+    {
+        using ctrl_t = NodeStore::controller_base_t;
+        using index_t = NodeStore::node_index_t;
+        using size_t  = NodeStore::size_type;
+
+        NodeStore::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        NodeStore::arch_id_t const arch_id = controller.archId();
+
+        if( ( arch_id != NodeStore::ARCH_ILLEGAL ) &&
+            ( this->checkLock( lock ) ) &&
+            ( this->hasArchitecture( lock, arch_id ) ) )
+        {
+            ctrl_t const* ptr_ctrl = &controller;
+            auto it = this->m_ctrl_to_node_indices.find( ptr_ctrl );
+
+            if( it == this->m_ctrl_to_node_indices.end() )
+            {
+                return status;
+            }
+
+            status = st::ARCH_STATUS_SUCCESS:
+
+            if( !it->second.empty() )
+            {
+                size_t const num_nodes = this->numNodes( lock, ptr_ctrl );
+                SIXTRL_ASSERT( num_nodes > size_t{ 0 } );
+
+                auto index_it  = it->second.begin();
+                auto index_end = it->second.end();
+
+                std::vector< index_t > temp_idx_list(
+                    num_nodes, NodeStore::UNDEFINED_INDEX );
+
+                temp_idx_list.clear();
+
+                for( ; index_it != index_end ; ++index_it )
+                {
+                    index_t const idx = *index_it;
+
+                    if( idx == NodeStore::UNDEFINED_INDEX )
+                    {
+                        status = st::ARCH_STATUS_GENERAL_FAILURE;
+                        break;
+                    }
+
+                    if( this->isSelectedByController( lock, idx, ptr_ctrl ) )
+                    {
+                        status = this->unselectNodeForController(
+                            lock, idx, ptr_ctrl );
+                    }
+
+                    if( status != st::ARCH_STATUS_SUCCESS )
+                    {
+                        break;
+                    }
+
+                    temp_idx_list.push_back( idx );
+                }
+
+                if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+                    ( !temp_idx_list.empty() ) )
+                {
+                    for( auto const idx : temp_idx_list )
+                    {
+                        status = this->detachNodeFromController(
+                            lock, idx, ptr_ctrl );
+
+                        if( status != st::ARCH_STATUS_SUCCESS )
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    NodeStore::status_t NodeStore::detachAllNodesByArchitecture(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeStore::arch_id_t const arch_id )
+    {
+        using size_t = NodeStore::size_type;
+        using ctrl_t = NodeStore::controller_base_t;
+        NodeStore::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        size_t const num_ctrls = this->numControllers( lock, arch_id );
+
+        if( ( arch_id == NodeStore::ARCH_ILLEGAL ) &&
+            ( this->hasArchitecture( lock, arch_id ) ) &&
+            ( num_ctrls > size_t{ 0 } ) )
+        {
+            std::vector< ctrl_t const* > temp_ctrl_list( num_ctrls, nullptr );
+            temp_ctrl_list.clear();
+
+            auto ctrl_it  = this->m_ctrl_to_node_indices.begin();
+            auto ctrl_end = this->m_ctrl_to_node_indices.end();
+
+            for( ; ctrl_it != ctrl_end ; ++ctrl_it )
+            {
+                if( ( ctrl_it->first != nullptr ) &&
+                    ( ctrl_it->first->archId() == arch_id ) &&
+                    ( !ctrl_it->second.empty() ) )
+                {
+                    temp_ctrl_list.push_back( ctrl_it->first );
+                }
+            }
+
+            status = st::ARCH_STATUS_SUCCESS
+
+            for( ctrl_t const* ptr_ctrl : temp_ctrl_list )
+            {
+                SIXTRL_ASSERT( ptr_ctrl != nullptr );
+                status = this->detachAllNodesFromController( lock, *ptr_ctrl );
+
+                if( status != st::ARCH_STATUS_SUCCESS )
+                {
+                    break;
+                }
+            }
+
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( ( this->numNodes( lock, arch_id ) == size_t{ 0 } ) &&
+                  ( this->numControllers( lock, arch_id ) == size_t{ 0 } ) ) );
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::status_t NodeStore::detachNodeFromAllControllers(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -884,6 +1161,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
+    /* --------------------------------------------------------------------- */
+
     NodeStore::size_type NodeStore::numControllersAttachedToNode(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_index_t const index ) const SIXTRL_NOEXCEPT
@@ -905,6 +1184,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return num_attached_ctrls;
     }
 
+    /* --------------------------------------------------------------------- */
+
     bool NodeStore::isNodeAttachedToAnyController(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_index_t const index ) const SIXTRL_NOEXCEPT
@@ -923,6 +1204,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return is_attached_to_any;
     }
+
+    /* --------------------------------------------------------------------- */
 
     bool NodeStore::isNodeAttachedToController(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -948,6 +1231,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return is_attached;
     }
 
+    /* --------------------------------------------------------------------- */
+
     NodeStore::status_t NodeStore::markNodeAsSelectedByController(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_index_t const index,
@@ -955,6 +1240,8 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         return this->doSelectNodeByController( lock, index, controller );
     }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::status_t NodeStore::unselectNodeForController(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -964,6 +1251,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->doUnselectNodeForController( lock, index, controller );
     }
 
+    /* --------------------------------------------------------------------- */
 
     bool NodeStore::isNodeSelectedByController(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -990,6 +1278,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return is_selected_by;
     }
 
+    /* --------------------------------------------------------------------- */
+
     bool NodeStore::isNodeSelectedByAnyController(
         NodeStore::node_index_t const node_index ) const
     {
@@ -1009,6 +1299,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return has_selecting_ctrls;
     }
+
+    /* --------------------------------------------------------------------- */
 
     NodeStore::size_type NodeStore::numSelectingControllersForNode(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
