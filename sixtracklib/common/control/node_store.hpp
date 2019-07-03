@@ -86,6 +86,8 @@ namespace SIXTRL_CXX_NAMESPACE
             ArchIdIter begin, ArchIdIter end,
             size_type* SIXTRL_RESTRICT ptr_num_architectures ) const;
 
+        SIXTRL_HOST_FN status_t addArchitecture( arch_id_t const arch_id );
+
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
         SIXTRL_HOST_FN size_type numArchitectures(
@@ -99,6 +101,9 @@ namespace SIXTRL_CXX_NAMESPACE
             NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
             ArchIdIter begin, ArchIdIter end,
             size_type* SIXTRL_RESTRICT ptr_num_archs ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN status_t addArchitecture(
+            lock_t const& SIXTRL_RESTRICT_REF lock, arch_id_t const arch_id );
 
     /* --------------------------------------------------------------------- */
 
