@@ -805,7 +805,6 @@ st_TrackJob_create = sixtracklib.st_TrackJobCpu_create
 st_TrackJob_create.argtypes = [ct.c_char_p, ct.c_char_p]
 st_TrackJob_create.restype = st_TrackJob_p
 
-
 st_TrackJob_new = sixtracklib.st_TrackJob_new
 st_TrackJob_new.argtypes = [ct.c_char_p, st_Buffer_p, st_Buffer_p, ct.c_char_p]
 st_TrackJob_new.restype = st_TrackJob_p
@@ -927,150 +926,90 @@ st_node_index_p = ct.POINTER(st_node_index_t)
 
 # ------------------------------------------------------------------------------
 # NS(NodeId):
-st_NodeId_p = ct.c_void_p
-st_NullNodeId = ct.cast(0, st_NodeId_p)
 
-class st_PlatformDeviceIdPair( ct.Structure ):
+class st_NodeId_p( ct.Structure ):
     _fields_ = [("platform_id", st_node_platform_id_t),
                 ("device_id", st_node_device_id_t)]
 
-st_PlatformDeviceIdPair_p = ct.POINTER( st_PlatformDeviceIdPair )
-st_NullPlatformDeviceIdPair = ct.cast( 0, st_PlatformDeviceIdPair_p )
+st_NullNodeId = ct.cast(0, st_NodeId_p)
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+st_NodeId_preset = sixtracklib.st_NodeId_preset_ext
+st_NodeId_preset.argtypes = [ st_NodeId_p ]
+st_NodeId_preset.restype = st_NodeId_p
+
+st_NodeId_init = sixtracklib.st_NodeId_init_ext
+st_NodeId_init.argtypes = [
+    st_NodeId_p, st_node_platform_id_t, st_node_device_id_t ]
+st_NodeId_init.restype = st_arch_status_t
+
+st_NodeId_is_valid = sixtracklib.st_NodeId_is_valid_ext
+st_NodeId_is_valid.argtypes = [ st_NodeId_p ]
+st_NodeId_is_valid.restype = ct.c_bool
+
+st_NodeId_get_platform_id = sixtracklib.st_NodeId_get_platform_id_ext
+st_NodeId_get_platform_id.argtypes = [ st_NodeId_p ]
+st_NodeId_get_platform_id.restype = st_node_platform_id_t
+
+st_NodeId_get_device_id = sixtracklib.st_NodeId_get_device_id_ext
+st_NodeId_get_device_id.argtypes = [ st_NodeId_p ]
+st_NodeId_get_device_id.restype = st_node_device_id_t
+
+st_NodeId_set_platform_id = sixtracklib.st_NodeId_set_platform_id_ext
+st_NodeId_set_platform_id.argtypes = [ st_NodeId_p, st_node_platform_id_t ]
+st_NodeId_set_platform_id.restype = st_arch_status_t
+
+st_NodeId_set_device_id = sixtracklib.st_NodeId_set_device_id_ext
+st_NodeId_set_device_id.argtypes = [ st_NodeId_p, st_node_device_id_t ]
+st_NodeId_set_device_id.restype = st_arch_status_t
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+st_NodeId_clear = sixtracklib.st_NodeId_clear_ext
+st_NodeId_clear.argtypes = [ st_NodeId_p ]
+st_NodeId_clear.restype = None
+
+st_NodeId_required_str_capacity = \
+    sixtracklib.st_NodeId_required_str_capacity_ext
+st_NodeId_required_str_capacity.argtypes = [ st_NodeId_p ]
+st_NodeId_required_str_capacity.restype = st_arch_size_t
+
+st_NodeId_compare = sixtracklib.st_NodeId_compare_ext
+st_NodeId_compare.argtypes = [ st_NodeId_p, st_NodeId_p ]
+st_NodeId_compare.restype = ct.c_int
+
+st_NodeId_are_equal = sixtracklib.st_NodeId_are_equal_ext
+st_NodeId_are_equal.argtypes = [ st_NodeId_p, st_NodeId_p ]
+st_NodeId_are_equal.restype = ct.c_bool
+
+st_NodeId_copy = sixtracklib.st_NodeId_copy_ext
+st_NodeId_copy.argtypes = [ st_NodeId_p, st_NodeId_p ]
+st_NodeId_copy.restype = st_arch_status_t
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+st_NodeId_init_from_string = sixtracklib.st_NodeId_init_from_string
+st_NodeId_init_from_string.argtypes = [ st_NodeId_p, ct.c_char_p ]
+st_NodeId_init_from_string.restype = st_arch_status_t
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 st_NodeId_create = sixtracklib.st_NodeId_create
 st_NodeId_create.argtypes = None
 st_NodeId_create.restype = st_NodeId_p
 
+st_NodeId_delete = sixtracklib.st_NodeId_delete
+st_NodeId_delete.argtypes = [ st_NodeId_p ]
+st_NodeId_delete.restype = None
+
 st_NodeId_new = sixtracklib.st_NodeId_new
-st_NodeId_new.argtypes = [st_node_platform_id_t, st_node_device_id_t]
+st_NodeId_new.argtypes = [ st_node_platform_id_t, st_node_device_id_t ]
 st_NodeId_new.restype = st_NodeId_p
 
 st_NodeId_new_from_string = sixtracklib.st_NodeId_new_from_string
-st_NodeId_new_from_string.argtypes = [ct.c_char_p]
+st_NodeId_new_from_string.argtypes = [ ct.c_char_p ]
 st_NodeId_new_from_string.restype = st_NodeId_p
-
-st_NodeId_delete = sixtracklib.st_NodeId_delete
-st_NodeId_delete.argtypes = [st_NodeId_p]
-st_NodeId_delete.restype = None
-
-st_NodeId_preset = sixtracklib.st_NodeId_preset
-st_NodeId_preset.argtypes = [st_NodeId_p]
-st_NodeId_preset.restype = st_NodeId_p
-
-st_NodeId_is_valid = sixtracklib.st_NodeId_is_valid
-st_NodeId_is_valid.argtypes = [st_NodeId_p]
-st_NodeId_is_valid.restype = ct.c_bool
-
-st_NodeId_get_platform_id = sixtracklib.st_NodeId_get_platform_id
-st_NodeId_get_platform_id.argtypes = [st_NodeId_p]
-st_NodeId_get_platform_id.restype = st_node_platform_id_t
-
-st_NodeId_get_device_id = sixtracklib.st_NodeId_get_device_id
-st_NodeId_get_device_id.argtypes = [st_NodeId_p]
-st_NodeId_get_device_id.restype = st_node_device_id_t
-
-st_NodeId_set_platform_id = sixtracklib.st_NodeId_set_platform_id
-st_NodeId_set_platform_id.argtypes = [ st_NodeId_p, st_node_platform_id_t ]
-st_NodeId_set_platform_id.restype = st_arch_status_t
-
-st_NodeId_set_device_id = sixtracklib.st_NodeId_set_device_id
-st_NodeId_set_device_id.argtypes = [ st_NodeId_p, st_node_device_id_t ]
-st_NodeId_set_device_id.restype = st_arch_status_t
-
-st_NodeId_get_const_platform_id_platform_id_pair = \
-    sixtracklib.st_NodeId_get_const_platform_id_platform_id_pair
-st_NodeId_get_const_platform_id_platform_id_pair.argtypes = [ st_NodeId_p ]
-st_NodeId_get_const_platform_id_platform_id_pair.restype = \
-    st_PlatformDeviceIdPair_p
-
-st_NodeId_get_platform_id_platform_id_pair = \
-    sixtracklib.st_NodeId_get_platform_id_platform_id_pair
-st_NodeId_get_platform_id_platform_id_pair.argtypes = [ st_NodeId_p ]
-st_NodeId_get_platform_id_platform_id_pair.restype = st_PlatformDeviceIdPair_p
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-st_NodeId_clear = sixtracklib.st_NodeId_clear
-st_NodeId_clear.argtypes = [ st_NodeId_p ]
-st_NodeId_clear.restype = None
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-st_NodeId_has_controllers = sixtracklib.st_NodeId_has_controllers
-st_NodeId_has_controllers.argtypes = [ st_NodeId_p ]
-st_NodeId_has_controllers.restype = ct.c_bool
-
-st_NodeId_get_num_of_controllers = sixtracklib.st_NodeId_get_num_of_controllers
-st_NodeId_get_num_of_controllers.argtypes = [ st_NodeId_p ]
-st_NodeId_get_num_of_controllers.restype = st_arch_size_t
-
-st_NodeId_is_attached_to_controller = \
-    sixtracklib.st_NodeId_is_attached_to_controller
-st_NodeId_is_attached_to_controller.argtypes = [
-        st_NodeId_p, st_ControllerBase_p ]
-st_NodeId_is_attached_to_controller.restype = ct.c_bool
-
-st_NodeId_has_node_index = sixtracklib.st_NodeId_has_node_index
-st_NodeId_has_node_index.argtypes = [ st_NodeId_p, st_ControllerBase_p ]
-st_NodeId_has_node_index.restype = ct.c_bool
-
-st_NodeId_get_node_index = sixtracklib.st_NodeId_get_node_index
-st_NodeId_get_node_index.argtypes = [ st_NodeId_p, st_ControllerBase_p ]
-st_NodeId_get_node_index.restype = st_node_index_t
-
-st_NodeId_set_node_index = sixtracklib.st_NodeId_set_node_index
-st_NodeId_set_node_index.argtypes = [
-        st_NodeId_p, st_ControllerBase_p, st_node_index_t ]
-st_NodeId_set_node_index.restype = st_arch_status_t
-
-st_NodeId_is_selected = sixtracklib.st_NodeId_is_selected
-st_NodeId_is_selected.argtypes = [ st_NodeId_p ]
-st_NodeId_is_selected.restype = ct.c_bool
-
-st_NodeId_is_selected_by_controller = \
-    sixtracklib.st_NodeId_is_selected_by_controller
-st_NodeId_is_selected_by_controller.argtypes = [
-    st_NodeId_p, st_ControllerBase_p ];
-st_NodeId_is_selected_by_controller.restype = ct.c_bool
-
-st_NodeId_is_default = sixtracklib.st_NodeId_is_default
-st_NodeId_is_default.argtypes = [ st_NodeId_p ]
-st_NodeId_is_default.restype = ct.c_bool
-
-st_NodeId_is_default_for_controller = \
-    sixtracklib.st_NodeId_is_default_for_controller
-st_NodeId_is_default_for_controller.argtypes = [
-    st_NodeId_p, st_ControllerBase_p ];
-st_NodeId_is_default_for_controller.restype = ct.c_bool
-
-st_NodeId_get_const_selecting_controller = \
-    sixtracklib.st_NodeId_get_const_selecting_controller
-st_NodeId_get_const_selecting_controller.argtypes = [ st_NodeId_p ]
-st_NodeId_get_const_selecting_controller.restype = st_ControllerBase_p
-
-st_NodeId_set_selected_controller = \
-    sixtracklib.st_NodeId_set_selected_controller
-st_NodeId_set_selected_controller.argtypes = [
-        st_NodeId_p, st_ControllerBase_p ]
-st_NodeId_set_selected_controller.restype = st_arch_status_t
-
-st_NodeId_reset_selecting_controller = \
-    sixtracklib.st_NodeId_reset_selecting_controller
-st_NodeId_reset_selecting_controller.argtypes = [ st_NodeId_p ]
-st_NodeId_reset_selecting_controller.restype = st_arch_status_t
-
-st_NodeId_attach_to_controller = sixtracklib.st_NodeId_attach_to_controller
-st_NodeId_attach_to_controller.argtypes = [
-        st_NodeId_p, st_ControllerBase_p, st_node_index_t ]
-st_NodeId_attach_to_controller.restype = st_arch_status_t
-
-st_NodeId_detach_from_controller = sixtracklib.st_NodeId_detach_from_controller
-st_NodeId_detach_from_controller.argtypes = [ st_NodeId_p, st_ControllerBase_p ]
-st_NodeId_detach_from_controller.restype = st_arch_status_t
-
-st_NodeId_get_const_controller = sixtracklib.st_NodeId_get_const_controller
-st_NodeId_get_const_controller.argtypes = [ st_NodeId_p, st_arch_size_t ]
-st_NodeId_get_const_controller.restype = st_ControllerBase_p
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1079,42 +1018,51 @@ st_NodeId_from_node_id_str.argtypes = [ st_NodeId_p, ct.c_char_p ]
 st_NodeId_from_node_id_str.restype = st_arch_status_t
 
 st_NodeId_to_node_id_str = sixtracklib.st_NodeId_to_node_id_str
-st_NodeId_to_node_id_str.argtypes = [ st_NodeId_p, st_arch_size_t, ct.c_char_p ]
+st_NodeId_to_node_id_str.argtypes = [
+    st_NodeId_p, st_arch_size_t, ct.c_char_p ]
 st_NodeId_to_node_id_str.restype = st_arch_status_t
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 st_NodeId_print_out = sixtracklib.st_NodeId_print_out
-st_NodeId_print_out.argtypes = [ st_NodeId_p, st_ControllerBase_p ]
+st_NodeId_print_out.argtypes = [ st_NodeId_p ]
 st_NodeId_print_out.restype = None
 
-st_NodeId_required_str_capacity = sixtracklib.st_NodeId_required_str_capacity
-st_NodeId_required_str_capacity.argtypes = [ st_NodeId_p, st_ControllerBase_p ]
-st_NodeId_required_str_capacity.restype = st_arch_size_t
-
-st_NodeId_to_string = sixtracklib.st_NodeId_to_string
-st_NodeId_to_string.argtypes = [
-        st_NodeId_p, st_arch_size_t, ct.c_char_p, st_ControllerBase_p ]
-st_NodeId_to_string.restype = st_arch_status_t
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-st_NodeId_compare = sixtracklib.st_NodeId_compare
-st_NodeId_compare.argtypes = [ st_NodeId_p, st_NodeId_p ]
-st_NodeId_compare.restype = ct.c_int
+st_NodeId_get_required_num_dataptrs = \
+    sixtracklib.st_NodeId_get_required_num_dataptrs
+st_NodeId_get_required_num_dataptrs.argtypes = [ st_Buffer_p ]
+st_NodeId_get_required_num_dataptrs.restype = st_buffer_size_t
 
-st_NodeId_are_equal = sixtracklib.st_NodeId_are_equal
-st_NodeId_are_equal.argtypes = [ st_NodeId_p, st_NodeId_p ]
-st_NodeId_are_equal.restype = ct.c_bool
+st_NodeId_get_required_num_dataptrs = \
+    sixtracklib.st_NodeId_get_required_num_dataptrs
+st_NodeId_get_required_num_dataptrs.argtypes = [ st_Buffer_p ]
+st_NodeId_get_required_num_dataptrs.restype = st_buffer_size_t
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+st_NodeId_can_be_added = sixtracklib.st_NodeId_can_be_added
+st_NodeId_can_be_added.argtypes = [
+    st_Buffer_p, st_buffer_size_p, st_buffer_size_p, st_buffer_size_p ]
+st_NodeId_can_be_added.restype = ct.c_bool
+
+st_NodeId_new = sixtracklib.st_NodeId_new
+st_NodeId_new.argtypes = [ st_Buffer_p ]
+st_NodeId_new.restype = st_NodeId_p
+
+st_NodeId_add = sixtracklib.st_NodeId_add
+st_NodeId_add.argtypes = [
+        st_Buffer_p, st_node_platform_id_t, st_node_device_id_t ]
+st_NodeId_add.restype = st_NodeId_p
+
+st_NodeId_add_copy = sixtracklib.st_NodeId_add_copy
+st_NodeId_add_copy.argtypes = [ st_Buffer_p, st_NodeId_p ]
+st_NodeId_add_copy.restype = st_NodeId_p
 
 st_NodeId_extract_node_id_str_from_config_str = \
     sixtracklib.st_NodeId_extract_node_id_str_from_config_str
 st_NodeId_extract_node_id_str_from_config_str.argtypes = [
     ct.c_char_p, ct.c_char_p, st_buffer_size_t ]
 st_NodeId_extract_node_id_str_from_config_str.restype = st_arch_status_t
-
 
 # -----------------------------------------------------------------------------
 # NS(NodeInfo):
