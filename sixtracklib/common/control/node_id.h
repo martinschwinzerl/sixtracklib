@@ -97,6 +97,9 @@ NS(NodeId_required_str_capacity_for_format)(
     SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
     NS(node_id_str_fmt_t) const node_id_str_format );
 
+SIXTRL_STATIC SIXTRL_FN bool NS(NodeId_is_smaller_than)(
+    SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT lhs,
+    SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT rhs );
 
 SIXTRL_STATIC SIXTRL_FN int NS(NodeId_compare)(
     SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT lhs,
@@ -720,6 +723,25 @@ SIXTRL_INLINE int NS(NodeId_compare)(
     }
 
     return cmp_result;
+}
+
+SIXTRL_INLINE NS(NodeId_is_smaller_than)(
+    SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT lhs,
+    SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT rhs )
+{
+    NS(arch_id_t) const lhs_arch = NS(NodeId_get_arch_id)( lhs );
+    NS(arch_id_t) const rhs_arch = NS(NodeId_get_arch_id)( rhs );
+
+    NS(platform_id_t) const lhs_platform = NS(NodeId_get_platform_id)( lhs );
+    NS(platform_id_t) const rhs_platform = NS(NodeId_get_platform_id)( rhs );
+
+    return ( ( lhs_arch < rhs_arch ) ||
+             ( ( lhs_arch == rhs_arch ) &&
+               ( lhs_platform < rhs_platform ) ) ||
+             ( ( lhs_arch == rhs_arch ) &&
+               ( lhs_platform == rhs_platform ) &&
+               ( NS(NodeId_get_device_id)( lhs ) <
+                 NS(NodeId_get_device_id)( rhs ) ) ) );
 }
 
 SIXTRL_INLINE bool NS(NodeId_are_equal)(
