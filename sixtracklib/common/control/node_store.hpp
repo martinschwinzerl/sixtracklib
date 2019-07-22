@@ -26,7 +26,7 @@
     #include "sixtracklib/common/control/arch_info.h"
     #include "sixtracklib/common/control/controller_base.h"
     #include "sixtracklib/common/control/node_id.h"
-    #include "sixtracklib/common/control/node_info_base.h"
+    #include "sixtracklib/common/control/node_info.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE ) && \
@@ -37,7 +37,7 @@
     #include "sixtracklib/common/control/arch_info.hpp"
     #include "sixtracklib/common/control/controller_base.hpp"
     #include "sixtracklib/common/control/node_id.hpp"
-    #include "sixtracklib/common/control/node_info_base.hpp"
+    #include "sixtracklib/common/control/node_info.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
@@ -50,15 +50,36 @@ namespace SIXTRL_CXX_NAMESPACE
         using size_type               = SIXTRL_CXX_NAMESPACE::arch_size_t;
         using node_index_t            = SIXTRL_CXX_NAMESPACE::node_index_t;
         using node_info_base_t        = SIXTRL_CXX_NAMESPACE::NodeInfoBase;
+        using node_str_role_t         = SIXTRL_CXX_NAMESPACE::node_str_role_t;
         using ptr_stored_node_info_t  = std::unique_ptr< node_info_base_t >;
         using node_id_t               = node_info_base_t::node_id_t;
         using arch_id_t               = node_info_base_t::arch_id_t;
         using platform_id_t           = node_info_base_t::platform_id_t;
         using device_id_t             = node_info_base_t::device_id_t;
-        using controll_base_t         = node_info_base_t::controller_base_t;
+        using controller_base_t       = node_info_base_t::controller_base_t;
 
         using lockable_t              = std::mutex;
         using lock_t                  = std::unique_lock< lockable_t >;
+
+        static SIXTRL_CONSTEXPR_OR_CONST node_str_role_t NODE_ID_STR =
+            SIXTRL_CXX_NAMESPACE::NODE_STR_ROLE_ID;
+
+        static SIXTRL_CONSTEXPR_OR_CONST node_str_role_t NODE_UNIQUE_ID_STR =
+            SIXTRL_CXX_NAMESPACE::NODE_STR_ROLE_UNIQUE_ID;
+
+        static SIXTRL_CONSTEXPR_OR_CONST arch_id_t ARCH_ILLEGAL =
+            SIXTRL_CXX_NAMESPACE::ARCHITECTURE_ILLEGAL;
+
+        static SIXTRL_CONSTEXPR_OR_CONST platform_id_t ILLEGAL_PLATFORM_ID =
+            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_PLATFORM_ID;
+
+        static SIXTRL_CONSTEXPR_OR_CONST device_id_t ILLEGAL_DEVICE_ID =
+            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_DEVICE_ID;
+
+        static SIXTRL_CONSTEXPR_OR_CONST node_index_t UNDEFINED_INDEX =
+            SIXTRL_CXX_NAMESPACE::NODE_UNDEFINED_INDEX;
+
+        /* ***************************************************************** */
 
         SIXTRL_HOST_FN NodeStore();
 
@@ -93,8 +114,9 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN size_type numArchitectures(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool hasArchitecture( arch_id_t const arch_id,
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool hasArchitecture(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            arch_id_t const arch_id ) const SIXTRL_NOEXCEPT;
 
         template< typename ArchIdIter >
         SIXTRL_HOST_FN status_t architectureIds(
@@ -155,11 +177,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN platform_id_t platformIdByName(
             lock_t const& SIXTRL_RESTRICT_REF lock, arch_id_t const arch_id,
-            char const* SIXTRL_RESTRICT platform_name ) const SIXTRL_NOEXCEPT;
+            char const* SIXTRL_RESTRICT platform_name ) const;
 
         SIXTRL_HOST_FN bool hasPlatform(
             lock_t const& SIXTRL_RESTRICT_REF lock, arch_id_t const arch_id,
-            char const* SIXTRL_RESTRICT platform_name ) const SIXTRL_NOEXCEPT;
+            char const* SIXTRL_RESTRICT platform_name ) const;
 
         SIXTRL_HOST_FN size_type numPlatforms(
             lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -196,11 +218,13 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN size_type numControllers(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type numControllers( arch_id_t const arch_id,
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type numControllers(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            arch_id_t const arch_id ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool hasController( controller_base_t const& controller,
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool hasController(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            controller_base_t const& controller ) const SIXTRL_NOEXCEPT;
 
     /* --------------------------------------------------------------------- */
 
@@ -215,16 +239,22 @@ namespace SIXTRL_CXX_NAMESPACE
             node_info_base_t const* SIXTRL_RESTRICT ptr_node_info ) const;
 
         SIXTRL_HOST_FN node_index_t findNodeIndex(
-            char const* SIXTRL_RESTRICT str ) const;
-
-        SIXTRL_HOST_FN node_index_t findNodeIndex( arch_id_t const arch_id,
-            char const* SIXTRL_RESTRICT str ) const;
+            char const* SIXTRL_RESTRICT str,
+            node_str_role_t const role = NODE_ID_STR ) const;
 
         SIXTRL_HOST_FN node_index_t findNodeIndex(
-            std::string const& SIXTRL_RESTRICT_REF str ) const;
+            std::string const& SIXTRL_RESTRICT_REF str,
+            node_str_role_t const role = NODE_ID_STR ) const;
 
-        SIXTRL_HOST_FN node_index_t findNodeIndex( arch_id_t const arch_id,
-            std::string const& SIXTRL_RESTRICT_REF str) const;
+        SIXTRL_HOST_FN node_index_t findNodeIndex(
+            arch_id_t const arch_id,
+            char const* SIXTRL_RESTRICT str,
+            node_str_role_t const role = NODE_ID_STR ) const;
+
+        SIXTRL_HOST_FN node_index_t findNodeIndex(
+            arch_id_t const arch_id,
+            std::string const& SIXTRL_RESTRICT_REF str,
+            node_str_role_t const role = NODE_ID_STR ) const;
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -244,19 +274,25 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN node_index_t findNodeIndex(
             lock_t const& SIXTRL_RESTRICT_REF lock,
-            char const* SIXTRL_RESTRICT str ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_index_t findNodeIndex(
-            lock_t const& SIXTRL_RESTRICT_REF lock, arch_id_t const arch_id,
-            char const* SIXTRL_RESTRICT str ) const SIXTRL_NOEXCEPT;
+            char const* SIXTRL_RESTRICT str,
+            node_str_role_t const role = NODE_ID_STR ) const;
 
         SIXTRL_HOST_FN node_index_t findNodeIndex(
             lock_t const& SIXTRL_RESTRICT_REF lock,
-            std::string const& SIXTRL_RESTRICT_REF str ) const SIXTRL_NOEXCEPT;
+            std::string const& SIXTRL_RESTRICT_REF str,
+            node_str_role_t const role = NODE_ID_STR ) const;
 
         SIXTRL_HOST_FN node_index_t findNodeIndex(
-            lock_t const& SIXTRL_RESTRICT_REF lock, arch_id_t const arch_id,
-            std::string const& SIXTRL_RESTRICT_REF str ) const SIXTRL_NOEXCEPT;
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            arch_id_t const arch_id,
+            char const* SIXTRL_RESTRICT str,
+            node_str_role_t const role = NODE_ID_STR ) const;
+
+        SIXTRL_HOST_FN node_index_t findNodeIndex(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            arch_id_t const arch_id,
+            std::string const& SIXTRL_RESTRICT_REF str,
+            node_str_role_t const role = NODE_ID_STR ) const;
 
     /* --------------------------------------------------------------------- */
 
@@ -519,11 +555,11 @@ namespace SIXTRL_CXX_NAMESPACE
         using arch_platform_to_devices_t =
             std::map< arch_platform_pair_t, devices_set_t >;
 
+        using arch_platform_to_plfm_name_t =
+            std::map< arch_platform_pair_t, std::string >;
+
         using arch_plfm_name_to_platform_id_t =
             std::map< arch_platform_name_pair_t, platform_id_t >;
-
-        using arch_platform_to_devices_t =
-            std::map< arch_platform_pair_t, devices_set_t >;
 
         using node_id_to_node_index_t = std::map< node_id_t, node_index_t >;
         using ptr_ctrl_to_nindices_t = std::map< ptr_ctrl_t, nindices_set_t >;
@@ -645,25 +681,23 @@ namespace SIXTRL_CXX_NAMESPACE
     };
 
     SIXTRL_HOST_FN NodeStore& NodeStore_get();
+    SIXTRL_HOST_FN NodeStore const& NodeStore_get_const();
+
     SIXTRL_HOST_FN NodeStore* NodeStore_get_ptr();
     SIXTRL_HOST_FN NodeStore const* NodeStore_get_const_ptr();
 }
 
+extern "C" {
+
 typedef SIXTRL_CXX_NAMESPACE::NodeStore NS(NodeStore);
 typedef SIXTRL_CXX_NAMESPACE::NodeStore::lock_t NS(NodeStoreLock);
 
-#else
+}
 
-#if defined( __cplusplus ) && !defined( _GPUCODE )
-extern "C" {
-#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
+#else
 
 typedef void NS(NodeStore);
 typedef void NS(NodeStoreLock);
-
-#if defined( __cplusplus ) && !defined( _GPUCODE )
-}
-#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) && \
          !defined( __CUDACC__  ) && !defined( __CUDA_ARCH__ ) */
@@ -687,12 +721,19 @@ namespace SIXTRL_CXX_NAMESPACE
         return node_store;
     }
 
+    SIXTRL_INLINE SIXTRL_CXX_NAMESPACE::NodeStore const& NodeStore_get_const()
+    {
+        static SIXTRL_CXX_NAMESPACE::NodeStore node_store;
+        return node_store;
+    }
+
     SIXTRL_INLINE SIXTRL_CXX_NAMESPACE::NodeStore* NodeStore_get_ptr()
     {
         return &SIXTRL_CXX_NAMESPACE::NodeStore_get();
     }
 
-    SIXTRL_INLINE SIXTRL_CXX_NAMESPACE::NodeStore* NodeStore_get_const_ptr()
+    SIXTRL_INLINE SIXTRL_CXX_NAMESPACE::NodeStore const*
+        NodeStore_get_const_ptr()
     {
         return &SIXTRL_CXX_NAMESPACE::NodeStore_get();
     }
@@ -703,7 +744,6 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE NodeStore::size_type NodeStore::numControllers() const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->numControllers( lock );
     }
 
@@ -711,7 +751,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::arch_id_t const arch_id ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->numControllers( lock, arch_id );
     }
 
@@ -719,7 +758,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::controller_base_t const& controller ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->hasController( lock, controller );
     }
 
@@ -728,7 +766,6 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE NodeStore::size_type NodeStore::numArchitectures() const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->numArchitectures( lock );
     }
 
@@ -736,7 +773,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::arch_id_t const arch_id ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->hasArchitecture( lock, arch_id );
     }
 
@@ -746,7 +782,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::size_type* SIXTRL_RESTRICT ptr_num_archs ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->architectureIds( lock, begin, end, ptr_num_archs );
     }
 
@@ -756,24 +791,25 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
         SIXTRL_ASSERT( this->checkLock( lock ) );
-        return this->m_arch_id_.size();
+        return this->m_arch_to_platforms.size();
     }
 
     SIXTRL_INLINE bool NodeStore::hasArchitecture(
-        NodeStore::arch_id_t const arch_id,
-        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeStore::arch_id_t const arch_id ) const SIXTRL_NOEXCEPT
     {
         SIXTRL_ASSERT( this->checkLock( lock ) );
         return ( ( arch_id != SIXTRL_CXX_NAMESPACE::ARCHITECTURE_ILLEGAL ) &&
-                 ( this->m_arch_id_to_node_indices.find( arch_id ) !=
-                   this->m_arch_id_to_node_indices.end() ) );
+                 ( this->m_arch_to_platforms.find( arch_id ) !=
+                   this->m_arch_to_platforms.end() ) );
     }
 
     template< typename ArchIdIter >
     NodeStore::status_t NodeStore::architectureIds(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         ArchIdIter begin, ArchIdIter end,
         NodeStore::size_type* SIXTRL_RESTRICT ptr_num_archs
-        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+        ) const SIXTRL_NOEXCEPT
     {
         using size_t = NodeStore::size_type;
         using node_id_t = NodeStore::node_id_t;
@@ -788,8 +824,8 @@ namespace SIXTRL_CXX_NAMESPACE
             {
                 bool found_items = false;
 
-                auto in_it  = this->archNodeIndexMapBegin( lock );
-                auto in_end = this->archNodeIndexMapEnd( lock );
+                auto in_it  = this->m_arch_to_platforms.begin();
+                auto in_end = this->m_arch_to_platforms.end();
 
                 ArchIdIter out_it = begin;
 
@@ -840,7 +876,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::platform_id_t const platform_id ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->hasPlatform( lock, arch_id, platform_id );
     }
 
@@ -848,7 +883,6 @@ namespace SIXTRL_CXX_NAMESPACE
         std::string const& SIXTRL_RESTRICT_REF platform_name ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->hasPlatform( lock, arch_id, platform_name );
     }
 
@@ -857,7 +891,6 @@ namespace SIXTRL_CXX_NAMESPACE
         char const* SIXTRL_RESTRICT platform_name ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->hasPlatform( lock, arch_id, std::string{ platform_name } );
     }
 
@@ -866,7 +899,6 @@ namespace SIXTRL_CXX_NAMESPACE
         std::string const& SIXTRL_RESTRICT_REF platform_name ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->platformIdByName( lock, arch_id, platform_name );
     }
 
@@ -875,7 +907,6 @@ namespace SIXTRL_CXX_NAMESPACE
         char const* SIXTRL_RESTRICT platform_name ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->platformIdByName( lock, arch_id, platform_name );
     }
 
@@ -883,7 +914,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::arch_id_t const arch_id ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->numPlatforms( lock, arch_id );
     }
 
@@ -893,7 +923,6 @@ namespace SIXTRL_CXX_NAMESPACE
         std::string const& SIXTRL_RESTRICT_REF platform_name )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->addPlatformNameMapping(
             lock, arch_id, platform_id, platform_name );
     }
@@ -904,7 +933,6 @@ namespace SIXTRL_CXX_NAMESPACE
         char const* SIXTRL_RESTRICT platform_name )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->addPlatformNameMapping(
             lock, arch_id, platform_id, platform_name );
     }
@@ -914,7 +942,7 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE bool NodeStore::hasPlatform(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::arch_id_t const arch_id,
-        char const* SIXTRL_RESTRICT platform_name ) const SIXTRL_NOEXCEPT
+        char const* SIXTRL_RESTRICT platform_name ) const
     {
         return this->hasPlatform( lock, arch_id, std::string{ platform_name } );
     }
@@ -934,11 +962,9 @@ namespace SIXTRL_CXX_NAMESPACE
     /* --------------------------------------------------------------------- */
 
     SIXTRL_INLINE bool NodeStore::hasNode(
-        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_id_t const& SIXTRL_RESTRICT_REF node_id ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->hasNode( lock, node_id );
     }
 
@@ -946,7 +972,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_INLINE bool NodeStore::hasNode(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
-        NodeStore::node_id_t const& SIXTRL_RESTRICT_REF node_id ) const
+        NodeStore::node_id_t const& SIXTRL_RESTRICT_REF
+            node_id ) const SIXTRL_NOEXCEPT
     {
         return ( ( node_id.valid() ) && ( this->checkLock( lock ) ) &&
             ( this->findNodeIndex( node_id ) != NodeStore::UNDEFINED_INDEX ) );
@@ -958,7 +985,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::node_id_t const& SIXTRL_RESTRICT_REF node_id ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->findNodeIndex( lock, node_id );
     }
 
@@ -968,7 +994,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::device_id_t const device_id ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->findNodeIndex( lock, arch_id, platform_id, device_id );
     }
 
@@ -976,44 +1001,43 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::node_info_base_t const* SIXTRL_RESTRICT ptr_node_info ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->findNodeIndex( lock, ptr_node_info );
     }
 
     SIXTRL_INLINE NodeStore::node_index_t NodeStore::findNodeIndex(
-            char const* SIXTRL_RESTRICT str ) const
+        char const* SIXTRL_RESTRICT str,
+        NodeStore::node_str_role_t const str_role ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
-        return this->findNodeIndex( lock,
-            SIXTRL_CXX_NAMESPACE::ARCHITECTURE_ILLEGAL, str );
+        return this->findNodeIndex(
+            lock, ::NS(ARCHITECTURE_ILLEGAL), str, str_role );
     }
 
     SIXTRL_INLINE NodeStore::node_index_t NodeStore::findNodeIndex(
         NodeStore::arch_id_t const arch_id,
-        char const* SIXTRL_RESTRICT str ) const
+        char const* SIXTRL_RESTRICT str,
+        NodeStore::node_str_role_t const str_role ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
-        return this->findNodeIndex( lock, arch_id, str );
+        return this->findNodeIndex( lock, arch_id, str, str_role );
     }
 
     SIXTRL_INLINE NodeStore::node_index_t NodeStore::findNodeIndex(
-        std::string const& SIXTRL_RESTRICT_REF str ) const
+        std::string const& SIXTRL_RESTRICT_REF str,
+        NodeStore::node_str_role_t const str_role ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
-        return this->findNodeIndex( lock,
-            SIXTRL_CXX_NAMESPACE::ARCHITECTURE_ILLEGAL, str.c_str() );
+        return this->findNodeIndex(
+            lock, ::NS(ARCHITECTURE_ILLEGAL), str.c_str(), str_role );
     }
 
     SIXTRL_INLINE NodeStore::node_index_t NodeStore::findNodeIndex(
         NodeStore::arch_id_t const arch_id,
-        std::string const& SIXTRL_RESTRICT_REF str ) const
+        std::string const& SIXTRL_RESTRICT_REF str,
+        NodeStore::node_str_role_t const str_role ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
-        return this->findNodeIndex( lock, arch_id, str.c_str() );
+        return this->findNodeIndex( lock, arch_id, str.c_str(), str_role );
     }
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -1030,29 +1054,29 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_INLINE NodeStore::node_index_t NodeStore::findNodeIndex(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
-        char const* SIXTRL_RESTRICT str ) const SIXTRL_NOEXCEPT
+        char const* SIXTRL_RESTRICT str,
+        NodeStore::node_str_role_t const str_role ) const
     {
-        SIXTRL_ASSERT( this->checkLock( lock ) );
-        return this->findNodeIndex( lock,
-            SIXTRL_CXX_NAMESPACE::ARCHITECTURE_ILLEGAL, str );
+        return this->findNodeIndex(
+            lock, ::NS(ARCHITECTURE_ILLEGAL), str, str_role );
     }
 
     SIXTRL_INLINE NodeStore::node_index_t NodeStore::findNodeIndex(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         std::string const& SIXTRL_RESTRICT_REF str,
-        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+        NodeStore::node_str_role_t const str_role ) const
     {
-        SIXTRL_ASSERT( this->checkLock( lock ) );
-        return this->findNodeIndex( lock,
-            SIXTRL_CXX_NAMESPACE::ARCHITECTURE_ILLEGAL, str.c_str() );
+        return this->findNodeIndex(
+            lock, ::NS(ARCHITECTURE_ILLEGAL), str.c_str(), str_role );
     }
 
     SIXTRL_INLINE NodeStore::node_index_t NodeStore::findNodeIndex(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::arch_id_t const arch_id,
         std::string const& SIXTRL_RESTRICT_REF str,
-        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+        NodeStore::node_str_role_t const str_role ) const
     {
-        SIXTRL_ASSERT( this->checkLock( lock ) );
-        return this->findNodeIndex( lock, arch_id, str.c_str() );
+        return this->findNodeIndex( lock, arch_id, str.c_str(), str_role );
     }
 
     /* --------------------------------------------------------------------- */
@@ -1060,15 +1084,13 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE NodeStore::size_type NodeStore::totalNumNodes() const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
-        return this->totalNumNodes( lock, node_id );
+        return this->totalNumNodes( lock );
     }
 
     SIXTRL_INLINE NodeStore::size_type NodeStore::numNodes(
         NodeStore::arch_id_t const arch_id ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->numNodes( lock, arch_id );
     }
 
@@ -1077,7 +1099,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::platform_id_t const platform_id ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->numNodes( lock, arch_id, platform_id );
     }
 
@@ -1085,7 +1106,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::controller_base_t const& SIXTRL_RESTRICT_REF ctrl ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->numNodes( lock, ctrl );
     }
 
@@ -1106,7 +1126,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::size_type* SIXTRL_RESTRICT ptr_num_nodes ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->nodeIndices( lock, begin, end, ptr_num_nodes );
     }
 
@@ -1117,7 +1136,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::size_type* SIXTRL_RESTRICT ptr_num_nodes ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->nodeIndices( lock, begin, end, arch_id, ptr_num_nodes );
     }
 
@@ -1129,7 +1147,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::size_type* SIXTRL_RESTRICT ptr_num_nodes ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->nodeIndices(
             lock, begin, end, arch_id, platform_id, ptr_num_nodes );
     }
@@ -1141,7 +1158,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::size_type* SIXTRL_RESTRICT ptr_num_nodes ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->nodeIndices( lock, begin, end, ctrl, ptr_num_nodes );
     }
 
@@ -1149,22 +1165,21 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< typename NodeIndexIter >
     NodeStore::status_t NodeStore::nodeIndices(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeIndexIter begin, NodeIndexIter end,
-        NodeStore::size_type* SIXTRL_RESTRICT ptr_num_nodes,
-        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+        NodeStore::size_type* SIXTRL_RESTRICT
+            ptr_num_nodes ) const SIXTRL_NOEXCEPT
     {
-        using status_t  = NodeStore::status_t;
-        using size_t    = NodeStore::size_type;
-        using index_t   = NodeStore::node_index_t;
-        using node_id_t = NodeStore::node_id_t;
-        using diff_t    = std::ptrdiff_t;
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeStore;
+        using size_t  = _this_t::size_type;
 
-        status_t status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
         size_t const num_nodes = this->totalNumNodes( lock );
 
         if( ( this->checkLock( lock ) ) && ( num_nodes > size_t{ 0 } ) )
         {
-            if( std::distance( begin, end ) > diff_t{ 0 } )
+            if( std::distance( begin, end ) > std::ptrdiff_t{ 0 } )
             {
                 bool found_items = false;
 
@@ -1172,7 +1187,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 auto in_end = this->storedNodeInfoBegin( lock );
                 NodeIndexIter out_it = begin;
 
-                index_t index = index_t{ 0 }
+                _this_t::node_index_t index = _this_t::node_index_t{ 0 };
 
                 for( ; in_it != in_end ; ++in_it, ++index )
                 {
@@ -1201,12 +1216,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 if( out_it != end )
                 {
-                    std::fill( out_it, end, node_id_t::UNDEFINED_INDEX );
+                    std::fill( out_it, end, _this_t::UNDEFINED_INDEX );
                 }
 
                 if( ( num_nodes_copied > size_t{ 0 } ) || ( !found_items ) )
                 {
-                    status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS;
+                    status = st::ARCH_STATUS_SUCCESS;
                 }
             }
         }
@@ -1216,19 +1231,20 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< typename NodeIndexIter >
     NodeStore::status_t NodeStore::nodeIndices(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeIndexIter begin, NodeIndexIter end,
         NodeStore::arch_id_t const arch_id,
-        NodeStore::size_type* SIXTRL_RESTRICT ptr_num_nodes,
-        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+        NodeStore::size_type* SIXTRL_RESTRICT
+            ptr_num_nodes ) const SIXTRL_NOEXCEPT
     {
-        using status_t  = NodeStore::status_t;
-        using size_t    = NodeStore::size_type;
-        using node_id_t = NodeStore::node_id_t;
+        namespace st  = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeStore;
+        using  size_t = _this_t::size_type;
 
-         status_t status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( ( this->checkLock( lock ) ) &&
-            ( arch_id != node_id_t::ARCH_ILLEGAL ) )
+            ( arch_id != _this_t::ARCH_ILLEGAL ) )
         {
             if( std::distance( begin, end ) > std::ptrdiff_t{ 0 } )
             {
@@ -1237,7 +1253,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 auto in_it  = this->storedNodeInfoBegin( lock );
                 auto in_end = this->storedNodeInfoEnd( lock );
 
-                index_t index = index_t{ 0 };
+                _this_t::node_index_t index = _this_t::node_index_t{ 0 };
                 NodeIndexIter out_it = begin;
 
                 for( ; in_it != in_end ; ++in_it, ++index )
@@ -1268,13 +1284,13 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 if( out_it != end )
                 {
-                    std::fill( out_it, end, node_id_t::UNDEFINED_INDEX );
+                    std::fill( out_it, end, _this_t::UNDEFINED_INDEX );
                 }
 
                 if( ( num_nodes_copied > size_t{ 0 } ) ||
                     ( !found_items ) )
                 {
-                    status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS;
+                    status = st::ARCH_STATUS_SUCCESS;
                 }
             }
         }
@@ -1284,21 +1300,22 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< typename NodeIndexIter >
     NodeStore::status_t NodeStore::nodeIndices(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeIndexIter begin, NodeIndexIter end,
         NodeStore::arch_id_t const arch_id,
         NodeStore::platform_id_t const platform_id,
-        NodeStore::size_type* SIXTRL_RESTRICT ptr_num_nodes,
-        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+        NodeStore::size_type* SIXTRL_RESTRICT
+            ptr_num_nodes ) const SIXTRL_NOEXCEPT
     {
-        using status_t  = NodeStore::status_t;
-        using size_t    = NodeStore::size_type;
-        using node_id_t = NodeStore::node_id_t;
+        namespace st    = SIXTRL_CXX_NAMESPACE;
+        using _this_t   = st::NodeStore;
+        using size_t    = _this_t::size_type;
 
-         status_t status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+         _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( ( this->checkLock( lock ) ) &&
-            ( arch_id != node_id_t::ARCH_ILLEGAL ) &&
-            ( platform_id != node_id_t::ILLEGAL_PLATFORM_ID ) )
+            ( arch_id != _this_t::ARCH_ILLEGAL ) &&
+            ( platform_id != _this_t::ILLEGAL_PLATFORM_ID ) )
         {
             if( std::distance( begin, end ) > std::ptrdiff_t{ 0 } )
             {
@@ -1307,7 +1324,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 auto in_it  = this->storedNodeInfoBegin( lock );
                 auto in_end = this->storedNodeInfoEnd( lock );
 
-                index_t index = index_t{ 0 };
+                _this_t::node_index_t index = _this_t::node_index_t{ 0 };
                 NodeIndexIter out_it = begin;
 
                 for( ; in_it != in_end ; ++in_it, ++index )
@@ -1339,13 +1356,13 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 if( out_it != end )
                 {
-                    std::fill( out_it, end, node_id_t::UNDEFINED_INDEX );
+                    std::fill( out_it, end, _this_t::UNDEFINED_INDEX );
                 }
 
                 if( ( num_nodes_copied > size_t{ 0 } ) ||
                     ( !found_items ) )
                 {
-                    status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS;
+                    status = st::ARCH_STATUS_SUCCESS;
                 }
             }
         }
@@ -1355,31 +1372,29 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< typename NodeIndexIter >
     NodeStore::status_t NodeStore::nodeIndices(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeIndexIter begin, NodeIndexIter end,
         NodeStore::controller_base_t const& SIXTRL_RESTRICT_REF controller,
-        NodeStore::size_type* SIXTRL_RESTRICT ptr_num_nodes,
-        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+        NodeStore::size_type* SIXTRL_RESTRICT
+            ptr_num_nodes ) const SIXTRL_NOEXCEPT
     {
-        using status_t  = NodeStore::status_t;
-        using size_t    = NodeStore::size_type;
-        using node_id_t = NodeStore::node_id_t;
+        namespace st  = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeStore;
+        using size_t  = _this_t::size_type;
 
-        status_t status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::arch_id_t const arch_id = controller.archId();
 
-        NodeStore::arch_id_t const arch_id = controller.archId();
-
-        if( ( this->checkLock( lock ) ) && ( arch_id != node_id_t::ARCH_ILLEGAL ) )
+        if( ( this->checkLock( lock ) ) && ( arch_id != _this_t::ARCH_ILLEGAL ) )
         {
-            auto ctrl_it = this->m_controller_to_node_indices.find(
-                &controller );
-
-            if( ( ctrl_it != this->m_controller_to_node_indices.end() ) &&
+            auto ctrl_it = this->m_ctrl_to_node_indices.find( &controller );
+            if( ( ctrl_it != this->m_ctrl_to_node_indices.end() ) &&
                 ( std::distance( begin, end ) > std::ptrdiff_t{ 0 } ) )
             {
                 bool found_items = false;
 
-                auto in_it  = it->second.begin();
-                auto in_end = it->second.end();
+                auto in_it  = ctrl_it->second.begin();
+                auto in_end = ctrl_it->second.end();
 
                 NodeIndexIter out_it = begin;
 
@@ -1414,13 +1429,13 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 if( out_it != end )
                 {
-                    std::fill( out_it, end, node_id_t::UNDEFINED_INDEX );
+                    std::fill( out_it, end, _this_t::UNDEFINED_INDEX );
                 }
 
                 if( ( num_nodes_copied > size_t{ 0 } ) ||
                     ( !found_items ) )
                 {
-                    status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS;
+                    status = st::ARCH_STATUS_SUCCESS;
                 }
             }
         }
@@ -1434,7 +1449,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::node_index_t const node_index ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->isNodeAvailable( lock, node_index );
     }
 
@@ -1442,7 +1456,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::node_index_t const node_index ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->ptrNodeId( lock, node_index );
     }
 
@@ -1450,7 +1463,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::node_index_t const node_index ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->ptrNodeInfoBase( lock, node_index );
     }
 
@@ -1458,7 +1470,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::node_index_t const node_index )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->ptrNodeInfoBase( lock, node_index );
     }
 
@@ -1468,7 +1479,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::ptr_stored_node_info_t&& ptr_stored_node_info )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->addNode( lock, std::move( ptr_stored_node_info ) );
     }
 
@@ -1477,8 +1487,7 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::controller_base_t& SIXTRL_RESTRICT_REF controller )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
-        return this->attachNodetoController( lock, node_index, controller );
+        return this->attachNodeToController( lock, node_index, controller );
     }
 
     SIXTRL_INLINE NodeStore::status_t
@@ -1486,17 +1495,15 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::controller_base_t& SIXTRL_RESTRICT_REF controller )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->attachAllArchitectureNodesToController(
             lock, controller );
     }
 
     SIXTRL_INLINE NodeStore::status_t NodeStore::detachNodeFromController(
         NodeStore::node_index_t const node_index,
-        NodeStore::controller_base_t& SIXTRL_RESTRICT_REF controller )
+        NodeStore::controller_base_t const& SIXTRL_RESTRICT_REF controller )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->detachNodeFromController( lock, node_index, controller );
     }
 
@@ -1504,7 +1511,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::controller_base_t const& SIXTRL_RESTRICT_REF controller )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->detachAllNodesFromController( lock, controller );
     }
 
@@ -1512,7 +1518,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::arch_id_t const arch_id )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->detachAllNodesByArchitecture( lock, arch_id );
     }
 
@@ -1520,7 +1525,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::node_index_t const node_index )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->detachNodeFromAllControllers( lock, node_index );
     }
 
@@ -1528,15 +1532,13 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::node_index_t const node_index ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->numControllersAttachedToNode( lock, node_index );
     }
 
     SIXTRL_INLINE bool NodeStore::isNodeAttachedToAnyController(
         NodeStore::node_index_t const node_index ) const
     {
-        NodeStoe::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
+        NodeStore::lock_t lock( *this->lockable() );
         return this->isNodeAttachedToAnyController( lock, node_index );
     }
 
@@ -1545,7 +1547,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::controller_base_t const& SIXTRL_RESTRICT_REF ctrl ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->isNodeAttachedToController( lock, node_index, ctrl );
     }
 
@@ -1554,7 +1555,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::controller_base_t const& SIXTRL_RESTRICT_REF controller )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->markNodeAsSelectedByController(
             lock, node_index, controller );
     }
@@ -1564,7 +1564,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::controller_base_t const& SIXTRL_RESTRICT_REF controller )
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->unselectNodeForController( lock, node_index, controller );
     }
 
@@ -1572,7 +1571,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::node_index_t const node_index ) const
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->numSelectingControllersForNode( lock, node_index );
     }
 
@@ -1581,7 +1579,6 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE void NodeStore::clear()
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         NodeStore::status_t const status = this->doClear( lock );
         SIXTRL_ASSERT( status == SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS );
         ( void ) status;
@@ -1599,7 +1596,6 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE NodeStore::status_t NodeStore::rebuild()
     {
         NodeStore::lock_t lock( *this->lockable() );
-        this->checkLockAndThrowOnError( lock );
         return this->doRebuild( lock );
     }
 

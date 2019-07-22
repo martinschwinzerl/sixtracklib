@@ -21,7 +21,6 @@
     #include "sixtracklib/common/buffer.hpp"
     #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/control/node_id.h"
-    #include "sixtracklib/common/control/controller_base.hpp"
     #include "sixtracklib/common/buffer/buffer_type.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -30,22 +29,23 @@
 
 namespace SIXTRL_CXX_NAMESPACE
 {
-    class NodeId : private ::NS(NodeId)
+    class NodeId : public ::NS(NodeId)
     {
         public:
 
         using buffer_t      = SIXTRL_CXX_NAMESPACE::Buffer;
         using c_buffer_t    = buffer_t::c_api_t;
-        using size_type     = buffer_t::ctrl_size_t;
+        using size_type     = buffer_t::size_type;
+        using type_id_t     = buffer_t::type_id_t;
         using arch_id_t     = SIXTRL_CXX_NAMESPACE::arch_id_t;
         using status_t      = SIXTRL_CXX_NAMESPACE::arch_status_t;
-        using platform_id_t = SIXTRL_CXX_NAMESPACE::platform_id_t;
-        using device_id_t   = SIXTRL_CXX_NAMESPACE::device_id_t;
+        using platform_id_t = SIXTRL_CXX_NAMESPACE::node_platform_id_t;
+        using device_id_t   = SIXTRL_CXX_NAMESPACE::node_device_id_t;
         using format_t      = SIXTRL_CXX_NAMESPACE::node_id_str_fmt_t;
         using c_api_t       = ::NS(NodeId);
 
         static SIXTRL_CONSTEXPR_OR_CONST platform_id_t ILLEGAL_PLATFORM_ID =
-            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_PATFORM_ID;
+            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_PLATFORM_ID;
 
         static SIXTRL_CONSTEXPR_OR_CONST device_id_t ILLEGAL_DEVICE_ID =
             SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_DEVICE_ID;
@@ -121,11 +121,13 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_STATIC SIXTRL_FN SIXTRL_DATAPTR_DEC NodeId*
         AddToBuffer( buffer_t& SIXTRL_RESTRICT_REF buffer,
-            platform_id_t const platform_id, device_id_t const device_id );
+            arch_id_t const arch_id, platform_id_t const platform_id,
+                device_id_t const device_id );
 
         SIXTRL_STATIC SIXTRL_FN SIXTRL_DATAPTR_DEC NodeId*
         AddToBuffer( c_buffer_t& SIXTRL_RESTRICT_REF buffer,
-            platform_id_t const platform_id, device_id_t const device_id );
+            arch_id_t const arch_id, platform_id_t const platform_id,
+                device_id_t const device_id );
 
         SIXTRL_STATIC SIXTRL_FN SIXTRL_DATAPTR_DEC NodeId*
         AddCopyToBuffer( buffer_t& SIXTRL_RESTRICT_REF buffer,
@@ -171,7 +173,7 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_STATIC SIXTRL_HOST_FN status_t ExtractNodeIdStrFromConfigStr(
             size_type const node_id_str_capacity,
             char* SIXTRL_RESTRICT node_id_str,
-            std::string const& SIXTRL_RESTRICT_REF configstr ) SIXTRL_NOEXCEPT;
+            char const* SIXTRL_RESTRICT configstr ) SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
@@ -194,12 +196,13 @@ namespace SIXTRL_CXX_NAMESPACE
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN void print( std::ostream& SIXTRL_RESTRICT_REF os,
-            format_t const format = DEFAULT_FORMAT );
+            format_t const format = DEFAULT_FORMAT ) const;
 
         SIXTRL_HOST_FN void print( ::FILE* SIXTRL_RESTRICT fp,
-            format_t const format = DEFAULT_FORMAT );
+            format_t const format = DEFAULT_FORMAT ) const;
 
-        SIXTRL_HOST_FN void printOut( format_t const format = DEFAULT_FORMAT);
+        SIXTRL_HOST_FN void printOut(
+            format_t const format = DEFAULT_FORMAT) const;
 
         /* ----------------------------------------------------------------- */
 
@@ -268,11 +271,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_STATIC SIXTRL_FN
     SIXTRL_DATAPTR_DEC SIXTRL_CXX_NAMESPACE::NodeId const*
-    asCxxNodeId( const ::NS(NodeId) *const SIXTRL_NOEXCEPT ptr_node_id );
+    asCxxNodeId( const ::NS(NodeId) *const SIXTRL_RESTRICT ptr_node_id );
 
     SIXTRL_STATIC SIXTRL_FN
     SIXTRL_DATAPTR_DEC SIXTRL_CXX_NAMESPACE::NodeId*
-    asCxxNodeId( ::NS(NodeId)* SIXTRL_NOEXCEPT ptr_node_id );
+    asCxxNodeId( ::NS(NodeId)* SIXTRL_RESTRICT ptr_node_id );
 
     SIXTRL_STATIC SIXTRL_HOST_FN std::string
     NodeId_extract_node_id_str_from_config_str(
@@ -296,6 +299,48 @@ namespace SIXTRL_CXX_NAMESPACE
 
 namespace SIXTRL_CXX_NAMESPACE
 {
+    SIXTRL_INLINE std::string NodeId_extract_node_id_str_from_config_str(
+        std::string const& SIXTRL_RESTRICT_REF config_str )
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        using status_t = st::arch_status_t;
+
+        std::string node_id_str = std::string{};
+
+        status_t const status = st::NodeId::ExtractNodeIdStrFromConfigStr(
+            node_id_str, config_str );
+
+        if( status != st::ARCH_STATUS_SUCCESS )
+        {
+            node_id_str.clear();
+        }
+
+        return node_id_str;
+    }
+
+    SIXTRL_INLINE std::string NodeId_extract_node_id_str_from_config_str(
+        char const* SIXTRL_RESTRICT config_str )
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        using status_t = st::arch_status_t;
+
+        std::string node_id_str = std::string{};
+
+        if( config_str != nullptr )
+        {
+            status_t const status = st::NodeId::ExtractNodeIdStrFromConfigStr(
+                node_id_str, config_str );
+
+            if( status != st::ARCH_STATUS_SUCCESS )
+            {
+                node_id_str.clear();
+            }
+        }
+
+        return node_id_str;
+    }
+
+    /* ********************************************************************* */
     SIXTRL_INLINE NodeId::NodeId(
         NodeId::arch_id_t const arch_id,
         NodeId::platform_id_t const platform_id,
@@ -344,8 +389,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_INLINE NodeId::c_api_t* NodeId::getCApiPtr() SIXTRL_NOEXCEPT
     {
-        return const_cast< NodeId::c_api_t* >( static_cast<
-            NodeId const* >( *this ).getCApiPtr() );
+        using _this_t = SIXTRL_CXX_NAMESPACE::NodeId;
+
+        return const_cast< _this_t::c_api_t* >( static_cast<
+            _this_t const& >( *this ).getCApiPtr() );
     }
 
     /* --------------------------------------------------------------------- */
@@ -433,16 +480,16 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         return SIXTRL_CXX_NAMESPACE::asCxxNodeId( ::NS(NodeId_add)(
             buffer.getCApiPtr(), orig.archId(), orig.platformId(),
-                orig.deviceId() );
+                orig.deviceId() ) );
     }
 
     SIXTRL_INLINE SIXTRL_DATAPTR_DEC NodeId*
     NodeId::AddCopyToBuffer(
         NodeId::c_buffer_t& SIXTRL_RESTRICT_REF buffer,
-        NodeId::NodeId const& SIXTRL_RESTRICT_REF orig )
+        NodeId const& SIXTRL_RESTRICT_REF orig )
     {
         return SIXTRL_CXX_NAMESPACE::asCxxNodeId( ::NS(NodeId_add)(
-            &buffer, orig.archId(), orig.platformId(), orig.deviceId() );
+            &buffer, orig.archId(), orig.platformId(), orig.deviceId() ) );
     }
 
     /* ----------------------------------------------------------------- */
@@ -543,13 +590,13 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeId::format_t const format ) const
     {
         return ::NS(NodeId_to_node_id_str_with_format)(
-            this->getCApiPtr(), node_id_str, node_id_str_capacity, format );
+            this->getCApiPtr(), node_id_str_capacity, node_id_str, format );
     }
 
     /* ----------------------------------------------------------------- */
 
     SIXTRL_INLINE void NodeId::print( std::ostream& SIXTRL_RESTRICT_REF os,
-        NodeId::format_t const format )
+        NodeId::format_t const format ) const
     {
         if( this->valid() )
         {
@@ -569,12 +616,12 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     SIXTRL_INLINE void NodeId::print( ::FILE* SIXTRL_RESTRICT fp,
-        NodeId::format_t const format )
+        NodeId::format_t const format ) const
     {
         ::NS(NodeId_print_with_format)( this->getCApiPtr(), fp, format );
     }
 
-    SIXTRL_INLINE void NodeId::printOut( NodeId::format_t const format )
+    SIXTRL_INLINE void NodeId::printOut( NodeId::format_t const format ) const
     {
         ::NS(NodeId_print_out_with_format)( this->getCApiPtr(), format );
     }
@@ -611,7 +658,7 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE int NodeId::compare( ::NS(NodeId) const&
         SIXTRL_RESTRICT_REF node ) const SIXTRL_NOEXCEPT
     {
-        return ::NS(NodeId_compare)( this->getCApiPtr(), &rhs );
+        return ::NS(NodeId_compare)( this->getCApiPtr(), &node);
     }
 
     SIXTRL_INLINE int NodeId::compare( NodeId const&
@@ -659,7 +706,7 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeId const& SIXTRL_RESTRICT_REF orig )
     {
         return SIXTRL_CXX_NAMESPACE::NodeId::AddToBuffer(
-            buffer, orig.archId(), orig.platformid(), orig.deviceId() );
+            buffer, orig.archId(), orig.platformId(), orig.deviceId() );
     }
 
     SIXTRL_INLINE SIXTRL_DATAPTR_DEC NodeId* NodeId_add_copy(
@@ -667,9 +714,9 @@ namespace SIXTRL_CXX_NAMESPACE
         ::NS(NodeId) const& SIXTRL_RESTRICT_REF orig )
     {
         return SIXTRL_CXX_NAMESPACE::NodeId::AddToBuffer(
-            buffer, ::NS(NodeId_get_arch_id)( orig ),
-            ::NS(NodeId_get_platform_id)( orig ),
-            ::NS(NodeId_get_device_id)( orig ) );
+            buffer, ::NS(NodeId_get_arch_id)( &orig ),
+            ::NS(NodeId_get_platform_id)( &orig ),
+            ::NS(NodeId_get_device_id)( &orig ) );
     }
 
     SIXTRL_INLINE std::ostream& operator<<(
@@ -691,7 +738,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_INLINE SIXTRL_DATAPTR_DEC SIXTRL_CXX_NAMESPACE::NodeId const*
     asCxxNodeId( SIXTRL_DATAPTR_DEC const ::NS(NodeId) *const
-        SIXTRL_NOEXCEPT ptr_node_id )
+        SIXTRL_RESTRICT ptr_node_id )
     {
         using cxx_node_id_t = SIXTRL_CXX_NAMESPACE::NodeId;
         using ptr_cxx_node_id_t = SIXTRL_DATAPTR_DEC cxx_node_id_t const*;
@@ -700,12 +747,16 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     SIXTRL_INLINE SIXTRL_DATAPTR_DEC SIXTRL_CXX_NAMESPACE::NodeId*
-    asCxxNodeId( SIXTRL_DATAPTR_DEC ::NS(NodeId)* SIXTRL_NOEXCEPT ptr_node_id )
+    asCxxNodeId( SIXTRL_DATAPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT ptr_node_id )
     {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
         using ptr_const_c_node_id_t = SIXTRL_DATAPTR_DEC ::NS(NodeId) const*;
+        using cxx_node_id_t = st::NodeId;
+        using ptr_cxx_node_id_t = SIXTRL_DATAPTR_DEC cxx_node_id_t*;
 
         ptr_const_c_node_id_t cptr = ptr_node_id;
-        return asCxxNodeId( cptr );
+        return const_cast< ptr_cxx_node_id_t >( st::asCxxNodeId( cptr ) );
     }
 
     /* ===================================================================== */
@@ -732,7 +783,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         NodeId::status_t const status =
             ::NS(NodeId_extract_node_id_str_from_config_str)(
-                temp_node_id_str.data(), temp_node_id_str.size(),
+                temp_node_id_str.size(), temp_node_id_str.data(),
                     config_str.c_str() );
 
         if( status == SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS )
@@ -754,7 +805,7 @@ namespace SIXTRL_CXX_NAMESPACE
         char const* SIXTRL_RESTRICT config_str ) SIXTRL_NOEXCEPT
     {
         return ::NS(NodeId_extract_node_id_str_from_config_str)(
-            node_id_str_capacity, node_id_str, config_str.c_str() );
+            node_id_str_capacity, node_id_str, config_str );
     }
 }
 

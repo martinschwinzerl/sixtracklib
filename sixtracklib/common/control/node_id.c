@@ -13,6 +13,8 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/architecture/definitions.h"
+    #include "sixtracklib/common/architecture/architecture.h"
     #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/buffer/buffer_type.h"
     #include "sixtracklib/common/internal/objects_type_id.h"
@@ -22,6 +24,20 @@
         #include "sixtracklib/common/buffer.h"
     #endif /* !defined( _GPUCODE ) || defined( __CUDACC__ ) */
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
+
+
+SIXTRL_STATIC SIXTRL_HOST_FN NS(arch_size_t)
+NS(NodeId_get_num_digits_integer)( NS(arch_size_t) const number );
+
+SIXTRL_STATIC SIXTRL_HOST_FN bool
+NS(NodeId_string_starts_with_number)( char const* SIXTRL_RESTRICT str )
+{
+    return ( ( str != SIXTRL_NULLPTR ) &&
+             ( strlen( str ) > ( NS(arch_size_t) )0u ) &&
+             ( isdigit( str[ 0 ] ) ) );
+}
+
+/* ========================================================================== */
 
 SIXTRL_DATAPTR_DEC NS(NodeId)* NS(NodeId_preset_ext)(
     SIXTRL_DATAPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node_id )
@@ -89,21 +105,7 @@ NS(arch_status_t) NS(NodeId_set_device_id_ext)(
 void NS(NodeId_clear_ext)(
     SIXTRL_DATAPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node )
 {
-    return NS(NodeId_clear)( node );
-}
-
-
-NS(arch_size_t) NS(NodeId_required_str_capacity_for_format_ext)(
-    SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
-    NS(node_id_str_fmt_t) const format )
-{
-    return NS(NodeId_required_str_capacity_for_format)( node, format );
-}
-
-NS(arch_size_t) NS(NodeId_required_str_capacity_ext)(
-    SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node )
-{
-    return NS(NodeId_required_str_capacity)( node );
+    NS(NodeId_clear)( node );
 }
 
 int NS(NodeId_compare_ext)(
@@ -129,10 +131,172 @@ NS(arch_status_t) NS(NodeId_copy_ext)(
 
 /* ------------------------------------------------------------------------- */
 
-NS(node_id_str_fmt_t) NS(NodeId_identify_format_from_node_id_str_ext)(
+NS(arch_size_t) NS(NodeId_get_num_digits_integer)(
+    NS(arch_size_t) const number )
+{
+    if( number < ( NS(arch_size_t)  )10u )
+    {
+        return ( NS(arch_size_t)  )1u;
+    }
+    else if( number < ( NS(arch_size_t) )100u )
+    {
+        return ( NS(arch_size_t) )2u;
+    }
+    else if( number < ( NS(arch_size_t) )1000u )
+    {
+        return ( NS(arch_size_t) )3u;
+    }
+    else if( number < ( NS(arch_size_t) )10000u )
+    {
+        return ( NS(arch_size_t) )4u;
+    }
+    else if( number < ( NS(arch_size_t) )100000u )
+    {
+        return ( NS(arch_size_t) )5u;
+    }
+    else if( number < ( NS(arch_size_t) )1000000u )
+    {
+        return ( NS(arch_size_t) )6u;
+    }
+    else if( number < ( NS(arch_size_t) )10000000u )
+    {
+        return ( NS(arch_size_t) )7u;
+    }
+    else if( number < ( NS(arch_size_t) )100000000u )
+    {
+        return ( NS(arch_size_t) )8u;
+    }
+    else if( number < ( NS(arch_size_t) )0xffffffff )
+    {
+        return ( NS(arch_size_t) )9u;
+    }
+
+    return ( NS(arch_size_t) )20u;
+}
+
+
+NS(arch_size_t) NS(NodeId_required_str_capacity_for_format)(
+    SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
+    NS(node_id_str_fmt_t) const format )
+{
+    NS(arch_size_t) requ_capacity = ( NS(arch_size_t) )0u;
+    NS(arch_id_t) const arch_id = NS(NodeId_get_arch_id)( node );
+
+    if( ( NS(NodeId_get_platform_id)( node ) != SIXTRL_NODE_ILLEGAL_PLATFORM_ID ) &&
+        ( NS(NodeId_get_device_id)( node ) != SIXTRL_NODE_ILLEGAL_DEVICE_ID ) &&
+        ( format != SIXTRL_NODE_ID_STR_FORMAT_ILLEGAL ) )
+    {
+        bool const arch_id_valid = (
+            ( arch_id != NS(ARCHITECTURE_ILLEGAL) ) &&
+            ( arch_id != NS(ARCHITECTURE_NONE) ) );
+
+        NS(arch_size_t) requ_capacity = ( NS(arch_size_t) )2u; /* . and \0 */
+
+        NS(node_platform_id_t) const platform_id =
+            NS(NodeId_get_platform_id)( node );
+
+        NS(node_platform_id_t) const device_id =
+            NS(NodeId_get_device_id)( node );
+
+        requ_capacity += NS(NodeId_get_num_digits_integer)(
+            ( NS(arch_size_t ) )platform_id );
+
+        requ_capacity += NS(NodeId_get_num_digits_integer)(
+            ( NS(arch_size_t ) )device_id );
+
+        if( ( format == SIXTRL_NODE_ID_STR_FORMAT_ARCHID ) &&
+            ( arch_id_valid ) )
+        {
+            requ_capacity += NS(NodeId_get_num_digits_integer)(
+                ( NS(arch_size_t ) )NS(NodeId_get_arch_id)( node ) );
+            ++requ_capacity;
+        }
+        else if( ( format == SIXTRL_NODE_ID_STR_FORMAT_ARCHSTR ) &&
+                 ( arch_id_valid ) )
+        {
+            if( NS(Architectures_has_arch_str)(
+                    NS(Architectures_get_const_ptr)(), arch_id ) )
+            {
+                NS(arch_size_t) const arch_str_len = strlen(
+                    NS(Architectures_get_arch_str)(
+                        NS(Architectures_get_const_ptr)(), arch_id ) );
+
+                SIXTRL_ASSERT( arch_str_len > ( NS(arch_size_t) )0u );
+                requ_capacity += arch_str_len;
+            }
+            else
+            {
+                requ_capacity += 16;
+            }
+
+            ++requ_capacity; /* for : separator */
+        }
+        else if( format != SIXTRL_NODE_ID_STR_FORMAT_NOARCH )
+        {
+            requ_capacity = ( NS(arch_size_t) )0u;
+        }
+    }
+
+    return requ_capacity;
+}
+
+NS(arch_size_t) NS(NodeId_required_str_capacity)(
+    SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node )
+{
+    return NS(NodeId_required_str_capacity_for_format)(
+        node, ( NS(node_id_str_fmt_t) )SIXTRL_NODE_ID_STR_FORMAT_DEFAULT );
+}
+
+NS(node_id_str_fmt_t) NS(NodeId_identify_format_from_node_id_str)(
     SIXTRL_ARGPTR_DEC char const* SIXTRL_RESTRICT node_id_str )
 {
-    return NS(NodeId_identify_format_from_node_id_str)( node_id_str );
+    typedef SIXTRL_ARGPTR_DEC char const* ccharptr_t;
+    typedef NS(node_id_str_fmt_t) fmt_t;
+
+    fmt_t fmt = ( fmt_t )SIXTRL_NODE_ID_STR_FORMAT_ILLEGAL;
+
+    NS(arch_size_t) const str_len = strlen( node_id_str );
+
+    if( ( node_id_str != SIXTRL_NULLPTR ) &&
+        ( str_len > ( NS(arch_size_t) )0u ) )
+
+    {
+        ccharptr_t end_pos = node_id_str + str_len;
+        ccharptr_t dot_pos = SIXTRL_NULLPTR;
+        ccharptr_t start_pos = node_id_str;
+
+        ccharptr_t col_pos = strchr( node_id_str, ':' );
+
+        if( col_pos != SIXTRL_NULLPTR )
+        {
+            start_pos = col_pos + 1;
+        }
+
+        dot_pos = strchr( start_pos, '.' );
+
+        if( ( dot_pos != SIXTRL_NULLPTR ) &&
+            ( NS(NodeId_string_starts_with_number)( dot_pos + 1 ) ) &&
+            ( ( uintptr_t )dot_pos > ( uintptr_t )node_id_str ) &&
+            ( ( uintptr_t )dot_pos < ( uintptr_t )end_pos ) )
+        {
+            if( ( col_pos == SIXTRL_NULLPTR ) &&
+                ( NS(NodeId_string_starts_with_number)( node_id_str ) ) )
+            {
+                fmt = ( fmt_t )SIXTRL_NODE_ID_STR_FORMAT_NOARCH;
+            }
+            else if( ( col_pos != SIXTRL_NULLPTR ) &&
+                     ( NS(NodeId_string_starts_with_number)( node_id_str ) ) )
+            {
+                fmt = ( fmt_t )SIXTRL_NODE_ID_STR_FORMAT_ARCHID;
+            }
+            else if( col_pos != SIXTRL_NULLPTR )
+            {
+                fmt = ( fmt_t )SIXTRL_NODE_ID_STR_FORMAT_ARCHSTR;
+            }
+        }
+    }
+
+    return fmt;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -161,7 +325,7 @@ void NS(NodeId_delete)( SIXTRL_DATAPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node )
     free( node );
 }
 
-SIXTRL_DATAPTR_DEC NS(NodeId)* NS(NodeId_new)(
+SIXTRL_DATAPTR_DEC NS(NodeId)* NS(NodeId_new_detailed)(
     NS(arch_id_t) const arch_id,
     NS(node_platform_id_t) const platform_id,
     NS(node_device_id_t) const device_id )
@@ -224,10 +388,7 @@ NS(arch_status_t) NS(NodeId_to_node_id_str_with_format)(
 
     NS(arch_id_t) const arch_id = NS(NodeId_get_arch_id)( node );
     NS(node_device_id_t) const device_id = NS(NodeId_get_device_id)( node );
-
-    NS(node_platform_id_t)( const platform_id =
-        NS(NodeId_get_platform_id)( node );
-
+    NS(node_platform_id_t) const platform_id = NS(NodeId_get_platform_id)( node );
 
     if( ( output_str != SIXTRL_NULLPTR ) &&
         ( format != NS(NODE_ID_STR_FORMAT_ILLEGAL) ) &&
@@ -261,10 +422,20 @@ NS(arch_status_t) NS(NodeId_to_node_id_str_with_format)(
                 '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'
             };
 
-            status = NS(ArchInfo_get_arch_string_for_arch_id)(
-                arch_id, 16, temp_arch_str );
+            if( NS(Architectures_has_arch_str)(
+                NS(Architectures_get_const_ptr)(), arch_id ) )
+            {
+                SIXTRL_ASSERT( NS(Architectures_get_arch_str)(
+                    NS(Architectures_get_const_ptr)(), arch_id ) !=
+                        SIXTRL_NULLPTR );
 
-            if( ( status == NS(ARCH_STATUS_SUCCESS) ) &6
+                strncpy( temp_arch_str, NS(Architectures_get_arch_str)(
+                    NS(Architectures_get_const_ptr)(), arch_id ), 15 );
+
+                status = NS(ARCH_STATUS_SUCCESS);
+            }
+
+            if( ( status == NS(ARCH_STATUS_SUCCESS) ) &&
                 ( strlen( temp_arch_str ) > ( NS(arch_size_t) )0u ) )
             {
                 int const ret = sprintf( output_str, "%s:%ld.%ld",
@@ -288,13 +459,13 @@ void NS(NodeId_print)(
     NS(NodeId_print_with_format)( node, fp, NS(NODE_ID_STR_FORMAT_DEFAULT) );
 }
 
-void NS(NodeId_print)(
+void NS(NodeId_print_with_format)(
     SIXTRL_DATAPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node,
     FILE* SIXTRL_RESTRICT fp, NS(node_id_str_fmt_t) const format )
 {
     if( ( node != SIXTRL_NULLPTR ) && ( fp != SIXTRL_NULLPTR ) )
     {
-        char temp_node_id_str[ 64 ]:
+        char temp_node_id_str[ 64 ];
         memset( temp_node_id_str, ( int )'\0', 64 );
 
         NS(arch_status_t) status = NS(NodeId_to_node_id_str_with_format)(
@@ -325,11 +496,11 @@ void NS(NodeId_print_out_with_format)(
 
 /* ------------------------------------------------------------------------- */
 
-NS(buffer_size_t) NS(NodeId_get_required_num_dataptrs)(
+NS(buffer_size_t) NS(NodeId_get_required_num_slots)(
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const SIXTRL_RESTRICT buffer )
 {
     return NS(NodeId_get_required_num_slots_on_managed_buffer)(
-        NS(Buffer_get_data_begin)( buffer ),
+        NS(Buffer_get_const_data_begin)( buffer ),
         NS(Buffer_get_slot_size)( buffer ) );
 }
 
@@ -337,7 +508,7 @@ NS(buffer_size_t) NS(NodeId_get_required_num_dataptrs)(
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const SIXTRL_RESTRICT buffer )
 {
     return NS(NodeId_get_required_num_dataptrs_on_managed_buffer)(
-        NS(Buffer_get_data_begin)( buffer ),
+        NS(Buffer_get_const_data_begin)( buffer ),
         NS(Buffer_get_slot_size)( buffer ) );
 }
 

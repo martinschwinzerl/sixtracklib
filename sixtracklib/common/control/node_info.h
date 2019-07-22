@@ -13,7 +13,10 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/architecture/architecture.h"
     #include "sixtracklib/common/control/definitions.h"
+    #include "sixtracklib/common/control/node_store.hpp"
+    #include "sixtracklib/common/control/node_store.h"
     #include "sixtracklib/common/control/controller_base.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -28,6 +31,22 @@ extern "C" {
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(NodeInfo_delete)(
     NS(NodeInfoBase)* SIXTRL_RESTRICT node_info );
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeInfo_has_node_store)(
+    const NS(NodeInfoBase) *const SIXTRL_RESTRICT info );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodeStore) const*
+NS(NodeInfo_get_ptr_const_Node_store)(
+    const NS(NodeInfoBase) *const SIXTRL_RESTRICT info );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodeStore)* NS(NodeInfo_get_ptr_node_store)(
+    NS(NodeInfoBase)* SIXTRL_RESTRICT info );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(NodeInfo_assign_to_node_store)( NS(NodeInfoBase)* SIXTRL_RESTRICT info,
+    NS(NodeStore)* SIXTRL_RESTRICT store );
 
 /* ------------------------------------------------------------------------- */
 

@@ -1,6 +1,23 @@
 #include "sixtracklib/common/control/kernel_config_key.h"
-
 #include "sixtracklib/common/control/kernel_config_key.hpp"
+
+#if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
+    #include <cstddef>
+    #include <cstdlib>
+    #include <memory>
+#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
+
+#if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/control/node_id.hpp"
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
+
+#endif /* C++, Host */
+
+#if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/control/definitions.h"
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
+
 
 namespace st = SIXTRL_CXX_NAMESPACE;
 
@@ -45,11 +62,25 @@ void NS(KernelConfigKey_delete)( ::NS(KernelConfigKey)* SIXTRL_RESTRICT key )
         ? key->purpose : st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
 }
 
+void NS(KernelConfigKey_set_purpose)(
+    ::NS(KernelConfigKey)* SIXTRL_RESTRICT key,
+    ::NS(kernel_purpose_t) const purpose )
+{
+    if( key != nullptr ) key->setPurpose( purpose );
+}
+
 ::NS(kernel_variant_t) NS(KernelConfigKey_get_variant)(
     const NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
 {
     return ( key != nullptr )
         ? key->variant() : st::KERNEL_CONFIG_VARIANT_NONE;
+}
+
+void NS(KernelConfigKey_set_variant)(
+    ::NS(KernelConfigKey)* SIXTRL_RESTRICT key,
+    ::NS(arch_variant_t) const variant )
+{
+    if( key != nullptr ) key->setVariant( variant );
 }
 
 /* ------------------------------------------------------------------------- */
@@ -65,6 +96,15 @@ char const* NS(KernelConfigKey_config_str)(
 {
     return ( key != nullptr ) ? key->ptrConfigstr() : nullptr;
 }
+
+void NS(KernelConfigKey_set_config_str)(
+    ::NS(KernelConfigKey)* SIXTRL_RESTRICT key,
+    char const* SIXTRL_RESTRICT config_str )
+{
+    if( key != nullptr ) key->setConfigStr( config_str );
+}
+
+/* ------------------------------------------------------------------------- */
 
 bool NS(KernelConfigKey_has_node_id)(
     const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key )

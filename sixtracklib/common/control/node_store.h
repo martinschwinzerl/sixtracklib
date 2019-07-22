@@ -19,7 +19,6 @@
     #include "sixtracklib/common/control/node_info.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 extern "C" {
 #endif /* C++, Host */

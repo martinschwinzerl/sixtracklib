@@ -16,37 +16,17 @@ namespace st = SIXTRL_CXX_NAMESPACE;
 namespace SIXTRL_CXX_NAMESPACE
 {
     ArchBase::ArchBase( ArchBase::arch_id_t const arch_id,
-        const char *const SIXTRL_RESTRICT arch_str,
         const char *const SIXTRL_RESTRICT config_str ) :
-        st::ArchInfo( arch_id, arch_str ),
-        m_config_str()
+        st::ArchInfo( arch_id ), m_config_str()
     {
         this->doUpdateStoredConfigStr( config_str );
     }
 
     ArchBase::ArchBase( ArchBase::arch_id_t const arch_id,
-        std::string const& SIXTRL_RESTRICT arch_str,
         std::string const& SIXTRL_RESTRICT config_str ) :
-        st::ArchInfo( arch_id, ( !arch_str.empty() ) ?
-            arch_str.c_str() : nullptr ),
-        m_config_str( config_str )
+        st::ArchInfo( arch_id ), m_config_str( config_str )
     {
 
-    }
-
-    bool ArchBase::hasConfigStr() const SIXTRL_NOEXCEPT
-    {
-        return !this->m_config_str.empty();
-    }
-
-    std::string const& ArchBase::configStr() const SIXTRL_NOEXCEPT
-    {
-        return this->m_config_str;
-    }
-
-    char const* ArchBase::ptrConfigStr() const SIXTRL_NOEXCEPT
-    {
-        return this->m_config_str.c_str();
     }
 
     bool ArchBase::doParseConfigStr(
@@ -69,122 +49,97 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     }
 
-    bool ArchBase::doParseConfigStrArchBase(
-        const char *const SIXTRL_RESTRICT config_str ) SIXTRL_NOEXCEPT
-    {
-        ( void )config_str;
-
-        return true;
-    }
-
     /* ********************************************************************* */
 
-    ArchDebugBase::ArchDebugBase(
-        ArchDebugBase::arch_id_t const arch_id,
-        const char *const SIXTRL_RESTRICT arch_str,
+    ArchDebugBase::ArchDebugBase( ArchDebugBase::arch_id_t const arch_id,
+        ArchDebugBase::variant_t const variant,
         const char *const SIXTRL_RESTRICT config_str ) :
-        ArchBase( arch_id, arch_str, config_str ),
-        m_local_debug_register( st::ARCH_DEBUGGING_REGISTER_EMPTY ),
-        m_debug_mode( false )
+        st::ArchDebugBase::_arch_base_t( variant, arch_id, config_str ),
+        m_local_debug_register( st::ARCH_DEBUGGING_REGISTER_EMPTY )
     {
 
     }
 
     ArchDebugBase::ArchDebugBase(
         ArchDebugBase::arch_id_t const arch_id,
-        std::string const& SIXTRL_RESTRICT_REF arch_str,
         std::string const& SIXTRL_RESTRICT_REF config_str ) :
-        ArchBase( arch_id, arch_str, config_str ),
-            m_local_debug_register( st::ARCH_DEBUGGING_REGISTER_EMPTY ),
-            m_debug_mode( false )
+        st::ArchDebugBase::_arch_base_t(
+            st::ArchDebugBase::DEFAULT_VARIANT, arch_id, config_str ),
+        m_local_debug_register( st::ARCH_DEBUGGING_REGISTER_EMPTY )
     {
 
     }
 
-    bool ArchDebugBase::isInDebugMode() const SIXTRL_NOEXCEPT
+    ArchDebugBase::ArchDebugBase( ArchDebugBase::arch_id_t const arch_id,
+        ArchDebugBase::variant_t const variant,
+        std::string const& SIXTRL_RESTRICT_REF config_str ) :
+        st::ArchDebugBase::_arch_base_t( variant, arch_id, config_str ),
+        m_local_debug_register( st::ARCH_DEBUGGING_REGISTER_EMPTY )
     {
-        return this->m_debug_mode;
-    }
 
-    ArchDebugBase::status_t ArchDebugBase::enableDebugMode()
-    {
-        ArchDebugBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( !this->isInDebugMode() )
-        {
-            status = this->doSwitchDebugMode( true );
-        }
-        else
-        {
-            status = st::ARCH_STATUS_SUCCESS;
-        }
-
-        return status;
-    }
-
-    ArchDebugBase::status_t ArchDebugBase::disableDebugMode()
-    {
-        ArchDebugBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( this->isInDebugMode() )
-        {
-            status = this->doSwitchDebugMode( false );
-        }
-        else
-        {
-            status = st::ARCH_STATUS_SUCCESS;
-        }
-
-        return status;
-    }
-
-    ArchDebugBase::status_t
-    ArchDebugBase::doSwitchDebugMode( bool const is_in_debug_mode )
-    {
-        bool const old_debug_state = this->isInDebugMode();
-        this->doSetDebugModeFlag( is_in_debug_mode );
-
-        return ( ( is_in_debug_mode == this->isInDebugMode() ) &&
-                 ( is_in_debug_mode != old_debug_state ) )
-            ? st::ARCH_STATUS_SUCCESS : st::ARCH_STATUS_GENERAL_FAILURE;
-    }
-
-    void ArchDebugBase::doSetDebugModeFlag(
-        bool const debug_mode ) SIXTRL_NOEXCEPT
-    {
-        this->m_debug_mode = debug_mode;
     }
 
     /* --------------------------------------------------------------------- */
 
-    ArchDebugBase::debug_register_t ArchDebugBase::debugRegister()
+    ArchDebugBase::status_t
+    ArchDebugBase::doSwitchDebugMode( bool const enable_debug_mode )
     {
-        ArchDebugBase::status_t status = this->doFetchDebugRegister(
-            this->doGetPtrLocalDebugRegister() );
+        using _this_t = st::ArchDebugBase;
+        using variant_t = _this_t::variant_t;
 
-        return ( status == st::ARCH_STATUS_SUCCESS )
-            ? *this->doGetPtrLocalDebugRegister()
-            : st::ARCH_DEBUGGING_GENERAL_FAILURE;
-    }
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-    ArchDebugBase::status_t ArchDebugBase::setDebugRegister(
-        ArchDebugBase::debug_register_t const debug_register )
-    {
-        return this->doSetDebugRegister( debug_register );
-    }
+        bool const current_debug_state = this->variantDebugMode();
 
-    ArchDebugBase::status_t ArchDebugBase::prepareDebugRegisterForUse()
-    {
-        ArchDebugBase::status_t const status = this->doSetDebugRegister(
-            st::ARCH_DEBUGGING_REGISTER_EMPTY );
+        if( enable_debug_mode )
+        {
+            if( !current_debug_state )
+            {
+                variant_t const new_flags = _this_t::AddVariantFlags(
+                    this->variant(), _this_t::VARIANT_DEBUG );
 
-        SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
-            ( ( this->doGetPtrLocalDebugRegister() != nullptr ) &&
-              ( *this->doGetPtrLocalDebugRegister() ==
-                st::ARCH_DEBUGGING_REGISTER_EMPTY ) ) );
+                status = this->doChangeVariantFlags( new_flags );
+            }
+            else
+            {
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+        else
+        {
+            if( !current_debug_state )
+            {
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+            else
+            {
+                variant_t const new_flags = _this_t::RemoveVariantFlags(
+                    this->variant(), _this_t::VARIANT_DEBUG );
+
+                status = this->doChangeVariantFlags( new_flags );
+            }
+        }
 
         return status;
     }
+
+    /* --------------------------------------------------------------------- */
+
+    ArchDebugBase::status_t ArchDebugBase::doChangeVariantFlags(
+        ArchDebugBase::variant_t const variant_flags )
+    {
+        st::ArchDebugBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( this->variant() != variant_flags )
+        {
+            this->doSetVariantFlags( variant_flags );
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
 
     ArchDebugBase::status_t ArchDebugBase::evaluateDebugRegisterAfterUse()
     {
@@ -241,18 +196,6 @@ namespace SIXTRL_CXX_NAMESPACE
         }
 
         return status;
-    }
-
-    ArchDebugBase::debug_register_t const*
-    ArchDebugBase::doGetPtrLocalDebugRegister() const SIXTRL_NOEXCEPT
-    {
-        return &this->m_local_debug_register;
-    }
-
-    ArchDebugBase::debug_register_t*
-    ArchDebugBase::doGetPtrLocalDebugRegister() SIXTRL_NOEXCEPT
-    {
-        return &this->m_local_debug_register;
     }
 }
 

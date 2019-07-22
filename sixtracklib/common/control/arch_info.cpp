@@ -3,25 +3,61 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <cctype>
 #include <string>
+#include <vector>
 
 #include "sixtracklib/common/definitions.h"
+#include "sixtracklib/common/architecture/definitions.h"
+#include "sixtracklib/common/architecture/architecture.hpp"
 #include "sixtracklib/common/control/definitions.h"
+
+namespace st = SIXTRL_CXX_NAMESPACE;
 
 namespace SIXTRL_CXX_NAMESPACE
 {
-    ArchInfo::ArchInfo( ArchInfo::arch_id_t const arch_id,
-        const char *const SIXTRL_RESTRICT arch_str ) :
-        m_arch_str(), m_arch_id( arch_id )
+    ArchInfo::status_t ArchInfo_sanitize_arch_str(
+        std::string& SIXTRL_RESTRICT_REF arch_str )
     {
-        this->doSetArchStr( arch_str );
+        st::ArchInfo::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( !arch_str.empty() )
+        {
+            std::transform( arch_str.begin(), arch_str.end(), arch_str.begin(),
+                            ::tolower );
+
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
     }
 
-    ArchInfo::ArchInfo( ArchInfo::arch_id_t const arch_id,
-            std::string const& arch_str ) :
-        m_arch_str( arch_str ), m_arch_id( arch_id )
+    ArchInfo::status_t ArchInfo_sanitize_arch_str(
+        char* SIXTRL_RESTRICT arch_str,
+        st::arch_size_t const arch_str_capacity )
     {
+        st::ArchInfo::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
+        if( ( arch_str != nullptr ) &&
+            ( arch_str_capacity > size_t{ 0 } ) )
+        {
+            std::transform( arch_str, arch_str + arch_str_capacity,
+                            arch_str, ::tolower );
+
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    ArchInfo::ArchInfo( ArchInfo::arch_id_t const arch_id ) :
+        m_arch_str(), m_arch_id( st::ARCHITECTURE_ILLEGAL )
+    {
+        st::arch_status_t const status = this->doSetArchId( arch_id );
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     ArchInfo::arch_id_t ArchInfo::archId() const SIXTRL_NOEXCEPT
@@ -68,50 +104,49 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->isArchIdenticalTo( rhs.archId() );
     }
 
-    void ArchInfo::reset( ArchInfo::arch_id_t const arch_id,
-        const char *const SIXTRL_RESTRICT arch_str )
+    ArchInfo::status_t ArchInfo::reset( ArchInfo::arch_id_t const arch_id )
     {
-        this->m_arch_id = arch_id;
-
-        if( ( arch_str != nullptr ) &&
-            ( std::strlen( arch_str ) > ArchInfo::size_type{ 0 } ) )
-        {
-            this->m_arch_str = arch_str;
-        }
-        else
-        {
-            this->m_arch_str.clear();
-        }
-
-        return;
+        return this->doSetArchId( arch_id );
     }
 
-    SIXTRL_HOST_FN void ArchInfo::reset() SIXTRL_NOEXCEPT
+    ArchInfo::status_t ArchInfo::reset()
     {
-        this->m_arch_id = ArchInfo::ILLEGAL_ARCH;
         this->m_arch_str.clear();
-
-        return;
+        this->m_arch_id = st::ARCHITECTURE_ILLEGAL;
+        return st::ARCH_STATUS_SUCCESS;
     }
 
-    void ArchInfo::doSetArchId(
-        ArchInfo::arch_id_t const arch_id ) SIXTRL_NOEXCEPT
+    ArchInfo::status_t ArchInfo::doSetArchId( ArchInfo::arch_id_t const aid )
     {
-        this->m_arch_id = arch_id;
-    }
+        using lock_t = st::Architectures::lock_t;
+        st::ArchInfo::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-    void ArchInfo::doSetArchStr(
-        const char *const SIXTRL_RESTRICT arch_str )
-    {
-        if( ( arch_str != nullptr ) &&
-            ( std::strlen( arch_str ) > std::size_t{ 0 } ) )
+        if( aid == this->m_arch_id )
         {
-            this->m_arch_str = std::string{ arch_str };
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else if( aid == st::ARCHITECTURE_NONE )
+        {
+            this->m_arch_str.clear();
+            this->m_arch_id = aid;
+
+            status = st::ARCH_STATUS_SUCCESS;
         }
         else
         {
-            this->m_arch_str.clear();
+            lock_t const lock( *st::Architectures_get().lockable() );
+
+            if( ( aid != st::ARCHITECTURE_ILLEGAL ) &&
+                ( st::Architectures_get_const().hasArchitecture( lock, aid ) ) &&
+                ( st::Architectures_get_const().hasArchStr( lock, aid ) ) )
+            {
+                this->m_arch_id  = aid;
+                this->m_arch_str = st::Architectures_get().archStr( lock, aid );
+                status = st::ARCH_STATUS_SUCCESS;
+            }
         }
+
+        return status;
     }
 }
 

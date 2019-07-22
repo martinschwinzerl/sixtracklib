@@ -13,6 +13,8 @@
 
 namespace st = SIXTRL_CXX_NAMESPACE;
 
+/* ------------------------------------------------------------------------- */
+
 void NS(Controller_delete)( ::NS(ControllerBase)* SIXTRL_RESTRICT ctrl )
 {
     if( ctrl != nullptr ) delete ctrl;
@@ -24,6 +26,8 @@ void NS(Controller_clear)( ::NS(ControllerBase)* SIXTRL_RESTRICT ctrl )
     if( ctrl != nullptr ) ctrl->clear();
     return;
 }
+
+/* ------------------------------------------------------------------------- */
 
 ::NS(arch_id_t) NS(Controller_get_arch_id)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
@@ -44,7 +48,7 @@ char const* NS(Controller_get_arch_string)(
     return ( ctrl != nullptr ) ? ctrl->ptrArchStr() : nullptr;
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* ------------------------------------------------------------------------- */
 
 bool NS(Controller_has_config_string)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
@@ -58,7 +62,7 @@ char const* NS(Controller_get_config_string)(
     return ( ctrl != nullptr ) ? ctrl->ptrConfigStr() : nullptr;
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* ------------------------------------------------------------------------- */
 
 bool NS(Controller_uses_nodes)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
@@ -66,7 +70,51 @@ bool NS(Controller_uses_nodes)(
     return ( ( ctrl != nullptr ) && ( ctrl->usesNodes() ) );
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* ------------------------------------------------------------------------- */
+
+bool NS(Controller_has_name)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    return ( ( ctrl != nullptr ) && ( ctrl->hasName() ) );
+}
+
+char const* NS(Controller_get_name_str)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    return ( ctrl != nullptr ) ? ctrl->ptrNameStr() : nullptr;
+}
+
+void NS(Controller_set_name)( ::NS(ControllerBase)* SIXTRL_RESTRICT ctrl,
+    char const* SIXTRL_RESTRICT ctrl_name )
+{
+    if( ctrl != nullptr ) ? ctrl->setName( ctrl_name );
+}
+
+/* ------------------------------------------------------------------------- */
+
+bool NS(Controller_has_default_kernel_config_str)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    return ( ( ctrl != nullptr ) && ( ctrl->hasDefaultKernelConfigStr() ) );
+}
+
+char const* NS(Controller_get_default_kernel_config_str)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    return ( ctrl != nullptr ) ? ctrl->ptrDefaultKernelConfigStr() : nullptr;
+}
+
+void NS(Controller_set_default_kernel_config_str)(
+    ::NS(ControllerBase)* SIXTRL_RESTRICT ctrl,
+    char const* SIXTRL_RESTRICT default_kernel_config_str )
+{
+    if( ctrl != nullptr )
+    {
+        ctrl->setDefaultKernelConfigStr( default_kernel_config_str );
+    }
+}
+
+/* ------------------------------------------------------------------------- */
 
 ::NS(arch_status_t) NS(Controller_send_detailed)(
     ::NS(ControllerBase)* SIXTRL_RESTRICT ctrl,
@@ -75,7 +123,7 @@ bool NS(Controller_uses_nodes)(
 {
     return ( ctrl != nullptr )
         ? ctrl->send( destination, source, src_len )
-        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -87,7 +135,7 @@ bool NS(Controller_uses_nodes)(
 {
     return ( ctrl != nullptr )
         ? ctrl->send( destination, source )
-        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -100,7 +148,7 @@ bool NS(Controller_uses_nodes)(
 {
     return ( ctrl != nullptr )
         ? ctrl->receive( destination, destination_capacity, source )
-        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -112,7 +160,7 @@ bool NS(Controller_uses_nodes)(
 {
     return ( ctrl != nullptr )
         ? ctrl->receive( destination, source )
-        : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -130,7 +178,7 @@ bool NS(Controller_is_cobjects_buffer_arg_remapped)(
     ::NS(ArgumentBase)* SIXTRL_RESTRICT arg )
 {
     return ( ctrl != nullptr )
-        ? ctrl->remap( arg ) : ::NS(ARCH_STATUS_GENERAL_FAILURE);
+        ? ctrl->remap( arg ) : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -159,6 +207,8 @@ bool NS(Controller_is_ready_to_receive)(
     return ( ( ctrl != nullptr ) && ( ctrl->readyForReceive() ) );
 }
 
+/* ------------------------------------------------------------------------- */
+
 bool NS(Controller_is_in_debug_mode)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
@@ -179,170 +229,156 @@ bool NS(Controller_is_in_debug_mode)(
         ? ctrl->disableDebugMode() : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
+::NS(arch_variant_flags_t) NS(Controller_active_variant_flags)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    return ( ctrl != nullptr ) ? ctrl->variant() : st::ARCH_VARIANT_NONE;
+}
+
+bool NS(Controller_are_variant_flags_set)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
+    ::NS(arch_variant_flags_t) const variant_flags )
+{
+    return ( ( ctrl != nullptr ) &&
+        ( ctrl->areVariantFlagsSet( variant_flags ) ) );
+}
+
+bool NS(Controller_variant_release_mode)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    return ( ( ctrl != nullptr ) && ( ctrl->variantReleaseMode() ) );
+}
+
+bool NS(Controller_variant_debug_mode)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
+{
+    return ( ( ctrl != nullptr ) && ( ctrl->variantDebugMode() ) );
+}
+
 /* ========================================================================= */
 
 ::NS(arch_size_t) NS(Controller_get_num_of_kernels)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller )
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
-    return ( controller != nullptr )
-        ? controller->numKernels() : ::NS(arch_size_t){ 0 };
+    return ( ctrl != nullptr ) ? ctrl->numKernels() : ::NS(arch_size_t){ 0 };
 }
 
-::NS(arch_size_t) NS(Controller_get_kernel_work_items_dim)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller,
-    ::NS(arch_kernel_id_t) const kernel_id )
+::NS(arch_size_t) NS(Controller_get_num_keys_for_kernel_id)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
+    ::NS(ctrl_kernel_id_t) const kernel_id )
 {
-    return ( controller != nullptr )
-        ? controller->kernelWorkItemsDim( kernel_id )
-        : ::NS(arch_size_t){ 0 };
-}
-
-::NS(arch_size_t) NS(Controller_get_kernel_work_groups_dim)(
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller,
-    ::NS(arch_kernel_id_t) const kernel_id )
-{
-    return ( controller != nullptr )
-        ? controller->kernelWorkGroupsDim( kernel_id )
-        : ::NS(arch_size_t){ 0 };
+    return ( ctrl != nullptr )
+        ? ctrl->numKeys( kernel_id ) : ::NS(arch_size_t){ 0 };
 }
 
 ::NS(arch_size_t) NS(Controller_get_num_of_kernel_arguments)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
     ::NS(arch_kernel_id_t) const kernel_id )
 {
-    return ( controller != nullptr )
-        ? controller->kernelNumArguments( kernel_id )
-        : ::NS(arch_size_t){ 0 };
+    return ( ctrl != nullptr )
+        ? ctrl->kernelNumArguments( kernel_id ) : ::NS(arch_size_t){ 0 };
 }
 
 /* ------------------------------------------------------------------------- */
 
 bool NS(Controller_kernel_has_name)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
     NS(arch_kernel_id_t) const kernel_id )
 {
-    return ( ( controller != nullptr ) &&
-             ( controller->kernelHasName( kernel_id ) ) );
+    return ( ( ctrl != nullptr ) && ( ctrl->kernelHasName( kernel_id ) ) );
 }
 
 char const* NS(Controller_get_kernel_name_string)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
     ::NS(arch_kernel_id_t) const kernel_id )
 {
-    return ( controller != nullptr ) ?
-        controller->ptrKernelNameStr( kernel_id ) : nullptr;
+    return ( ctrl != nullptr ) ? ctrl->ptrKernelNameStr( kernel_id ) : nullptr;
 }
 
 /* ------------------------------------------------------------------------- */
 
 bool NS(Controller_has_kernel_id)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller,
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
     ::NS(arch_kernel_id_t) const kernel_id )
 {
-    return ( ( controller != nullptr ) &&
-             ( controller->hasKernel( kernel_id ) ) );
+    return ( ( ctrl != nullptr ) && ( ctrl->hasKernel( kernel_id ) ) );
 }
 
-bool NS(Controller_has_kernel_by_name)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller,
-    char const* SIXTRL_RESTRICT kernel_name )
+::NS(ctrl_kernel_id_t) NS(Controller_get_kernel_id_by_key)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT kernel_config_key )
 {
-    return ( ( controller != nullptr ) &&
-             ( controller->hasKernel( kernel_name ) ) );
+    return ( ( ctrl != nullptr ) && ( kernel_config_key != nullptr ) )
+        ? ctrl->kernelId( *kernel_config_key )
+        : ::NS(ARCH_ILLEGAL_KERNEL_ID);
 }
 
 /* ------------------------------------------------------------------------- */
 
-::NS(KernelConfigBase) const* NS(Controller_get_ptr_const_kernel_config_base)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller,
+::NS(KernelConfigBase) const* NS(Controller_const_kernel_config_base)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
     ::NS(arch_kernel_id_t) const kernel_id )
 {
-    return ( controller != nullptr )
-        ? controller->ptrKernelConfigBase( kernel_id ) : nullptr;
+    return ( ctrl != nullptr )
+        ? ctrl->ptrKernelConfigBase( kernel_id ) : nullptr;
 }
 
-::NS(KernelConfigBase) const*
-NS(Controller_get_ptr_const_kernel_config_base_by_name)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller,
-    char const* SIXTRL_RESTRICT kernel_name )
-{
-    return ( controller != nullptr )
-        ? controller->ptrKernelConfigBase( kernel_name ) : nullptr;
-}
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-::NS(KernelConfigBase)* NS(Controller_get_ptr_kernel_config_base)(
-    ::NS(ControllerBase)* SIXTRL_RESTRICT controller,
+::NS(KernelConfigBase)* NS(Controller_kernel_config_base)(
+    ::NS(ControllerBase)* SIXTRL_RESTRICT ctrl,
     ::NS(arch_kernel_id_t) const kernel_id )
 {
-    return ( controller != nullptr )
-        ? controller->ptrKernelConfigBase( kernel_id ) : nullptr;
+    return ( ctrl != nullptr )
+        ? ctrl->ptrKernelConfigBase( kernel_id ) : nullptr;
 }
 
-::NS(KernelConfigBase)* NS(Controller_get_ptr_kernel_config_base_by_name)(
-    ::NS(ControllerBase)* SIXTRL_RESTRICT controller,
-    char const* SIXTRL_RESTRICT kernel_name )
+/* ========================================================================= */
+
+bool NS(Controller_has_remap_buffer_kernel)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
-    return ( controller != nullptr )
-        ? controller->ptrKernelConfigBase( kernel_name ) : nullptr;
+    return ( ( ctrl != nullptr ) && ( ctrl->hasRemapBufferKernel() ) );
 }
 
-/* ================================================================= */
-
-bool NS(Controller_has_remap_cobject_buffer_kernel)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller )
+::NS(ctrl_kernel_id_t) NS(Controller_get_remap_buffer_kernel_id)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
-    return ( ( controller != nullptr ) &&
-             ( controller->hasRemapCObjectBufferKernel() ) );
-}
-
-::NS(ctrl_kernel_id_t) NS(Controller_get_remap_cobject_buffer_kernel_id)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller )
-{
-    return ( controller != nullptr )
-        ? controller->remapCObjectBufferKernelId()
+    return ( ctrl != nullptr ) ? ctrl->remapBufferKernelConfigId()
         : st::ControllerBase::ILLEGAL_KERNEL_ID;
 }
 
-void NS(Controller_set_remap_cobject_buffer_kernel_id)(
-    ::NS(ControllerBase)* SIXTRL_RESTRICT controller,
-    ::NS(ctrl_kernel_id_t) const kernel_id )
+::NS(KernelConfigKey) const* NS(Controller_remap_buffer_kernel_key)(
+    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
-    if( controller != nullptr )
-    {
-        controller->setRemapCObjectBufferKernelId( kernel_id );
-    }
+    return ( ctrl != nullptr )
+        ? &( ctrl->remapBufferKernelConfigKey() ) : nullptr;
 }
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+/* ========================================================================= */
 
-bool NS(Controller_has_remap_cobject_buffer_debug_kernel)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller )
+NS(arch_status_t) NS(Controller_set_active_variant_flags)(
+    NS(ControllerBase)* SIXTRL_RESTRICT ctrl,
+    NS(arch_variant_flags_t) const variant_flags )
 {
-    return ( ( controller != nullptr ) &&
-             ( controller->hasRemapCObjectBufferDebugKernel() ) );
+    return ( ctrl != nullptr )
+        ? ctrl->setActiveVariantFlags( variant_flags )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
-::NS(ctrl_kernel_id_t) NS(Controller_get_remap_cobject_buffer_debug_kernel_id)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT controller )
+/* ========================================================================= */
+
+NS(KernelConfigStore) const* NS(Controller_get_const_kernel_config_store)(
+    const NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
-    return ( controller != nullptr )
-        ? controller->remapCObjectBufferDebugKernelId()
-        : st::ControllerBase::ILLEGAL_KERNEL_ID;
+    return ( ctrl != nullptr ) ? ctrl->ptrKernelConfigStore() : nullptr;
 }
 
-void NS(Controller_set_remap_cobject_buffer_debug_kernel_id)(
-    ::NS(ControllerBase)* SIXTRL_RESTRICT controller,
-    ::NS(ctrl_kernel_id_t) const kernel_id )
+NS(KernelConfigStore)* NS(Controller_get_kernel_config_store)(
+    NS(ControllerBase)* SIXTRL_RESTRICT ctrl )
 {
-    if( controller != nullptr )
-    {
-        controller->setRemapCObjectBufferDebugKernelId( kernel_id );
-    }
+    return ( ctrl != nullptr ) ? ctrl->ptrKernelConfigStore() : nullptr;
 }
 
-/* ================================================================= */
+/* ========================================================================= */
 
 #endif /* C++, Host */
 

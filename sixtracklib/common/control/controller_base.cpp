@@ -27,33 +27,6 @@ namespace st = SIXTRL_CXX_NAMESPACE;
 
 namespace SIXTRL_CXX_NAMESPACE
 {
-    bool ControllerBase::usesNodes() const SIXTRL_NOEXCEPT
-    {
-        return this->m_uses_nodes;
-    }
-
-    void ControllerBase::clear()
-    {
-        this->doClear();
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    bool ControllerBase::hasName() const SIXTRL_NOEXCEPT
-    {
-        return ( !this->m_name.empty() );
-    }
-
-    std::string const& ControllerBase::name() const SIXTRL_NOEXCEPT
-    {
-        return this->m_name;
-    }
-
-    char const* ControllerBase::ptrNameStr() const SIXTRL_NOEXCEPT
-    {
-        return ( this->hasName() ) ? this->m_name.c_str() : nullptr;
-    }
-
     void ControllerBase::setName( std::string const& SIXTRL_RESTRICT_REF name )
     {
         this->setName( name.c_str() );
@@ -73,30 +46,6 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     /* --------------------------------------------------------------------- */
-
-    bool ControllerBase::readyForSend() const SIXTRL_NOEXCEPT
-    {
-        return this->m_ready_for_send;
-    }
-
-    bool ControllerBase::readyForReceive() const SIXTRL_NOEXCEPT
-    {
-        return this->m_ready_for_receive;
-    }
-
-    bool ControllerBase::readyForRunningKernel() const SIXTRL_NOEXCEPT
-    {
-        return this->m_ready_for_running_kernels;
-    }
-
-    bool ControllerBase::readyForRemap() const SIXTRL_NOEXCEPT
-    {
-        return ( ( this->readyForRunningKernel() ) &&
-                 ( ( ( !this->isInDebugMode() ) &&
-                     ( this->hasRemapCObjectBufferKernel() ) ) ||
-                   ( ( this->isInDebugMode() ) &&
-                     ( this->hasRemapCObjectBufferDebugKernel() ) ) ) );
-    }
 
     ControllerBase::status_t ControllerBase::send(
         ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT arg,
@@ -282,89 +231,23 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* ===================================================================== */
 
-    ControllerBase::size_type
-    ControllerBase::numKernels() const SIXTRL_NOEXCEPT
+    ControllerBase::kernel_id_t ControllerBase::addKernelConfig(
+        ControllerBase::key_t const& SIXTRL_RESTRICT_REF key,
+        ControllerBase::ptr_kernel_conf_base_t&& ptr_kernel_config )
     {
-        return this->m_num_kernels;
+        return this->kernelConfigStore().addKernelConfig(
+            key, std::move( ptr_kernel_config ) );
     }
 
-    /* --------------------------------------------------------------------- */
-
-    bool ControllerBase::hasRemapCObjectBufferKernel() const SIXTRL_NOEXCEPT
+    ControllerBase::status_t ControllerBase::addKernelConfig(
+        ControllerBase::key_t const& SIXTRL_RESTRICT_REF key,
+        ControllerBase::kernel_id_t const kernel_config_id )
     {
-        return this->hasKernel( this->m_remap_kernel_id );
+        return this->kernelConfigStore().addKernelConfig(
+            key, kernel_config_id );
     }
 
-    ControllerBase::kernel_id_t
-    ControllerBase::remapCObjectBufferKernelId() const SIXTRL_NOEXCEPT
-    {
-        return this->m_remap_kernel_id;
-    }
-
-    void ControllerBase::setRemapCObjectBufferKernelId(
-        ControllerBase::kernel_id_t const kernel_id ) SIXTRL_NOEXCEPT
-    {
-        this->m_remap_kernel_id = kernel_id;
-    }
-
-
-
-    bool
-    ControllerBase::hasRemapCObjectBufferDebugKernel() const SIXTRL_NOEXCEPT
-    {
-        return this->hasKernel( this->m_remap_debug_kernel_id );
-    }
-
-    ControllerBase::kernel_id_t
-    ControllerBase::remapCObjectBufferDebugKernelId() const SIXTRL_NOEXCEPT
-    {
-        return this->m_remap_debug_kernel_id;
-    }
-
-    void ControllerBase::setRemapCObjectBufferDebugKernelId(
-        ControllerBase::kernel_id_t const kernel_id ) SIXTRL_NOEXCEPT
-    {
-        this->m_remap_debug_kernel_id = kernel_id;
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    ControllerBase::size_type
-    ControllerBase::kernelWorkItemsDim(
-        kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT
-    {
-        ControllerBase::kernel_config_base_t const* ptr_kernel_conf_base =
-            this->ptrKernelConfigBase( kernel_id );
-
-        return ( ptr_kernel_conf_base != nullptr )
-            ? ptr_kernel_conf_base->workItemsDim()
-            : ControllerBase::size_type{ 0 };
-    }
-
-    ControllerBase::size_type
-    ControllerBase::kernelWorkGroupsDim(
-        kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT
-    {
-        ControllerBase::kernel_config_base_t const* ptr_kernel_conf_base =
-            this->ptrKernelConfigBase( kernel_id );
-
-        return ( ptr_kernel_conf_base != nullptr )
-            ? ptr_kernel_conf_base->workGroupsDim()
-            : ControllerBase::size_type{ 0 };
-    }
-
-    ControllerBase::size_type ControllerBase::kernelNumArguments(
-        ControllerBase::kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT
-    {
-        ControllerBase::kernel_config_base_t const* ptr_kernel_conf_base =
-            this->ptrKernelConfigBase( kernel_id );
-
-        return ( ptr_kernel_conf_base != nullptr )
-            ? ptr_kernel_conf_base->numArguments()
-            : ControllerBase::size_type{ 0 };
-    }
-
-    /* --------------------------------------------------------------------- */
+    /* ===================================================================== */
 
     bool ControllerBase::kernelHasName(
         ControllerBase::kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT
@@ -398,96 +281,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return ( ptr_kernel_conf_base != nullptr )
             ? ptr_kernel_conf_base->ptrNameStr() : nullptr;
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    bool ControllerBase::hasKernel(
-        ControllerBase::kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT
-    {
-        return ( this->ptrKernelConfigBase( kernel_id ) != nullptr );
-    }
-
-    bool ControllerBase::hasKernel( std::string const& SIXTRL_RESTRICT_REF
-        kernel_name ) const SIXTRL_NOEXCEPT
-    {
-        return ( this->ptrKernelConfigBase( this->doFindKernelConfigByName(
-            kernel_name.c_str() ) ) != nullptr );
-    }
-
-    bool ControllerBase::hasKernel(
-        char const* SIXTRL_RESTRICT kernel_name ) const SIXTRL_NOEXCEPT
-    {
-        return ( this->ptrKernelConfigBase( this->doFindKernelConfigByName(
-            kernel_name ) ) != nullptr );
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    ControllerBase::kernel_config_base_t const*
-    ControllerBase::ptrKernelConfigBase(
-        ControllerBase::kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT
-    {
-        using _this_t = ControllerBase;
-
-        _this_t::kernel_config_base_t const* ptr_kernel_conf_base = nullptr;
-
-        if( ( kernel_id != _this_t::ILLEGAL_KERNEL_ID ) &&
-            ( static_cast< _this_t::size_type >( kernel_id ) <
-                this->m_kernel_configs.size() ) )
-        {
-            ptr_kernel_conf_base = this->m_kernel_configs[ kernel_id ].get();
-        }
-
-        return ptr_kernel_conf_base;
-    }
-
-    ControllerBase::kernel_config_base_t const*
-    ControllerBase::ptrKernelConfigBase( std::string const& SIXTRL_RESTRICT_REF
-        kernel_name ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrKernelConfigBase( this->doFindKernelConfigByName(
-            kernel_name.c_str() ) );
-    }
-
-    ControllerBase::kernel_config_base_t const*
-    ControllerBase::ptrKernelConfigBase(
-        char const* SIXTRL_RESTRICT kernel_name ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrKernelConfigBase( this->doFindKernelConfigByName(
-            kernel_name ) );
-    }
-
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-    ControllerBase::kernel_config_base_t* ControllerBase::ptrKernelConfigBase(
-        ControllerBase::kernel_id_t const kernel_id ) SIXTRL_NOEXCEPT
-    {
-        using _this_t = ControllerBase;
-        using ptr_t = _this_t::kernel_config_base_t*;
-
-        return const_cast< ptr_t >( static_cast< _this_t const& >(
-            *this ).ptrKernelConfigBase( kernel_id ) );
-    }
-
-    ControllerBase::kernel_config_base_t* ControllerBase::ptrKernelConfigBase(
-        std::string const& SIXTRL_RESTRICT_REF kernel_name ) SIXTRL_NOEXCEPT
-    {
-        using _this_t = ControllerBase;
-        using ptr_t = _this_t::kernel_config_base_t*;
-
-        return const_cast< ptr_t >( static_cast< _this_t const& >(
-            *this ).ptrKernelConfigBase( kernel_name ) );
-    }
-
-    ControllerBase::kernel_config_base_t* ControllerBase::ptrKernelConfigBase(
-        char const* SIXTRL_RESTRICT kernel_name ) SIXTRL_NOEXCEPT
-    {
-        using _this_t = ControllerBase;
-        using ptr_t = _this_t::kernel_config_base_t*;
-
-        return const_cast< ptr_t >( static_cast< _this_t const& >(
-            *this ).ptrKernelConfigBase( kernel_name ) );
     }
 
     /* ===================================================================== */
@@ -530,24 +323,26 @@ namespace SIXTRL_CXX_NAMESPACE
         return is_remapped;
     }
 
-    bool ControllerBase::isRemapped(
-        ControllerBase::arg_base_ref_t SIXTRL_RESTRICT_REF arg )
-    {
-        return this->isRemapped( &arg );
-    }
+    /* ===================================================================== */
 
-    ControllerBase::~ControllerBase() SIXTRL_NOEXCEPT
+    void ControllerBase::setDefaultKernelConfigStr(
+        char const* SIXTRL_RESTRICT kernel_config_str )
     {
+        using _this_t = st::ControllerBase;
 
+        if( ( kernel_config_str != nullptr ) &&
+            ( std::strlen( kernel_config_str ) > _this_t::size_type{ 0 } ) )
+        {
+            this->m_default_kernel_config_str =
+                std::string{ kernel_config_str };
+        }
+        else
+        {
+            this->m_default_kernel_config_str.clear();
+        }
     }
 
     /* ===================================================================== */
-
-    void ControllerBase::print(
-        std::ostream& SIXTRL_RESTRICT_REF output ) const
-    {
-        this->doPrintToOutputStream( output );
-    }
 
     void ControllerBase::print( ::FILE* SIXTRL_RESTRICT output ) const
     {
@@ -571,19 +366,6 @@ namespace SIXTRL_CXX_NAMESPACE
         }
 
         return std::string{};
-    }
-
-    void ControllerBase::printOut()
-    {
-        this->print( std::cout );
-    }
-
-    std::ostream& ControllerBase::operator<<(
-        std::ostream& SIXTRL_RESTRICT_REF output,
-        st::ControllerBase const& SIXTRL_RESTRICT_REF controller )
-    {
-        controller.print( output );
-        return output;
     }
 
     ControllerBase::size_type ControllerBase::requiredOutStringLength() const
@@ -652,10 +434,14 @@ namespace SIXTRL_CXX_NAMESPACE
     ControllerBase::ControllerBase(
         ControllerBase::arch_id_t const arch_id,
         const char *const SIXTRL_RESTRICT arch_str,
+        ControllerBase::kernel_config_store_base_t&
+            SIXTRL_RESTRICT_REF kernel_config_store,
         const char *const SIXTRL_RESTRICT config_str ) :
         ArchDebugBase( arch_id, arch_str, config_str ),
-            m_kernel_configs(), m_name(),
-            m_num_kernels( ControllerBase::size_type{ 0 } ),
+            m_remap_kernel_key(),
+            m_kernel_config_store( kernel_config_store ),
+            m_name(),
+            m_default_kernel_config_str(),
             m_remap_kernel_id( ControllerBase::ILLEGAL_KERNEL_ID ),
             m_uses_nodes( false ),
             m_ready_for_running_kernels( false ),
@@ -665,16 +451,241 @@ namespace SIXTRL_CXX_NAMESPACE
 
     }
 
+    ControllerBase::kernel_config_store_base_t&
+    ControllerBase::kernelConfigStore() SIXTRL_NOEXCEPT
+    {
+        return this->m_kernel_config_store;
+    }
+
     void ControllerBase::doClear()
     {
+        this->m_remap_kernel_key = st::ControllerBase::key_t{};
         this->m_remap_kernel_id = ControllerBase::ILLEGAL_KERNEL_ID;
-
         this->m_ready_for_receive = false;
         this->m_ready_for_send = false;
         this->m_ready_for_running_kernels = false;
 
         return;
     }
+
+    /* --------------------------------------------------------------------- */
+
+    ControllerBase::status_t ControllerBase::doChangeVariantFlags(
+        ControllerBase::variant_t const new_variant_flags )
+    {
+        using _this_t = st::ControllerBase;
+        using _base_t = _this_t::_base_arch_obj_t;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        bool has_fatal_error = false;
+
+        if( !this->hasRemapBufferKernel() )
+        {
+            SIXTRL_ASSERT( !this->remapBufferKernelConfigKey.valid() );
+            SIXTRL_ASSERT( this->remapBufferKernelConfigId() ==
+                _this_t::ILLEGAL_KERNEL_ID );
+
+            status = _base_t::doChangeVariantFlags( new_variant_flags );
+            return status;
+        }
+
+        SIXTRL_ASSERT( new_key.archId() == _this_t::ARCH_ILLEGAL );
+
+        _this_t::kernel_config_key_t key = this->remapBufferKernelConfigKey();
+
+        SIXTRL_ASSERT( ( key.valid() ) &&
+            ( key.purpose() == st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER ) &&
+            ( this->remapBufferKernelConfigId() !=
+                _this_t::ILLEGAL_KERNEL_ID ) );
+
+
+        _this_t::variant_t const current_variant = this->variant();
+
+        key.setVariant( new_variant_flags );
+
+        if( this->doPreflightCheckSelectKernelConfigByKey( key ) )
+        {
+            status = _base_t::doChangeVariantFlags( new_variant_flags );
+        }
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            status = this->doSelectRemapBufferKernelConfig( key );
+
+            if( status != st::ARCH_STATUS_SUCCESS )
+            {
+                /* Attempt to roll-back and register fatal error if
+                * this does not work either: */
+
+                _this_t::status_t rollback_status =
+                    _base_t::doChangeVariantFlags( current_variant );
+
+                key.setVariant( current_variant );
+
+                if( st::ARCH_STATUS_SUCCESS !=
+                        this->doSelectRemapBufferKernelConfig( key ) )
+                {
+                    rollback_status = st::ARCH_STATUS_GENERAL_FAILURE;
+                }
+
+                if( rollback_status != st::ARCH_STATUS_SUCCESS )
+                {
+                    has_fatal_error = true;
+                }
+            }
+        }
+        else if( st::ARCH_STATUS_SUCCESS !=
+                _base_t::doChangeVariantFlags( cur_variant );
+        {
+            /* Unable to roll-back to previous variant flags ->
+            * throw a runtime error */
+
+            has_fatal_error = true;
+        }
+
+        if( has_fatal_error )
+        {
+            throw std::runtime_error(
+                "unable to rollback failed variant flags change" );
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    ControllerBase::status_t ControllerBase::doSelectKernelConfigByKey(
+        ControllerBase::kernel_config_key_t const& SIXTRL_RESTRICT_REF key,
+        ControllerBase::kernel_id_t* SIXTRL_RESTRICT ptr_kernel_id_to_change,
+        ControllerBase::kernel_config_key_t* SIXTRL_RESTRICT ptr_key_to_change )
+    {
+        using _this_t = st::ControllerBase;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( key.archId() != _this_t::ARCH_ILLEGAL ) &&
+            ( ( ptr_kernel_id_to_change != nullptr ) ||
+              ( ptr_key_to_change != nullptr ) ) )
+        {
+            _this_t::kernel_id_t kernel_config_id =
+                this->kernelConfigStore().kernelId( key );
+
+            _this_t::kernel_config_base_t const* ptr_conf =
+                this->kernelConfigStore().ptrKernelConfigBase(
+                    kernel_config_id );
+
+            if( this->doCheckSelectKernelConfigByKeyOk( key, ptr_conf ) )
+            {
+                if( ptr_kernel_id_to_change != nullptr )
+                {
+                    *ptr_kernel_id_to_change = kernel_config_id;
+                }
+
+                if( ptr_key_to_change != nullptr )
+                {
+                    *ptr_key_to_change = key;
+                }
+
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    ControllerBase::status_t ControllerBase::doUnselectKernelConfig(
+        ControllerBase::kernel_id_t& SIXTRL_RESTRICT_REF kernel_id_to_unselect,
+        ControllerBase::kernel_config_key_t*
+            SIXTRL_RESTRICT ptr_key_to_unselect )
+    {
+        using _this_t = st::ControllerBase;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( kernel_id_to_unselect != _this_t::ILLEGAL_KERNEL_ID )
+        {
+            kernel_id_to_unselect = _this_t::ILLEGAL_KERNEL_ID;
+
+            if( ptr_key_to_unselect != nullptr )
+            {
+                *ptr_key_to_unselect = _this_t::kernel_config_key_t{};
+            }
+
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    bool ControllerBase::doCheckAreKernelConfigsInitialized(
+        ControllerBase::kernel_config_key_t& SIXTRL_RESTRICT_REF key ) const
+    {
+        bool initialized = false;
+
+        using _this_t = st::ControllerBase;
+
+        if( input_key.archId() != _this_t::ARCH_ILLEGAL )
+        {
+            _this_t::kernel_purpose_t const initial_purpose = key.purpose();
+
+            if( initial_purpose != st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER )
+            {
+                key.setPurpose( st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER );
+            }
+
+            initialized = ( this->kernelConfigStore().kernelId( key ) !=
+                _this_t::ILLEGAL_KERNEL_ID );
+
+            if( initial_purpose != st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER )
+            {
+                key.setPurpose( initial_purpose );
+            }
+        }
+
+        return initialized;
+    }
+
+    ControllerBase::status_t ControllerBase::doInitializeKernelConfigs(
+        ControllerBase::kernel_config_key_t& SIXTRL_RESTRICT_REF key )
+    {
+        using _this_t = st::NodeControllerBase;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( input_key.archId() != _this_t::ARCH_ILLEGAL ) &&
+            ( this->nodeStore().checkLock( lock ) ) )
+        {
+            _this_t::kernel_purpose_t const initial_purpose = key.purpose();
+
+            if( initial_purpose != st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER )
+            {
+                key.setPurpose( st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER );
+            }
+
+            _this_t::kernel_id_t const kernel_config_id =
+                this->kernelConfigStore().kernelId( key );
+
+            if( kernel_config_id != _this_t::ILLEGAL_KERNEL_ID )
+            {
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+            else
+            {
+                status = this->kernelConfigStore().initKernelConfig( key );
+            }
+
+            if( initial_purpose != st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER )
+            {
+                key.setPurpose( initial_purpose );
+            }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
 
     ControllerBase::status_t ControllerBase::doSend(
         ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT,
@@ -708,21 +719,18 @@ namespace SIXTRL_CXX_NAMESPACE
         return false;
     }
 
-    ControllerBase::status_t
-    ControllerBase::doSwitchDebugMode( bool const is_in_debug_mode )
+    ControllerBase::kernel_id_t ControllerBase::doInitKernelConfig(
+        ControllerBase::kernel_config_key_t const& SIXTRL_RESTRICT_REF key,
+        ControllerBase::size_type num_kernel_args,
+        char const* SIXTRL_RESTRICT name )
     {
-        if( ( ( is_in_debug_mode ) &&
-              ( this->hasRemapCObjectBufferDebugKernel() ) ) ||
-            ( ( !is_in_debug_mode ) &&
-              ( this->hasRemapCObjectBufferKernel() ) ) )
-        {
-            return ControllerBase::_base_arch_obj_t::doSwitchDebugMode(
-                is_in_debug_mode );
-        }
+        using _this_t = st::ControllerBase;
+        _this_t::kernel_id_t kernel_config_id = _this_t::ILLEGAL_KERNEL_ID;
 
-        return st::ARCH_STATUS_GENERAL_FAILURE;
+        if(
+
+        return kernel_config_id;
     }
-
 
     ControllerBase::status_t ControllerBase::doPrintToOutputStream(
         std::ostream& SIXTRL_RESTRICT_REF output ) const
@@ -743,10 +751,12 @@ namespace SIXTRL_CXX_NAMESPACE
                 output << "( " << this->archStr() << " )\r\n";
             }
 
-            if( this->isInDebugMode() )
-            {
-                output << "Debug mode      : true\r\n";
-            }
+            output << "Variant Flags   : " << std::hex << this->variant()
+                   << std::dec << "\r\n";
+
+            output << output << "Debug mode      : "
+                   << std::boolalpha << this->isInDebugMode()
+                   << std::noboolalpha << "\r\n";
 
             status = st::ARCH_STATUS_SUCCESS;
         }
@@ -755,6 +765,81 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     /* --------------------------------------------------------------------- */
+
+    bool ControllerBase::doPreflightCheckSelectKernelConfigByKey(
+        ControllerBase::kernel_config_key_t const& SIXTRL_RESTRICT_REF key ) const
+    {
+        bool select_op_should_work = false;
+
+        if( key.archId() != _this_t::ARCH_ILLEGAL )
+        {
+            _this_t::kernel_id_t kernel_config_id =
+                this->kernelConfigStore().kernelId( key );
+
+            select_op_should_work = this->doCheckSelectKernelConfigByKeyOk(
+                key, this->kernelConfigStore().ptrKernelConfigBase(
+                    kernel_config_id ) );
+        }
+
+        return select_op_should_work;
+    }
+
+    bool ControllerBase::doCheckSelectKernelConfigByKeyOk(
+        ControllerBase::kernel_config_key_t const& SIXTRL_RESTRICT_REF key,
+        ControllerBase::kernel_config_base_t const* SIXTRL_RESTRICT ptr_conf ) const
+    {
+        return ( ( ptr_conf != nullptr ) &&
+                 ( key.archId() != _this_t::ARCH_ILLEGAL ) &&
+                 ( ptr_conf->archId() == key.archId() ) &&
+                 ( ptr_conf->purpose() == key.purpose() ) &&
+                 ( ( key.variant() == st::ARCH_VARIANT_NONE ) ||
+                   ( ptr_conf->areVariantFlagsSet( key.variant() ) ) ) );
+    }
+
+    ControllerBase::status_t ControllerBase::doSetRemapBufferKernelConfigKey(
+        ControllerBase::kernel_config_key_t const& SIXTRL_RESTRICT_REF key );
+    {
+        this->m_remap_kernel_key = key;
+    }
+
+    ControllerBase::status_t ControllerBase::doSetRemapBufferKernelConfigId(
+        ControllerBase::kernel_id_t const kernel_config_id )
+    {
+        this->m_remap_kernel_id = kernel_config_id;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    ControllerBase::status_t ControllerBase::doUpdateKernelConfigStore(
+        ControllerBase::kernel_config_store_base_t& SIXTRL_RESTRICT_REF store )
+    {
+        using _this_t = ControllerBase;
+        using store_t = _this_t::kernel_config_store_base_t;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+
+        if( this->ptrKernelConfigStore() == &store )
+        {
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else if( ( !this->readyForRunningKernel() ) &&
+                 ( !this->readyForSend() ) && ( !this->readyForReceive() ) &&
+                 ( !this->kernelConfigStore().lockable() != store.lockable() ) )
+        {
+            store_t::lock_t old_store_lock(
+                *this->kernelConfigStore().lockable() );
+            store_t::lock_t new_store_lock( *store.lockable() );
+
+            this->m_kernel_config_store = store;
+            old_store_lock.unlock();
+            new_store_lock.unlock();
+
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+    }
 
     void ControllerBase::doSetUsesNodesFlag( bool const flag ) SIXTRL_NOEXCEPT
     {
@@ -777,94 +862,6 @@ namespace SIXTRL_CXX_NAMESPACE
             bool const flag ) SIXTRL_NOEXCEPT
     {
         this->m_ready_for_running_kernels = flag;
-    }
-
-    /* -------------------------------------------------------------------- */
-
-    void ControllerBase::doReserveForNumKernelConfigs(
-        ControllerBase::size_type const kernel_configs_capacity )
-    {
-        this->m_kernel_configs.reserve( kernel_configs_capacity );
-    }
-
-    ControllerBase::kernel_id_t ControllerBase::doFindKernelConfigByName(
-        char const* SIXTRL_RESTRICT kernel_name ) const SIXTRL_NOEXCEPT
-    {
-        using _this_t = ControllerBase;
-        _this_t::kernel_id_t kernel_id = ControllerBase::ILLEGAL_KERNEL_ID;
-
-        if( ( kernel_name != nullptr ) &&
-            ( std::strlen( kernel_name ) > _this_t::size_type{ 0 } ) )
-        {
-            _this_t::size_type ii = _this_t::size_type{ 0 };
-            _this_t::size_type const nkernels = this->m_kernel_configs.size();
-
-            for( ; ii < nkernels ; ++ii )
-            {
-                _this_t::kernel_config_base_t const* ptr_kernel_conf_base =
-                    this->m_kernel_configs[ ii ].get();
-
-                if( ( ptr_kernel_conf_base != nullptr ) &&
-                    ( ptr_kernel_conf_base->hasName() ) &&
-                    ( 0 == ptr_kernel_conf_base->name().compare(
-                        kernel_name ) ) )
-                {
-                    kernel_id = static_cast< _this_t::kernel_id_t >( ii );
-                    break;
-                }
-            }
-        }
-
-        return kernel_id;
-    }
-
-    ControllerBase::kernel_id_t ControllerBase::doAppendKernelConfig(
-        ControllerBase::ptr_kernel_conf_base_t&&
-            ptr_kernel_conf_base ) SIXTRL_NOEXCEPT
-    {
-        using _this_t = ControllerBase;
-        _this_t::kernel_id_t kernel_id = _this_t::ILLEGAL_KERNEL_ID;
-
-        if( ptr_kernel_conf_base.get() != nullptr )
-        {
-            SIXTRL_ASSERT( this->m_kernel_configs.size() < static_cast<
-                _this_t::size_type >( _this_t::ILLEGAL_KERNEL_ID ) );
-
-            kernel_id = static_cast< kernel_id_t >(
-                this->m_kernel_configs.size() );
-
-
-            this->m_kernel_configs.push_back(
-                std::move( ptr_kernel_conf_base ) );
-
-            if( this->ptrKernelConfigBase( kernel_id ) != nullptr )
-            {
-                ++this->m_num_kernels;
-            }
-        }
-
-        return kernel_id;
-    }
-
-    void ControllerBase::doRemoveKernelConfig(
-        ControllerBase::kernel_id_t const kernel_id ) SIXTRL_NOEXCEPT
-    {
-        using kernel_conf_base_t = ControllerBase::kernel_config_base_t;
-
-        kernel_conf_base_t* ptr_kernel_conf_base =
-            this->ptrKernelConfigBase( kernel_id );
-
-        if( ptr_kernel_conf_base != nullptr )
-        {
-            SIXTRL_ASSERT( kernel_id < this->m_kernel_configs.size() );
-            SIXTRL_ASSERT( this->m_num_kernels >
-                           ControllerBase::size_type{ 0 } );
-
-            this->m_kernel_configs[ kernel_id ].reset( nullptr );
-            --this->m_num_kernels;
-        }
-
-        return;
     }
 }
 

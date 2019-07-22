@@ -16,6 +16,7 @@
         #include <mutex>
         #include <stdexcept>
         #include <set>
+        #include <sstream>
         #include <vector>
         #include <utility>
 #endif /* !defined( SIXTRKL_NO_SYSTEM_INCLUDES ) */
@@ -593,6 +594,7 @@ namespace SIXTRL_CXX_NAMESPACE
         _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( (  controller.archId() != _this_t::ARCH_ILLEGAL ) &&
+            (  controller.ptrNodeStore() == this ) &&
             (  this->hasArchitecture( lock, controller.archId() ) ) &&
             ( !this->hasController( lock, controller ) ) &&
             ( this->checkLock( lock ) ) )
@@ -603,6 +605,9 @@ namespace SIXTRL_CXX_NAMESPACE
             if( ( arch_it != this->m_arch_to_ctrls.end() ) &&
                 ( ctrl_it == this->m_ctrl_to_node_indices.end() ) )
             {
+                _this_t::size_type const num_ctrls_for_arch =
+                    this->numControllers( lock, controller.archId() );
+
                 auto res1 = arch_it->second.insert( &controller );
                 auto res2 = this->m_ctrl_to_node_indices.emplace(
                     std::make_pair( &controller, NodeStore::nindices_set_t{} ) );
@@ -610,6 +615,17 @@ namespace SIXTRL_CXX_NAMESPACE
                 if( ( res1.second ) && ( res2.second ) )
                 {
                     status = st::ARCH_STATUS_SUCCESS;
+                }
+
+                if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+                    ( !controller.hasName() ) &&
+                    (  controller.hasArchStr() ) )
+                {
+                    std::ostringstream a2str;
+                    a2str << controller.archStr() << "Controller"
+                          << num_ctrls_for_arch;
+
+                    controller.setName( a2str.str() );
                 }
             }
         }
@@ -702,12 +718,21 @@ namespace SIXTRL_CXX_NAMESPACE
     NodeStore::node_index_t NodeStore::findNodeIndex(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::arch_id_t const arch_id,
-        char const* SIXTRL_RESTRICT str ) const SIXTRL_NOEXCEPT
+        char const* SIXTRL_RESTRICT str,
+        NodeStore::node_str_role_t const str_role ) const SIXTRL_NOEXCEPT
     {
-        NodeStore::node_index_t found_index = NodeStore::UNDEFINED_INDEX;
+        using format_t = st::node_id_str_fmt_t;
+        using index_t = NodeStore::node_index_t;
+        using node_id_t = NodeStore::node_id_t;
 
-        if( ( str != nullptr ) && ( std::strlen( str ) > 0u ) &&
-            ( this->checkLock( lock ) ) )
+        found_index = NodeStore::UNDEFINED_INDEX;
+
+        if( !this->checkLock( lock ) )
+        {
+            return found_index;
+        }
+
+        if( str_role == st::NODE_STR_ROLE_ID )
         {
             format_t const format = node_id_t::IdentifyFormat( str );
 
@@ -716,7 +741,9 @@ namespace SIXTRL_CXX_NAMESPACE
             {
                 node_id_t node_id( str );
 
-                if( node_id.valid() )
+                if( ( node_id.valid() ) &&
+                    ( ( node_id.archId() == arch_id ) ||
+                      ( arch_id == st::ARCHITECTURE_ILLEGAL ) ) )
                 {
                     found_index = this->findNodeIndex( node_id );
                 }
@@ -733,54 +760,60 @@ namespace SIXTRL_CXX_NAMESPACE
                     found_index = this->findNodeIndex( node_id );
                 }
             }
+        }
+        else if( ( str_role == st::NODE_STR_ROLE_UNIQUE_ID ) &&
+                 ( str != nullptr ) && ( std::strlen( str ) > 0u ) )
+        {
+            auto it  = this->m_stored_node_infos.begin();
+            auto end = this->m_stored_node_infos.end();
+            auto found_node = end;
 
-            if( found_index == node_id_t::UNDEFINED_INDEX )
+            index_t index = index_t{ 0 };
+            index_t num_found_nodes = index_t{ 0 };
+
+            for( ; it != end ; ++it, ++index )
             {
-                auto it  = this->m_stored_node_infos.begin();
-                auto end = this->m_stored_node_infos.end();
-                auto found_node = end;
+                SIXTRL_ASSERT( it->get() != nullptr );
 
-                index_t index = index_t{ 0 };
-                index_t num_found_nodes = index_t{ 0 };
-
-                for( ; it != end ; ++it, ++index )
+                if( ( ( *it )->hasUniqueIdStr() ) &&
+                    ( ( *it )->uniqueIdStr().compare( str ) == 0 ) )
                 {
-                    SIXTRL_ASSERT( it->get() != nullptr );
-
-                    if( ( ( *it )->hasUniqueIdStr() ) &&
-                        ( ( *it )->uniqueIdStr().compare( str ) == 0 ) )
+                    if( arch_id != st::ARCHITECTURE_ILLEGAL )
                     {
-                        if( arch_id != st::ARCHITECTURE_ILLEGAL )
-                        {
-                            if( arch_id == ( *it )->archId() )
-                            {
-                                found_node = it;
-                                found_index = index;
-                                break;
-                            }
-                        }
-                        else if( found_node == end )
+                        if( arch_id == ( *it )->archId() )
                         {
                             found_node = it;
+                            found_index = index;
+                            break;
                         }
-
-                        ++num_found_nodes;
                     }
-                }
+                    else if( found_node == end )
+                    {
+                        found_node = it;
+                    }
 
-                if( ( found_index == node_id_t::UNDEFINED_INDEX ) &&
-                    ( found_node != end ) &&
-                    ( arch_id == st::ARCHITECTURE_ILLEGAL ) &&
-                    ( num_found_nodes == index_t{ 1 } ) )
-                {
-                    found_index = static_cast< index_t >(
-                        std::distance( this->storedNodeInfoBegin( lock ),
-                                       found_node ) );
+                    ++num_found_nodes;
                 }
+            }
+
+            if( ( found_index == node_id_t::UNDEFINED_INDEX ) &&
+                ( found_node != end ) &&
+                ( arch_id == st::ARCHITECTURE_ILLEGAL ) &&
+                ( num_found_nodes == index_t{ 1 } ) )
+            {
+                found_index = static_cast< index_t >( std::distance(
+                    this->storedNodeInfoBegin( lock ), found_node ) );
             }
         }
 
         return found_index;
+    }
+
+    NodeStore::node_index_t NodeStore::findNodeIndexByUniqueId(
+        NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
+        char const* SIXTRL_RESTRICT unique_id_str ) const SIXTRL_NOEXCEPT
+    {
+
     }
 
     /* -------------------------------------------------------------------- */
@@ -1345,6 +1378,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         if( ( this->checkLock( lock ) ) &&
             ( ptr_node_info.get() != nullptr ) &&
+            ( ( ptr_node_info->ptrNodeStore() == nullptr ) ||
+              ( ptr_node_info->ptrNodeStore() == this ) ) &&
             ( ptr_node_info.archId() != node_id_t::ARCH_ILLEGAL ) &&
             ( ptr_node_info->deviceId() == node_id_t::ILLEGAL_DEVICE_ID ) )
         {
@@ -1436,6 +1471,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 if( status == st::ARCH_STATUS_SUCCESS )
                 {
+                    status = ptr_node_info->assignToNodeStore( *this );
+                }
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    SIXTRL_ASSERT( ptr_node_info->ptrNodeStore() == this );
                     this->m_stored_node_infos.emplace_back(
                         std::move( ptr_node_info ) );
                 }

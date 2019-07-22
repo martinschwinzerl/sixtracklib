@@ -20,6 +20,35 @@ void NS(NodeInfo_delete)( ::NS(NodeInfoBase)* SIXTRL_RESTRICT node_info )
 
 /* ------------------------------------------------------------------------- */
 
+bool NS(NodeInfo_has_node_store)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
+{
+    return ( ( info != nullptr ) && ( info->hasNodeStore() ) );
+}
+
+::NS(NodeStore) const* NS(NodeInfo_get_ptr_const_Node_store)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
+{
+    return ( info != nullptr ) ? info->ptrNodeStore() : nullptr;
+}
+
+::NS(NodeStore)* NS(NodeInfo_get_ptr_node_store)(
+    ::NS(NodeInfoBase)* SIXTRL_RESTRICT info )
+{
+    return ( info != nullptr ) ? info->ptrNodeStore() : nullptr;
+}
+
+::NS(arch_status_t) NS(NodeInfo_assign_to_node_store)(
+    ::NS(NodeInfoBase)* SIXTRL_RESTRICT info,
+    ::NS(NodeStore)* SIXTRL_RESTRICT store )
+{
+    return ( ( store != nullptr ) && ( info != nullptr ) )
+        ? info->assignToNodeStore( *store )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+/* ------------------------------------------------------------------------- */
+
 ::NS(NodeId) const* NS(NodeInfo_get_ptr_const_node_id)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
 {

@@ -12,14 +12,10 @@
 namespace st = SIXTRL_CXX_NAMESPACE;
 
 SIXTRL_ARGPTR_DEC ::NS(ArchInfo)* NS(ArchInfo_preset)(
-    SIXTRL_ARGPTR_DEC ::NS(ArchInfo)* SIXTRL_RESTRICT arch_info )
+    SIXTRL_ARGPTR_DEC ::NS(ArchInfo)* SIXTRL_RESTRICT info )
 {
-    if( arch_info != nullptr )
-    {
-        arch_info->reset();
-    }
-
-    return arch_info;
+    if( info != nullptr ) info->reset();
+    return info;
 }
 
 SIXTRL_ARGPTR_DEC NS(ArchInfo)* NS(ArchInfo_create)()
@@ -27,23 +23,22 @@ SIXTRL_ARGPTR_DEC NS(ArchInfo)* NS(ArchInfo_create)()
     return new st::ArchInfo;
 }
 
-SIXTRL_ARGPTR_DEC NS(ArchInfo)* NS(ArchInfo_new)(
-    NS(arch_id_t) const arch_id, char const* SIXTRL_RESTRICT arch_str )
+SIXTRL_ARGPTR_DEC NS(ArchInfo)* NS(ArchInfo_new)( NS(arch_id_t) const arch_id )
 {
-    return new st::ArchInfo( arch_id, arch_str );
+    return new st::ArchInfo( arch_id );
 }
 
-void NS(ArchInfo_delete)(
-    SIXTRL_ARGPTR_DEC NS(ArchInfo)* SIXTRL_RESTRICT arch_info )
+void NS(ArchInfo_delete)( SIXTRL_ARGPTR_DEC NS(ArchInfo)* SIXTRL_RESTRICT info )
 {
-    delete arch_info;
+    delete info;
 }
+
+/* ------------------------------------------------------------------------- */
 
 ::NS(arch_id_t) NS(ArchInfo_get_arch_id)(
-    SIXTRL_ARGPTR_DEC const ::NS(ArchInfo) *const SIXTRL_RESTRICT arch_info )
+    SIXTRL_ARGPTR_DEC const ::NS(ArchInfo) *const SIXTRL_RESTRICT info )
 {
-    return ( arch_info != nullptr )
-        ? arch_info->archId() : st::ArchInfo::ILLEGAL_ARCH;
+    return ( info != nullptr ) ? info->archId() : st::ArchInfo::ILLEGAL_ARCH;
 }
 
 bool NS(ArchInfo_has_arch_string)(
@@ -90,73 +85,40 @@ bool NS(ArchInfo_is_identical_to_arch_id)(
              ( arch_info->isArchIdenticalTo( other_arch_id ) ) );
 }
 
-void NS(ArchInfo_reset)(
+::NS(arch_status_t) NS(ArchInfo_reset)(
     SIXTRL_ARGPTR_DEC ::NS(ArchInfo)* SIXTRL_RESTRICT arch_info,
-    ::NS(arch_id_t) const arch_id, char const* SIXTRL_RESTRICT arch_str )
+    ::NS(arch_id_t) const arch_id )
 {
+    ::NS(arch_status_t) status = st::ARCH_STATUS_GENERAL_FAILURE;
+
     if( arch_info != nullptr )
     {
-        arch_info->reset( arch_id, arch_str );
+        status = arch_info->reset( arch_id );
     }
+
+    return status;
 }
 
-void NS(ArchInfo_reset_to_initial_values)(
+::NS(arch_status_t) NS(ArchInfo_reset_to_initial_values)(
     SIXTRL_ARGPTR_DEC ::NS(ArchInfo)* SIXTRL_RESTRICT arch_info )
 {
+    ::NS(arch_status_t) status = st::ARCH_STATUS_GENERAL_FAILURE;
+
     if( arch_info != nullptr )
     {
-        arch_info->reset();
+        status = arch_info->reset();
     }
+
+    return status;
 }
 
 /* ------------------------------------------------------------------------ */
 
-
-NS(ctrl_status_t) NS(ArchInfo_sanitize_arch_str_inplace)(
+NS(arch_status_t) NS(ArchInfo_sanitize_arch_str)(
     char* SIXTRL_RESTRICT arch_str,
     ::NS(buffer_size_t) const arch_str_capacity )
 {
-     NS(ctrl_status_t) success = ::NS(ARCH_STATUS_GENERAL_FAILURE);
-
-    if( ( arch_str != nullptr ) &&
-        ( std::strlen( arch_str ) < arch_str_capacity ) )
-    {
-        std::string const str = st::ArchInfo_sanitize_arch_str( arch_str );
-
-        if( ( !str.empty() ) && ( str.size() < arch_str_capacity ) )
-        {
-            std::memset( arch_str, ( int )'\0', arch_str_capacity );
-            std::strncpy( arch_str, str.c_str(), str.size() );
-            success = ::NS(ARCH_STATUS_SUCCESS);
-        }
-    }
-
-    return success;
-}
-
-NS(ctrl_status_t) NS(ArchInfo_sanitize_arch_str)(
-    const char *const SIXTRL_RESTRICT arch_str,
-    char* SIXTRL_RESTRICT sanarch_str,
-    ::NS(buffer_size_t) const sanarch_str_capacity )
-{
-    using buf_size_t = ::NS(buffer_size_t);
-
-    NS(ctrl_status_t) success = ::NS(ARCH_STATUS_GENERAL_FAILURE);
-
-    if( ( arch_str != nullptr ) && ( sanarch_str != nullptr ) &&
-        ( sanarch_str_capacity > buf_size_t{ 1 } ) )
-    {
-        std::string const str = st::ArchInfo_sanitize_arch_str( arch_str );
-
-        if( ( !str.empty() ) && ( str.size() <= sanarch_str_capacity ) )
-        {
-            std::memset( sanarch_str, ( int )'\0', sanarch_str_capacity );
-            std::strncpy( sanarch_str, str.c_str(), str.size() );
-            success = ::NS(ARCH_STATUS_SUCCESS);
-        }
-    }
-
-    return success;
+    return st::ArchInfo_sanitize_arch_str( arch_str, arch_str_capacity );
 }
 
 /* end: sixtracklib/common/control/arch_info_c99.cpp */

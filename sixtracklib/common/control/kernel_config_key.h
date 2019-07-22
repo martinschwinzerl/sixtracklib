@@ -11,31 +11,69 @@
 extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
-typedef struct NS(KernelConfigKey)
-{
-    NS(node_id_t)           node_id         SIXTRL_ALIGN( 8 );
-    NS(kernel_purpose_t)    kernel_purpose  SIXTRL_ALIGN( 8 );
-    NS(kernel_variant_t)    kernel_variant  SIXTRL_ALIGN( 8 );
-}
-NS(KernelConfigKey);
-
 #if !defined( _GPUCODE )
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelConfigKey)* NS(KernelConfigKey_preset)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelConfigKey)* NS(KernelConfigKey_new)(
+    NS(node_id_t) const arch_id,
+    NS(kernel_purpose_t) const purpose,
+    NS(arch_variant_t) const variant,
+    char const* SIXTRL_RESTRICT config_str );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelConfigKey)*
+NS(KernelConfigKey_new_detailed)(
+    NS(arch_id_t) const arch_id,
+    NS(kernel_purpose_t) const purpose,
+    NS(arch_variant_t) const variant,
+    char const* SIXTRL_RESTRICT config_str,
+    NS(node_platform_id_t) const platform_id,
+    NS(node_device_id_t) const device_id );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfigKey_delete)(
     NS(KernelConfigKey)* SIXTRL_RESTRICT key );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelConfigKey_init)(
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_id_t) NS(KernelConfigKey_get_arch_id)(
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(kernel_purpose_t)
+NS(KernelConfigKey_get_purpose)(
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfigKey_set_purpose)(
     NS(KernelConfigKey)* SIXTRL_RESTRICT key,
-    const NS(NodeId) *const SIXTRL_RESTRICT node,
-    NS(kernel_purpose_t) const purpose,
-    NS(Kernel_variant_t) const variant );
+    NS(kernel_purpose_t) const purpose );
 
-
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigKey_is_valid)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_variant_t)
+NS(KernelConfigKey_get_variant)(
     const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
 
-SIXTRL_EXTRRN SIXTRL_HOST_FN NS(arch_id_t) NS(KernelConfigKey_get_arch_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfigKey_set_variant)(
+    NS(KernelConfigKey)* SIXTRL_RESTRICT key,
+    NS(arch_variant_t) const variant );
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigKey_has_config_str)(
     const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN char const* NS(KernelConfigKey_config_str)(
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfigKey_set_config_str)(
+    NS(KernelConfigKey)* SIXTRL_RESTRICT key,
+    char const* SIXTRL_RESTRICT config_str );
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigKey_has_node_id)(
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_id_t) const*
+NS(KernelConfigKey_get_node_id)(
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
+
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_platform_id_t)
 NS(KernelConfigKey_get_platform_id)(
@@ -45,19 +83,16 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_device_id_t)
 NS(KernelConfigKey_get_device_id)(
     const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigKey_is_smaller_than)(
-    const NS(KernelConfigKey) *const SIXTRL_RESTRICT lhs,
-    const NS(KernelConfigKey) *const SIXTRL_RESTRICT rhs );
+/* ------------------------------------------------------------------------- */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigKey_are_equal)(
-    const NS(KernelConfigKey) *const SIXTRL_RESTRICT lhs,
-    const NS(KernelConfigKey) *const SIXTRL_RESTRICT rhs );
+SIXTRL_EXTERN SIXTRL_HOST_FN bool operator<( KernelConfigKey const&
+            SIXTRL_RESTRICT_REF rhs ) const SIXTRL_NOEXCEPT;
 
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(KernelConfigKey_compare)(
-    const NS(KernelConfigKey) *const SIXTRL_RESTRICT lhs,
-    const NS(KernelConfigKey) *const SIXTRL_RESTRICT rhs );
+SIXTRL_EXTERN SIXTRL_HOST_FN bool operator==( KernelConfigKey const&
+            SIXTRL_RESTRICT_REF rhs ) const SIXTRL_NOEXCEPT;
 
-#endif /* !defined( _GPUCODE ) */
+SIXTRL_EXTERN SIXTRL_HOST_FN int compare( KernelConfigKey const&
+            SIXTRL_RESTRICT_REF rhs ) const SIXTRL_NOEXCEPT;
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }

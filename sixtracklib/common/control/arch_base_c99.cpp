@@ -8,13 +8,13 @@
 #include "sixtracklib/common/control/arch_base.hpp"
 
 bool NS(ArchBase_has_config_str)(
-    SIXTRL_ARGPTR_DEC const NS(ArchBase) *const SIXTRL_RESTRICT arch_base )
+    SIXTRL_ARGPTR_DEC const ::NS(ArchBase) *const SIXTRL_RESTRICT arch_base )
 {
     return ( ( arch_base != nullptr ) && ( arch_base->hasConfigStr() ) );
 }
 
 char const* NS(ArchBase_get_config_string)(
-    SIXTRL_ARGPTR_DEC const NS(ArchBase) *const SIXTRL_RESTRICT arch_base )
+    SIXTRL_ARGPTR_DEC const ::NS(ArchBase) *const SIXTRL_RESTRICT arch_base )
 {
     return ( arch_base != nullptr ) ? arch_base->ptrConfigStr() : nullptr;
 }

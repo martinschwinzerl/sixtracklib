@@ -41,15 +41,7 @@ namespace SIXTRL_CXX_NAMESPACE
         static SIXTRL_CONSTEXPR_OR_CONST variant_t VARIANT_DEBUG =
             SIXTRL_CXX_NAMESPACE::ARCH_VARIANT_DEBUG;
 
-        template< typename Args... >
-        SIXTRL_HOST_FN explicit ArchVariantMixin( Args&&... args ) :
-            Base( std::forward< Args >( args )... ),
-            m_variant_flags( DEFAULT_VARIANT )
-        {
-
-        }
-
-        template< typename Args... >
+        template< typename... Args >
         SIXTRL_HOST_FN explicit ArchVariantMixin(
             variant_t const variant_flags, Args&&... args ) :
             Base( std::forward< Args >( args )... ),
@@ -137,7 +129,6 @@ namespace SIXTRL_CXX_NAMESPACE
             variant_t const add_these_flags ) SIXTRL_NOEXCEPT
         {
             using _this_t = SIXTRL_CXX_NAMESPACE::ArchVariantMixin< Base >;
-            status_t status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
             variant_t const current_variant = this->m_variant_flags;
 
             this->m_variant_flags = _this_t::AddVariantFlags(
@@ -152,7 +143,6 @@ namespace SIXTRL_CXX_NAMESPACE
             variant_t const remove_these_flags ) SIXTRL_NOEXCEPT
         {
             using _this_t = SIXTRL_CXX_NAMESPACE::ArchVariantMixin< Base >;
-            status_t status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
             variant_t const current_variant = this->m_variant_flags;
 
             this->m_variant_flags = _this_t::RemoveVariantFlags(
