@@ -137,10 +137,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN virtual void doClearController();
         SIXTRL_HOST_FN virtual void doClearDefaultKernels();
-        
+
         SIXTRL_HOST_FN virtual status_t doClearParticleAddresses(
             size_type const index ) override;
-            
+
         SIXTRL_HOST_FN virtual status_t doClearAllParticleAddresses() override;
 
         SIXTRL_HOST_FN virtual void doClear(
@@ -149,8 +149,8 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN virtual collect_flag_t doCollect(
             collect_flag_t const flags ) override;
 
-        SIXTRL_HOST_FN virtual status_t doSwitchDebugMode(
-            bool const is_in_debug_mode ) override;
+        SIXTRL_HOST_FN virtual status_t doChangeVariantFlags(
+            variant_t const new_variant_flags ) override;
 
         SIXTRL_HOST_FN virtual status_t doSetDebugRegister(
             debug_register_t const debug_register ) override;

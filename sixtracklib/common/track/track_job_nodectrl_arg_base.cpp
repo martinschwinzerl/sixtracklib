@@ -27,8 +27,10 @@ namespace SIXTRL_CXX_NAMESPACE
     TrackJobNodeCtrlArgBase::TrackJobNodeCtrlArgBase(
         TrackJobNodeCtrlArgBase::arch_id_t const arch_id,
         char const* SIXTRL_RESTRICT arch_str,
+        TrackJobNodeCtrlArgBase::node_store_t& SIXTRL_RESTRICT_REF node_store,
         char const* SIXTRL_RESTRICT config_str ) :
-        st::TrackJobCtrlArgBase( arch_id, arch_str, config_str )
+        st::TrackJobCtrlArgBase( arch_id, arch_str, config_str ),
+        m_node_store( node_store )
     {
         this->doSetUsesControllerFlag( true );
         this->doSetUsesArgumentsFlag( true );
@@ -80,7 +82,6 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     _this_t::status_t  _this_t::doChangeSelectedNodeOnController(
-        _this_t::node_index_t const currently_selected_index,
         _this_t::node_index_t const new_selected_node_index )
     {
         using node_ctrl_t = _this_t::node_controller_base_t;
@@ -88,8 +89,7 @@ namespace SIXTRL_CXX_NAMESPACE
         node_ctrl_t* ptr_node_ctrl = this->ptrNodeControllerBase();
 
         return ( ptr_node_ctrl != nullptr )
-            ? ptr_node_ctrl->changeSelectedNode( currently_selected_index,
-                    new_selected_node_index )
+            ? ptr_node_ctrl->changeSelectedNode( new_selected_node_index )
             : st::ARCH_STATUS_GENERAL_FAILURE;
     }
 }

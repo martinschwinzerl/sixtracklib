@@ -16,6 +16,7 @@
     #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/control/controller_base.hpp"
     #include "sixtracklib/common/control/node_controller_base.hpp"
+    #include "sixtracklib/common/control/node_store.hpp"
     #include "sixtracklib/common/control/argument_base.hpp"
     #include "sixtracklib/common/track/definitions.h"
     #include "sixtracklib/common/track/track_job_base.hpp"
@@ -49,6 +50,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         using kernel_id_t           = controller_base_t::kernel_id_t;
         using kernel_config_base_t  = controller_base_t::kernel_config_base_t;
+        using node_store_t          = node_controller_base_t::node_store_t;
 
         SIXTRL_HOST_FN virtual ~TrackJobNodeCtrlArgBase() = default;
 
@@ -59,6 +61,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN bool hasSelectedNode() const SIXTRL_NOEXCEPT;
 
+        /* ================================================================ */
+
+        SIXTRL_HOST_FN node_store_t const& nodeStore() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_store_t const* ptrNodeStore() const SIXTRL_NOEXCEPT;
+
         protected:
 
         using stored_node_ctrl_base_t =
@@ -68,6 +75,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN TrackJobNodeCtrlArgBase(
             arch_id_t const arch_id, char const* SIXTRL_RESTRICT arch_str,
+            node_store_t& SIXTRL_RESTRICT_REF node_store,
             char const* SIXTRL_RESTRICT config_str = nullptr );
 
         SIXTRL_HOST_FN TrackJobNodeCtrlArgBase(
@@ -84,6 +92,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
+        SIXTRL_HOST_FN node_store_t& nodeStore() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_store_t* ptrNodeStore() SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
         SIXTRL_HOST_FN node_controller_base_t*
             ptrNodeControllerBase() SIXTRL_NOEXCEPT;
 
@@ -94,12 +107,55 @@ namespace SIXTRL_CXX_NAMESPACE
             node_index_t const selected_node_index );
 
         SIXTRL_HOST_FN status_t doChangeSelectedNodeOnController(
-            node_index_t const currently_selected_node_index,
             node_index_t const new_selected_node_index );
+
+        private:
+
+        node_store_t&   m_node_store;
     };
 }
 
+extern "C" {
+
+typedef SIXTRL_CXX_NAMESPACE::TrackJobNodeCtrlArgBase
+        NS(TrackJobNodeCtrlArgBase);
+
+}
+
 #else /* C++, Host */
+
+typedef void NS(TrackJobNodeCtrlArgBase);
+
+#endif /* C++, Host */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+
+namespace SIXTRL_CXX_NAMESPACE
+{
+    SIXTRL_INLINE TrackJobNodeCtrlArgBase::node_store_t const&
+    TrackJobNodeCtrlArgBase::nodeStore() const SIXTRL_NOEXCEPT
+    {
+        return this->m_node_store;
+    }
+
+    SIXTRL_INLINE TrackJobNodeCtrlArgBase::node_store_t const*
+    TrackJobNodeCtrlArgBase::ptrNodeStore() const SIXTRL_NOEXCEPT
+    {
+        return &this->m_node_store;
+    }
+
+    SIXTRL_INLINE TrackJobNodeCtrlArgBase::node_store_t&
+    TrackJobNodeCtrlArgBase::nodeStore() SIXTRL_NOEXCEPT
+    {
+        return this->m_node_store;
+    }
+
+    SIXTRL_INLINE TrackJobNodeCtrlArgBase::node_store_t*
+    TrackJobNodeCtrlArgBase::ptrNodeStore() SIXTRL_NOEXCEPT
+    {
+        return &this->m_node_store;
+    }
+}
 
 #endif /* C++, Host */
 

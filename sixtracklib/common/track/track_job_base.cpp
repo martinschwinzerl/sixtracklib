@@ -13,6 +13,7 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/architecture/architecture.hpp"
     #include "sixtracklib/common/be_monitor/be_monitor.h"
     #include "sixtracklib/common/be_monitor/output_buffer.h"
     #include "sixtracklib/common/beam_elements.h"
@@ -25,7 +26,6 @@
     #include "sixtracklib/common/output/output_buffer.h"
     #include "sixtracklib/common/output/elem_by_elem_config.h"
     #include "sixtracklib/common/control/definitions.h"
-    #include "sixtracklib/common/control/node_id.hpp"
     #include "sixtracklib/common/control/arch_info.hpp"
     #include "sixtracklib/common/control/arch_base.hpp"
     #include "sixtracklib/common/track/definitions.h"
@@ -1053,9 +1053,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     TrackJobBaseNew::TrackJobBaseNew(
         TrackJobBaseNew::arch_id_t const arch_id,
-        char const* SIXTRL_RESTRICT arch_str,
         char const* SIXTRL_RESTRICT config_str ) :
-        st::ArchDebugBase( arch_id, arch_str, config_str ),
+        st::ArchDebugBase( arch_id, config_str ),
         m_particle_set_indices(),
         m_particle_set_begin_offsets(),
         m_particle_set_end_offsets(),
@@ -2025,7 +2024,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ::NS(OutputBuffer_required_for_tracking_of_particle_sets)(
                 particles_buffer, this->numParticleSets(),
                     this->particleSetIndicesBegin(), beam_elem_buffer,
-                        until_turn_elem_by_elem );
+                        until_turn_elem_by_elem, nullptr );
 
             bool const requires_output_buffer =
                 ::NS(OutputBuffer_requires_output_buffer)( out_buffer_flags );
@@ -2081,7 +2080,8 @@ namespace SIXTRL_CXX_NAMESPACE
             ::NS(OutputBuffer_required_for_tracking_of_particle_sets)(
             this->ptrCParticlesBuffer(), this->numParticleSets(),
                 this->particleSetIndicesBegin(),
-                this->ptrCBeamElementsBuffer(), this->numElemByElemTurns() );
+                this->ptrCBeamElementsBuffer(), this->numElemByElemTurns(),
+                    nullptr );
 
         bool const requires_output_buffer =
             ::NS(OutputBuffer_requires_output_buffer)( flags );
@@ -2577,8 +2577,10 @@ namespace SIXTRL_CXX_NAMESPACE
         char const* SIXTRL_RESTRICT arch_str,
         char const* SIXTRL_RESTRICT config_str )
     {
-        return st::TrackJobNew_create(
-            st::ArchInfo_arch_string_to_arch_id( arch_str ), config_str );
+        st::TrackJobBaseNew::arch_id_t const arch_id =
+            st::Architectures_get_const().archId( arch_str );
+
+        return st::TrackJobNew_create( arch_id, config_str );
     }
 
     TrackJobBaseNew* TrackJobNew_new(
@@ -2587,8 +2589,10 @@ namespace SIXTRL_CXX_NAMESPACE
         ::NS(Buffer)* SIXTRL_RESTRICT belements_buffer,
         char const* SIXTRL_RESTRICT config_str )
     {
-        return st::TrackJobNew_new(
-            st::ArchInfo_arch_string_to_arch_id( arch_str ), particles_buffer,
+        st::TrackJobBaseNew::arch_id_t const arch_id =
+            st::Architectures_get_const().archId( arch_str );
+
+        return st::TrackJobNew_new( arch_id, particles_buffer,
                 belements_buffer, config_str );
     }
 
@@ -2621,8 +2625,10 @@ namespace SIXTRL_CXX_NAMESPACE
         ::NS(buffer_size_t) const until_turn_elem_by_elem,
         char const* SIXTRL_RESTRICT config_str )
     {
-        return st::TrackJobNew_new(
-            st::ArchInfo_arch_string_to_arch_id( arch_str ), particles_buffer,
+        st::TrackJobBaseNew::arch_id_t const arch_id =
+            st::Architectures_get_const().archId( arch_str );
+
+        return st::TrackJobNew_new( arch_id, particles_buffer,
                 belements_buffer, output_buffer, until_turn_elem_by_elem,
                     config_str );
     }
@@ -2661,8 +2667,10 @@ namespace SIXTRL_CXX_NAMESPACE
         ::NS(buffer_size_t) const until_turn_elem_by_elem,
         char const* SIXTRL_RESTRICT config_str )
     {
-        return st::TrackJobNew_new(
-            st::ArchInfo_arch_string_to_arch_id( arch_str ), particles_buffer,
+        st::TrackJobBaseNew::arch_id_t const arch_id =
+            st::Architectures_get_const().archId( arch_str );
+
+        return st::TrackJobNew_new( arch_id, particles_buffer,
                 num_psets, pset_indices_begin, belements_buffer,
                     output_buffer, until_turn_elem_by_elem, config_str );
     }
@@ -2707,8 +2715,10 @@ namespace SIXTRL_CXX_NAMESPACE
         std::string const& SIXTRL_RESTRICT_REF arch_str,
         std::string const& SIXTRL_RESTRICT_REF conf_str )
     {
-        return st::TrackJobNew_create(
-            st::ArchInfo_arch_string_to_arch_id( arch_str ), conf_str.c_str());
+        st::TrackJobBaseNew::arch_id_t const arch_id =
+            st::Architectures_get_const().archId( arch_str );
+
+        return st::TrackJobNew_create( arch_id, conf_str.c_str());
     }
 
     TrackJobBaseNew* TrackJobNew_new(
@@ -2738,8 +2748,10 @@ namespace SIXTRL_CXX_NAMESPACE
         Buffer& SIXTRL_RESTRICT_REF belements_buffer,
         std::string const& SIXTRL_RESTRICT_REF config_str )
     {
-        return st::TrackJobNew_new(
-            st::ArchInfo_arch_string_to_arch_id( arch_str ), particles_buffer,
+        st::TrackJobBaseNew::arch_id_t const arch_id =
+            st::Architectures_get_const().archId( arch_str );
+
+        return st::TrackJobNew_new( arch_id, particles_buffer,
                 belements_buffer, config_str );
     }
 
@@ -2777,8 +2789,10 @@ namespace SIXTRL_CXX_NAMESPACE
         Buffer::size_type const until_turn_elem_by_elem,
         std::string const& SIXTRL_RESTRICT_REF config_str )
     {
-        return st::TrackJobNew_new(
-            st::ArchInfo_arch_string_to_arch_id( arch_str ), particles_buffer,
+        st::TrackJobBaseNew::arch_id_t const arch_id =
+            st::Architectures_get_const().archId( arch_str );
+
+        return st::TrackJobNew_new( arch_id, particles_buffer,
                 num_psets, pset_indices_begin, belements_buffer, output_buffer,
                     until_turn_elem_by_elem, config_str );
     }

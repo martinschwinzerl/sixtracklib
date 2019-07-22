@@ -25,6 +25,8 @@
     #include "sixtracklib/common/track/definitions.h"
 
     #if defined( __cplusplus )
+        #include "sixtracklib/common/architecture/definitions.h"
+        #include "sixtracklib/common/architecture/architecture.hpp"
         #include "sixtracklib/common/buffer.hpp"
         #include "sixtracklib/common/particles/particles_addr.hpp"
     #endif /* defined( __cplusplus ) */
@@ -416,7 +418,6 @@ namespace SIXTRL_CXX_NAMESPACE
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN TrackJobBaseNew( arch_id_t const arch_id,
-            char const* SIXTRL_RESTRICT arch_str,
             char const* SIXTRL_RESTRICT config_str );
 
         SIXTRL_HOST_FN TrackJobBaseNew( TrackJobBaseNew const& other );
@@ -755,7 +756,7 @@ namespace SIXTRL_CXX_NAMESPACE
         char const* SIXTRL_RESTRICT config_str );
 
     SIXTRL_HOST_FN TrackJobBaseNew* TrackJobNew_new(
-        ::NS(arch_id_t) const SIXTRL_RESTRICT arch_str,
+        ::NS(arch_id_t) const arch_id,
         ::NS(Buffer)* SIXTRL_RESTRICT particles_buffer,
         ::NS(buffer_size_t) const num_particle_sets,
         ::NS(buffer_size_t) const* SIXTRL_RESTRICT particle_set_indices_begin,
@@ -1182,8 +1183,10 @@ namespace SIXTRL_CXX_NAMESPACE
         Buffer::size_type const until_turn_elem_by_elem,
         std::string const& SIXTRL_RESTRICT_REF config_str )
     {
-        return SIXTRL_CXX_NAMESPACE::TrackJobNew_new(
-            SIXTRL_CXX_NAMESPACE::ArchInfo_arch_string_to_arch_id( arch_str ),
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
+        return st::TrackJobNew_new(
+            st::Architectures_get_const().archId( arch_str ),
                 pbuffer, pset_indices_begin, pset_indices_end, belements_buffer,
                     output_buffer, until_turn_elem_by_elem, config_str );
     }
@@ -1223,8 +1226,10 @@ namespace SIXTRL_CXX_NAMESPACE
         ::NS(buffer_size_t) const until_turn_elem_by_elem,
         char const* SIXTRL_RESTRICT config_str )
     {
-        return SIXTRL_CXX_NAMESPACE::TrackJobNew_new(
-            SIXTRL_CXX_NAMESPACE::ArchInfo_arch_string_to_arch_id( arch_str ),
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
+        return st::TrackJobNew_new(
+            st::Architectures_get_const().archId( arch_str ),
                 pbuffer, pset_indices_begin, pset_indices_end, belements_buffer,
                     output_buffer, until_turn_elem_by_elem, config_str );
     }
