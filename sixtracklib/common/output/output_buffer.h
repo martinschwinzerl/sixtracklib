@@ -104,7 +104,9 @@ NS(OutputBuffer_required_for_tracking)(
     SIXTRL_PARTICLE_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT p,
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer)
         *const SIXTRL_RESTRICT belems_buffer,
-    NS(buffer_size_t) const until_turn_elem_by_elem );
+    NS(buffer_size_t) const until_turn_elem_by_elem,
+    SIXTRL_ARGPTR_DEC NS(buffer_size_t)*
+        SIXTRL_RESTRICT ptr_num_beam_monitors );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(output_buffer_flag_t)
 NS(OutputBuffer_required_for_tracking_of_particle_sets)(
@@ -113,7 +115,9 @@ NS(OutputBuffer_required_for_tracking_of_particle_sets)(
     SIXTRL_ARGPTR_DEC NS(buffer_size_t) const* SIXTRL_RESTRICT indices_begin,
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const
         SIXTRL_RESTRICT belem_buffer,
-    NS(buffer_size_t) const until_turn_elem_by_elem );
+    NS(buffer_size_t) const until_turn_elem_by_elem,
+    SIXTRL_ARGPTR_DEC NS(buffer_size_t)*
+        SIXTRL_RESTRICT ptr_num_beam_monitors );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(output_buffer_flag_t)
 NS(OutputBuffer_required_for_tracking_detailed)(
@@ -125,7 +129,9 @@ NS(OutputBuffer_required_for_tracking_detailed)(
     NS(particle_index_t) const max_element_id,
     NS(particle_index_t) const min_turn_id,
     NS(particle_index_t) const max_turn_id,
-    NS(buffer_size_t) const until_turn_elem_by_elem );
+    NS(buffer_size_t) const until_turn_elem_by_elem,
+    SIXTRL_ARGPTR_DEC NS(buffer_size_t)*
+        SIXTRL_RESTRICT ptr_num_beam_monitors );
 
 /* ------------------------------------------------------------------------- */
 

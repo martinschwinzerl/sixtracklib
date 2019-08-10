@@ -13,10 +13,7 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
-    #include "sixtracklib/common/control/definitions.h"
-    #include "sixtracklib/common/control/controller_base.h"
     #include "sixtracklib/common/control/node_id.h"
-    #include "sixtracklib/common/control/node_info.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -61,6 +58,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeStore_has_platform_by_name)(
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_platform_id_t)
 NS(NodeStore_get_platform_id_by_platform_name)(
     const NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    NS(arch_id_t) const arch_id,
     char const* SIXTRL_RESTRICT platform_name_str );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t) NS(NodeStore_get_num_platforms)(
@@ -93,7 +91,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeStore_has_controller)(
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_index_t)
 NS(NodeStore_find_node_index_by_node_id)(
     const NS(NodeStore) *const SIXTRL_RESTRICT node_store,
-    const NS(NodeId) *const SIXTRL_RETRICT node_id );
+    const NS(NodeId) *const SIXTRL_RESTRICT node_id );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_index_t)
 NS(NodeStore_find_node_index_by_arch_platform_device_ids)(

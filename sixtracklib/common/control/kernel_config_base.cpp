@@ -19,40 +19,91 @@ namespace st = SIXTRL_CXX_NAMESPACE;
 
 namespace SIXTRL_CXX_NAMESPACE
 {
+    using _conf_t = st::KernelConfigBase;
+
+    constexpr _conf_t::size_type        _conf_t::DEFAULT_NUM_KERNEL_ARGUMENTS;
+    constexpr _conf_t::purpose_t        _conf_t::DEFAULT_KERNEL_PURPOSE;
+    constexpr _conf_t::variant_t        _conf_t::DEFAULT_KERNEL_VARIANT;
+    constexpr _conf_t::argument_set_t   _conf_t::DEFAULT_ARGUMENT_SET;
+    constexpr _conf_t::kernel_set_id_t  _conf_t::ILLEGAL_KERNEL_SET_ID;
+    constexpr _conf_t::size_type _conf_t::DEFAULT_MAX_NUM_ATTACHED_KERNEL_SETS;
+
     KernelConfigBase::KernelConfigBase(
-        KernelConfigBase::arch_id_t const arch_id,
-        char const* SIXTRL_RESTRICT arch_str,
-        KernelConfigBase::size_type const num_kernel_args,
-        KernelConfigBase::purpose_t const purpose,
-        KernelConfigBase::variant_t const variant_flags,
+        _conf_t::arch_id_t const arch_id,
+        _conf_t::size_type const num_kernel_args,
+        _conf_t::purpose_t const purpose,
+        _conf_t::variant_t const variant_flags,
         char const* SIXTRL_RESTRICT kernel_name_str,
         char const* SIXTRL_RESTRICT config_str ) :
-        KernelConfigBase::_arch_base_t(
-            variant_flags, arch_id, arch_str, config_str ),
-        m_name(), m_num_kernel_args( num_kernel_args ),
-        m_kernel_purpose( purpose ),
+        _conf_t::_arch_base_t( variant_flags, arch_id, config_str ),
+        m_name(), m_kernel_set_ids(),
+        m_num_kernel_args( num_kernel_args ),
+        m_max_attached_kernel_ids(
+            _conf_t::DEFAULT_MAX_NUM_ATTACHED_KERNEL_SETS ),
+        m_purpose( purpose ),
+        m_argument_set( _conf_t::DEFAULT_ARGUMENT_SET ),
         m_needs_update( false ),
         m_perform_auto_update( false )
     {
+        this->m_kernel_set_ids.reserve( this->m_max_attached_kernel_ids );
         if( kernel_name_str != nullptr ) this->setName( kernel_name_str );
     }
 
     KernelConfigBase::KernelConfigBase(
-        KernelConfigBase::arch_id_t const arch_id,
-        std::string const& SIXTRL_RESTRICT_REF arch_str,
-        KernelConfigBase::size_type const num_kernel_args,
-        KernelConfigBase::purpose_t const purpose,
-        KernelConfigBase::variant_t const variant_flags,
-        std::string const& SIXTRL_RESTRICT_REF kernel_name,
-        std::string const& SIXTRL_RESTRICT_REF config_str ) :
+        _conf_t::key_t const& SIXTRL_RESTRICT_REF key,
+        _conf_t::size_type const num_kernel_args,
+        char const* SIXTRL_RESTRICT kernel_name_str ) :
         KernelConfigBase::_arch_base_t(
-            variant_flags, arch_id, arch_str, config_str ),
-        m_name( kernel_name ), m_num_kernel_args( num_kernel_args ),
-        m_kernel_purpose( purpose ),
+            key.variant(), key.archId(), key.ptrConfigStr() ),
+        m_name(), m_kernel_set_ids(),
+        m_num_kernel_args( num_kernel_args ),
+        m_max_attached_kernel_ids(
+            _conf_t::DEFAULT_MAX_NUM_ATTACHED_KERNEL_SETS ),
+        m_purpose( key.purpose() ),
+        m_argument_set( key.argumentSet() ),
         m_needs_update( false ),
         m_perform_auto_update( false )
     {
+        this->m_kernel_set_ids.reserve( this->m_max_attached_kernel_ids );
+        if( kernel_name_str != nullptr ) this->setName( kernel_name_str );
+    }
 
+    KernelConfigBase::KernelConfigBase(
+        _conf_t::arch_id_t const arch_id,
+        _conf_t::size_type const num_kernel_args,
+        _conf_t::purpose_t const purpose,
+        _conf_t::variant_t const variant_flags,
+        std::string const& SIXTRL_RESTRICT_REF kernel_name_str,
+        std::string const& SIXTRL_RESTRICT_REF config_str ) :
+        _conf_t::_arch_base_t( variant_flags, arch_id, config_str ),
+        m_name( kernel_name_str ), m_kernel_set_ids(),
+        m_num_kernel_args( num_kernel_args ),
+        m_max_attached_kernel_ids(
+            _conf_t::DEFAULT_MAX_NUM_ATTACHED_KERNEL_SETS ),
+        m_purpose( purpose ),
+        m_argument_set( _conf_t::DEFAULT_ARGUMENT_SET ),
+        m_needs_update( false ),
+        m_perform_auto_update( false )
+    {
+        this->m_kernel_set_ids.reserve( this->m_max_attached_kernel_ids );
+    }
+
+    KernelConfigBase::KernelConfigBase(
+        _conf_t::key_t const& SIXTRL_RESTRICT_REF key,
+        _conf_t::size_type const num_kernel_args,
+        std::string const& SIXTRL_RESTRICT_REF kernel_name_str ) :
+        KernelConfigBase::_arch_base_t(
+            key.variant(), key.archId(), key.ptrConfigStr() ),
+        m_name( kernel_name_str ), m_kernel_set_ids(),
+        m_num_kernel_args( num_kernel_args ),
+        m_max_attached_kernel_ids(
+            _conf_t::DEFAULT_MAX_NUM_ATTACHED_KERNEL_SETS ),
+        m_purpose( key.purpose() ),
+        m_argument_set( key.argumentSet() ),
+        m_needs_update( false ),
+        m_perform_auto_update( false )
+    {
+        this->m_kernel_set_ids.reserve( this->m_max_attached_kernel_ids );
     }
 
     /* --------------------------------------------------------------------- */
@@ -82,7 +133,7 @@ namespace SIXTRL_CXX_NAMESPACE
     /* --------------------------------------------------------------------- */
 
     KernelConfigBase::status_t KernelConfigBase::setNumArguments(
-        KernelConfigBase::size_type const num_kernel_args ) SIXTRL_NOEXCEPT
+        KernelConfigBase::size_type const num_kernel_args )
     {
         KernelConfigBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
@@ -94,6 +145,69 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             this->m_num_kernel_args = num_kernel_args;
             status = this->doSetNeedsUpdate();
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    _conf_t::status_t KernelConfigBase::attachToSet(
+        _conf_t::kernel_set_id_t const kernel_set_id )
+    {
+        _conf_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( kernel_set_id != _conf_t::ILLEGAL_KERNEL_SET_ID ) &&
+            ( this->maxNumAttachedSets() > this->numAttachedSets() ) &&
+            ( !this->isAttachedToSet( kernel_set_id ) ) )
+        {
+            _conf_t::kernel_set_id_t const last =
+                ( this->m_kernel_set_ids.empty() )
+                    ? _conf_t::kernel_set_id_t{ 0 }
+                    : this->m_kernel_set_ids.back();
+
+            this->m_kernel_set_ids.push_back( kernel_set_id );
+
+            if( last > kernel_set_id )
+            {
+                std::sort( this->m_kernel_set_ids.begin(),
+                           this->m_kernel_set_ids.end() );
+            }
+
+            SIXTRL_ASSERT( std::is_sorted( this->m_kernel_set_ids.begin(),
+                this->m_kernel_set_ids.end() ) );
+
+            SIXTRL_ASSERT( this->maxNumAttachedSets() >=
+                           this->numAttachedSets() );
+
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+    }
+
+    _conf_t::status_t KernelConfigBase::detachFromSet(
+            kernel_set_id_t const kernel_set_id )
+    {
+        _conf_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( kernel_set_id != _conf_t::ILLEGAL_KERNEL_SET_ID ) &&
+            ( !this->m_kernel_set_ids.empty() ) )
+        {
+            SIXTRL_ASSERT( this->maxNumAttachedSets() >=
+                           this->numAttachedSets() );
+
+            SIXTRL_ASSERT( std::is_sorted( this->m_kernel_set_ids.begin(),
+                           this->m_kernel_set_ids.end() ) );
+
+            auto it = std::lower_bound( this->m_kernel_set_ids.begin(),
+                this->m_kernel_set_ids.end(), kernel_set_id );
+
+            if( it != this->m_kernel_set_ids.end() )
+            {
+                this->m_kernel_set_ids.erase( it );
+                status = st::ARCH_STATUS_SUCCESS;
+            }
         }
 
         return status;
@@ -119,7 +233,6 @@ namespace SIXTRL_CXX_NAMESPACE
         KernelConfigBase::purpose_t const purpose ) SIXTRL_NOEXCEPT
     {
         this->m_purpose = purpose;
-        return st::ARCH_STATUS_SUCCESS;
     }
 
     void KernelConfigBase::doSetNeedsUpdateFlag(
@@ -139,16 +252,14 @@ namespace SIXTRL_CXX_NAMESPACE
     KernelConfigBase::status_t KernelConfigBase::updateConfigStr(
         char const* SIXTRL_RESTRICT config_str )
     {
-        using  _this_t = st::KernelConfigBase;
+        _conf_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( this->doParseConfigStr( config_str.c_str() ) )
+        if( this->doParseConfigStr( config_str ) )
         {
             status = this->doSetNeedsUpdate();
         }
         else if( ( config_str != nullptr ) &&
-                 ( std::strlen( config_str ) > _this_t::size_type{ 0 } ) )
+                 ( std::strlen( config_str ) > _conf_t::size_type{ 0 } ) )
         {
             this->doUpdateStoredConfigStr( config_str );
             status = st::ARCH_STATUS_SUCCESS;
@@ -164,8 +275,10 @@ namespace SIXTRL_CXX_NAMESPACE
         this->doSetVariantFlags( st::ARCH_VARIANT_NONE );
 
         this->m_name.clear();
-        this->m_num_kernel_args = KernelConfigBase::size_type{ 0 };
-        this->m_kernel_purpose = st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
+        this->m_kernel_set_ids.clear();
+        this->m_num_kernel_args = _conf_t::size_type{ 0 };
+        this->m_purpose = st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
+        this->m_argument_set = _conf_t::DEFAULT_ARGUMENT_SET;
         this->m_needs_update = false;
     }
 
@@ -237,7 +350,7 @@ namespace SIXTRL_CXX_NAMESPACE
             if( status == st::ARCH_STATUS_SUCCESS )
             {
                 std::string const temp_str = a2str.str();
-                int const ret = std::fprintf( fp, "%s", temp_str.c_str() );
+                int const ret = std::fprintf( output, "%s", temp_str.c_str() );
                 SIXTRL_ASSERT( ret >= 0 );
                 ( void )ret;
             }
@@ -252,9 +365,9 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     std::ostream& operator<<( std::ostream& SIXTRL_RESTRICT_REF output,
-        NodeInfoBase const& SIXTRL_RESTRICT_REF node_info )
+        KernelConfigBase const& SIXTRL_RESTRICT_REF kernel_config_base )
     {
-        node_info.print( output );
+        kernel_config_base.print( output );
         return output;
     }
 
@@ -263,10 +376,7 @@ namespace SIXTRL_CXX_NAMESPACE
     KernelConfigBase::status_t KernelConfigBase::doPrintToOutputStream(
         std::ostream& SIXTRL_RESTRICT_REF output ) const
     {
-        using size_t = KernelConfigBase::size_type;
-        using node_id_t = KernelConfigBase::node_id_t;
-
-        KernelConfigBase::status_t status = st::ARCH_STATUS_SUCCESS;
+        _conf_t::status_t status = st::ARCH_STATUS_SUCCESS;
 
         if( this->needsUpdate() )
         {
@@ -277,7 +387,7 @@ namespace SIXTRL_CXX_NAMESPACE
         output << "\r\nArchitecture          : id = " << this->archId();
         if( this->hasArchStr() ) output << " " << this->archStr();
 
-        output << "Number Kernel Args    : "
+        output << "\r\nNumber Kernel Args    : "
                << this->numArguments() << "\r\n";
 
         if( this->hasSpecifiedPurpose() )
@@ -351,10 +461,29 @@ namespace SIXTRL_CXX_NAMESPACE
             output << "Variant               : release\r\n";
         }
 
-        if( this->variantFlags() > st::KERNEL_CONFIG_VARIANT_NONE )
+        if( this->variantFlags() > st::ARCH_VARIANT_NONE )
         {
             output << "Variant Flags         : " << std::setw( 6 )
                    << this->variantFlags() << "\r\n";
+        }
+
+        output << "Argument Set          : " << this->argumentSet() << "\r\n";
+
+        if( this->isAttachedToAnySets() )
+        {
+            output << "Num attached sets     : " << std::setw( 6 )
+                   << this->numAttachedSets()
+                   << "\r\nAttached set ids      : [ ";
+
+            bool first = true;
+
+            for( auto const kernel_set_id : this->m_kernel_set_ids )
+            {
+                if( !first ) output << ", ";
+                output << kernel_set_id;
+            }
+
+            output << " ]\r\n";
         }
 
         if( this->hasName() )
@@ -403,8 +532,16 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    /* --------------------------------------------------------------------- */
+    void KernelConfigBase::doSetMaxNumAttachedKernelSets(
+        KernelConfigBase::size_type const max_num_attached_kernel_sets )
+    {
+        this->m_max_attached_kernel_ids = max_num_attached_kernel_sets;
 
+        if( this->m_kernel_set_ids.capacity() < max_num_attached_kernel_sets )
+        {
+            this->m_kernel_set_ids.reserve( max_num_attached_kernel_sets );
+        }
+    }
 }
 
 /* end: sixtracklib/common/control/kernel_config_base.cpp */

@@ -14,6 +14,8 @@
     #include "sixtracklib/common/control/controller_base.hpp"
     #include "sixtracklib/common/control/argument_base.hpp"
     #include "sixtracklib/common/control/kernel_config_base.hpp"
+    #include "sixtracklib/common/control/kernel_config_key.hpp"
+    #include "sixtracklib/common/control/kernel_config_store.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE ) && !defined( __CUDA_ARCH__ )
@@ -163,21 +165,6 @@ NS(Controller_get_num_of_kernels)(
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
 NS(Controller_get_num_keys_for_kernel_id)(
-    const NS(ControllerBase) *const SIXTRL_RESTRICT controller,
-    NS(ctrl_kernel_id_t) const kernel_id );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
-NS(Controller_get_num_of_kernel_arguments)(
-    const NS(ControllerBase) *const SIXTRL_RESTRICT controller,
-    NS(ctrl_kernel_id_t) const kernel_id );
-
-/* ------------------------------------------------------------------------- */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(Controller_kernel_has_name)(
-    const NS(ControllerBase) *const SIXTRL_RESTRICT controller,
-    NS(ctrl_kernel_id_t) const kernel_id );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN char const* NS(Controller_get_kernel_name_string)(
     const NS(ControllerBase) *const SIXTRL_RESTRICT controller,
     NS(ctrl_kernel_id_t) const kernel_id );
 

@@ -63,7 +63,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(ArchInfo_is_identical_to_arch_id)(
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(ArchInfo_reset)(
     SIXTRL_ARGPTR_DEC NS(ArchInfo)* SIXTRL_RESTRICT arch_info,
-    NS(arch_id_t) const arch_id, char const* SIXTRL_RESTRICT arch_str );
+    NS(arch_id_t) const arch_id );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
 NS(ArchInfo_reset_to_initial_values)(

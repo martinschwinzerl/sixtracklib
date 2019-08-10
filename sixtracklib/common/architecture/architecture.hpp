@@ -11,7 +11,9 @@
     #include <mutex>
     #include <string>
     #include <thread>
+    #include <stdexcept>
     #include <unordered_map>
+    #include <vector>
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
 #endif /* C++, Host */
@@ -45,6 +47,10 @@ namespace SIXTRL_CXX_NAMESPACE
         using lockable_t           = std::mutex;
         using lock_t               = std::unique_lock< lockable_t >;
 
+
+        static SIXTRL_HOST_FN status_t InitDefaultArchitectures(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            Architectures& SIXTRL_RESTRICT_REF architectures );
 
         SIXTRL_HOST_FN Architectures();
 
@@ -94,7 +100,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN std::string const& archStr(
             lock_t const& SIXTRL_RESTRICT_REF lock,
-            arch_id_t const arch_id ) const SIXTRL_NOEXCEPT;
+            arch_id_t const arch_id ) const;
 
         SIXTRL_HOST_FN char const* ptrArchStr(
             lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -112,11 +118,27 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN arch_id_t archId(
             lock_t const& SIXTRL_RESTRICT_REF lock,
-            std::string const& SIXTRL_RESTRICT_REF arch_str ) const;
+            std::string const& SIXTRL_RESTRICT_REF arch_str ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN arch_id_t archId(
             lock_t const& SIXTRL_RESTRICT_REF lock,
-            char const* SIXTRL_RESTRICT arch_str ) const;
+            char const* SIXTRL_RESTRICT arch_str ) const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN arch_id_t archIdByNumber( size_type const index ) const;
+
+        /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
+        SIXTRL_HOST_FN arch_id_t archIdByNumber(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            size_type const index ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN arch_id_t const* archIdsBegin(
+            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN arch_id_t const* archIdsEnd(
+            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
@@ -230,7 +252,9 @@ namespace SIXTRL_CXX_NAMESPACE
             std::unordered_map< arch_id_t, ptr_arch_data_base_t >;
 
         using arch_str_to_id_map_t =
-            std::unordered_map< arch_id_t, std::string >;
+            std::unordered_map< std::string, arch_id_t >;
+
+        using arch_id_list_t = std::vector< arch_id_t >;
 
         SIXTRL_HOST_FN virtual status_t doAddArchitecture(
             lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -246,6 +270,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         id_to_ptr_data_base_map_t   m_id_to_ptr_data_base;
         arch_str_to_id_map_t        m_arch_str_to_id;
+        arch_id_list_t              m_stored_arch_ids;
         mutable lockable_t          m_lockable;
     };
 
@@ -304,6 +329,25 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     /* ********************************************************************* */
+
+    SIXTRL_INLINE Architectures::Architectures() :
+        m_id_to_ptr_data_base(),
+        m_arch_str_to_id(),
+        m_lockable()
+    {
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::Architectures;
+
+        _this_t::lock_t const lock( *this->lockable() );
+        _this_t::status_t const status = _this_t::InitDefaultArchitectures(
+            lock, *this );
+
+        if( status != st::ARCH_STATUS_SUCCESS )
+        {
+            throw std::runtime_error(
+                "unable to initialize default architectures" );
+        }
+    }
 
     SIXTRL_INLINE bool Architectures::hasArchitecture(
         Architectures::arch_id_t const arch_id ) const
@@ -386,9 +430,82 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_INLINE Architectures::arch_id_t Architectures::archId(
         Architectures::lock_t const& SIXTRL_RESTRICT_REF lock,
-        std::string const& SIXTRL_RESTRICT_REF arch_str ) const
+        std::string const& SIXTRL_RESTRICT_REF arch_str ) const SIXTRL_NOEXCEPT
     {
         return this->archId( lock, arch_str.c_str() );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE Architectures::arch_id_t
+    Architectures::archIdByNumber( size_type const index ) const
+    {
+        using _this_t = SIXTRL_CXX_NAMESPACE::Architectures;
+        _this_t::lock_t const lock( *this->lockable() );
+        return this->archIdByNumber( lock, index );
+    }
+
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
+
+    SIXTRL_INLINE Architectures::arch_id_t Architectures::archIdByNumber(
+        Architectures::lock_t const& SIXTRL_RESTRICT_REF lock,
+        Architectures::size_type const index ) const SIXTRL_NOEXCEPT
+    {
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::Architectures;
+
+        _this_t::arch_id_t arch_id = st::ARCHITECTURE_ILLEGAL;
+
+        if( ( this->checkLock( lock ) ) &&
+            ( index < this->m_stored_arch_ids.size() ) )
+        {
+            SIXTRL_ASSERT( this->m_stored_arch_ids.size() ==
+                           this->m_id_to_ptr_data_base.size() );
+
+            arch_id = this->m_stored_arch_ids[ index ];
+
+            SIXTRL_ASSERT( arch_id != st::ARCHITECTURE_ILLEGAL );
+            SIXTRL_ASSERT( arch_id != st::ARCHITECTURE_NONE );
+            SIXTRL_ASSERT( this->m_id_to_ptr_data_base.find( arch_id ) !=
+                           this->m_id_to_ptr_data_base.end() );
+
+            SIXTRL_ASSERT( this->m_id_to_ptr_data_base.find(
+                arch_id )->second.get() != nullptr );
+        }
+
+        return arch_id;
+    }
+
+    SIXTRL_INLINE Architectures::arch_id_t const* Architectures::archIdsBegin(
+            Architectures::lock_t const& SIXTRL_RESTRICT_REF lock
+        ) const SIXTRL_NOEXCEPT
+    {
+        return ( ( this->checkLock( lock ) ) &&
+                 ( !this->m_stored_arch_ids.empty() ) &&
+                 (  this->m_stored_arch_ids.size() ==
+                    this->m_id_to_ptr_data_base.size() ) )
+                        ? this->m_stored_arch_ids.data() : nullptr;
+    }
+
+    SIXTRL_INLINE Architectures::arch_id_t const* Architectures::archIdsEnd(
+            Architectures::lock_t const& SIXTRL_RESTRICT_REF lock
+        ) const SIXTRL_NOEXCEPT
+    {
+        using _this_t = SIXTRL_CXX_NAMESPACE::Architectures;
+
+        _this_t::arch_id_t const* end = this->archIdsBegin( lock );
+
+        if( end != nullptr )
+        {
+            SIXTRL_ASSERT(  this->checkLock( lock ) );
+            SIXTRL_ASSERT( !this->m_stored_arch_ids.empty() );
+            SIXTRL_ASSERT(  this->m_stored_arch_ids.size() ==
+                            this->m_id_to_ptr_data_base.size() );
+
+            std::advance( end, this->m_stored_arch_ids.size() );
+        }
+
+        return end;
     }
 
     /* --------------------------------------------------------------------- */
@@ -483,6 +600,10 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE Architectures::size_type Architectures::numArchitectures(
         Architectures::lock_t const& lock ) const SIXTRL_NOEXCEPT
     {
+        SIXTRL_ASSERT( ( !this->checkLock( lock ) ) ||
+            ( this->m_id_to_ptr_data_base.size() ==
+              this->m_stored_arch_ids.size() ) );
+
         return ( this->checkLock( lock ) )
             ? this->m_id_to_ptr_data_base.size()
             : SIXTRL_CXX_NAMESPACE::Architectures::size_type{ 0 };
@@ -503,17 +624,17 @@ namespace SIXTRL_CXX_NAMESPACE
         Architectures::ptr_arch_data_base_t&& ptr_arch_data )
     {
         namespace st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::Architectures;
 
-        st::Architectures::arch_id_t const aid =
-            ( ptr_arch_data.get() != nullptr )
-                ? ptr_arch_data->archId() : st::ARCHITECTURE_ILLEGAL;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        return ( ( ptr_arch_data.get() != nullptr ) &&
-                 ( aid != st::ARCHITECTURE_ILLEGAL ) &&
-                 ( aid != st::ARCHITECTURE_NONE ) &&
-                 ( this->checkLock( lock ) ) )
-            ? this->doAddArchitecture( lock, aid, std::move( ptr_arch_data ) )
-            : st::ARCH_STATUS_GENERAL_FAILURE;
+        if( ( ptr_arch_data.get() != nullptr ) && ( this->checkLock( lock ) ) )
+        {
+            status = this->doAddArchitecture( lock,
+                ptr_arch_data->archId(), std::move( ptr_arch_data ) );
+        }
+
+        return status;
     }
 
     /* ----------------------------------------------------------------- */

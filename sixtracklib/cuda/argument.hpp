@@ -24,6 +24,7 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/control/argument_base.hpp"
+    #include "sixtracklib/common/control/node_id.hpp"
     #include "sixtracklib/common/buffer.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -44,6 +45,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using cuda_const_arg_buffer_t = ::NS(cuda_const_arg_buffer_t);
         using elem_by_elem_config_t   = ::NS(ElemByElemConfig);
         using debug_register_t        = ::NS(arch_debugging_t);
+        using node_id_t               = SIXTRL_CXX_NAMESPACE::NodeId;
 
         using arch_id_t  = _base_arg_t::arch_id_t;
         using status_t   = _base_arg_t::status_t;
@@ -139,6 +141,15 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN ptr_const_cuda_controller_t
         cudaController() const SIXTRL_NOEXCEPT;
 
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN bool isAttachedToControllerNode( cuda_controller_t
+            const& SIXTRL_RESTRICT_REF ctrl ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_id_t const& attachedToNode() const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
         protected:
 
         SIXTRL_HOST_FN void doDeleteCudaArgumentBuffer() SIXTRL_NOEXCEPT;
@@ -164,6 +175,7 @@ namespace SIXTRL_CXX_NAMESPACE
             size_type const required_buffer_size );
 
         cuda_arg_buffer_t m_arg_buffer;
+        node_id_t         m_attached_to_node;
     };
 
     SIXTRL_STATIC SIXTRL_HOST_FN CudaArgument const* asCudaArgument(
@@ -204,6 +216,56 @@ typedef void NS(CudaArgument);
 
 namespace SIXTRL_CXX_NAMESPACE
 {
+    SIXTRL_INLINE CudaArgument::ptr_cuda_controller_t
+    CudaArgument::cudaController() SIXTRL_NOEXCEPT
+    {
+        using _this_t   = CudaArgument;
+        using ptr_ctrl_t = _this_t::ptr_cuda_controller_t;
+
+        return const_cast< ptr_ctrl_t >( static_cast< _this_t const& >(
+            *this ).cudaController() );
+    }
+
+    SIXTRL_INLINE CudaArgument::ptr_const_cuda_controller_t
+    CudaArgument::cudaController() const SIXTRL_NOEXCEPT
+    {
+        using cuda_ctrl_t = st::CudaController;
+
+        return ( this->ptrControllerBase() != nullptr )
+            ? this->ptrControllerBase()->asDerivedController< cuda_ctrl_t >(
+                    st::ARCHITECTURE_CUDA ) : nullptr;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE bool CudaArgument::hasCudaArgBuffer() const SIXTRL_NOEXCEPT
+    {
+        return ( ( this->hasArgumentBuffer() ) &&
+                 ( this->m_arg_buffer != nullptr ) );
+    }
+
+    SIXTRL_INLINE CudaArgument::cuda_arg_buffer_t
+    CudaArgument::cudaArgBuffer() SIXTRL_NOEXCEPT
+    {
+        return this->m_arg_buffer;
+    }
+
+    SIXTRL_INLINE CudaArgument::cuda_const_arg_buffer_t
+    CudaArgument::cudaArgBuffer() const SIXTRL_NOEXCEPT
+    {
+        return this->m_arg_buffer;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE CudaArgument::node_id_t const&
+    CudaArgument::attachedToNode() const SIXTRL_NOEXCEPT
+    {
+        return this->m_attached_to_node;
+    }
+
+    /* --------------------------------------------------------------------- */
+
     SIXTRL_INLINE CudaArgument const* asCudaArgument(
         SIXTRL_CXX_NAMESPACE::ArgumentBase const*
             SIXTRL_RESTRICT base_arg ) SIXTRL_NOEXCEPT
@@ -230,7 +292,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return const_cast< cuda_arg_t* >( asCudaArgument( cbase_arg_ptr ) );
     }
 
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* --------------------------------------------------------------------- */
 
     template< typename Ptr >
     SIXTRL_INLINE Ptr* CudaArgument::cudaArgBufferAsPtr() SIXTRL_NOEXCEPT

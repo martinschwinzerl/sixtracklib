@@ -5,307 +5,154 @@
 #include <cstddef>
 #include <cstdlib>
 
+#include
+
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/control/definitions.h"
 #include "sixtracklib/common/control/node_id.hpp"
+#include "sixtracklib/common/control/kernel_config_key.hpp"
+#include "sixtracklib/common/control/kernel_config_store.hpp"
 #include "sixtracklib/common/control/controller_base.hpp"
 #include "sixtracklib/common/control/node_controller_base.hpp"
+#include "sixtracklib/common/control/node_store.hpp"
 
 #include "sixtracklib/cuda/definitions.h"
+#include "sixtracklib/cuda/cuda_tools.h"
 #include "sixtracklib/cuda/argument.hpp"
+#include "sixtracklib/cuda/control/kernel_config_store.hpp"
 #include "sixtracklib/cuda/wrappers/controller_wrappers.h"
 
 namespace st = SIXTRL_CXX_NAMESPACE;
 
 namespace SIXTRL_CXX_NAMESPACE
 {
-    CudaController::CudaController( char const* config_str ) :
+    CudaController::CudaController(
+        char const* config_str ) :
         st::NodeControllerBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str ),
-        m_cuda_debug_register( nullptr )
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
     {
-        this->doInitCudaController();
+        CudaController::status_t const status = this->doInitCudaController(
+            nullptr, nullptr, config_str );
 
-        CudaController::status_t status = this->doInitCudaDebugRegister();
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            status = this->doInitAllCudaNodes();
-        }
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            CudaController::node_index_t node_index_to_select =
-                this->doGetNodeIndexFromConfigString( config_str );
-
-            if( ( node_index_to_select == CudaController::UNDEFINED_INDEX ) &&
-                ( this->usesAutoSelect() ) && ( this->hasDefaultNode() ) )
-            {
-                node_index_to_select = this->defaultNodeIndex();
-            }
-
-            status = this->doSelectNodeCudaImpl( node_index_to_select );
-
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->hasSelectedNode() ) )
-            {
-                this->doEnableCudaController();
-            }
-        }
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     CudaController::CudaController(
-        CudaController::cuda_device_index_t const cuda_node_index,
-        char const* SIXTRL_RESTRICT config_str ) :
+        CudaController::cuda_dev_index_t const cuda_dev_index,
+        char const* config_str ) :
         st::NodeControllerBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str ),
-        m_cuda_debug_register( nullptr )
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
     {
-        this->doInitCudaController();
-        CudaController::status_t status = this->doInitCudaDebugRegister();
+        CudaController::status_t const status = this->doInitCudaController(
+            nullptr, nullptr, config_str, cuda_dev_index );
 
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            status = this->doInitAllCudaNodes();
-        }
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            CudaController::node_index_t node_index_to_select =
-                this->doFindAvailableNodesByCudaDeviceIndex( cuda_node_index );
-
-            if( node_index_to_select == CudaController::UNDEFINED_INDEX )
-            {
-                node_index_to_select = this->doGetNodeIndexFromConfigString(
-                    config_str );
-            }
-
-            if( ( node_index_to_select == CudaController::UNDEFINED_INDEX ) &&
-                ( this->usesAutoSelect() ) && ( this->hasDefaultNode() ) )
-            {
-                node_index_to_select = this->defaultNodeIndex();
-            }
-
-            status = this->doSelectNodeCudaImpl( node_index_to_select );
-
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->hasSelectedNode() ) )
-            {
-                this->doEnableCudaController();
-            }
-        }
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     CudaController::CudaController(
         CudaController::node_id_t const& SIXTRL_RESTRICT_REF node_id,
-        char const* SIXTRL_RESTRICT config_str ) :
+        char const* config_str ) :
         st::NodeControllerBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str ),
-        m_cuda_debug_register( nullptr )
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
     {
-        this->doInitCudaController();
+        CudaController::status_t const status = this->doInitCudaController(
+            nullptr, nullptr, config_str, node_id );
 
-        CudaController::status_t status = this->doInitCudaDebugRegister();
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            status = this->doInitAllCudaNodes();
-        }
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            CudaController::node_index_t node_index_to_select =
-                this->doFindAvailableNodesIndex(
-                    node_id.platformId(), node_id.deviceId() );
-
-            if( node_index_to_select == CudaController::UNDEFINED_INDEX )
-            {
-                node_index_to_select = this->doGetNodeIndexFromConfigString(
-                    config_str );
-            }
-
-            if( ( node_index_to_select == CudaController::UNDEFINED_INDEX ) &&
-                ( this->usesAutoSelect() ) && ( this->hasDefaultNode() ) )
-            {
-                node_index_to_select = this->defaultNodeIndex();
-            }
-
-           status = this->doSelectNodeCudaImpl( node_index_to_select );
-
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->hasSelectedNode() ) )
-            {
-                this->doEnableCudaController();
-            }
-        }
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     CudaController::CudaController(
         CudaController::platform_id_t const platform_id,
-        CudaController::device_id_t const device_id,
-        char const* SIXTRL_RESTRICT config_str ) :
+        CudaController::device_id_t const device_id, char const* config_str ) :
         st::NodeControllerBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str ),
-        m_cuda_debug_register( nullptr )
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
     {
-        this->doInitCudaController();
+        CudaController::status_t const status = this->doInitCudaController(
+            nullptr, nullptr, config_str, platform_id, device_id );
 
-        CudaController::status_t status = this->doInitCudaDebugRegister();
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
+    }
 
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            status = this->doInitAllCudaNodes();
-        }
+    CudaController::CudaController(
+        CudaController::node_index_t const node_index, char const* config_str,
+        CudaController::device_selector_t* SIXTRL_RESTRICT ptr_device_selector,
+        CudaController::node_store_t* SIXTRL_RESTRICT ptr_node_store ) :
+        st::NodeControllerBase( st::ARCHITECTURE_CUDA,
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
+    {
+        CudaController::status_t const status = this->doInitCudaController(
+            ptr_device_selector, ptr_node_store, config_str, node_index );
 
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            CudaController::node_index_t node_index_to_select =
-                this->doFindAvailableNodesIndex( platform_id, device_id );
-
-            if( node_index_to_select == CudaController::UNDEFINED_INDEX )
-            {
-                node_index_to_select = this->doGetNodeIndexFromConfigString(
-                    config_str );
-            }
-
-            if( ( node_index_to_select == CudaController::UNDEFINED_INDEX ) &&
-                ( this->usesAutoSelect() ) && ( this->hasDefaultNode() ) )
-            {
-                node_index_to_select = this->defaultNodeIndex();
-            }
-
-            status = this->doSelectNodeCudaImpl( node_index_to_select );
-
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->hasSelectedNode() ) )
-            {
-                this->doEnableCudaController();
-            }
-        }
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     /* --------------------------------------------------------------------- */
 
-    CudaController::CudaController( std::string const& config_str  ) :
+    CudaController::CudaController(
+        std::string const& SIXTRL_RESTRICT_REF config_str ) :
         st::NodeControllerBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str.c_str() ),
-        m_cuda_debug_register( nullptr )
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str.c_str() ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
     {
-        this->doInitCudaController();
+        CudaController::status_t const status = this->doInitCudaController(
+            nullptr, nullptr, config_str.c_str() );
 
-        CudaController::status_t status = this->doInitCudaDebugRegister();
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            status = this->doInitAllCudaNodes();
-        }
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            CudaController::node_index_t node_index_to_select =
-                this->doGetNodeIndexFromConfigString( config_str.c_str() );
-
-            if( ( node_index_to_select == CudaController::UNDEFINED_INDEX ) &&
-                ( this->usesAutoSelect() ) && ( this->hasDefaultNode() ) )
-            {
-                node_index_to_select = this->defaultNodeIndex();
-            }
-
-            status = this->doSelectNodeCudaImpl( node_index_to_select );
-
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->hasSelectedNode() ) )
-            {
-                this->doEnableCudaController();
-            }
-        }
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     CudaController::CudaController(
-        CudaController::cuda_device_index_t const cuda_node_index,
+        CudaController::cuda_dev_index_t const cuda_dev_index,
         std::string const& SIXTRL_RESTRICT_REF config_str ) :
         st::NodeControllerBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str.c_str() ),
-        m_cuda_debug_register( nullptr )
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str.c_str() ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
     {
-        this->doInitCudaController();
+        CudaController::status_t const status = this->doInitCudaController(
+            nullptr, nullptr, config_str.c_str(), cuda_dev_index );
 
-        CudaController::status_t status = this->doInitCudaDebugRegister();
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            status = this->doInitAllCudaNodes();
-        }
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            CudaController::node_index_t node_index_to_select =
-                this->doFindAvailableNodesByCudaDeviceIndex( cuda_node_index );
-
-            if( node_index_to_select == CudaController::UNDEFINED_INDEX )
-            {
-                node_index_to_select = this->doGetNodeIndexFromConfigString(
-                    config_str.c_str() );
-            }
-
-            if( ( node_index_to_select == CudaController::UNDEFINED_INDEX ) &&
-                ( this->usesAutoSelect() ) && ( this->hasDefaultNode() ) )
-            {
-                node_index_to_select = this->defaultNodeIndex();
-            }
-
-            status = this->doSelectNodeCudaImpl( node_index_to_select );
-
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->hasSelectedNode() ) )
-            {
-                this->doEnableCudaController();
-            }
-        }
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     CudaController::CudaController(
         CudaController::node_id_t const& SIXTRL_RESTRICT_REF node_id,
         std::string const& SIXTRL_RESTRICT_REF config_str ) :
         st::NodeControllerBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str.c_str() ),
-        m_cuda_debug_register( nullptr )
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str.c_str() ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
     {
-        this->doInitCudaController();
+        CudaController::status_t const status = this->doInitCudaController(
+            nullptr, nullptr, config_str.c_str(), node_id );
 
-        CudaController::status_t status = this->doInitCudaDebugRegister();
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            status = this->doInitAllCudaNodes();
-        }
-
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            CudaController::node_index_t node_index_to_select =
-                this->doFindAvailableNodesIndex(
-                    node_id.platformId(), node_id.deviceId() );
-
-            if( node_index_to_select == CudaController::UNDEFINED_INDEX )
-            {
-                node_index_to_select = this->doGetNodeIndexFromConfigString(
-                    config_str.c_str() );
-            }
-
-            if( ( node_index_to_select == CudaController::UNDEFINED_INDEX ) &&
-                ( this->usesAutoSelect() ) && ( this->hasDefaultNode() ) )
-            {
-                node_index_to_select = this->defaultNodeIndex();
-            }
-
-            status = this->doSelectNodeCudaImpl( node_index_to_select );
-
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->hasSelectedNode() ) )
-            {
-                this->doEnableCudaController();
-            }
-        }
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     CudaController::CudaController(
@@ -313,148 +160,59 @@ namespace SIXTRL_CXX_NAMESPACE
         CudaController::device_id_t const device_id,
         std::string const& SIXTRL_RESTRICT_REF config_str ) :
         st::NodeControllerBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, config_str.c_str() ),
-        m_cuda_debug_register( nullptr )
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str.c_str() ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
     {
-        this->doInitCudaController();
+        CudaController::status_t const status = this->doInitCudaController(
+            nullptr, nullptr, config_str.c_str(), platform_id, device_id );
 
-        CudaController::status_t status = this->doInitCudaDebugRegister();
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
+    }
 
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            status = this->doInitAllCudaNodes();
-        }
+    CudaController::CudaController(
+        CudaController::node_index_t const node_index,
+        std::string const& SIXTRL_RESTRICT_REF config_str,
+        CudaController::device_selector_t* SIXTRL_RESTRICT ptr_device_selector,
+        CudaController::node_store_t* SIXTRL_RESTRICT ptr_node_store ) :
+        st::NodeControllerBase( st::ARCHITECTURE_CUDA,
+            st::CUDA_ARCHITECTURE_STR, st::CudaKernelConfigStore_get(),
+                st::NodeStore_get(), config_str.c_str() ),
+        m_index_to_debug_registers(),
+        m_device_selector( st::CudaDeviceSelector_get() )
+    {
+        CudaController::status_t const status = this->doInitCudaController(
+            ptr_device_selector, ptr_node_store,
+                config_str.c_str(), node_index );
 
-        if( status == st::ARCH_STATUS_SUCCESS )
-        {
-            CudaController::node_index_t node_index_to_select =
-                this->doFindAvailableNodesIndex( platform_id, device_id );
-
-            if( node_index_to_select == CudaController::UNDEFINED_INDEX )
-            {
-                node_index_to_select = this->doGetNodeIndexFromConfigString(
-                    config_str.c_str() );
-            }
-
-            if( ( node_index_to_select == CudaController::UNDEFINED_INDEX ) &&
-                ( this->usesAutoSelect() ) && ( this->hasDefaultNode() ) )
-            {
-                node_index_to_select = this->defaultNodeIndex();
-            }
-
-            status = this->doSelectNodeCudaImpl( node_index_to_select );
-
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->hasSelectedNode() ) )
-            {
-                this->doEnableCudaController();
-            }
-        }
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     /* --------------------------------------------------------------------- */
 
     CudaController::~CudaController() SIXTRL_NOEXCEPT
     {
-        if( this->m_cuda_debug_register != nullptr )
+        auto it  = this->m_index_to_debug_registers.begin();
+        auto end = this->m_index_to_debug_registers.end();
+
+        ::cudaError_t err = ::cudaSuccess;
+
+        for( ; it != end ; ++it )
         {
-            cudaError_t const err = ::cudaFree( this->m_cuda_debug_register );
-            SIXTRL_ASSERT( err == ::cudaSuccess );
-            ( void )err;
+            if( it->second != nullptr )
+            {
+                err = ::cudaFree( it->second );
+                SIXTRL_ASSERT( err == ::cudaSuccess );
+                ( void )err;
 
-            this->m_cuda_debug_register = nullptr;
+                it->second = nullptr;
+            }
         }
-    }
 
-    /* --------------------------------------------------------------------- */
-
-    CudaController::node_info_t const* CudaController::ptrNodeInfo(
-        CudaController::size_type const index ) const SIXTRL_NOEXCEPT
-    {
-        using node_info_t = CudaController::node_info_t;
-        auto node_info_base = this->ptrNodeInfoBase( index );
-
-        return ( node_info_base != nullptr )
-            ? node_info_base->asDerivedNodeInfo< node_info_t >(
-                st::ARCHITECTURE_CUDA ) : nullptr;
-    }
-
-    CudaController::node_info_t const* CudaController::ptrNodeInfo(
-        CudaController::platform_id_t const platform_idx,
-        CudaController::device_id_t const device_idx ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrNodeInfo( this->doFindAvailableNodesIndex(
-            platform_idx, device_idx ) );
-    }
-
-    CudaController::node_info_t const* CudaController::ptrNodeInfo(
-        CudaController::node_id_t const& node_id ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrNodeInfo( this->doFindAvailableNodesIndex(
-            node_id.platformId(), node_id.deviceId() ) );
-    }
-
-    CudaController::node_info_t const* CudaController::ptrNodeInfo(
-        char const* SIXTRL_RESTRICT node_id_str ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrNodeInfo( this->doFindAvailableNodesIndex(
-            node_id_str ) );
-    }
-
-    CudaController::node_info_t const* CudaController::ptrNodeInfo(
-        std::string const& SIXTRL_RESTRICT_REF
-            node_id_str ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrNodeInfo( this->doFindAvailableNodesIndex(
-            node_id_str.c_str() ) );
-    }
-
-    CudaController::node_info_t const*
-    CudaController::ptrNodeInfoByCudaDeviceIndex(
-        CudaController::cuda_dev_index_t const
-            cuda_dev_index ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrNodeInfo( this->doFindAvailableNodesByCudaDeviceIndex(
-            cuda_dev_index ) );
-    }
-
-    CudaController::node_info_t const* CudaController::ptrNodeInfoByPciBusId(
-            std::string const& SIXTRL_RESTRICT_REF pci_bus_id_str
-        ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrNodeInfo( this->doFindAvailableNodesByPciBusId(
-            pci_bus_id_str.c_str() ) );
-    }
-
-    CudaController::node_info_t const* CudaController::ptrNodeInfoByPciBusId(
-            const char *const SIXTRL_RESTRICT pci_bus_id_str
-        ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrNodeInfo( this->doFindAvailableNodesByPciBusId(
-            pci_bus_id_str ) );
-    }
-
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-    CudaController::status_t CudaController::selectNodeByCudaIndex(
-        CudaController::cuda_device_index_t const cuda_device_index )
-    {
-        return this->selectNode(
-            this->doFindAvailableNodesByCudaDeviceIndex( cuda_device_index ) );
-    }
-
-    CudaController::status_t CudaController::selectNodeByPciBusId(
-        std::string const& SIXTRL_RESTRICT_REF pci_bus_id )
-    {
-        return this->selectNode(
-            this->doFindAvailableNodesByPciBusId( pci_bus_id.c_str() ) );
-    }
-
-    CudaController::status_t CudaController::selectNodeByPciBusId(
-        char const* SIXTRL_RESTRICT pci_bus_id )
-    {
-        return this->selectNode(
-            this->doFindAvailableNodesByPciBusId( pci_bus_id ) );
+        this->m_index_to_debug_registers.clear();
     }
 
     /* ===================================================================== */
@@ -464,7 +222,9 @@ namespace SIXTRL_CXX_NAMESPACE
         void const* SIXTRL_RESTRICT source,
         CudaController::size_type const source_length )
     {
-        return CudaController::PerformSendOperation(
+        CudaController::lock_t lock( *this->nodeStore().lockable() );
+
+        return CudaController::PerformSendOperation( lock,
             destination, source, source_length );
     }
 
@@ -473,15 +233,18 @@ namespace SIXTRL_CXX_NAMESPACE
         CudaController::cuda_const_arg_buffer_t SIXTRL_RESTRICT source,
         CudaController::size_type const source_length )
     {
-        return CudaController::PerformReceiveOperation(
+        CudaController::lock_t lock( *this->nodeStore().lockable() );
+
+        return CudaController::PerformReceiveOperation( lock,
             destination, source_length, source, source_length );
     }
 
-    CudaController::status_t
-    CudaController::remap(
+    CudaController::status_t CudaController::remap(
         cuda_arg_buffer_t SIXTRL_RESTRICT managed_buffer_begin,
         size_type const slot_size )
     {
+        CudaController::lock_t lock( *this->nodeStore().lockable() );
+
         return this->doRemapCObjectsBufferDirectly(
             managed_buffer_begin, slot_size );
     }
@@ -491,11 +254,14 @@ namespace SIXTRL_CXX_NAMESPACE
         CudaController::size_type const slot_size )
     {
         CudaController::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        CudaController::lock_t lock( *this->nodeStore().lockable() );
+
         bool const is_remapped = this->doCheckIsCobjectsBufferRemappedDirectly(
             &status, managed_buffer_begin, slot_size );
 
         if( status != st::ARCH_STATUS_SUCCESS )
         {
+            lock.unlock();
             throw std::runtime_error(
                 "unable to perform isRemapped() check on managd cuda buffer" );
         }
@@ -504,151 +270,6 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     /* ===================================================================== */
-
-    CudaController::kernel_config_t const*
-    CudaController::ptrKernelConfig(
-        kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT
-    {
-        auto ptr_config = this->ptrKernelConfigBase( kernel_id );
-
-        return ( ptr_config != nullptr )
-            ? ptr_config->asDerivedKernelConfig<
-                CudaController::kernel_config_t >( this->archId() )
-            : nullptr;
-    }
-
-    CudaController::kernel_config_t const*
-    CudaController::ptrKernelConfig( std::string const&
-        SIXTRL_RESTRICT_REF kernel_name ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrKernelConfig(
-            this->doFindKernelConfigByName( kernel_name.c_str() ) );
-    }
-
-    CudaController::kernel_config_t const*
-    CudaController::ptrKernelConfig(
-        char const* SIXTRL_RESTRICT kernel_name ) const SIXTRL_NOEXCEPT
-    {
-        return this->ptrKernelConfig(
-            this->doFindKernelConfigByName( kernel_name ) );
-    }
-
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-    CudaController::kernel_config_t* CudaController::ptrKernelConfig(
-        kernel_id_t const kernel_id ) SIXTRL_NOEXCEPT
-    {
-        return const_cast< CudaController::kernel_config_t* >(
-            static_cast< CudaController const& >(
-                *this ).ptrKernelConfig( kernel_id ) );
-    }
-
-    CudaController::kernel_config_t* CudaController::ptrKernelConfig(
-        std::string const& SIXTRL_RESTRICT_REF kernel_name ) SIXTRL_NOEXCEPT
-    {
-        return this->ptrKernelConfig(
-            this->doFindKernelConfigByName( kernel_name.c_str() ) );
-    }
-
-    CudaController::kernel_config_t* CudaController::ptrKernelConfig(
-        char const* SIXTRL_RESTRICT kernel_name ) SIXTRL_NOEXCEPT
-    {
-        return this->ptrKernelConfig(
-            this->doFindKernelConfigByName( kernel_name ) );
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    CudaController::kernel_id_t CudaController::addCudaKernelConfig(
-        CudaController::kernel_config_t const& kernel_config )
-    {
-        CudaController::ptr_cuda_kernel_config_t ptr_kernel_conf(
-            new kernel_config_t( kernel_config ) );
-
-        return this->doAppendCudaKernelConfig( std::move( ptr_kernel_conf ) );
-    }
-
-    CudaController::kernel_id_t CudaController::addCudaKernelConfig(
-        std::string const& kernel_name,
-        CudaController::size_type const num_arguments,
-        CudaController::size_type const grid_dim ,
-        CudaController::size_type const shared_mem_per_block,
-        CudaController::size_type const max_blocks_limit,
-        char const* SIXTRL_RESTRICT config_str )
-    {
-        return this->addCudaKernelConfig( kernel_name.c_str(), num_arguments,
-            grid_dim, shared_mem_per_block, max_blocks_limit, config_str );
-    }
-
-    CudaController::kernel_id_t CudaController::addCudaKernelConfig(
-        char const* SIXTRL_RESTRICT kernel_name,
-        CudaController::size_type const num_arguments,
-        CudaController::size_type const grid_dim,
-        CudaController::size_type const shared_mem_per_block,
-        CudaController::size_type const max_blocks_limit,
-        char const* SIXTRL_RESTRICT config_str )
-    {
-        using kernel_config_t = CudaController::kernel_config_t;
-
-        CudaController::ptr_cuda_kernel_config_t ptr_kernel_conf(
-            new kernel_config_t( grid_dim, grid_dim, shared_mem_per_block,
-                max_blocks_limit, kernel_config_t::DEFAULT_WARP_SIZE,
-                    config_str ) );
-
-        ptr_kernel_conf->setName( kernel_name );
-
-        if( ptr_kernel_conf.get() != nullptr )
-        {
-            ptr_kernel_conf->setName( kernel_name );
-        }
-
-        return this->doAppendCudaKernelConfig( std::move( ptr_kernel_conf ) );
-    }
-
-    CudaController::kernel_id_t CudaController::doAppendCudaKernelConfig(
-        CudaController::ptr_cuda_kernel_config_t&&
-            ptr_kernel_conf ) SIXTRL_NOEXCEPT
-    {
-        using _this_t = CudaController;
-        using size_t = _this_t::size_type;
-        using kernel_id_t = _this_t::kernel_id_t;
-        using node_info_t = _this_t::node_info_t;
-        using kernel_config_t = _this_t::kernel_config_t;
-
-        kernel_id_t kernel_id = _this_t::ILLEGAL_KERNEL_ID;
-
-        if( ( this->hasSelectedNode() ) &&
-            ( ptr_kernel_conf.get() != nullptr ) )
-        {
-            node_info_t const* ptr_node_info = this->ptrNodeInfo(
-                this->selectedNodeIndex() );
-
-            if( ptr_node_info == nullptr )
-            {
-                return kernel_id;
-            }
-
-            size_t const warp_size =
-                ptr_node_info->cudaDeviceProperties().warpSize;
-
-            if( warp_size != ptr_kernel_conf->warpSize() )
-            {
-                ptr_kernel_conf->setWarpSize( warp_size );
-            }
-
-            if( ptr_kernel_conf->needsUpdate() )
-            {
-                ptr_kernel_conf->update();
-            }
-
-            kernel_id = this->doAppendKernelConfig(
-                std::move( ptr_kernel_conf ) );
-        }
-
-        return kernel_id;
-    }
-
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
     CudaController::status_t CudaController::doSend(
         CudaController::ptr_arg_base_t SIXTRL_RESTRICT dest_arg,
@@ -661,7 +282,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using cuda_arg_t = st::CudaArgument;
         using cuda_arg_buffer_t = cuda_arg_t::cuda_arg_buffer_t;
 
-        status_t status = status_t{ -1 };
+        status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         SIXTRL_ASSERT( this->readyForSend() );
         SIXTRL_ASSERT( dest_arg != nullptr );
@@ -674,10 +295,39 @@ namespace SIXTRL_CXX_NAMESPACE
             cuda_arg_t* cuda_arg = dest_arg->asDerivedArgument< cuda_arg_t >(
                 st::ARCHITECTURE_CUDA );
 
-            if( ( cuda_arg != nullptr ) && ( cuda_arg->hasCudaArgBuffer() ) )
+            if( ( cuda_arg != nullptr ) &&
+                ( cuda_arg->hasCudaArgBuffer() ) &&
+                ( cuda_arg->attachedToNode().valid() ) )
             {
-                status = _this_t::PerformSendOperation(
-                    cuda_arg->cudaArgBuffer(), source, source_length );
+                _this_t::lock_t lock( *this->nodeStore().lockable() );
+                _this_t::index_t initial_node_index = _this_t::UNDEFINED_INDEX;
+
+                auto switch_nodes_res = this->doChangeNodeBeforeOp(
+                    lock, &initial_node_index, cuda_arg->attachedToNode() );
+
+                status = switch_nodes_res.first;
+                bool const changed_nodes = switch_nodes_res.second;
+
+                SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                    ( ( initial_node_index != _this_t::UNDEFINED_INDEX ) &&
+                      ( ( !changed_nodes ) || ( initial_node_index !=
+                          this->selectedNodeIndex( lock ) ) ) &&
+                      (  this->ptrSelectedNodeId( lock ) != nullptr ) &&
+                      ( cuda_arg->attachedtoNode() ==
+                        *this->ptrSelectedNodeId( lock ) ) ) );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = _this_t::PerformSendOperation( lock,
+                        cuda_arg->cudaArgBuffer(), source, source_length );
+                }
+
+                if( ( changed_nodes ) &&
+                    ( st::ARCH_STATUS_SUCCESS != this->doChangeSelectedNode(
+                            lock, initial_node_index ) ) )
+                {
+                    status = st::ARCH_STATUS_GENERAL_FAILURE;
+                }
             }
         }
 
@@ -708,10 +358,39 @@ namespace SIXTRL_CXX_NAMESPACE
             cuda_arg_t* cuda_arg = src_arg->asDerivedArgument< cuda_arg_t >(
                 st::ARCHITECTURE_CUDA );
 
-            if( ( cuda_arg != nullptr ) && ( cuda_arg->hasCudaArgBuffer() ) )
+            if( ( cuda_arg != nullptr ) && ( cuda_arg->hasCudaArgBuffer() ) &&
+                ( cuda_arg->attachedToNode().valid() ) )
             {
-                status = _this_t::PerformReceiveOperation( destination,
-                    dest_capacity, cuda_arg->cudaArgBuffer(), src_arg->size() );
+                _this_t::lock_t lock( *this->nodeStore().lockable() );
+                _this_t::index_t initial_node_index = _this_t::UNDEFINED_INDEX;
+
+                auto switch_nodes_res = this->doChangeNodeBeforeOp(
+                    lock, &initial_node_index, cuda_arg->attachedToNode() );
+
+                status = switch_nodes_res.first;
+                bool const changed_nodes = switch_nodes_res.second;
+
+                SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                    ( ( initial_node_index != _this_t::UNDEFINED_INDEX ) &&
+                      ( ( !changed_nodes ) || ( initial_node_index !=
+                          this->selectedNodeIndex( lock ) ) ) &&
+                      (  this->ptrSelectedNodeId( lock ) != nullptr ) &&
+                      ( cuda_arg->attachedtoNode() ==
+                        *this->ptrSelectedNodeId( lock ) ) ) );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = _this_t::PerformReceiveOperation( lock,
+                        destination, dest_capacity, cuda_arg->cudaArgBuffer(),
+                            src_arg->size() );
+                }
+
+                if( ( changed_nodes ) &&
+                    ( st::ARCH_STATUS_SUCCESS != this->doChangeSelectedNode(
+                            lock, initial_node_index ) ) )
+                {
+                    status = st::ARCH_STATUS_GENERAL_FAILURE;
+                }
             }
         }
 
@@ -721,12 +400,13 @@ namespace SIXTRL_CXX_NAMESPACE
     CudaController::status_t CudaController::doSetDebugRegister(
         CudaController::debug_register_t const debug_register )
     {
-        using _base_t = st::CudaController::_base_controller_t;
         using _this_t = st::CudaController;
-        using status_t = _this_t::status_t;
+        using _base_t = _this_t::_base_controller_t;
 
-        status_t status =
-            this->doSetDebugRegisterCudaBaseImpl( debug_register );
+        _this_t::lock_t lock( *this->nodeStore().lockable() );
+
+        _this_t::status_t status = this->doSetDebugRegisterCudaBaseImpl(
+            lock, debug_register );
 
         if( status == st::ARCH_STATUS_SUCCESS )
         {
@@ -739,12 +419,13 @@ namespace SIXTRL_CXX_NAMESPACE
     CudaController::status_t CudaController::doFetchDebugRegister(
         CudaController::debug_register_t* SIXTRL_RESTRICT ptr_debug_register )
     {
-        using _base_t = st::CudaController::_base_controller_t;
         using _this_t = st::CudaController;
-        using status_t = _this_t::status_t;
+        using _base_t = _this_t::_base_controller_t;
 
-        status_t status =
-            this->doFetchDebugRegisterCudaBaseImpl( ptr_debug_register );
+        _this_t::lock_t lock( *this->nodeStore().lockable() );
+
+        _this_t::status_t status = this->doFetchDebugRegisterCudaBaseImpl(
+            lock, ptr_debug_register );
 
         if( status == st::ARCH_STATUS_SUCCESS )
         {
@@ -757,11 +438,12 @@ namespace SIXTRL_CXX_NAMESPACE
     CudaController::status_t CudaController::doRemapCObjectsBufferArg(
         CudaController::ptr_arg_base_t SIXTRL_RESTRICT buffer_arg )
     {
-        using   status_t = st::CudaController::status_t;
-        using     size_t = st::CudaController::size_type;
+        using    _this_t = st::CudaController;
+        using     size_t = _this_t::size_type;
         using cuda_arg_t = st::CudaArgument;
 
-        status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::lock_t lock( *this->nodeStore().lockable() );
 
         if( ( buffer_arg == nullptr ) || ( !this->readyForRunningKernel() ) )
         {
@@ -774,11 +456,30 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( buffer_cuda_arg != nullptr ) &&
             ( buffer_cuda_arg->usesCObjectsBuffer() ) &&
             ( buffer_cuda_arg->hasCudaArgBuffer() ) &&
-            ( buffer_cuda_arg->capacity() > size_t{ 0 } ) )
+            ( buffer_cuda_arg->capacity() > size_t{ 0 } ) &&
+            ( buffer_cuda_arg->attachedToNode().valid() ) )
         {
-            status = this->doRemapCObjectsBufferDirectly(
-                buffer_cuda_arg->cudaArgBuffer(),
-                buffer_cuda_arg->cobjectsBufferSlotSize() );
+            _this_t::node_index_t initial_index = _this_t::UNDEFINED_INDEX;
+
+            auto switch_nodes_res = this->doChangeNodeBeforeOp(
+                lock, &initial_index, buffer_cuda_arg->attachedToNode() );
+
+            status = switch_nodes_res.first;
+            bool const changed_nodes = switch_nodes_res.second;
+
+            if( status = st::ARCH_STATUS_SUCCESS )
+            {
+                status = this->doRemapCObjectsBufferDirectly( lock,
+                    buffer_cuda_arg->cudaArgBuffer(),
+                    buffer_cuda_arg->cobjectsBufferSlotSize() );
+            }
+
+            if( ( changed_nodes ) &&
+                ( st::ARCH_STATUS_SUCCESS != this->doChangeSelectedNode(
+                    lock, initial_index ) ) )
+            {
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
+            }
         }
 
         return status;
@@ -788,39 +489,66 @@ namespace SIXTRL_CXX_NAMESPACE
         CudaController::ptr_arg_base_t SIXTRL_RESTRICT buffer_arg,
         CudaController::status_t* SIXTRL_RESTRICT ptr_status )
     {
-        using   status_t = st::CudaController::status_t;
+        using _this_t = st::CudaController;
+        using   status_t = ::status_t;
         using     size_t = st::CudaController::size_type;
         using cuda_arg_t = st::CudaArgument;
 
         bool is_remapped = false;
 
-        if( ( buffer_arg == nullptr ) || ( !this->readyForRunningKernel() ) )
-        {
-            if( ptr_status != nullptr )
-            {
-                *ptr_status = st::ARCH_STATUS_GENERAL_FAILURE;
-            }
+        _this_t::status_t status = status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::lock_t lock( *this->nodeStore().lockable() );
 
-            return is_remapped;
+        if( ( buffer_arg != nullptr ) && ( this->readyForRunningKernel() ) )
+        {
+            cuda_arg_t* buffer_cuda_arg = buffer_arg->asDerivedArgument<
+                st::CudaArgument >( this->archId() );
+
+            if( ( buffer_cuda_arg != nullptr ) &&
+                ( buffer_cuda_arg->usesCObjectsBuffer() ) &&
+                ( buffer_cuda_arg->hasCudaArgBuffer() ) &&
+                ( buffer_cuda_arg->capacity() > size_t{ 0 } ) &&
+                ( buffer_cuda_arg->attachedToNode().valid() ) )
+            {
+                _this_t::node_index_t initial_index = _this_t::UNDEFINED_INDEX;
+
+                auto switch_nodes_res = this->doChangeNodeBeforeOp(
+                    lock, &initial_index, buffer_cuda_arg->attachedToNode() );
+
+                status = switch_nodes_res.first;
+                bool const changed_nodes = switch_nodes_res.second;
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    is_remapped = this->doCheckIsCobjectsBufferRemappedDirectly(
+                        lock, &status, buffer_cuda_arg->cudaArgBuffer(),
+                            buffer_cuda_arg->cobjectsBufferSlotSize() );
+                }
+
+                if( ( changed_nodes ) &&
+                    ( st::ARCH_STATUS_SUCCESS != this->doChangeSelectedNode(
+                        lock, initial_index ) ) )
+                {
+                    status = st::ARCH_STATUS_GENERAL_FAILURE;
+                }
+            }
         }
 
-        cuda_arg_t* buffer_cuda_arg = buffer_arg->asDerivedArgument<
-            st::CudaArgument >( this->archId() );
-
-        if( ( buffer_cuda_arg != nullptr ) &&
-            ( buffer_cuda_arg->usesCObjectsBuffer() ) &&
-            ( buffer_cuda_arg->hasCudaArgBuffer() ) &&
-            ( buffer_cuda_arg->capacity() > size_t{ 0 } ) )
+        if( status != st::ARCH_STATUS_SUCCESS )
         {
-            is_remapped = this->doCheckIsCobjectsBufferRemappedDirectly(
-                ptr_status, buffer_cuda_arg->cudaArgBuffer(),
-                buffer_cuda_arg->cobjectsBufferSlotSize() );
+            is_remapped = false;
+        }
+
+        if( ptr_status != nullptr )
+        {
+            *ptr_status = status;
         }
 
         return is_remapped;
     }
 
     CudaController::status_t CudaController::doRemapCObjectsBufferDirectly(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
         CudaController::cuda_arg_buffer_t SIXTRL_RESTRICT managed_buffer_begin,
         CudaController::size_type const slot_size )
     {
@@ -832,36 +560,58 @@ namespace SIXTRL_CXX_NAMESPACE
 
         status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( ( this->readyForRunningKernel() ) && ( slot_size > size_t{ 0 } ) &&
-            ( managed_buffer_begin != nullptr ) )
+        if( ( slot_size > size_t{ 0 } ) &&
+            ( managed_buffer_begin != nullptr ) &&
+            ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->hasSelectedNode( lock ) ) &&
+            ( this->readyForRunningKernel() ) )
         {
+            _this_t::node_index_t const selected_node_index =
+                this->selectedNodeIndex( lock );
+            SIXTRL_ASSERT( selected_node_index != _this_t::UNDEFINED_INDEX );
+
+            kernel_config_t const* kernel_config = nullptr;
+
             bool const in_debug_mode = this->isInDebugMode();
 
-            kernel_config_t const* kernel_config = this->ptrKernelConfig(
-                ( in_debug_mode )
-                    ? this->remapCObjectBufferDebugKernelId()
-                    : this->remapCObjectBufferKernelId() );
+            if( in_debug_mode )
+            {
+                kernel_config = this->ptrKernelConfig(
+                    this->remapCObjectBufferDebugKernelId() );
+            }
+            else
+            {
+                kernel_config = this->ptrKernelConfig(
+                    this->remapCObjectBufferKernelId() );
+            }
 
             if( kernel_config != nullptr )
             {
-                if( !in_debug_mode )
+                if( in_debug_mode )
                 {
                     ::NS(Buffer_remap_cuda_wrapper)(
                         kernel_config, managed_buffer_begin, slot_size );
 
                     status = st::ARCH_STATUS_SUCCESS;
                 }
-                else if( this->doGetPtrCudaDebugRegister() != nullptr )
+                else
                 {
-                    status = this->prepareDebugRegisterForUse();
+                    _this_t::cuda_arg_buffer_t cuda_debug_reg =
+                        this->doGetPtrCudaDebugRegister(
+                            lock, selected_node_index );
 
-                    if( status == st::ARCH_STATUS_SUCCESS )
+                    if( cuda_debug_reg != nullptr )
                     {
-                        ::NS(Buffer_remap_cuda_debug_wrapper)( kernel_config,
-                            managed_buffer_begin, slot_size,
-                                this->doGetPtrCudaDebugRegister() );
+                        status = this->prepareDebugRegisterForUse();
 
-                        status = this->evaluateDebugRegisterAfterUse();
+                        if( status == st::ARCH_STATUS_SUCCESS )
+                        {
+                            ::NS(Buffer_remap_cuda_debug_wrapper)(
+                                kernel_config, managed_buffer_begin, slot_size,
+                                    cuda_debug_reg );
+
+                            status = this->evaluateDebugRegisterAfterUse();
+                        }
                     }
                 }
             }
@@ -871,6 +621,7 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     bool CudaController::doCheckIsCobjectsBufferRemappedDirectly(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
         CudaController::status_t* SIXTRL_RESTRICT ptr_status,
         CudaController::cuda_arg_buffer_t SIXTRL_RESTRICT managed_buffer_begin,
         CudaController::size_type const slot_size )
@@ -882,288 +633,194 @@ namespace SIXTRL_CXX_NAMESPACE
 
         bool is_remapped = false;
 
-        if( ( this->readyForRunningKernel() ) && ( slot_size > size_t{ 0 } ) &&
-            ( managed_buffer_begin != nullptr ) )
+        if( ( slot_size > size_t{ 0 } ) &&
+            ( managed_buffer_begin != nullptr ) &&
+            ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->readyForRunningKernel() ) &&
+            ( this->hasSelectedNode( lock ) ) )
         {
+            _this_t::node_index_t const selected_node_index =
+                this->selectedNodeIndex( lock );
+
+            SIXTRL_ASSERT( selected_node_index != _this_t::UNDEFINED_INDEX );
+
             is_remapped = ::NS(Buffer_is_remapped_cuda_wrapper)(
                 managed_buffer_begin, slot_size,
-                    this->doGetPtrCudaDebugRegister(), ptr_status );
+                    this->doGetPtrCudaDebugRegister( lock, selected_node_index ),
+                        ptr_status );
         }
 
         return is_remapped;
     }
 
-    CudaController::status_t CudaController::doSelectNode( CudaController::node_index_t const idx )
+    CudaController::status_t CudaController::doSelectNode(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        CudaController::node_index_t const node_index )
     {
-        return this->doSelectNodeCudaImpl( idx );
+        return this->doSelectNodeCudaImpl( lock, node_index );
+    }
+
+    CudaController::status_t CudaController::doSelectNodeCudaImpl(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        CudaController::node_index_t const idx )
+    {
+        using _this_t = st::CudaController;
+        using _base_t = _this_t::_base_controller_t;
+        using ptr_node_id_t = _this_t::node_id_t const*;
+        using platform_id_t = _this_t::platform_id_t;
+        using device_id_t   = _this_t::device_id_t;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( !this->nodeStore().checkLock( lock ) ) ||
+            ( !this->deviceSelector().checkLock( lock ) ) )
+        {
+            return status;
+        }
+
+        SIXTRL_ASSERT( !this->hasSelectedNode( lock ) );
+        SIXTRL_ASSERT( node_index != _this_t::UNDEFINED_INDEX );
+        SIXTRL_ASSERT( this->doCheckIfNodeIndexIsAvailableLocally(
+            lock, node_index ) );
+
+        ptr_node_id_t ptr_node_id = this->ptrNodeId( lock, node_index );
+
+        if( ( ptr_node_id != nullptr ) &&
+            ( ptr_node_id->archId() == this->archId() ) &&
+            ( ptr_node_id->platformId() != _this_t::ILLEGAL_PLATFORM_ID ) &&
+            ( ptr_node_id->deviceId() == device_id_t{ 0 } ) )
+        {
+            platform_id_t const dev_id = ptr_node_id->platformId();
+            status = _base_t::doSelectNode( lock, node_index );
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                status = this->deviceSelector().setDeviceId( lock, dev_id );
+            }
+
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( ( platform_id = this->deviceSelector().deviceId( lock ) ) &&
+                  ( this->ptrSelectedNodeId( lock ) != nullptr ) &&
+                  ( this->ptrSelectedNodeId( lock )->valid() ) &&
+                  ( this->ptrSelectedNodeId( lock )->platformId() == dev_id ) &&
+                  ( this->ptrSelectedNodeId( lock )->deviceId() ==
+                    device_id_t{ 0 } ) &&
+                  ( this->selectedNodeIndex( lock ) == node_index ) ) );
+        }
+
+        return status;
     }
 
     CudaController::status_t CudaController::doChangeSelectedNode(
-        CudaController::node_index_t const current_selected_node_idx,
-        CudaController::node_index_t const new_selected_node_index )
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        CudaController::node_index_t const new_node_index )
     {
-        CudaController::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        using _this_t = st::CudaController;
+        using _base_t = _this_t::_base_controller_t;
+        using ptr_node_id_t = _this_t::node_id_t const*;
+        using platform_id_t = _this_t::platform_id_t;
+        using device_id_t   = _this_t::device_id_t;
 
-        auto ptr_node_info = this->ptrNodeInfo( new_selected_node_index );
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( ( ptr_node_info != nullptr ) &&
-            ( ptr_node_info->hasCudaDeviceIndex() ) &&
-            ( this->isNodeAvailable( new_selected_node_index ) ) &&
-            ( st::NodeControllerBase::doChangeSelectedNode(
-                current_selected_node_idx, new_selected_node_index ) ) )
+        SIXTRL_ASSERT( new_node_index != _this_t::UNDEFINED_INDEX );
+
+        if( ( !this->nodeStore().checkLock( lock ) ) ||
+            ( !this->deviceSelector().checkLock( lock ) ) )
         {
-            ::cudaError_t err = ::cudaSetDevice(
-                ptr_node_info->cudaDeviceIndex() );
+            return status;
+        }
 
-            if( err == ::cudaSuccess )
+        SIXTRL_ASSERT( this->hasSelectedNode( lock ) );
+        SIXTRL_ASSERT( this->selectedNodeIndex( lock ) != new_node_index );
+        SIXTRL_ASSERT( this->doCheckIfNodeIndexIsAvailableLocally(
+                       lock, new_node_index ) );
+
+        SIXTRL_ASSERT( this->ptrSelectedNodeId( lock ) != nullptr );
+        SIXTRL_ASSERT( this->ptrSelectedNodeId( lock )->valid() );
+
+        SIXTRL_ASSERT( this->ptrSelectedNodeId( lock )->archId() ==
+                       this->archId() );
+
+        SIXTRL_ASSERT( this->ptrSelectedNodeId( lock )->platformId() ==
+                       this->deviceSelector().deviceId( lock ) );
+
+        SIXTRL_ASSERT( this->ptrSelectedNodeId( lock )->deviceId() ==
+                       device_id_t{ 0 } );
+
+        ptr_node_id_t ptr_node_id = this->ptrNodeId( lock, new_node_index );
+
+        if( ( ptr_node_id != nullptr ) &&
+            ( ptr_node_id->archId() == this->archId() ) &&
+            ( ptr_node_id->platformId() != _this_t::ILLEGAL_PLATFORM_ID ) &&
+            ( ptr_node_id->deviceId() == device_id_t{ 0 } ) )
+        {
+            _this_t::platform_id_t const dev_id = ptr_node_id->platformId();
+            SIXTRL_ASSERT( dev_id != this->ptrSelectedNodeId( lock )->platformId() );
+
+            status = _base_t::doChangeSelectedNode( lock, new_node_index );
+
+            if( status == st::ARCH_STATUS_SUCCESS )
             {
-                status = st::ARCH_STATUS_SUCCESS;
+                status = this->deviceSelector().setDeviceId( lock, dev_id );
             }
 
-            if( ( !this->canUnselectNode() ) &&
-                ( ( status != st::ARCH_STATUS_SUCCESS ) ||
-                  ( !this->hasSelectedNode() ) ) )
-            {
-                status = this->doSelectNode( current_selected_node_idx );
-            }
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( ( dev_id == this->deviceSelector().deviceId( lock ) ) &&
+                  ( this->ptrSelectedNodeId( lock ) != nullptr ) &&
+                  ( this->ptrSelectedNodeId( lock )->valid() ) &&
+                  ( this->ptrSelectedNodeId( lock )->platformId() == dev_id ) &&
+                  ( this->ptrSelectedNodeId( lock )->deviceId() ==
+                    device_id_t{ 0 } ) &&
+                  ( this->selectedNodeIndex( lock ) == new_node_index ) ) );
         }
 
         return status;
     }
 
-    CudaController::status_t CudaController::doInitCudaDebugRegister()
+    bool CudaController::doCheckIsNodeInitialized(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        CudaController::node_index_t const index )
     {
-        CudaController::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        using _this_t = st::CudaController;
+        using node_id_t = _this_t::node_id_t;
 
-        using debug_register_t = CudaController::debug_register_t;
+        bool is_node_initialized = false;
 
-        if( this->m_cuda_debug_register == nullptr )
+        if( ( index != _this_t::UNDEFINED_INDEX ) &&
+            ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->nodeStore().isNodeAvailable( lock, index ) ) )
         {
-            ::cudaError_t err = ::cudaMalloc(
-                &this->m_cuda_debug_register, sizeof( debug_register_t ) );
+            node_id_t const* ptr_node_id = this->ptrNodeId( lock, index );
 
-            if( err == ::cudaSuccess )
+            if( ptr_node == nullptr )
             {
-                status = st::ARCH_STATUS_SUCCESS;
+                return is_node_initialized;
             }
-            else if( this->m_cuda_debug_register != nullptr )
-            {
-                err = ::cudaFree( this->m_cuda_debug_register );
-                SIXTRL_ASSERT( err == ::cudaSuccess );
-                ( void )err;
 
-                this->m_cuda_debug_register = nullptr;
-            }
+            SIXTRL_ASSERT( ptr_node_id->valid() );
+            SIXTRL_ASSERT( ptr_node_id->archId() == this->archId() );
+
+            SIXTRL_ASSERT( ptr_node_id->platformId() !=
+                           _this_t::ILLEGAL_PLATFORM_ID );
+
+            SIXTRL_ASSERT( ptr_node_id->deviceId() ==
+                            _this_t::device_id_t{ 0 } );
+
+
         }
 
-        return status;
+        return is_node_initialized;
     }
 
-    CudaController::node_index_t
-    CudaController::doFindAvailableNodesByCudaDeviceIndex(
-        CudaController::cuda_device_index_t const idx ) const SIXTRL_NOEXCEPT
+    CudaController::status_t CudaController::doInitializeNode(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        CudaController::node_index_t const index )
     {
-        using _this_t          = st::CudaController;
-        using node_id_t        = _this_t::node_id_t;
-        using node_info_base_t = _this_t::node_info_base_t;
-        using node_info_t      = _this_t::node_info_t;
-        using node_index_t     = _this_t::node_index_t;
 
-        node_index_t found_node_index = node_id_t::UNDEFINED_INDEX;
-        node_index_t const num_avail_nodes = this->numAvailableNodes();
-
-        if( ( num_avail_nodes > node_index_t{ 0 } ) &&
-            ( idx != node_info_t::ILLEGAL_DEV_INDEX ) )
-        {
-            node_index_t ii = node_index_t{ 0 };
-
-            for( ; ii < num_avail_nodes ; ++ii )
-            {
-                node_info_base_t const* ptr_base = this->ptrNodeInfoBase( ii );
-
-                node_info_t const* ptr_node_info = ( ptr_base != nullptr )
-                    ? ptr_base->asDerivedNodeInfo< node_info_t >(
-                        st::ARCHITECTURE_CUDA ) : nullptr;
-
-                if( ( ptr_node_info != nullptr ) &&
-                    ( ptr_node_info->hasCudaDeviceIndex() ) &&
-                    ( ptr_node_info->cudaDeviceIndex() == idx ) )
-                {
-                    SIXTRL_ASSERT( ( !ptr_node_info->hasNodeIndex() ) ||
-                        ( ptr_node_info->nodeIndex() == ii ) );
-
-                    found_node_index = ii;
-                    break;
-                }
-            }
-        }
-
-        return found_node_index;
     }
 
-    CudaController::node_index_t
-    CudaController::doFindAvailableNodesByPciBusId(
-        char const* SIXTRL_RESTRICT pci_bus_id_str ) const SIXTRL_NOEXCEPT
-    {
-        using _this_t          = st::CudaController;
-        using node_id_t        = _this_t::node_id_t;
-        using node_info_base_t = _this_t::node_info_base_t;
-        using node_info_t      = _this_t::node_info_t;
-        using node_index_t     = _this_t::node_index_t;
-
-        node_index_t found_node_index = node_id_t::UNDEFINED_INDEX;
-        node_index_t const num_avail_nodes = this->numAvailableNodes();
-
-        if( ( num_avail_nodes > node_index_t{ 0 } ) &&
-            ( pci_bus_id_str != nullptr ) &&
-            ( std::strlen( pci_bus_id_str ) > std::size_t{ 0 } ) )
-        {
-            node_index_t ii = node_index_t{ 0 };
-
-            for( ; ii < num_avail_nodes ; ++ii )
-            {
-                node_info_base_t const* ptr_base = this->ptrNodeInfoBase( ii );
-
-                node_info_t const* nodeinfo = ( ptr_base != nullptr )
-                    ? ptr_base->asDerivedNodeInfo< node_info_t >(
-                        st::ARCHITECTURE_CUDA ) : nullptr;
-
-                if( ( nodeinfo != nullptr ) && ( nodeinfo->hasPciBusId() ) &&
-                    ( nodeinfo->pciBusId().compare( pci_bus_id_str ) == 0 ) )
-                {
-                    SIXTRL_ASSERT( ( !nodeinfo->hasNodeIndex() ) ||
-                                   (  nodeinfo->nodeIndex() == ii ) );
-
-                    found_node_index = ii;
-                    break;
-                }
-            }
-        }
-
-        return found_node_index;
-    }
-
-    CudaController::node_index_t
-    CudaController::doGetNodeIndexFromConfigString(
-            char const* SIXTRL_RESTRICT select_str )
-    {
-        CudaController::node_index_t found_node_index =
-            CudaController::UNDEFINED_INDEX;
-
-        if( select_str != nullptr )
-        {
-            found_node_index = this->doFindAvailableNodesIndex( select_str );
-
-            if( found_node_index == CudaController::UNDEFINED_INDEX )
-            {
-                found_node_index =
-                    this->doFindAvailableNodesByPciBusId( select_str );
-            }
-        }
-
-        return found_node_index;
-    }
-
-    /* -------------------------------------------------------------------- */
-
-    void CudaController::doInitCudaController()
-    {
-        this->doSetReadyForRunningKernelsFlag( false );
-        this->doSetReadyForSendFlag( false );
-        this->doSetReadyForReceiveFlag( false );
-
-        this->doSetCanDirectlyChangeSelectedNodeFlag( true );
-        this->doSetCanUnselectNodeFlag( false );
-        this->doSetUseAutoSelectFlag( true );
-
-        return;
-    }
-
-    CudaController::status_t CudaController::doInitAllCudaNodes()
-    {
-        CudaController::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        using _this_t = CudaController;
-        using node_index_t     = _this_t::node_index_t;
-        using node_info_base_t = _this_t::node_info_base_t;
-        using node_info_t      = _this_t::node_info_t;
-
-        node_index_t const initial_num_avail_nodes = this->numAvailableNodes();
-
-        bool first = true;
-
-        int num_devices = int{ -1 };
-        ::cudaError_t err = ::cudaGetDeviceCount( &num_devices );
-
-        if( ( err == ::cudaSuccess ) && ( num_devices > int{ 0 } ) )
-        {
-            for( int cu_idx = int{ 0 } ; cu_idx < num_devices ; ++cu_idx )
-            {
-                ::cudaDeviceProp cu_properties;
-                err = ::cudaGetDeviceProperties( &cu_properties, cu_idx );
-
-                if( err != ::cudaSuccess )
-                {
-                    continue;
-                }
-
-                std::unique_ptr< node_info_t > ptr_node_info(
-                    new node_info_t( cu_idx, cu_properties ) );
-
-                if( ptr_node_info.get() == nullptr )
-                {
-                    continue;
-                }
-
-                SIXTRL_ASSERT( ptr_node_info->platformId() ==
-                    _this_t::node_id_t::ILLEGAL_PLATFORM_ID );
-
-                SIXTRL_ASSERT( ptr_node_info->deviceId() ==
-                    _this_t::node_id_t::ILLEGAL_DEVICE_ID );
-
-                /* Check if this node is already present -> use first the
-                 * cuda device index and then the the PCI Bus ID for
-                 * eliminating duplicates
-                 *
-                 * WARNING: This searches linearily (!) over all existing
-                 * nodes. If the number of nodes gets high, this can impose
-                 * some performance problems -> replace with a hash-table
-                 * or something O(log(N)) / O(1) in such a case */
-
-                if( _this_t::node_id_t::UNDEFINED_INDEX !=
-                    this->doFindAvailableNodesByCudaDeviceIndex( cu_idx ) )
-                {
-                    continue;
-                }
-
-                if( ( ptr_node_info->hasPciBusId() ) &&
-                    ( _this_t::node_id_t::UNDEFINED_INDEX !=
-                        this->doFindAvailableNodesByPciBusId(
-                          ptr_node_info->pciBusId().c_str() ) ) )
-                {
-                    continue;
-                }
-
-                ptr_node_info->setCudaDeviceIndex( cu_idx );
-
-                node_index_t node_index = this->doAppendAvailableNodeInfoBase(
-                    std::move( ptr_node_info ) );
-
-                if( ( node_index != _this_t::UNDEFINED_INDEX ) && ( first ) )
-                {
-                    this->doSetDefaultNodeIndex( node_index );
-                    first = false;
-                }
-            }
-
-            if( this->numAvailableNodes() > initial_num_avail_nodes )
-            {
-                status = st::ARCH_STATUS_SUCCESS;
-            }
-        }
-
-        return status;
-    }
+    /* --------------------------------------------------------------------- */
 
     void CudaController::doEnableCudaController()
     {
@@ -1178,17 +835,7 @@ namespace SIXTRL_CXX_NAMESPACE
         this->doSetReadyForRunningKernelsFlag( true );
     }
 
-    CudaController::cuda_arg_buffer_t
-    CudaController::doGetPtrCudaDebugRegister() SIXTRL_NOEXCEPT
-    {
-        return this->m_cuda_debug_register;
-    }
 
-    CudaController::cuda_const_arg_buffer_t
-    CudaController::doGetPtrCudaDebugRegister() const SIXTRL_NOEXCEPT
-    {
-        return this->m_cuda_debug_register;
-    }
 
     CudaController::status_t CudaController::PerformSendOperation(
         ::NS(cuda_arg_buffer_t) SIXTRL_RESTRICT destination,
@@ -1246,6 +893,202 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
+    /* --------------------------------------------------------------------- */
+
+    CudaController::status_t CudaController::doCreateCudaDebugRegister(
+        CudaController::node_index_t const node_index,
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        CudaController::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::cuda_arg_buffer_t ptr_debug_register = nullptr;
+
+        if( ( this->nodeStore().checkLock( lock ) ) &&
+            ( node_index == this->selectedNodeIndex( lock ) ) )
+        {
+            ::cudaError_t err = ::cudaMalloc(
+                &ptr_debug_register, sizeof( debug_register_t ) );
+
+            if( err == ::cudaSuccess )
+            {
+                auto res = this->m_index_to_debug_registers.insert(
+                    std::make_pair( node_index, ptr_debug_register ) );
+
+                if( res.second )
+                {
+                    status = st::ARCH_STATUS_SUCCESS;
+                }
+            }
+
+            if( ( ptr_debug_register != nullptr ) &&
+                ( status != st::ARCH_STATUS_SUCCESS ) )
+            {
+                err = ::cudaFree( ptr_debug_register );
+                SIXTRL_ASSERT( err == ::cudaSuccess );
+                ( void )err;
+            }
+        }
+
+        return status;
+    }
+
+    CudaController::status_t
+    CudaController::doFinishCudaControllerInitialization(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        CudaController::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    CudaController::status_t CudaController::doInitCudaDebugRegister(
+        CudaController::node_index_t const node_index,
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        using _this_t = CudaController;
+        using debug_register_t = _this_t::debug_register_t;
+        using index_t = _this_t::node_index_t;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( node_index != _this_t::UNDEFINED_INDEX ) &&
+            ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) &&
+            ( this->doCheckIfNodeIndexIsAvailableLocally( lock, node_index ) ) )
+        {
+            auto it = this->m_index_to_debug_registers.find( node_index );
+
+            if( ( it == this->m_index_to_debug_registers.end() ) ||
+                ( it->second == nullptr ) )
+            {
+                status = st::ARCH_STATUS_SUCCESS;
+
+                index_t const prev_node_idx = this->selectedNodeIndex( lock );
+
+                SIXTRL_ASSERT( this->ptrSelectedNodeId( lock ) != nullptr );
+                SIXTRL_ASSERT( this->ptrSelectedNodeId( lock )->valid() );
+                SIXTRL_ASSERT( this->ptrSelectedNodeId( lock )->platformId() ==
+                               this->deviceSelector().deviceId( lock ) );
+
+                if( node_index != prev_node_idx )
+                {
+                    status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+                    _this_t::node_id_t const& node_id =
+                        this->nodeStore().nodeId( node_index );
+
+                    if( node_id.valid() )
+                    {
+                        status = this->doChangeSelectedNode( lock, node_index );
+
+                        SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                            ( ( this->selectedNodeIndex( lock ) == node_index ) &&
+                              ( this->ptrSelectedNodeId( lock ) != nullptr ) &&
+                              ( this->ptrSelectedNodeId( lock )->valid() ) &&
+                              ( this->ptrSelectedNodeId( lock )->platformId()
+                                == this->deviceSelector().deviceId( lock ) )
+                            ) );
+                    }
+                }
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = this->doCreateCudaDebugRegister( lock, node_index );
+                }
+
+                if( prev_node_idx != this->selectedNodeIndex( lock ) )
+                {
+                    if( st::ARCH_STATUS_SUCCESS == this->doChangeSelectedNode(
+                            lock, prev_node_idx ) )
+                    {
+                        auto ptr_sel_node_id = this->ptrSelectedNodeId( lock );
+
+                        if( ( ptr_sel_node_id == nullptr ) ||
+                            ( !ptr_sel_node_id->valid() ) ||
+                            ( ptr_sel_node_id->platformId() !=
+                              this->deviceSelector().deviceId( lock ) ) )
+                        {
+                            status = st::ARCH_STATUS_GENERAL_FAILURE;
+                        }
+                    }
+                    else
+                    {
+                        status = st::ARCH_STATUS_GENERAL_FAILURE;
+                    }
+                }
+            }
+            else if( it->second != nullptr )
+            {
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+
+        return status;
+    }
+
+    CudaController::cuda_const_arg_buffer_t
+    CudaController::doGetPtrCudaDebugRegister(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        node_index_t const node_index ) const SIXTRL_NOEXCEPT
+    {
+        using _this_t = CudaController;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::cuda_const_arg_buffer_t ptr_debug_register = nullptr;
+
+        if( ( node_index != _this_t::UNDEFINED_INDEX ) &&
+            ( this->nodestore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) )
+        {
+            SIXTRL_ASSERT( this->doCheckIfNodeIndexIsAvailableLocally(
+                lock, node_index ) );
+
+            auto it = this->m_index_to_debug_registers.find( node_index );
+
+            if( it != this->m_index_to_debug_registers.end() )
+            {
+                ptr_debug_register = it->second;
+            }
+        }
+
+        return status;
+    }
+
+    CudaController::status_t CudaController::doDeleteCudaDebugRegister(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock
+        CudaController::node_index_t const node_index ) SIXTRL_NOEXCEPT
+    {
+        using _this_t = CudaController;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( node_index != _this_t::UNDEFINED_INDEX ) &&
+            ( this->nodestore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) &&
+            ( this->doCheckIfNodeIndexIsAvailableLocally(
+                lock, node_index ) ) )
+        {
+            auto it = this->m_index_to_debug_registers.find( node_index );
+
+            if( it != this->m_index_to_debug_registers.end() )
+            {
+                if( it->second != nullptr )
+                {
+                    ::cudaError_t err = ::cudaFree( it->second );
+                    SIXTRL_ASSERT( err == ::cudaSuccess );
+                }
+
+                this->m_index_to_debug_registers.erase( it );
+                it = this->m_index_to_debug_registers.end();
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
     CudaController::status_t CudaController::doSetDebugRegisterCudaBaseImpl(
         CudaController::debug_register_t const debug_register )
     {
@@ -1263,127 +1106,6 @@ namespace SIXTRL_CXX_NAMESPACE
             ptr_debug_register, sizeof( debug_register_t ),
             this->doGetPtrCudaDebugRegister(),
             sizeof( debug_register_t ) );
-    }
-
-    CudaController::status_t CudaController::doSelectNodeCudaImpl(
-            CudaController::node_index_t const node_index )
-    {
-        using _base_ctrl_t = st::NodeControllerBase;
-        using _this_t = st::CudaController;
-        using node_info_base_t = _this_t::node_info_base_t;
-        using node_info_t = _this_t::node_info_t;
-        using cuda_dev_index_t = node_info_t::cuda_dev_index_t;
-        using size_t = _this_t::size_type;
-        using kernel_id_t = _this_t::kernel_id_t;
-        using kernel_config_t = _this_t::kernel_config_t;
-
-        CudaController::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        node_info_base_t* node_base = this->doGetPtrNodeInfoBase( node_index );
-
-        node_info_t* ptr_node_info = ( node_base != nullptr )
-            ? node_base->asDerivedNodeInfo< node_info_t >(
-                st::ARCHITECTURE_CUDA ) : nullptr;
-
-        if( ( ptr_node_info != nullptr ) &&
-            ( ptr_node_info->hasCudaDeviceIndex() ) )
-        {
-            cuda_dev_index_t cuda_dev_index = ptr_node_info->cudaDeviceIndex();
-
-            if( cuda_dev_index != node_info_t::ILLEGAL_DEV_INDEX )
-            {
-                ::cudaError_t const err = ::cudaSetDevice( cuda_dev_index );
-
-                if( err == ::cudaSuccess )
-                {
-                    status = _base_ctrl_t::doSelectNode( node_index );
-                }
-            }
-        }
-
-        if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-            ( this->hasSelectedNode() ) )
-        {
-            std::string kernel_name( size_t{ 64 }, '\0' );
-
-            kernel_id_t kernel_id = _this_t::ILLEGAL_KERNEL_ID;
-
-            kernel_name.clear();
-            kernel_name = SIXTRL_C99_NAMESPACE_PREFIX_STR;
-            kernel_name += "Buffer_remap_cuda_wrapper";
-
-            ptr_cuda_kernel_config_t ptr_remap_kernel( new kernel_config_t(
-                kernel_name, size_t{ 1 } ) );
-
-            SIXTRL_ASSERT( ptr_remap_kernel.get() != nullptr );
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                status = ptr_remap_kernel->setNumWorkItems( size_t{ 1 } );
-            }
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                status = ptr_remap_kernel->setWorkGroupSizes( size_t{ 1 } );
-            }
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                status = ptr_remap_kernel->update();
-
-                if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                    ( ptr_remap_kernel->needsUpdate() ) )
-                {
-                    status = st::ARCH_STATUS_GENERAL_FAILURE;
-                }
-            }
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                kernel_id = this->doAppendCudaKernelConfig(
-                    std::move( ptr_remap_kernel ) );
-            }
-
-            this->setRemapCObjectBufferKernelId( kernel_id );
-
-            kernel_id = _this_t::ILLEGAL_KERNEL_ID;
-            kernel_name.clear();
-            kernel_name  = SIXTRL_C99_NAMESPACE_PREFIX_STR;
-            kernel_name += "Buffer_remap_cuda_debug_wrapper";
-
-            ptr_cuda_kernel_config_t ptr_debug_remap_kernel(
-                new kernel_config_t( kernel_name, size_t{ 2 } ) );
-
-            SIXTRL_ASSERT( ptr_debug_remap_kernel.get() != nullptr );
-
-            status = ptr_debug_remap_kernel->setNumWorkItems( size_t{ 1 } );
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                status = ptr_debug_remap_kernel->setWorkGroupSizes( size_t{ 1 } );
-            }
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                status = ptr_debug_remap_kernel->update();
-
-                if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                    ( ptr_debug_remap_kernel->needsUpdate() ) )
-                {
-                    status = st::ARCH_STATUS_GENERAL_FAILURE;
-                }
-            }
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                kernel_id = this->doAppendCudaKernelConfig(
-                    std::move( ptr_debug_remap_kernel ) );
-            }
-
-            this->setRemapCObjectBufferDebugKernelId( kernel_id );
-        }
-
-        return status;
     }
 }
 

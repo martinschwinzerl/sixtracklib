@@ -32,7 +32,7 @@ bool NS(Architectures_has_architecture)(
     ::NS(arch_id_t) const arch_id )
 {
     return ( ( architectures != nullptr ) &&
-             ( architectures->hasArchitectures( arch_id ) ) );
+             ( architectures->hasArchitecture( arch_id ) ) );
 }
 
 bool NS(Architectures_has_arch_str)(
@@ -59,6 +59,17 @@ char const* NS(Architectures_get_arch_str)(
 {
     return ( architectures != nullptr )
         ? architectures->archId( arch_str ) : st::ARCHITECTURE_ILLEGAL;
+}
+
+
+
+::NS(arch_id_t) NS(Architectures_get_arch_id_by_number)(
+    const ::NS(Architectures) *const SIXTRL_RESTRICT architectures,
+    ::NS(arch_size_t) const index )
+{
+    return ( architectures != nullptr )
+        ? architectures->archIdByNumber( index )
+        : st::ARCHITECTURE_ILLEGAL;
 }
 
 /* ------------------------------------------------------------------------- */

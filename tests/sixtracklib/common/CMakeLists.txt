@@ -1,8 +1,8 @@
 # sixtracklib/tests/sixtracklib/common/CMakeLists.txt
 
 add_subdirectory( control )
-add_subdirectory( beam_elements )
-add_subdirectory( track )
+# add_subdirectory( beam_elements )
+# add_subdirectory( track )
 
 # -----------------------------------------------------------------------------
 # ---- Generate testdata:
@@ -192,39 +192,39 @@ if( GTEST_FOUND )
     # --------------------------------------------------------------------------
     # test_track_job_common_cxx:
 
-    add_executable( test_track_job_common_cxx test_track_job_cxx.cpp )
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_job_common_cxx )
-    add_test( CXX_CommonTrackJobTests, test_track_job_common_cxx )
+#     add_executable( test_track_job_common_cxx test_track_job_cxx.cpp )
+#     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_job_common_cxx )
+#     add_test( CXX_CommonTrackJobTests, test_track_job_common_cxx )
 
     # ==========================================================================
     # test_track_job_cpu_common_c99:
 
-    add_executable( test_track_job_cpu_common_c99 test_track_job_cpu_c99.cpp )
+#     add_executable( test_track_job_cpu_common_c99 test_track_job_cpu_c99.cpp )
 
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_job_cpu_common_c99 )
-    add_test( C99_CommonTrackJobCpuTests test_track_job_cpu_common_c99 )
+#     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_job_cpu_common_c99 )
+#     add_test( C99_CommonTrackJobCpuTests test_track_job_cpu_common_c99 )
 
     # --------------------------------------------------------------------------
     # test_track_job_cpu_cxx:
 
-    add_executable( test_track_job_cpu_common_cxx test_track_job_cpu_cxx.cpp )
+#     add_executable( test_track_job_cpu_common_cxx test_track_job_cpu_cxx.cpp )
 
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_job_cpu_common_cxx )
-    add_test( CXX_CommonTrackJobCpuTests test_track_job_cpu_common_cxx )
+#     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_job_cpu_common_cxx )
+#     add_test( CXX_CommonTrackJobCpuTests test_track_job_cpu_common_cxx )
 
     # --------------------------------------------------------------------------
 
-    if( SIXTRACKL_ENABLE_AUTOVECTORIZATION )
-        add_executable( test_track_common_autovec_c99 test_track_c99.cpp )
-        set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_common_autovec_c99 )
-
-        target_compile_options( test_track_common_autovec_c99 BEFORE PRIVATE
-            -ftree-vectorize -ftree-vectorizer-verbose=6 -fopt-info-loop
-            -fno-fast-math --param vect-max-version-for-alias-checks=150 )
-
-        add_test( C99_CommonTrackTestsAutoVec test_track_common_autovec_c99 )
-
-    endif()
+#     if( SIXTRACKL_ENABLE_AUTOVECTORIZATION )
+#         add_executable( test_track_common_autovec_c99 test_track_c99.cpp )
+#         set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_common_autovec_c99 )
+#
+#         target_compile_options( test_track_common_autovec_c99 BEFORE PRIVATE
+#             -ftree-vectorize -ftree-vectorizer-verbose=6 -fopt-info-loop
+#             -fno-fast-math --param vect-max-version-for-alias-checks=150 )
+#
+#         add_test( C99_CommonTrackTestsAutoVec test_track_common_autovec_c99 )
+#
+#     endif()
 
     # *************************************************************************
     # Set all properties:

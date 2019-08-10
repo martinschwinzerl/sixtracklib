@@ -69,10 +69,10 @@ namespace SIXTRL_CXX_NAMESPACE
             size_type const arg_size );
 
 
-        SIXTRL_HOST_FN status_t receive( 
+        SIXTRL_HOST_FN status_t receive(
             perform_remap_flag_t const perform_remap_flag =
                 SIXTRL_CXX_NAMESPACE::CTRL_PERFORM_REMAP );
-        
+
         SIXTRL_HOST_FN status_t receive(
             buffer_t& SIXTRL_RESTRICT_REF buffer,
             perform_remap_flag_t const perform_remap_flag =
@@ -121,8 +121,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         protected:
 
-        SIXTRL_HOST_FN ArgumentBase(
-            arch_id_t const type_id, const char *const arch_str,
+        SIXTRL_HOST_FN ArgumentBase( arch_id_t const arch_id,
             const char *const SIXTRL_RESTRICT config_str = nullptr,
             bool const needs_argument_buffer = true,
             ptr_base_controller_t SIXTRL_RESTRICT controller = nullptr );

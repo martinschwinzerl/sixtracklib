@@ -14,6 +14,7 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/architecture/definitions.h"
+    #include "sixtracklib/common/architecture/architecture.hpp"
     #include "sixtracklib/common/architecture/architecture.h"
     #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/buffer/buffer_type.h"
@@ -190,7 +191,7 @@ NS(arch_size_t) NS(NodeId_required_str_capacity_for_format)(
             ( arch_id != NS(ARCHITECTURE_ILLEGAL) ) &&
             ( arch_id != NS(ARCHITECTURE_NONE) ) );
 
-        NS(arch_size_t) requ_capacity = ( NS(arch_size_t) )2u; /* . and \0 */
+        requ_capacity = ( NS(arch_size_t) )2u; /* . and \0 */
 
         NS(node_platform_id_t) const platform_id =
             NS(NodeId_get_platform_id)( node );
@@ -301,11 +302,159 @@ NS(node_id_str_fmt_t) NS(NodeId_identify_format_from_node_id_str)(
 
 /* ------------------------------------------------------------------------- */
 
-NS(arch_status_t) NS(NodeId_from_node_id_str_ext)(
+NS(arch_status_t) NS(NodeId_from_node_id_str)(
     SIXTRL_DATAPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node,
     char const* SIXTRL_RESTRICT node_id_str )
 {
-    return NS(NodeId_from_node_id_str)( node, node_id_str );
+    typedef NS(arch_size_t) size_t;
+
+    NS(arch_status_t) status = NS(ARCH_STATUS_GENERAL_FAILURE);
+
+    if( ( node != SIXTRL_NULLPTR ) && ( node_id_str != SIXTRL_NULLPTR ) &&
+        ( strlen( node_id_str ) > ( size_t )0u ) )
+    {
+        NS(node_id_str_fmt_t) const format =
+            NS(NodeId_identify_format_from_node_id_str)( node_id_str );
+
+        switch( format )
+        {
+            case SIXTRL_NODE_ID_STR_FORMAT_NOARCH:
+            {
+                long int temp_platform_id = ( long int )-1;
+                long int temp_device_id = ( long int )-1;
+
+                int const ret = sscanf( node_id_str, "%ld.%ld",
+                        &temp_platform_id, &temp_device_id );
+
+                if( ret == 2 )
+                {
+                    status = NS(NodeId_set_platform_id)(
+                        node, temp_platform_id );
+
+                    if( status == NS(ARCH_STATUS_SUCCESS) )
+                    {
+                        status = NS(NodeId_set_device_id)(
+                            node, temp_device_id );
+                    }
+                }
+
+                break;
+            }
+
+            case SIXTRL_NODE_ID_STR_FORMAT_ARCHID:
+            {
+                long int temp_arch_id = ( long int )-1;
+                long int temp_platform_id = ( long int )-1;
+                long int temp_device_id = ( long int )-1;
+
+                int const ret = sscanf( node_id_str, "%ld:%ld.%ld",
+                        &temp_arch_id, &temp_platform_id, &temp_device_id );
+
+                if( ret == 3 )
+                {
+                    NS(Architectures) const* architectures =
+                        NS(Architectures_get_const_ptr)();
+
+                    if( NS(Architectures_has_architecture)(
+                        architectures, temp_arch_id ) )
+                    {
+                        status = NS(NodeId_set_arch_id)( node, temp_arch_id );
+
+                        if( status == NS(ARCH_STATUS_SUCCESS) )
+                        {
+                            status = NS(NodeId_set_platform_id)(
+                                node, temp_platform_id );
+                        }
+
+                        if( status == NS(ARCH_STATUS_SUCCESS) )
+                        {
+                            status = NS(NodeId_set_device_id)(
+                                node, temp_device_id );
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            case SIXTRL_NODE_ID_STR_FORMAT_ARCHSTR:
+            {
+                NS(arch_id_t) arch_id = NS(ARCHITECTURE_ILLEGAL);
+
+                char const* end_pos = strchr( node_id_str, '\0' );
+                char const* col_pos = strchr( node_id_str, ':'  );
+
+                if( ( col_pos != SIXTRL_NULLPTR ) &&
+                    ( ( uintptr_t )col_pos < ( uintptr_t )end_pos ) )
+                {
+                    size_t const MAX_TEMP_ARCH_STR_LEN = ( size_t )31u;
+                    char temp_arch_str[] =
+                    {
+                        '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+                        '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+                        '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+                        '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'
+                    };
+
+                    SIXTRL_ASSERT( ( uintptr_t )node_id_str <=
+                        ( uintptr_t )col_pos );
+
+                    size_t const arch_str_len = ( ( uintptr_t )col_pos ) -
+                        ( uintptr_t )node_id_str;
+
+                    if( arch_str_len <= MAX_TEMP_ARCH_STR_LEN )
+                    {
+                        memcpy( &temp_arch_str[ 0 ], node_id_str,
+                                arch_str_len );
+
+                        NS(Architectures) const* architectures =
+                            NS(Architectures_get_const_ptr)();
+
+                        arch_id = NS(Architectures_get_arch_id)( architectures,
+                            &temp_arch_str[ 0 ] );
+                    }
+                }
+
+                if( ( col_pos != SIXTRL_NULLPTR ) &&
+                    ( arch_id != NS(ARCHITECTURE_ILLEGAL) ) )
+                {
+                    long int temp_platform_id = ( long int )-1;
+                    long int temp_device_id = ( long int )-1;
+
+                    int const ret = sscanf( col_pos + 1u, "%ld.%ld",
+                        &temp_platform_id, &temp_device_id );
+
+                    if( ret == 2 )
+                    {
+                        status = NS(NodeId_set_arch_id)(
+                            node, arch_id );
+
+                        if( status == NS(ARCH_STATUS_SUCCESS) )
+                        {
+                            status = NS(NodeId_set_platform_id)(
+                                node, temp_platform_id );
+                        }
+
+                        if( status == NS(ARCH_STATUS_SUCCESS) )
+                        {
+                            status = NS(NodeId_set_device_id)(
+                                node, temp_device_id );
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            default:
+            {
+                SIXTRL_ASSERT( format == NS(NODE_ID_STR_FORMAT_ILLEGAL) );
+                status = NS(ARCH_STATUS_GENERAL_FAILURE);
+            }
+        };
+    }
+
+    return status;
 }
 
 SIXTRL_DATAPTR_DEC NS(NodeId)* NS(NodeId_create)( NS(arch_id_t) const arch_id )
@@ -396,7 +545,7 @@ NS(arch_status_t) NS(NodeId_to_node_id_str_with_format)(
         ( requ_capacity <= output_str_capacity ) )
     {
         if( ( format == NS(NODE_ID_STR_FORMAT_NOARCH) ) &&
-            ( platform_id != NS(NODE_ILLEGAL_PATFORM_ID) ) &&
+            ( platform_id != NS(NODE_ILLEGAL_PLATFORM_ID) ) &&
             ( device_id != NS(NODE_ILLEGAL_DEVICE_ID) ) )
         {
             int const ret = sprintf( output_str, "%ld.%ld",
@@ -633,8 +782,22 @@ NS(arch_status_t) NS(NodeId_extract_node_id_str_from_config_str)(
                 end_pos = eostring_pos;
             }
 
-            if( end_pos != SIXTRL_NULLPTR )
+            if( ( config_str_begin_pos != SIXTRL_NULLPTR ) &&
+                ( end_pos != SIXTRL_NULLPTR ) )
             {
+                char const* it = config_str_begin_pos;
+
+                while( ( it != end_pos ) &&
+                       ( !isspace( *it ) ) && ( isprint( *it ) ) )
+                {
+                    ++it;
+                }
+
+                if( it != end_pos )
+                {
+                    end_pos = it;
+                }
+
                 begin_pos = config_str_begin_pos;
             }
         }
@@ -646,10 +809,8 @@ NS(arch_status_t) NS(NodeId_extract_node_id_str_from_config_str)(
 
             if( len < capacity )
             {
-                SIXTRACKLIB_COPY_VALUES( char, node_id_str, begin_pos, len );
-                SIXTRACKLIB_SET_VALUES( char, node_id_str + len,
-                                        capacity - len, '\0' );
-
+                memcpy( node_id_str, begin_pos, len );
+                memset( node_id_str + len, '\0', capacity - len );
                 status = NS(ARCH_STATUS_SUCCESS);
             }
         }

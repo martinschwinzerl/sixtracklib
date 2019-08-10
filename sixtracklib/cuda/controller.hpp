@@ -7,6 +7,7 @@
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
     #include <cstddef>
     #include <cstdlib>
+    #include <map>
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
 #endif /* C++, Host */
@@ -25,8 +26,12 @@
    !defined( __CUDA_ARCH__ ) && !defined( __CUDACC__ )
 
 #if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/control/node_store.hpp"
+    #include "sixtracklib/common/control/kernel_config_key.hpp"
+    #include "sixtracklib/common/control/kernel_config_store.hpp"
     #include "sixtracklib/cuda/control/node_info.hpp"
     #include "sixtracklib/cuda/control/kernel_config.hpp"
+    #include "sixtracklib/cuda/control/device_selector.hpp"
     #include "sixtracklib/common/buffer.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -42,22 +47,22 @@ namespace SIXTRL_CXX_NAMESPACE
 
         public:
 
-        using node_info_t = SIXTRL_CXX_NAMESPACE::CudaNodeInfo;
-        using kernel_config_t = SIXTRL_CXX_NAMESPACE::CudaKernelConfig;
-        using cuda_device_index_t = node_info_t::cuda_dev_index_t;
-
+        using node_info_t       = SIXTRL_CXX_NAMESPACE::CudaNodeInfo;
+        using kernel_config_t   = SIXTRL_CXX_NAMESPACE::CudaKernelConfig;
+        using device_selector_t = SIXTRL_CXX_NAMESPACE::CudaDeviceSelector;
+        using node_store_t      = device_selector_t::node_store_t;
+        using cuda_dev_index_t  = node_info_t::cuda_dev_index_t;
         using cuda_arg_buffer_t = ::NS(cuda_arg_buffer_t);
         using cuda_const_arg_buffer_t = ::NS(cuda_const_arg_buffer_t);
-        using cuda_dev_index_t = SIXTRL_CXX_NAMESPACE::cuda_dev_index_t;
 
-        static SIXTRL_CONSTEXPR_OR_CONST size_type DEFAULT_WARP_SIZE =
-                SIXTRL_CXX_NAMESPACE::ARCH_CUDA_DEFAULT_WARP_SIZE;
+        static SIXTRL_CONSTEXPR_OR_CONST size_type
+            DEFAULT_WARP_SIZE = kernel_config_t::DEFAULT_WARP_SIZE;
 
         SIXTRL_HOST_FN explicit CudaController(
             char const* config_str = nullptr );
 
         SIXTRL_HOST_FN explicit CudaController(
-            cuda_device_index_t const node_index,
+            cuda_dev_index_t const node_index,
             char const* SIXTRL_RESTRICT config_str = nullptr );
 
         SIXTRL_HOST_FN explicit CudaController(
@@ -67,6 +72,12 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN CudaController(
             platform_id_t const platform_id, device_id_t const device_id,
             char const* SIXTRL_RESTRICT config_str = nullptr );
+
+        SIXTRL_HOST_FN CudaController(
+            node_index_t const node_index,
+            char const* SIXTRL_RESTRICT config_str,
+            device_selector_t* SIXTRL_RESTRICT ptr_device_selector,
+            node_store_t* SIXTRL_RESTRICT ptr_node_store = nullptr );
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -74,7 +85,7 @@ namespace SIXTRL_CXX_NAMESPACE
             std::string const& SIXTRL_RESTRICT_REF config_str );
 
         SIXTRL_HOST_FN CudaController(
-            cuda_device_index_t const node_index,
+            cuda_dev_index_t const node_index,
             std::string const& SIXTRL_RESTRICT_REF config_str );
 
         SIXTRL_HOST_FN CudaController(
@@ -84,6 +95,12 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN CudaController(
             platform_id_t const platform_id, device_id_t const device_id,
             std::string const& SIXTRL_RESTRICT_REF config_str );
+
+        SIXTRL_HOST_FN CudaController(
+            node_index_t const node_index,
+            std::string const& SIXTRL_RESTRICT_REF config_str,
+            device_selector_t* SIXTRL_RESTRICT ptr_device_selector,
+            node_store_t* SIXTRL_RESTRICT ptr_node_store = nullptr );
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -100,53 +117,44 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ================================================================= */
 
+        template< typename Args... >
+        SIXTRL_HOST_FN node_info_t const* ptrNodeInfo( Args&& args ) const;
+
+        template< typename Args... >
         SIXTRL_HOST_FN node_info_t const* ptrNodeInfo(
-            size_type const index ) const SIXTRL_NOEXCEPT;
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            Args&& args ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN node_info_t const* ptrNodeInfo(
-            platform_id_t const platform_idx,
-            device_id_t const device_idx ) const SIXTRL_NOEXCEPT;
+        /* ================================================================= */
 
-        SIXTRL_HOST_FN node_info_t const* ptrNodeInfo(
-            node_id_t const& node_id ) const SIXTRL_NOEXCEPT;
+        using _base_controller_t::selectNode;
 
-        SIXTRL_HOST_FN node_info_t const* ptrNodeInfo(
-            char const* SIXTRL_RESTRICT node_id_str ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t selectNode(
+            cuda_dev_index_t const cuda_dev_index );
 
-        SIXTRL_HOST_FN node_info_t const* ptrNodeInfo(
-            std::string const& SIXTRL_RESTRICT_REF node_id_str
-            ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_info_t const* ptrNodeInfoByCudaDeviceIndex(
-            cuda_dev_index_t const cuda_dev_index ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_info_t const* ptrNodeInfoByPciBusId(
-                std::string const& SIXTRL_RESTRICT_REF pci_bus_id_str
-            ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN node_info_t const* ptrNodeInfoByPciBusId(
-                const char *const SIXTRL_RESTRICT pci_bus_id_str
-            ) const SIXTRL_NOEXCEPT;
-
-        /* ---------------------------------------------------------------- */
-
-        SIXTRL_HOST_FN status_t selectNodeByCudaIndex(
-            cuda_device_index_t const cuda_device_index );
-
-        SIXTRL_HOST_FN status_t selectNodeByPciBusId(
-            std::string const& SIXTRL_RESTRICT_REF pci_bus_id );
-
-        SIXTRL_HOST_FN status_t selectNodeByPciBusId(
-            char const* SIXTRL_RESTRICT pci_bus_id );
+        SIXTRL_HOST_FN status_t selectNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            cuda_dev_index_t const cuda_dev_index );
 
         /* ================================================================ */
 
-        status_t sendMemory(
+        using _base_controller_t::changeSelectedNode;
+
+        SIXTRL_HOST_FN status_t changeSelectedNode(
+            cuda_dev_index_t const cuda_dev_index );
+
+        SIXTRL_HOST_FN status_t changeSelectedNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            cuda_dev_index_t const cuda_dev_index );
+
+        /* ================================================================ */
+
+        SIXTRL_HOST_FN status_t sendMemory(
             cuda_arg_buffer_t SIXTRL_RESTRICT destination,
             void const* SIXTRL_RESTRICT source,
             size_type const source_length );
 
-        status_t receiveMemory(
+        SIXTRL_HOST_FN status_t receiveMemory(
             void* SIXTRL_RESTRICT destination,
             cuda_const_arg_buffer_t SIXTRL_RESTRICT source,
             size_type const source_length );
@@ -164,47 +172,14 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ================================================================ */
 
-        SIXTRL_HOST_FN kernel_config_t const*
-        ptrKernelConfig( kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT;
-
+        template< typename Args... >
         SIXTRL_HOST_FN kernel_config_t const* ptrKernelConfig(
-            std::string const& SIXTRL_RESTRICT_REF kernel_name
-        ) const SIXTRL_NOEXCEPT;
+            Args&&... args ) const;
 
-        SIXTRL_HOST_FN kernel_config_t const* ptrKernelConfig(
-            char const* SIXTRL_RESTRICT kernel_name ) const SIXTRL_NOEXCEPT;
+        template< typename Args... >
+        SIXTRL_HOST_FN kernel_config_t* ptrKernelConfig( Args&&... args );
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN kernel_config_t*
-        ptrKernelConfig( kernel_id_t const kernel_id ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN kernel_config_t* ptrKernelConfig(
-            std::string const& SIXTRL_RESTRICT_REF kname ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN kernel_config_t* ptrKernelConfig(
-            char const* SIXTRL_RESTRICT kernel_name ) SIXTRL_NOEXCEPT;
-
-        /* ----------------------------------------------------------------- */
-
-        SIXTRL_HOST_FN kernel_id_t addCudaKernelConfig(
-            kernel_config_t const& kernel_config );
-
-        SIXTRL_HOST_FN kernel_id_t addCudaKernelConfig(
-            std::string const& kernel_name,
-            size_type const num_arguments,
-            size_type const grid_dim = size_type{ 1 },
-            size_type const shared_mem_per_block = size_type{ 0 },
-            size_type const max_blocks_limit = size_type{ 0 },
-            char const* SIXTRL_RESTRICT config_str = nullptr );
-
-        SIXTRL_HOST_FN kernel_id_t addCudaKernelConfig(
-            char const* SIXTRL_RESTRICT kernel_name,
-            size_type const num_arguments,
-            size_type const grid_dim = size_type{ 1 },
-            size_type const shared_mem_per_block = size_type{ 0 },
-            size_type const max_blocks_limit = size_type{ 0 },
-            char const* SIXTRL_RESTRICT config_str = nullptr );
+        /* ================================================================ */
 
         protected:
 
@@ -233,65 +208,96 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN virtual status_t doFetchDebugRegister(
             debug_register_t* SIXTRL_RESTRICT ptr_debug_register ) override;
 
-        SIXTRL_HOST_FN virtual status_t
-            doSelectNode( node_index_t const node_index ) override;
+        SIXTRL_HOST_FN virtual status_t doSelectNode(
+                lock_t const& SIXTRL_RESTRICT_REF lock,
+                node_index_t const node_index ) override;
 
         SIXTRL_HOST_FN virtual status_t doChangeSelectedNode(
-            node_index_t const current_selected_node_idx,
+            lock_t const& SIXTRL_RESTRICT_REF lock,
             node_index_t const new_selected_node_index ) override;
+
+        SIXTRL_HOST_FN virtual bool doCheckIsNodeInitialized(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const index ) override;
+
+        SIXTRL_HOST_FN virtual status_t doInitializeNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const index ) override;
+
+        private:
+
+        using index_to_debug_register_map_t =
+            std::map< node_index_t, cuda_arg_buffer_t >;
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN device_selector_t const&
+        deviceSelector() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN device_selector_t& deviceSelector() SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN status_t doRemapCObjectsBufferDirectly(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
             cuda_arg_buffer_t SIXTRL_RESTRICT managed_buffer_begin,
             size_type const slot_size );
 
         SIXTRL_HOST_FN bool doCheckIsCobjectsBufferRemappedDirectly(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
             status_t* SIXTRL_RESTRICT ptr_status,
             cuda_arg_buffer_t SIXTRL_RESTRICT managed_buffer_begin,
             size_type const slot_size );
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN status_t doInitCudaDebugRegister();
+        template< typename Args... >
+        SIXTRL_HOST_FN status_t doInitCudaController(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            device_selector_t* SIXTRL_RESTRICT ptr_device_selector,
+            node_store_t* SIXTRL_RESTRICT ptr_node_store,
+            Args&&... args );
 
-        SIXTRL_HOST_FN node_index_t doFindAvailableNodesByCudaDeviceIndex(
-            cuda_device_index_t const cuda_device_index ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_t doCreateCudaDebugRegister(
+            node_index_t const node_index,
+            lock_t const& SIXTRL_RESTRICT_REF lock );
 
-        SIXTRL_HOST_FN node_index_t doFindAvailableNodesByPciBusId(
-            char const* SIXTRL_RESTRICT pci_bus_id_str ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void doFinishCudaControllerInitialization(
+            lock_t const& SIXTRL_RESTRICT_REF lock );
 
-        SIXTRL_HOST_FN node_index_t doGetNodeIndexFromConfigString(
-            char const* SIXTRL_RESTRICT select_str );
+        /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN void doInitCudaController();
-        SIXTRL_HOST_FN status_t doInitAllCudaNodes();
-        SIXTRL_HOST_FN void doEnableCudaController();
-
-        SIXTRL_HOST_FN kernel_id_t doAppendCudaKernelConfig(
-            ptr_cuda_kernel_config_t&& ptr_kernel_conf ) SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        SIXTRL_HOST_FN status_t doInitCudaDebugRegister(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const node_index );
 
         SIXTRL_HOST_FN cuda_arg_buffer_t
-        doGetPtrCudaDebugRegister() SIXTRL_NOEXCEPT;
+        doGetPtrCudaDebugRegister( lock_t const& SIXTRL_RESTRICT_REF lock
+            node_index_t const node_index ) SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN cuda_const_arg_buffer_t
-        doGetPtrCudaDebugRegister() const SIXTRL_NOEXCEPT;
+        doGetPtrCudaDebugRegister( lock_t const& SIXTRL_RESTRICT_REF lock
+            node_index_t const node_index ) const SIXTRL_NOEXCEPT;
 
-        private:
+        SIXTRL_HOST_FN status_t doDeleteCudaDebugRegister(
+            lock_t const& SIXTRL_RESTRICT_REF lock
+            node_index_t const node_index ) SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN static status_t PerformSendOperation(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
             cuda_arg_buffer_t SIXTRL_RESTRICT destination,
             void const* SIXTRL_RESTRICT src_begin, size_type const src_length );
 
         SIXTRL_HOST_FN static status_t PerformReceiveOperation(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
             void* SIXTRL_RESTRICT destination,
             size_type const destination_capacity,
             cuda_const_arg_buffer_t SIXTRL_RESTRICT source_begin,
             size_type const source_length );
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN status_t doSetDebugRegisterCudaBaseImpl(
             debug_register_t const debug_register );
@@ -299,12 +305,17 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN status_t doFetchDebugRegisterCudaBaseImpl(
             debug_register_t* SIXTRL_RESTRICT ptr_debug_register );
 
-        SIXTRL_HOST_FN status_t doSelectNodeCudaImpl( node_index_t const idx );
+        SIXTRL_HOST_FN status_t doSelectNodeCudaImpl(
+            lock_t const& SIXTRL_RESTRICT_REF lock, node_index_t const idx );
+
+        SIXTRL_HOST_FN status_t doInitializeNodeCudaImpl(
+            lock_t const& SIXTRL_RESTRICT_REF lock, node_index_t const index );
 
         SIXTRL_HOST_FN status_t doRemapCObjectsBufferCudaBaseImpl(
             ptr_arg_base_t SIXTRL_RESTRICT arg, size_type const arg_size );
 
-        cuda_arg_buffer_t   m_cuda_debug_register;
+        index_to_debug_register_map_t   m_index_to_debug_registers;
+        device_selector_t&              m_device_selector;
     };
 }
 #endif /* C++, Host */
@@ -327,6 +338,264 @@ typedef void NS(CudaController);
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
 #endif /* C++ */
+
+#if defined( __cplusplus   ) && !defined( _GPUCODE ) && \
+   !defined( __CUDA_ARCH__ ) && !defined( __CUDACC__ )
+
+namespace SIXTRL_CXX_NAMESPACE
+{
+    SIXTRL_INLINE CudaController::cuda_arg_buffer_t
+    CudaController::doGetPtrCudaDebugRegister(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        node_index_t const node_index ) SIXTRL_NOEXCEPT
+    {
+        return const_cast< CudaController::cuda_arg_buffer_t >(
+            static_cast< CudaController const& >(
+                *this ).doGetPtrCudaDebugRegister( lock, node_index ) );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    template< typename Args... >
+    CudaController::node_info_t const*
+    CudaController::ptrNodeInfo( Args&& args ) const
+    {
+        CudaController::lock_t lock( *this->nodeStore().lockable() );
+        return this->ptrNodeInfo( lock, std::forward< Args >( args )... );
+    }
+
+    template< typename Args... >
+    CudaController::node_info_t const* CudaController::ptrNodeInfo(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        Args&& args ) const SIXTRL_NOEXCEPT
+    {
+        using node_info_t = CudaController::node_info_t;
+        using node_info_base_t = CudaController::node_info_base_t;
+
+        node_info_base_t const* node_info_base = this->ptrNodeInfoBase(
+            lock, std::forward< Args >( args )... );
+
+        return ( node_info_base != nullptr )
+            ? node_info_base->asDerivedNodeInfo< node_info_t >( this->archId() )
+            : nullptr;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    template< typename Args... >
+    CudaController::status_t CudaController::doInitCudaController(
+        CudaController::device_selector_t* SIXTRL_RESTRICT ptr_device_selector,
+        CudaController::node_store_t* SIXTRL_RESTRICT ptr_node_store,
+        char const* SIXTRL_RESTRICT config_str, Args&&... args )
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
+        using _this_t = CudaController;
+        using _base_t = _this_t::_base_controller_t;
+        using _select_fn_t = _base_t::selectNodeFn;
+
+        _this_t::status_t status = st::ARCH_STATUS_SUCCESS;
+
+        if( ( ptr_node_store != nullptr ) &&
+            ( this->ptrNodeStore() != ptr_node_store ) )
+        {
+            status = this->doUpdateNodeStore( *ptr_node_store );
+        }
+
+        if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+            ( ptr_device_selector != nullptr ) &&
+            ( ptr_device_selector != this->ptrDeviceSelector() ) )
+        {
+            status = this->doUpdateDeviceSelector( *ptr_device_selector );
+        }
+
+        if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+            ( this->deviceSelector().ptrNodeStore() != this->ptrNodeStore() ) )
+        {
+            status = this->deviceSelector().reset( this->nodeStore() );
+        }
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            CudaController::lock_t lock( *this->nodeStore().lockable() );
+
+            if( this->nodeStore().checkLock( lock ) )
+            {
+                this->doSetReadyForRunningKernelsFlag( false );
+                this->doSetReadyForSendFlag( false );
+                this->doSetReadyForReceiveFlag( false );
+
+                this->doSetCanDirectlyChangeSelectedNodeFlag( true );
+                this->doSetCanUnselectNodeFlag( false );
+                this->doSetUseAutoSelectFlag( true );
+
+                if( !this->nodeStore().hasArchitecture(
+                        lock, this->archId() ) )
+                {
+                    status = this->doAttachAllArchNodes( lock );
+
+                    if( status == st::ARCH_STATUS_SUCCESS )
+                    {
+                        status = _base_t::doSyncWithNodeStore(
+                            lock, this->ptrNodeStore() );
+                    }
+                }
+            }
+
+            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+                ( this->isSyncWithNodeStore() ) )
+            {
+                _select_fn_t select_fn = static_cast< _select_fn_t >(
+                    &_this_t::doSelectNodeCudaImpl );
+
+                status = this->doInitiallySelectNode( lock, select_fn,
+                    config_str, std::forward< Args >( args )... );
+            }
+
+            SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+            this->doFinishCudaControllerInitialization( lock );
+        }
+
+        return status;
+    }
+
+    /* ===================================================================== */
+
+    template< typename Args... >
+    CudaController::node_info_t const* CudaController::ptrNodeInfo(
+        Args&& args ) const
+    {
+        using node_info_t = CudaController::node_info_t;
+        using node_info_base_t = CudaController::node_info_base_t;
+
+        CudaController::lock_t lock( *this->nodeStore().lockable() );
+        node_info_base_t const* ptr_info_base =
+            this->ptrNodeInfoBase( lock, std::forward< Args >( args )... );
+
+        return ( ptr_info_base != nullptr )
+            ? ptr_info_base->asDerivedNodeInfo< node_info_t >( this->archId() )
+            : nullptr;
+    }
+
+    template< typename Args... >
+    CudaController::node_info_t const* CudaController::ptrNodeInfo(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        Args&& args ) const SIXTRL_NOEXCEPT
+    {
+        using node_info_t = CudaController::node_info_t;
+        using node_info_base_t = CudaController::node_info_base_t;
+
+        node_info_base_t const* ptr_info_base =
+            this->ptrNodeInfoBase( lock, std::forward< Args >( args )... );
+
+        return ( ptr_info_base != nullptr )
+            ? ptr_info_base->asDerivedNodeInfo< node_info_t >( this->archId() )
+            : nullptr;
+    }
+
+    /* ===================================================================== */
+
+    SIXTRL_INLINE CudaController::status_t CudaController::selectNode(
+        CudaController::cuda_dev_index_t const cuda_dev_index )
+    {
+        CudaController::lock_t lock( *this->nodeStore().lockable() );
+        return this->selectNode( lock, cuda_dev_index );
+    }
+
+    SIXTRL_INLINE CudaController::status_t CudaController::selectNode(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        CudaController::cuda_dev_index_t const cuda_dev_index )
+    {
+        using platform_id_t = CudaController::platform_id_t;
+        using device_id_t = CudaController::device_id_t;
+
+        return this->selectNode( lock, this->nodeIndex( lock,
+            this->archId(), static_cast< platform_id_t >( cuda_dev_index ),
+                device_id_t{ 0 } ) );
+    }
+
+    /* ===================================================================== */
+
+    SIXTRL_INLINE CudaController::status_t CudaController::changeSelectedNode(
+        CudaController::cuda_dev_index_t const cuda_dev_index )
+    {
+        CudaController::lock_t lock( *this->nodeStore().lockable() );
+        return this->changeSelectedNode( lock, cuda_dev_index );
+    }
+
+    SIXTRL_INLINE CudaController::status_t CudaController::changeSelectedNode(
+        CudaController::lock_t const& SIXTRL_RESTRICT_REF lock,
+        CudaController::cuda_dev_index_t const cuda_dev_index )
+    {
+        return this->changeSelectedNode( lock, this->nodeIndex( lock,
+            this->archId(), static_cast< platform_id_t >( cuda_dev_index ),
+                device_id_t{ 0 } ) );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    template< typename Args... >
+    CudaController::kernel_config_t const*
+    CudaController::ptrKernelConfig( Args&&... args ) const
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
+        using kernel_conf_store_t = st::CudaKernelConfigStore;
+        st::KernelConfigStore const* ptr_base = this->ptrKernelConfigStore();
+
+        st::CudaKernelConfigStore const* ptr_store = ( ptr_base != nullptr )
+            ? ptr_base->asDerivedKernelConfigStore< kernel_conf_store_t >()
+            : nullptr;
+
+        return ( ptr_store != nullptr )
+            ? ptr_store->ptrKernelConfig( std::forward< Args >( args )... );
+    }
+
+    template< typename Args... >
+    CudaController::kernel_config_t*
+    CudaController::ptrKernelConfig( Args&&... args )
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
+        using kernel_conf_store_t = st::CudaKernelConfigStore;
+        st::KernelConfigStore* ptr_base = this->ptrKernelConfigStore();
+
+        st::CudaKernelConfigStore* ptr_store = ( ptr_base != nullptr )
+            ? ptr_base->asDerivedKernelConfigStore< kernel_conf_store_t >()
+            : nullptr;
+
+        return ( ptr_store != nullptr )
+            ? ptr_store->ptrKernelConfig( std::forward< Args >( args )... );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE CudaController::device_selector_t const&
+    CudaController::deviceSelector() const SIXTRL_NOEXCEPT
+    {
+        return this->m_device_selector;
+    }
+
+    SIXTRL_INLINE CudaController::device_selector_t&
+    CudaController::deviceSelector() SIXTRL_NOEXCEPT
+    {
+        return this->m_device_selector;
+    }
+
+    SIXTRL_INLINE CudaController::device_selector_t const*
+    CudaController::ptrDeviceSelector() const SIXTRL_NOEXCEPT
+    {
+        return &this->m_device_selector;
+    }
+
+    SIXTRL_INLINE CudaController::device_selector_t*
+    CudaController::ptrDeviceSelector() SIXTRL_NOEXCEPT
+    {
+        return &this->m_device_selector;
+    }
+}
+
+#endif /* C++, Host */
 
 #endif /* SIXTRACKLIB_CUDA_CONTROLLER_HPP__ */
 

@@ -53,6 +53,7 @@ set( SIXTRACKLIB_CUDA_PART_HOST_HEADERS
 set( SIXTRACKLIB_CUDA_PART_HOST_SOURCES
      wrappers/controller_wrappers.cu
      wrappers/track_job_wrappers.cu
+     cuda_tools_c99.cpp
 )
 
 add_library( sixtrack_cuda_host OBJECT

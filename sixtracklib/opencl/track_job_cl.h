@@ -501,7 +501,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ::NS(OutputBuffer_required_for_tracking_of_particle_sets)(
                 particles_buffer, this->numParticleSets(),
                     this->particleSetIndicesBegin(), belements_buffer,
-                        until_turn_elem_by_elem );
+                        until_turn_elem_by_elem, nullptr );
 
             bool const requires_output_buffer =
                 ::NS(OutputBuffer_requires_output_buffer)( flags );

@@ -246,7 +246,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_init_flags_t
         ARCH_INIT_STATE_AVAILABLE = static_cast< arch_init_flags_t >(
-            SIXTRL_ARCH_INIT_STATE_ENABLED );
+            SIXTRL_ARCH_INIT_STATE_AVAILABLE );
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_init_flags_t
         ARCH_INIT_STATE_SHUTDOWN = static_cast< arch_init_flags_t >(

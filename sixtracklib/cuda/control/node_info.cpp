@@ -20,6 +20,52 @@ namespace st = SIXTRL_CXX_NAMESPACE;
 
 namespace SIXTRL_CXX_NAMESPACE
 {
+    std::unique_ptr< CudaNodeInfo::node_info_base_t > MakeCudaNodeInfo(
+        CudaNodeInfo::lock_t const& SIXTRL_RESTRICT_REF lock,
+        CudaNodeInfo::cuda_dev_index_t const dev_index,
+        const CudaNodeInfo::node_store_t *const SIXTRL_RESTRICT node_store )
+    {
+        using _this_t = st::CudaNodeInfo;
+        using node_info_base_t = _this_t::node_info_base_t;
+        using node_store_t = _this_t::node_store_t;
+
+        node_store_t const& nodes_store = ( ptr_node_store != nullptr )
+            ? *ptr_node_store : st::NodeStore_get_const();
+
+        if( ( dev_index >= _this_t::cuda_dev_index_t{ 0 } ) &&
+            ( dev_index != st::NodeStore::UNDEFINED_INDEX ) &&
+            ( nodes_store.checkLock( lock ) ) &&
+            ( nodes_store.hasArchitecture( lock, st::ARCHITECTURE_CUDA ) ) )
+        {
+            int temp_num_devices = int{ -1 };
+            ::cudaError_t err = ::cudaGetDeviceCount( &temp_num_devices );
+
+            if( ( err == ::cudaSuccess ) && ( temp_num_devices > dev_index ) )
+            {
+                return std::unique_ptr< node_info_base_t >(
+                    new st::CudaNodeInfo( dev_index ) );
+            }
+        }
+
+        return std::unique_ptr< node_info_base_t >( nullptr );
+    }
+
+    std::unique_ptr< CudaNodeInfo::node_info_base_t >
+    CudaNodeInfo::MakeCudaNodeInfo(
+        CudaNodeInfo::device_index_t const dev_index,
+        const CudaNodeInfo::node_store_t *const SIXTRL_RESTRICT ptr_node_store )
+    {
+        using node_store_t = CudaNodeInfo::node_store_t;
+        using lock_t       = CudaNodeInfo::lock_t;
+
+        node_store_t const& nodes_store = ( ptr_node_store != nullptr )
+            ? *ptr_node_store : st::NodeStore_get_const();
+
+        lock_t lock( *nodes_store.lockable() );
+        return CudaNodeInfo::MakeCudaNodeInfo(
+            lock, dev_index, ptr_node_store );
+    }
+
     CudaNodeInfo::CudaNodeInfo(
         CudaNodeInfo::cuda_dev_index_t const cuda_dev_index,
         CudaNodeInfo::device_id_t const device_id ) :

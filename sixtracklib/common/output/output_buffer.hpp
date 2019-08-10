@@ -54,33 +54,43 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_HOST_FN output_buffer_flag_t OutputBuffer_required_for_tracking(
         Particles const& SIXTRL_RESTRICT_REF particles,
         Buffer const& SIXTRL_RESTRICT_REF beam_elements_buffer,
-        Buffer::size_type const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT;
+        Buffer::size_type const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT
+            ptr_num_beam_monitors = nullptr ) SIXTRL_NOEXCEPT;
 
     SIXTRL_HOST_FN output_buffer_flag_t OutputBuffer_required_for_tracking(
         const ::NS(Particles) *const SIXTRL_RESTRICT particles,
         const ::NS(Buffer) *const SIXTRL_RESTRICT beam_elements_buffer,
-        ::NS(buffer_size_t) const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT;
+        ::NS(buffer_size_t) const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT
+            ptr_num_beam_monitors = nullptr ) SIXTRL_NOEXCEPT;
 
     SIXTRL_HOST_FN output_buffer_flag_t OutputBuffer_required_for_tracking(
         Buffer const& SIXTRL_RESTRICT_REF particles_buffer,
         Buffer::size_type const num_particle_sets,
         Buffer::size_type const* particle_set_indices_begin,
         Buffer const& SIXTRL_RESTRICT_REF beam_elements_buffer,
-        Buffer::size_type const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT;
+        Buffer::size_type const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT
+            ptr_num_beam_monitors = nullptr ) SIXTRL_NOEXCEPT;
 
     SIXTRL_HOST_FN output_buffer_flag_t OutputBuffer_required_for_tracking(
         const ::NS(Buffer) *const SIXTRL_RESTRICT particles_buffer,
         ::NS(buffer_size_t) const num_particle_sets,
         ::NS(buffer_size_t) const* particle_set_indices_begin,
         const ::NS(Buffer) *const SIXTRL_RESTRICT beam_elements_buffer,
-        ::NS(buffer_size_t) const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT;
+        ::NS(buffer_size_t) const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT
+            ptr_num_beam_monitors = nullptr ) SIXTRL_NOEXCEPT;
 
     template< typename Iter >
     SIXTRL_HOST_FN output_buffer_flag_t OutputBuffer_required_for_tracking(
         Buffer const& SIXTRL_RESTRICT_REF particles_buffer,
         Iter particle_set_indices_begin, Iter particle_set_indices_end,
         Buffer const& SIXTRL_RESTRICT_REF beam_elements_buffer,
-        Buffer::size_type const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT;
+        Buffer::size_type const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT
+            ptr_num_beam_monitors = nullptr ) SIXTRL_NOEXCEPT;
 
     /* --------------------------------------------------------------------- */
 
@@ -235,20 +245,25 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE output_buffer_flag_t OutputBuffer_required_for_tracking(
         Particles const& SIXTRL_RESTRICT_REF particles,
         Buffer const& SIXTRL_RESTRICT_REF beam_elements_buffer,
-        Buffer::size_type const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT
+        Buffer::size_type const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT ptr_num_beam_monitors
+        ) SIXTRL_NOEXCEPT
     {
         return ::NS(OutputBuffer_required_for_tracking)(
             particles.getCApiPtr(), beam_elements_buffer.getCApiPtr(),
-                until_turn_elem_by_elem );
+                until_turn_elem_by_elem, ptr_num_beam_monitors );
     }
 
     SIXTRL_INLINE output_buffer_flag_t OutputBuffer_required_for_tracking(
         const ::NS(Particles) *const SIXTRL_RESTRICT particles,
         const ::NS(Buffer) *const SIXTRL_RESTRICT beam_elements_buffer,
-        ::NS(buffer_size_t) const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT
+        ::NS(buffer_size_t) const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT ptr_num_beam_monitors
+        ) SIXTRL_NOEXCEPT
     {
         return ::NS(OutputBuffer_required_for_tracking)( particles,
-            beam_elements_buffer, until_turn_elem_by_elem );
+            beam_elements_buffer, until_turn_elem_by_elem,
+                ptr_num_beam_monitors );
     }
 
     SIXTRL_INLINE output_buffer_flag_t OutputBuffer_required_for_tracking(
@@ -256,12 +271,14 @@ namespace SIXTRL_CXX_NAMESPACE
         Buffer::size_type const num_particle_sets,
         Buffer::size_type const* particle_set_indices_begin,
         Buffer const& SIXTRL_RESTRICT_REF beam_elements_buffer,
-        Buffer::size_type const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT
+        Buffer::size_type const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT ptr_num_beam_monitors
+        ) SIXTRL_NOEXCEPT
     {
         return ::NS(OutputBuffer_required_for_tracking_of_particle_sets)(
             particles_buffer.getCApiPtr(), num_particle_sets,
                 particle_set_indices_begin, beam_elements_buffer.getCApiPtr(),
-                    until_turn_elem_by_elem );
+                    until_turn_elem_by_elem, ptr_num_beam_monitors );
     }
 
     SIXTRL_INLINE output_buffer_flag_t OutputBuffer_required_for_tracking(
@@ -269,11 +286,14 @@ namespace SIXTRL_CXX_NAMESPACE
         ::NS(buffer_size_t) const num_particle_sets,
         ::NS(buffer_size_t) const* particle_set_indices_begin,
         const ::NS(Buffer) *const SIXTRL_RESTRICT beam_elements_buffer,
-        ::NS(buffer_size_t) const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT
+        ::NS(buffer_size_t) const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT ptr_num_beam_monitors
+        ) SIXTRL_NOEXCEPT
     {
         return ::NS(OutputBuffer_required_for_tracking_of_particle_sets)(
             particles_buffer, num_particle_sets, particle_set_indices_begin,
-                beam_elements_buffer, until_turn_elem_by_elem );
+                beam_elements_buffer, until_turn_elem_by_elem,
+                    ptr_num_beam_monitors );
     }
 
     template< typename Iter >
@@ -281,14 +301,17 @@ namespace SIXTRL_CXX_NAMESPACE
         Buffer const& SIXTRL_RESTRICT_REF particles_buffer,
         Iter particle_set_indices_begin, Iter particle_set_indices_end,
         Buffer const& SIXTRL_RESTRICT_REF beam_elements_buffer,
-        Buffer::size_type const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT
+        Buffer::size_type const until_turn_elem_by_elem,
+        Buffer::size_type* SIXTRL_RESTRICT ptr_num_beam_monitors
+        ) SIXTRL_NOEXCEPT
     {
         std::vector< ::NS(buffer_size_t) > temp_store(
             particle_set_indices_begin, particle_set_indices_end );
 
         return ::NS(OutputBuffer_required_for_tracking_of_particle_sets)(
             particles_buffer.getCApiPtr(), temp_store.size(), temp_store.data(),
-                beam_elements_buffer.getCApiPtr(), until_turn_elem_by_elem );
+                beam_elements_buffer.getCApiPtr(), until_turn_elem_by_elem,
+                    ptr_num_beam_monitors );
     }
 
     /* --------------------------------------------------------------------- */

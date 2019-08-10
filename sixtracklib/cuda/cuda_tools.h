@@ -14,6 +14,7 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/control/definitions.h"
+    #include "sixtracklib/common/control/node_store.h"
     #include "sixtracklib/cuda/definitions.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -22,6 +23,9 @@ extern "C" {
 #endif /* !defined(  _GPUCODE ) && defined( __cplusplus ) */
 
 #if !defined( _GPUCODE )
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+    NS(Cuda_init)( NS(NodeStore)* SIXTRL_RESTRICT store );
 
 SIXTRL_STATIC SIXTRL_HOST_FN unsigned long NS(Cuda_get_1d_thread_id)(
     dim3 const thread_idx, dim3 const block_idx,

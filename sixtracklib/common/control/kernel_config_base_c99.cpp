@@ -12,6 +12,8 @@
 
 #include "sixtracklib/common/control/kernel_config_base.hpp"
 
+namespace st = SIXTRL_CXX_NAMESPACE;
+
 void NS(KernelConfig_delete)( ::NS(KernelConfigBase)* SIXTRL_RESTRICT config )
 {
     if( config != nullptr ) delete config;
@@ -27,13 +29,13 @@ void NS(KernelConfig_delete)( ::NS(KernelConfigBase)* SIXTRL_RESTRICT config )
         ? config->archId() : ::NS(ARCHITECTURE_ILLEGAL);
 }
 
-bool NS(KernelConfig_has_arch_string)(
+bool NS(KernelConfig_has_arch_str)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
 {
     return ( ( config != nullptr ) && ( config->hasArchStr() ) );
 }
 
-char const* NS(KernelConfig_get_ptr_arch_string)(
+char const* NS(KernelConfig_get_arch_str)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
 {
     return ( config != nullptr ) ? config->ptrArchStr() : nullptr;
@@ -47,13 +49,13 @@ bool NS(KernelConfig_has_name)(
     return ( ( conf != nullptr ) && ( conf->hasName() ) );
 }
 
-char const* NS(KernelConfig_get_ptr_name_string)(
+char const* NS(KernelConfig_get_name_str)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT conf )
 {
     return ( conf != nullptr ) ? conf->ptrNameStr() : nullptr;
 }
 
-void NS(KernelConfig_set_name)( ::NS(KernelConfigBase)* SIXTRL_RESTRICT conf,
+void NS(KernelConfig_set_name_str)( ::NS(KernelConfigBase)* SIXTRL_RESTRICT conf,
     char const* SIXTRL_RESTRICT kernel_name )
 {
     if( conf != nullptr ) conf->setName( kernel_name );
@@ -104,11 +106,11 @@ bool NS(KernelConfig_performs_auto_update)(
 
 /* ------------------------------------------------------------------------- */
 
-::NS(kernel_variant_t) NS(KernelConfig_get_variant_flags)(
+::NS(kernel_variant_t) NS(KernelConfig_get_variant)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
 {
     return ( config != nullptr )
-        ? config->variantFlags() : ::NS(KERNEL_CONFIG_VARIANT_NONE);
+        ? config->variantFlags() : st::ARCH_VARIANT_NONE;
 }
 
 bool NS(KernelConfig_has_variant_flags)(
@@ -133,6 +135,20 @@ bool NS(KernelConfig_is_variant_release_mode)(
 
 /* ------------------------------------------------------------------------- */
 
+::NS(kernel_purpose_t) NS(KernelConfig_get_purpose)(
+    const NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( config != nullptr)
+        ? config->purpose() : st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
+}
+
+void NS(KernelConfig_set_purpose)(
+    ::NS(KernelConfigBase)* SIXTRL_RESTRICT config,
+    ::NS(kernel_purpose_t) const purpose )
+{
+    if( config != nullptr ) config->setPurpose( purpose );
+}
+
 bool NS(KernelConfig_has_specified_purpose)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
 {
@@ -151,11 +167,109 @@ bool NS(KernelConfig_has_userdefined_purpose)(
     return ( ( config != nullptr ) && ( config->hasUserdefinedPurpose() ) );
 }
 
-::NS(kernel_purpose_t) NS(KernelConfig_get_purpose)(
+/* ------------------------------------------------------------------------- */
+
+::NS(kernel_argument_set_t) NS(KernelConfig_get_argument_set)(
     const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
 {
     return ( config != nullptr )
-        ? config->purpose() : st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
+        ? config->argumentSet() : st::DEFAULT_KERNEL_ARGUMENT_SET;
+}
+
+void NS(KernelConfig_set_argument_set)(
+    ::NS(KernelConfigBase)* SIXTRL_RESTRICT config,
+    ::NS(kernel_argument_set_t) const argument_set )
+{
+    if( config != nullptr ) config->setArgumentSet( argument_set );
+}
+
+/* ------------------------------------------------------------------------- */
+
+bool NS(KernelConfig_has_config_str)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( ( config != nullptr ) && ( config->hasConfigStr() ) );
+}
+
+char const* NS(KernelConfig_get_config_str)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( config != nullptr ) ? config->ptrConfigStr() : nullptr;
+}
+
+::NS(arch_status_t) NS(KernelConfig_update_config_str)(
+    ::NS(KernelConfigBase)* SIXTRL_RESTRICT config,
+    char const* SIXTRL_RESTRICT config_str )
+{
+    return ( config != nullptr )
+        ? config->updateConfigStr( config_str )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+/* ------------------------------------------------------------------------- */
+
+bool NS(KernelConfig_is_attached_to_any_sets)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( ( config != nullptr ) && ( config->isAttachedToAnySets() ) );
+}
+
+bool NS(KernelConfig_is_attached_to_set)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config,
+    ::NS(kernel_set_id_t) const kernel_set_id )
+{
+    return ( ( config != nullptr ) &&
+             ( config->isAttachedToSet( kernel_set_id ) ) );
+}
+
+bool NS(KernelConfig_can_attach_to_set)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config,
+    ::NS(kernel_set_id_t) const kernel_set_id )
+{
+    return ( ( config != nullptr ) &&
+             ( config->canAttachToSet( kernel_set_id ) ) );
+}
+
+::NS(arch_size_t) NS(KernelConfig_get_max_num_attached_sets)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( config != nullptr )
+        ? config->maxNumAttachedSets() : st::arch_size_t{ 0 };
+}
+
+::NS(arch_size_t) NS(KernelConfig_get_num_attached_sets)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( config != nullptr )
+        ? config->numAttachedSets() : st::arch_size_t{ 0 };
+}
+
+::NS(kernel_set_id_t) const* NS(KernelConfig_get_attached_sets_begin)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( config != nullptr ) ? config->attachedSetsBegin() : nullptr;
+}
+
+::NS(kernel_set_id_t) const* NS(KernelConfig_get_attached_sets_end)(
+    const ::NS(KernelConfigBase) *const SIXTRL_RESTRICT config )
+{
+    return ( config != nullptr ) ? config->attachedSetsEnd() : nullptr;
+}
+
+::NS(arch_status_t) NS(KernelConfig_attach_to_set)(
+    ::NS(KernelConfigBase)* SIXTRL_RESTRICT config,
+    ::NS(kernel_set_id_t) const kernel_set_id )
+{
+    return ( config != nullptr ) ? config->attachToSet( kernel_set_id )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(KernelConfig_detach_from_set)(
+    ::NS(KernelConfigBase)* SIXTRL_RESTRICT config,
+    ::NS(kernel_set_id_t) const kernel_set_id )
+{
+    return ( config != nullptr ) ? config->detachFromSet( kernel_set_id )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* ------------------------------------------------------------------------- */

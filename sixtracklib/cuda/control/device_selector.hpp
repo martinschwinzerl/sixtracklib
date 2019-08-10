@@ -14,7 +14,7 @@
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/control/node_info.hpp"
+    #include "sixtracklib/common/control/node_store.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #endif /* C++, Host */
@@ -30,26 +30,23 @@
 
 namespace SIXTRL_CXX_NAMESPACE
 {
-    class NodeStore;
-
     class CudaDeviceSelector
     {
         public:
 
-        using lockable_t       = std::mutex;
-        using lock_t           = std::unique_lock< lockable_t >;
-        using device_index_t   = SIXTRL_CXX_NAMESPACE::cuda_dev_index_t;
+        using node_store_t     = SIXTRL_CXX_NAMESPACE::NodeStore;
+        using lockable_t       = node_store_t::lockable_t;
+        using lock_t           = node_store_t::lock_t;
+        using cuda_dev_index_t = SIXTRL_CXX_NAMESPACE::cuda_dev_index_t;
         using status_t         = SIXTRL_CXX_NAMESPACE::arch_status_t;
         using size_type        = SIXTRL_CXX_NAMESPACE::arch_size_t;
-        using node_info_base_t = SIXTRL_CXX_NAMESPACE::NodeInfoBase;
 
-        static constexpr device_index_t
-            ILLEGAL_CUDA_DEVICE_INDEX = device_index_t{ -1 };
-
-        static std::unique_ptr< node_info_base_t > MakeCudaNodeInfo(
-            device_index_t const device_index );
+        static constexpr cuda_dev_index_t
+            ILLEGAL_CUDA_DEVICE_INDEX = cuda_dev_index_t{ -1 };
 
         SIXTRL_HOST_FN CudaDeviceSelector();
+        SIXTRL_HOST_FN explicit CudaDeviceSelector(
+            node_store_t& SIXTRL_RESTRICT_REF node_store );
 
         SIXTRL_HOST_FN CudaDeviceSelector(
             CudaDeviceSelector const& other ) = delete;
@@ -75,51 +72,78 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN bool hasSelectedDevice(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN device_index_t minDeviceIndex() const;
-        SIXTRL_HOST_FN device_index_t minDeviceIndex(
+        SIXTRL_HOST_FN cuda_dev_index_t minDeviceIndex() const;
+        SIXTRL_HOST_FN cuda_dev_index_t minDeviceIndex(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN device_index_t maxDeviceIndex() const;
-        SIXTRL_HOST_FN device_index_t maxDeviceIndex(
+        SIXTRL_HOST_FN cuda_dev_index_t maxDeviceIndex() const;
+        SIXTRL_HOST_FN cuda_dev_index_t maxDeviceIndex(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN size_type numAvailableDevices() const;
         SIXTRL_HOST_FN size_type numAvailableDevices(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
+        /* ----------------------------------------------------------------- */
+
         SIXTRL_HOST_FN status_t reset();
+
         SIXTRL_HOST_FN status_t reset(
             lock_t const& SIXTRL_RESTRICT_REF lock );
 
-        SIXTRL_HOST_FN device_index_t deviceIndex() const;
-        SIXTRL_HOST_FN device_index_t deviceIndex(
+        SIXTRL_HOST_FN status_t reset(
+            node_store_t& SIXTRL_RESTRICT_REF node_store );
+
+        SIXTRL_HOST_FN status_t reset(
+            lock_t& SIXTRL_RESTRICT_REF old_store_lock,
+            node_store_t& SIXTRL_RESTRICT_REF node_store,
+            lock_t const& SIXTRL_RESTRICT_REF new_store_lock );
+
+        SIXTRL_HOST_FN status_t resetIfDifferentNodeStore(
+            node_store_t& SIXTRL_RESTRICT_REF node_store );
+
+        SIXTRL_HOST_FN status_t resetIfDifferentNodeStore(
+            lock_t& SIXTRL_RESTRICT_REF old_store_lock,
+            node_store_t& SIXTRL_RESTRICT_REF node_store,
+            lock_t const& SIXTRL_RESTRICT_REF new_store_lock );
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN cuda_dev_index_t deviceIndex() const;
+        SIXTRL_HOST_FN cuda_dev_index_t deviceIndex(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN status_t setDeviceIndex(
-            device_index_t const device_idx );
+            cuda_dev_index_t const device_idx );
 
         SIXTRL_HOST_FN status_t setDeviceIndex(
             lock_t const& SIXTRL_RESTRICT_REF lock,
-            device_index_t const device_idx );
+            cuda_dev_index_t const device_idx );
 
         /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN node_store_t const& nodeStore() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_store_t const* ptrNodeStore() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_store_t& nodeStore() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN node_store_t* ptrNodeStore() SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN lockable_t* lockable() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN bool checkLock(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool checkLockAndThrowOnError(
+        SIXTRL_HOST_FN void checkLockAndThrowOnError(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const;
 
         private:
 
-        mutable lockable_t  m_lockable;
+        node_store_t&       m_node_store;
         size_type           m_num_available_devices;
 
-        device_index_t      m_selected_device;
-        device_index_t      m_min_device_index;
-        device_index_t      m_max_device_index;
+        cuda_dev_index_t    m_selected_device;
+        cuda_dev_index_t    m_min_device_index;
+        cuda_dev_index_t    m_max_device_index;
     };
 
     SIXTRL_HOST_FN CudaDeviceSelector& CudaDeviceSelector_get();
@@ -127,9 +151,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_HOST_FN CudaDeviceSelector* CudaDeviceSelector_get_ptr();
     SIXTRL_HOST_FN CudaDeviceSelector const* CudaDeviceSelector_get_const_ptr();
-
-    SIXTRL_HOST_FN SIXTRL_CXX_NAMESPACE::arch_status_t
-    Cuda_init( SIXTRL_CXX_NAMESPACE::NodeStore& SIXTRL_RESTRICT_REF store );
 }
 
 #endif /* C++, Host */
@@ -162,12 +183,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-
     SIXTRL_INLINE bool CudaDeviceSelector::hasDevices() const
     {
         using size_t = CudaDeviceSelector::size_type;
 
-        st::CudaDeviceSelector::lock_t lock( *this->lockable() );
+        st::CudaDeviceSelector::lock_t lock( *this->nodeStore().lockable() );
         return this->hasDevices( lock );
     }
 
@@ -181,7 +201,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_INLINE bool CudaDeviceSelector::hasSelectedDevice() const
     {
-        st::CudaDeviceSelector::lock_t lock( *this->lockable() );
+        st::CudaDeviceSelector::lock_t lock( *this->nodeStore().lockable() );
         return this->hasSelectedDevice( lock );
     }
 
@@ -194,14 +214,14 @@ namespace SIXTRL_CXX_NAMESPACE
                 st::CudaDeviceSelector::ILLEGAL_CUDA_DEVICE_INDEX ) );
     }
 
-    SIXTRL_INLINE CudaDeviceSelector::device_index_t
+    SIXTRL_INLINE CudaDeviceSelector::cuda_dev_index_t
     CudaDeviceSelector::minDeviceIndex() const
     {
-        st::CudaDeviceSelector::lock_t lock( *this->lockable() );
+        st::CudaDeviceSelector::lock_t lock( *this->nodeStore().lockable() );
         return this->minDeviceIndex( lock );
     }
 
-    SIXTRL_INLINE CudaDeviceSelector::device_index_t
+    SIXTRL_INLINE CudaDeviceSelector::cuda_dev_index_t
     CudaDeviceSelector::minDeviceIndex( CudaDeviceSelector::lock_t const&
         SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
@@ -210,14 +230,14 @@ namespace SIXTRL_CXX_NAMESPACE
             : st::CudaDeviceSelector::ILLEGAL_CUDA_DEVICE_INDEX;
     }
 
-    SIXTRL_INLINE CudaDeviceSelector::device_index_t
+    SIXTRL_INLINE CudaDeviceSelector::cuda_dev_index_t
     CudaDeviceSelector::maxDeviceIndex() const
     {
-        st::CudaDeviceSelector::lock_t lock( *this->lockable() );
+        st::CudaDeviceSelector::lock_t lock( *this->nodeStore().lockable() );
         return this->maxDeviceIndex( lock );
     }
 
-    SIXTRL_INLINE CudaDeviceSelector::device_index_t
+    SIXTRL_INLINE CudaDeviceSelector::cuda_dev_index_t
     CudaDeviceSelector::maxDeviceIndex( CudaDeviceSelector::lock_t const&
         SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
@@ -229,7 +249,7 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE CudaDeviceSelector::size_type
     CudaDeviceSelector::numAvailableDevices() const
     {
-        st::CudaDeviceSelector::lock_t lock( *this->lockable() );
+        st::CudaDeviceSelector::lock_t lock( *this->nodeStore().lockable() );
         return this->numAvailableDevices( lock );
     }
 
@@ -244,20 +264,20 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_INLINE CudaDeviceSelector::status_t CudaDeviceSelector::reset()
     {
-        st::CudaDeviceSelector::lock_t lock( *this->lockable() );
+        st::CudaDeviceSelector::lock_t lock( *this->nodeStore().lockable() );
         SIXTRL_ASSERT( this->checkLockAndThrowOnError( lock ) );
         return this->reset( lock );
     }
 
-    SIXTRL_INLINE CudaDeviceSelector::device_index_t
+    SIXTRL_INLINE CudaDeviceSelector::cuda_dev_index_t
     CudaDeviceSelector::deviceIndex() const
     {
-        st::CudaDeviceSelector::lock_t lock( *this->lockable() );
+        st::CudaDeviceSelector::lock_t lock( *this->nodeStore().lockable() );
         SIXTRL_ASSERT( this->checkLockAndThrowOnError( lock ) );
         return this->m_selected_device;
     }
 
-    SIXTRL_INLINE CudaDeviceSelector::device_index_t
+    SIXTRL_INLINE CudaDeviceSelector::cuda_dev_index_t
     CudaDeviceSelector::deviceIndex( CudaDeviceSelector::lock_t const&
         SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
@@ -267,12 +287,38 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     SIXTRL_INLINE CudaDeviceSelector::status_t
-    CudaDeviceSelector::setDeviceIndex( CudaDeviceSelector::device_index_t
+    CudaDeviceSelector::setDeviceIndex( CudaDeviceSelector::cuda_dev_index_t
         const device_idx )
     {
-        st::CudaDeviceSelector::lock_t lock( *this->lockable() );
+        st::CudaDeviceSelector::lock_t lock( *this->nodeStore().lockable() );
         SIXTRL_ASSERT( this->checkLockAndThrowOnError( lock ) );
         return this->setDeviceIndex( lock, device_idx );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE CudaDeviceSelector::node_store_t const&
+    CudaDeviceSelector::nodeStore() const SIXTRL_NOEXCEPT
+    {
+        return this->m_node_store;
+    }
+
+    SIXTRL_INLINE CudaDeviceSelector::node_store_t const*
+    CudaDeviceSelector::ptrNodeStore() const SIXTRL_NOEXCEPT
+    {
+        return &this->m_node_store;
+    }
+
+    SIXTRL_INLINE CudaDeviceSelector::node_store_t&
+    CudaDeviceSelector::nodeStore() SIXTRL_NOEXCEPT
+    {
+        return this->m_node_store;
+    }
+
+    SIXTRL_INLINE CudaDeviceSelector::node_store_t*
+    CudaDeviceSelector::ptrNodeStore() SIXTRL_NOEXCEPT
+    {
+        return &this->m_node_store;
     }
 
     /* --------------------------------------------------------------------- */
@@ -280,15 +326,20 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE CudaDeviceSelector::lockable_t*
     CudaDeviceSelector::lockable() const SIXTRL_NOEXCEPT
     {
-        return &this->m_lockable;
+        return this->nodeStore().lockable();
     }
 
     SIXTRL_INLINE bool CudaDeviceSelector::checkLock(
             CudaDeviceSelector::lock_t const& SIXTRL_RESTRICT_REF lock
         ) const SIXTRL_NOEXCEPT
     {
-        return ( ( lock.owns_lock() ) &&
-                 ( lock.mutex() == this->lockable() ) );
+        return this->nodeStore().checkLock( lock );
+    }
+
+    SIXTRL_INLINE void CudaDeviceSelector::checkLockAndThrowOnError(
+        CudaDeviceSelector::lock_t const& SIXTRL_RESTRICT_REF lock ) const
+    {
+        this->nodeStore().checkLockAndThrowOnError( lock );
     }
 }
 

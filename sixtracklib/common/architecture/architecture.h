@@ -42,6 +42,13 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_id_t) NS(Architectures_get_arch_id)(
 
 /* ------------------------------------------------------------------------- */
 
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_id_t)
+NS(Architectures_get_arch_id_by_number)(
+    const NS(Architectures) *const SIXTRL_RESTRICT architectures,
+    NS(arch_size_t) const index );
+
+/* ------------------------------------------------------------------------- */
+
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(ArchData) const*
 NS(Architectures_get_ptr_const_arch_data)(
     const NS(Architectures) *const SIXTRL_RESTRICT architectures,
@@ -54,7 +61,8 @@ NS(Architectures_get_ptr_const_arch_data_by_arch_str)(
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t) NS(Architectures_get_num_architectures)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
+NS(Architectures_get_num_architectures)(
     const NS(Architectures) *const SIXTRL_RESTRICT architectures );
 
 /* ------------------------------------------------------------------------- */

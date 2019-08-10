@@ -13,9 +13,7 @@
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/architecture/definitions.h"
 #include "sixtracklib/common/control/definitions.h"
-#include "sixtracklib/common/control/node_id.hpp"
-#include "sixtracklib/common/control/arch_info.hpp"
-#include "sixtracklib/common/control/node_store.hpp"
+#include "sixtracklib/common/control/node_controller_base.hpp"
 
 namespace st = SIXTRL_CXX_NAMESPACE;
 
@@ -167,8 +165,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return num_attached_ctrls;
     }
 
-    bool NodeInfoBase::isAttachedTo( NodeInfoBase::controller_base_t const&
-        SIXTRL_RESTRICT controller ) const
+    bool NodeInfoBase::isAttachedToController(
+        NodeInfoBase::controller_base_t const& SIXTRL_RESTRICT controller ) const
     {
         bool is_attached_to = false;
 
@@ -179,7 +177,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
             is_attached_to = (
                 ( index != st::NodeStore::UNDEFINED_INDEX ) &&
-                ( controller.ptrNodeStore() == this->ptrNodeStore() ) &&
                 ( this->ptrNodeStore()->isNodeAttachedToController(
                     index, controller ) ) );
         }
@@ -187,7 +184,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return is_attached_to;
     }
 
-    bool NodeInfoBase::isSelected() const
+    bool NodeInfoBase::isSelectedByAnyController() const
     {
         bool is_selected_by_any_ctrl = false;
 
@@ -198,15 +195,14 @@ namespace SIXTRL_CXX_NAMESPACE
 
             is_selected_by_any_ctrl = (
                 ( index != st::NodeStore::UNDEFINED_INDEX ) &&
-                ( this->ptrNodeStore()->isNodeSelectedByAnyController(
-                    node_index ) ) );
+                ( this->ptrNodeStore()->isNodeSelectedByAnyController( index ) ) );
         }
 
         return is_selected_by_any_ctrl;
     }
 
-    bool NodeInfoBase::isSelectedBy( NodeInfoBase::controller_base_t const&
-        SIXTRL_RESTRICT controller ) const
+    bool NodeInfoBase::isSelectedByController(
+        NodeInfoBase::controller_base_t const& SIXTRL_RESTRICT controller ) const
     {
         bool is_selected_by = false;
 
@@ -217,7 +213,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
             is_selected_by = (
                 ( index != st::NodeStore::UNDEFINED_INDEX ) &&
-                ( controller.ptrNodeStore() == this->ptrNodeStore() ) &&
                 ( this->ptrNodeStore()->isNodeSelectedByController(
                     index, controller ) ) );
         }
@@ -258,7 +253,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         if( output != nullptr )
         {
-            std::string const str_repr = this->toStrig( ptr_controller );
+            std::string const str_repr = this->toString( ctrl );
 
             if( !str_repr.empty() )
             {
@@ -281,7 +276,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         std::ostringstream a2str;
         if( this->doPrintToOutputStream( a2str, ctrl ) !=
-                st::ARCH_STATUS_SUCCESS ) a2tr.str( "" );
+                st::ARCH_STATUS_SUCCESS ) a2str.str( "" );
         return a2str.str();
     }
 
@@ -299,7 +294,8 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             std::string const str_repr = this->toString( ctrl );
 
-            if( ( !str_repr.empty() ) ( str_repr.size() < out_str_capacity ) )
+            if( ( !str_repr.empty() ) &&
+                ( str_repr.size() < out_str_capacity ) )
             {
                 std::strncpy( out_str, str_repr.c_str(),
                               out_str_capacity - size_t{ 1 } );
@@ -322,16 +318,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
     NodeInfoBase::status_t NodeInfoBase::doPrintToOutputStream(
         std::ostream& SIXTRL_RESTRICT_REF output,
-        NodeInfoBase::controller_base_t const* ptr_ctrl ) const
+        NodeInfoBase::controller_base_t const* ctrl ) const
     {
-        using size_t       = NodeInfoBase::size_type;
-        using status_t     = NodeInfoBase::status_t;
-        using node_ctrl_t  = st::NodeContollerBase;
+        using _this_t      = st::NodeInfoBase;
+        using size_t       = _this_t::size_type;
+        using node_ctrl_t  = st::NodeControllerBase;
         using node_store_t = st::NodeStore;
-        using nindex_t     = st::NodeStore::nindex_t;
-        using node_id_t    = st::NodeStore::node_id_t;
-
-        NodeInfoBase::status_t status = st::ARCH_STATUS_SUCCESS;
 
         char temp_node_id_str[ 32 ] =
         {
@@ -341,8 +333,8 @@ namespace SIXTRL_CXX_NAMESPACE
             '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'
         };
 
-        status_t status = this->nodeId().toString(
-            32, temp_node_id_str, st::NODE_ID_STR_NOARCH );
+        _this_t::status_t status = this->nodeId().toString(
+            temp_node_id_str, 32, st::NODE_ID_STR_FORMAT_NOARCH );
 
         if( status == st::ARCH_STATUS_SUCCESS )
         {
@@ -350,7 +342,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
             node_index_t const nindex = ( has_node_store )
                 ? this->ptrNodeStore()->findNodeIndex( this->nodeId() )
-                : st::NodeStore::UNDEFINED_INDEX;
+                : node_store_t::UNDEFINED_INDEX;
 
             size_t const num_attached_ctrls = ( has_node_store )
                 ? this->ptrNodeStore()->numControllersAttachedToNode( nindex )
@@ -360,12 +352,12 @@ namespace SIXTRL_CXX_NAMESPACE
                 ? this->ptrNodeStore()->numSelectingControllersForNode( nindex )
                 : size_t{ 0 };
 
-            node_ctrl_t ptr_node_ctrl = st::asNodeController( ptr_ctrl );
+            node_ctrl_t const* ptr_node_ctrl = st::asNodeController( ctrl );
 
             bool const is_attached_to_ctrl = (
                 ( has_node_store ) && ( ptr_node_ctrl != nullptr ) &&
                 ( ptr_node_ctrl->ptrNodeStore() == this->ptrNodeStore() ) &&
-                ( nindex != st::NodeStore::UNDEFINED_INDEX ) &&
+                ( nindex != node_store_t::UNDEFINED_INDEX ) &&
                 ( this->ptrNodeStore()->isNodeAttachedToController(
                         nindex, *ptr_node_ctrl ) ) );
 
@@ -373,11 +365,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
             if( is_attached_to_ctrl )
             {
-                SIXTRL_ASSERT( ptr_ctrl != nullptr );
+                SIXTRL_ASSERT( ctrl != nullptr );
 
-                if( ptr_ctrl->hasName() )
+                if( ctrl->hasName() )
                 {
-                    output << " attached to " << ptr_ctrl->name();
+                    output << " attached to " << ctrl->name();
                 }
 
                 if( ptr_node_ctrl->isDefaultNode( nindex ) )
@@ -437,12 +429,6 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             this->m_unique_id.clear();
         }
-    }
-
-    void NodeInfoBase::doSetMaxSelectionCount(
-        NodeInfoBase::size_type const max_selection_count ) SIXTRL_NOEXCEPT
-    {
-        this->m_max_selection_cnt = max_selection_count;
     }
 }
 

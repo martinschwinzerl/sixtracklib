@@ -27,33 +27,36 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/control/node_info.hpp"
+    #include "sixtracklib/common/control/node_store.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
 {
     class CudaNodeInfo : public SIXTRL_CXX_NAMESPACE::NodeInfoBase
     {
-        private:
-
-        using _base_node_info_t = SIXTRL_CXX_NAMESPACE::NodeInfoBase;
-
         public:
 
-        using node_id_t     = _base_node_info_t::node_id_t;
-        using platform_id_t = _base_node_info_t::platform_id_t;
-        using device_id_t   = _base_node_info_t::device_id_t;
-        using node_index_t  = _base_node_info_t::node_index_t;
-        using size_type     = _base_node_info_t::size_type;
-        using arch_info_t   = _base_node_info_t::arch_info_t;
-        using arch_id_t     = _base_node_info_t::arch_id_t;
-
-        using cuda_dev_index_t = int;
+        using node_info_base_t = SIXTRL_CXX_NAMESPACE::NodeInfoBase;
+        using cuda_dev_index_t = SIXTRL_CXX_NAMESPACE::cuda_dev_index_t;
+        using node_store_t     = SIXTRL_CXX_NAMESPACE::node_store_t;
+        using lock_t           = node_store_t::lock_t;
 
         static SIXTRL_CONSTEXPR_OR_CONST cuda_dev_index_t
             ILLEGAL_DEV_INDEX = cuda_dev_index_t{ -1 };
 
         static SIXTRL_CONSTEXPR_OR_CONST size_type DEFAULT_WARP_SIZE =
                 SIXTRL_CXX_NAMESPACE::ARCH_CUDA_DEFAULT_WARP_SIZE;
+
+
+        static std::unique_ptr< node_info_base_t > MakeCudaNodeInfo(
+            cuda_dev_index_t const device_index,
+            const node_store_t *const SIXTRL_RESTRICT node_store = nullptr );
+
+        static std::unique_ptr< node_info_base_t > MakeCudaNodeInfo(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            cuda_dev_index_t const device_index,
+            const node_store_t *const SIXTRL_RESTRICT node_store = nullptr );
+
 
         SIXTRL_HOST_FN explicit CudaNodeInfo(
             cuda_dev_index_t const cuda_dev_index,

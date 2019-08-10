@@ -447,11 +447,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
     ArgumentBase::ArgumentBase(
         ArgumentBase::arch_id_t const arch_id,
-        char const* SIXTRL_RESTRICT arch_str,
         char const* SIXTRL_RESTRICT config_str,
         bool const needs_argument_buffer,
         ArgumentBase::ptr_base_controller_t SIXTRL_RESTRICT controller ) :
-        st::ArchBase( arch_id, arch_str, config_str ),
+        st::ArchBase( arch_id, config_str ),
         m_ptr_raw_arg_begin( nullptr ),
         m_ptr_cobj_cxx_buffer( nullptr ),
         m_ptr_cobj_c99_buffer( nullptr ),

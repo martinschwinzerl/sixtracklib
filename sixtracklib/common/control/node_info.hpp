@@ -199,6 +199,7 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN size_type maxSelectionCount() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN bool isAttachedToAnyController() const;
+
         SIXTRL_HOST_FN size_type numAttachedControllers() const;
 
         SIXTRL_HOST_FN bool isAttachedToController(
@@ -285,10 +286,6 @@ typedef void NS(NodeInfoBase);
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
     #include <type_traits>
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
-
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/control/node_store.hpp"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
 {

@@ -71,19 +71,66 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    NodeControllerBase::status_t NodeControllerBase::initializeNode(
+    NodeControllerBase::status_t NodeControllerBase::addKernelConfig(
         NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
-        NodeControllerBase::node_index_t const node_index )
+        NodeControllerBase::node_index_t const node_index,
+        NodeControllerBase::kernel_id_t const kernel_id )
     {
-        NodeControllerBase::status_t status =
-            SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+        using _this_t = st::NodeControllerBase;
 
-        SIXTRL_ASSERT( this->nodeStore().checkLock( lock ) );
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( ( node_index != NodeControllerBase::UNDEFINED_INDEX ) &&
-            ( this->isNodeAvailable( lock, node_index ) ) )
+        _this_t::kernel_config_base_t const* ptr_kernel_config =
+                this->kernelConfigStore().ptrKernelConfigBase( kernel_id );
+
+        if( ( ptr_kernel_config != nullptr ) &&
+            ( ptr_kernel_config->archId() != _this_t::ARCH_ILLEGAL ) &&
+            ( this->nodeStore().checkLock( lock ) ) )
         {
-            status = this->doInitializeNode( lock, node_index );
+            _this_t::node_info_base_t const* ptr_conf =
+                this->nodeStore().ptrNodeInfoBase( lock, node_index );
+
+            if( ( ptr_conf != nullptr ) &&
+                ( ptr_conf->archId() == ptr_kernel_config->archId() ) )
+            {
+                _this_t::kernel_config_key_t const key( ptr_conf->nodeId(),
+                    ptr_kernel_config->purpose(), ptr_kernel_config->variant(),
+                        ptr_kernel_config->ptrConfigStr() );
+
+                status = this->addKernelConfig( key, kernel_id );
+            }
+        }
+
+        return status;
+    }
+
+    SIXTRL_INLINE NodeControllerBase::status_t
+    NodeControllerBase::addKernelConfig(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::node_index_t const node_index,
+        NodeControllerBase::ptr_kernel_conf_base_t&& ptr_kernel_config )
+    {
+        using _this_t = st::NodeControllerBase;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( ptr_kernel_config.get() != nullptr ) &&
+            ( node_index != _this_t::UNDEFINED_INDEX ) &&
+            ( ptr_kernel_config->archId() != _this_t::ARCH_ILLEGAL ) )
+        {
+            _this_t::node_info_base_t const* ptr_conf =
+                this->nodeStore().ptrNodeInfoBase( lock, node_index );
+
+            if( ( ptr_conf != nullptr ) &&
+                ( ptr_conf->archId() == ptr_kernel_config->archId() ) )
+            {
+                _this_t::kernel_config_key_t const key( ptr_conf->nodeId(),
+                    ptr_kernel_config->purpose(), ptr_kernel_config->variant(),
+                        ptr_kernel_config->ptrConfigStr() );
+
+                status = this->addKernelConfig(
+                    key, std::move( ptr_kernel_config ) );
+            }
         }
 
         return status;
@@ -113,18 +160,20 @@ namespace SIXTRL_CXX_NAMESPACE
                 this->m_selected_node_index ) !=
                 this->m_available_node_indices.end() ) &&
               ( this->nodeStore().isNodeAttachedToController(
-                    lock, this->m_selected_node_index, this ) ) &&
+                    lock, this->m_selected_node_index, *this ) ) &&
               ( this->nodeStore().isNodeSelectedByController(
-                    lock, this->m_selected_node_index, this ) ) ) );
+                    lock, this->m_selected_node_index, *this ) ) ) );
 
         return has_selected_node;
     }
 
     /* --------------------------------------------------------------------- */
 
-    bool NodeControllerBase::hasDefaultNode() const SIXTRL_NOEXCEPT
+    bool NodeControllerBase::hasDefaultNode(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock
+        ) const SIXTRL_NOEXCEPT
     {
-        using _this_t = NodeControllerBase;
+        using _this_t = st::NodeControllerBase;
 
         bool const has_default_node = (
             ( this->isSyncWithNodeStore() ) &&
@@ -143,7 +192,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 this->m_default_node_index ) !=
                 this->m_available_node_indices.end() ) &&
               ( this->nodeStore().isNodeAttachedToController(
-                    lock, this->m_default_node_index, this ) ) ) );
+                    lock, this->m_default_node_index, *this ) ) ) );
 
         return has_default_node;
     }
@@ -166,7 +215,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ( this->nodeStore().checkLock( lock ) ) )
         {
             index = this->nodeStore().findNodeIndex(
-                lock, platform_id, device_id );
+                lock, arch_id, platform_id, device_id );
 
             if( !this->doCheckIfNodeIndexIsAvailableLocally( lock, index ) )
             {
@@ -179,12 +228,131 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
+    NodeControllerBase::status_t NodeControllerBase::changeSelectedNode(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::node_index_t const new_node_index )
+    {
+        using _this_t = st::NodeControllerBase;
+        using index_t = _this_t::node_index_t;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( !this->nodeStore().checkLock( lock ) )
+        {
+            return status;
+        }
+
+        index_t const initial_node_index = this->selectedNodeIndex( lock );
+
+        bool const new_node_index_is_available =
+            this->isNodeAvailable( lock, new_node_index );
+
+        if( ( _this_t::UNDEFINED_INDEX != new_node_index ) &&
+            ( _this_t::UNDEFINED_INDEX != initial_node_index ) &&
+            ( initial_node_index != new_node_index ) &&
+            ( new_node_index_is_available ) )
+        {
+            if( this->canChangeSelectedNode() )
+            {
+                if( !this->isNodeInitialized( lock, new_node_index ) )
+                {
+                    status = this->initializeNode( lock, new_node_index );
+                }
+                else
+                {
+                    status = st::ARCH_STATUS_SUCCESS;
+                }
+            }
+
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( ( this->isNodeInitialized( lock, new_node_index ) ) &&
+                  ( this->canChangeSelectedNode() ) ) );
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                status = this->nodeStore().markNodeAsSelectedByController(
+                    lock, new_node_index, *this );
+            }
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                status = this->nodeStore().unselectNodeForController(
+                    lock, initial_node_index, *this );
+            }
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                if( this->canDirectlyChangeSelectedNode() )
+                {
+                    status = this->doChangeSelectedNode( lock, new_node_index );
+                }
+                else if( this->canUnselectNode() )
+                {
+                    status = this->doUnselectNode( lock, initial_node_index );
+
+                    if( status == st::ARCH_STATUS_SUCCESS )
+                    {
+                        status = this->doSelectNode( lock, new_node_index );
+                    }
+                }
+            }
+        }
+        else if( ( _this_t::UNDEFINED_INDEX != new_node_index ) &&
+                 ( initial_node_index == new_node_index ) &&
+                 ( new_node_index_is_available ) )
+        {
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    NodeControllerBase::status_t NodeControllerBase::nodeIdString(
+        NodeControllerBase::node_index_t const node_index,
+        NodeControllerBase::size_type const node_id_str_capacity,
+        char* SIXTRL_RESTRICT node_id_str ) const SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeControllerBase;
+        using  size_t = _this_t::size_type;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( node_id_str != nullptr ) &&
+            ( node_id_str_capacity > size_t{ 0 } ) )
+        {
+            std::memset( node_id_str, ( int )'\0', node_id_str_capacity );
+        }
+
+        if( ( this->isSyncWithNodeStore() ) && ( node_id_str != nullptr ) &&
+            ( node_index != _this_t::UNDEFINED_INDEX ) &&
+            ( static_cast< _this_t::size_type >( node_index ) <
+              this->m_available_node_id_strings.size() ) &&
+            ( this->m_available_node_id_strings[ node_index ].size() <=
+              node_id_str_capacity ) )
+        {
+            size_t const len = std::min( node_id_str_capacity,
+                this->m_available_node_id_strings[ node_index ].size() );
+
+            std::memcpy( node_id_str,
+                this->m_available_node_id_strings[ node_index ].data(), len );
+
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
     void NodeControllerBase::printAvailableNodeInfos(
         std::ostream& SIXTRL_RESTRICT_REF output ) const
     {
-        NodeControllerBase::lock_t lock( *this->nodeStore().lockable() );
+        st::NodeControllerBase::lock_t lock( *this->nodeStore().lockable() );
 
-        NodeControllerBase::status_t
+        st::NodeControllerBase::status_t
             status = this->doPrintAvailableNodesToOutputStream( lock, output );
 
         SIXTRL_ASSERT( status == SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS );
@@ -200,7 +368,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         std::ostringstream a2str;
 
-        NodeControllerBase::lock_t lock( *this->nodeStore().lockable() );
+        st::NodeControllerBase::lock_t lock( *this->nodeStore().lockable() );
 
         if( ( output != nullptr ) && ( this->nodeStore().checkLock( lock ) ) &&
             ( SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS ==
@@ -223,7 +391,10 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeControllerBase::size_type capacity,
         char* SIXTRL_RESTRICT node_info_str) const
     {
-        using size_t = NodeControllerBase::size_type;
+        using _this_t = st::NodeControllerBase;
+        using size_t = _this_t::size_type;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( ( capacity > size_t{ 0 } ) && ( node_info_str != nullptr ) )
         {
@@ -237,7 +408,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 std::strncpy( node_info_str, str_repr.c_str(),
                               capacity - size_t{ 1 }  );
 
-                status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS;
+                status = st::ARCH_STATUS_SUCCESS;
             }
         }
 
@@ -246,39 +417,63 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
+    NodeControllerBase::NodeControllerBase(
+        NodeControllerBase::arch_id_t const arch_id,
+        NodeControllerBase::kernel_config_store_base_t&
+            SIXTRL_RESTRICT_REF kernel_config_store,
+        NodeControllerBase::node_store_t& SIXTRL_RESTRICT_REF node_store,
+        const char *const SIXTRL_RESTRICT config_str ) :
+        NodeControllerBase::_controller_base_t(
+            arch_id, kernel_config_store, config_str ),
+        m_available_node_indices(),
+        m_available_node_ids(),
+        m_available_node_id_strings(),
+        m_node_store( node_store ),
+        m_selected_node_index( st::NodeControllerBase::UNDEFINED_INDEX ),
+        m_default_node_index( st::NodeControllerBase::UNDEFINED_INDEX ),
+        m_num_available_nodes( st::NodeControllerBase::size_type{ 0 } ),
+        m_can_directly_change_selected_node( false ),
+        m_node_change_requires_kernels( false ),
+        m_can_unselect_node( false ),
+        m_use_autoselect( false ),
+        m_nodes_are_sync( false )
+    {
+        using lock_t = st::NodeControllerBase::lock_t;
+        using size_t = st::NodeControllerBase::size_type;
+        using status_t = st::NodeControllerBase::status_t;
+
+        lock_t lock( *this->m_node_store.lockable() );
+
+        if( ( this->nodeStore().hasArchitecture( lock, arch_id ) ) &&
+            ( this->nodeStore().numPlatforms( lock, arch_id ) > size_t{ 0 } ) )
+        {
+            status_t status = this->doAttachAllArchNodes( lock );
+            ( void )status;
+        }
+    }
+
+    /* --------------------------------------------------------------------- */
+
     void NodeControllerBase::doClear()
     {
-        NodeControllerBase::lock_t lock( *this->nodeStore().lockable() );
+        st::NodeControllerBase::lock_t lock( *this->nodeStore().lockable() );
         this->doClearNodeControllerBaseImpl( lock );
     }
 
     /* --------------------------------------------------------------------- */
 
-    bool NodeControllerBase::doCheckIsNodeInitialized(
+    NodeControllerBase::status_t
+    NodeControllerBase::doSyncWithNodeStore(
         NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
-        NodeControllerBase::node_index_t const index )
+        NodeControllerBase::node_store_t* SIXTRL_RESTRICT ptr_node_store )
     {
-        ( void )lock;
-        ( void )index;
-
-        return false;
+        return this->doSyncWithNodeStoreBaseImpl( lock, ptr_node_store );
     }
 
     /* --------------------------------------------------------------------- */
 
-    NodeControllerBase::status_t NodeControllerBase::doInitializeNode(
-        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
-        NodeControllerBase::node_index_t const index )
-    {
-        ( void )lock;
-        ( void )index;
-
-        return st::ARCH_STATUS_GENERAL_FAILURE;
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    NodeControllerBase::status_t NodeControllerBase::doSyncWithNodeStore(
+    NodeControllerBase::status_t
+    NodeControllerBase::doSyncWithNodeStoreBaseImpl(
         NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeControllerBase::node_store_t* SIXTRL_RESTRICT ptr_node_store )
     {
@@ -287,11 +482,11 @@ namespace SIXTRL_CXX_NAMESPACE
         using index_t   = _this_t::node_index_t;
         using node_id_t = _this_t::node_id_t;
 
-        NodeControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( ( !this->nodeStore().checkLock( lock ) ) ||
             ( !this->nodeStore().hasArchitecture( lock, this->archId() ) ) ||
-            ( !this->nodestore().hasController( lock, *this ) ) )
+            ( !this->nodeStore().hasController( lock, *this ) ) )
         {
             return status;
         }
@@ -301,14 +496,13 @@ namespace SIXTRL_CXX_NAMESPACE
             index_t const total_num_nodes_in_store =
                 this->nodeStore().totalNumNodes( lock );
 
-            std::vector< index_t > temp_node_indices(
+            std::vector< index_t > node_indices(
                 total_num_nodes_in_store, _this_t::UNDEFINED_INDEX );
 
             size_t nodes_copied = size_t{ 0 };
 
-            status = this->nodeStore().nodeIndices(
-                lock, temp_node_indices.begin(), temp_node_indices.end(),
-                    *this, &nodes_copied );
+            status = this->nodeStore().nodeIndices( lock, node_indices.begin(),
+                node_indices.end(), *this, &nodes_copied );
 
             if( ( status == st::ARCH_STATUS_SUCCESS ) &&
                 ( nodes_copied > size_t{ 0 } ) )
@@ -324,7 +518,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 for( size_t ii = size_t{ 0 } ; ii < nodes_copied ; ++ii )
                 {
-                    index_t const index = temp_node_indices[ ii ];
+                    index_t const index = node_indices[ ii ];
 
                     if( ( index == _this_t::UNDEFINED_INDEX ) ||
                         ( index > total_num_nodes_in_store ) )
@@ -356,14 +550,14 @@ namespace SIXTRL_CXX_NAMESPACE
                         node_id_str_len, '\0' );
 
                     status = ptr->toString(
-                        this->m_available_node_id_strings.back().size(),
-                        this->m_available_node_id_strings.back().data() );
+                        this->m_available_node_id_strings.back().data(),
+                        this->m_available_node_id_strings.back().size() );
 
                     if( status == st::ARCH_STATUS_SUCCESS )
                     {
                         this->m_available_node_indices.push_back( index );
-                        this->m_available_node_ids.pus_back( *ptr );
-                        ++this->m_num_available_nodes:.back()
+                        this->m_available_node_ids.push_back( *ptr );
+                        ++this->m_num_available_nodes;
                     }
                     else
                     {
@@ -409,10 +603,75 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeControllerBase::node_index_t const node_index )
     {
-        ( void )lock;
-        ( void )node_index;
+        using _this_t = NodeControllerBase;
+        using ptr_config_t = _this_t::kernel_config_base_t*;
+        using ptr_node_info_t = _this_t::node_info_base_t*;
+        using key_t = _this_t::kernel_config_key_t;
 
-        return st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( node_index != _this_t::UNDEFINED_INDEX ) &&
+            ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) )
+        {
+            ptr_node_info_t ptr_base =
+                this->nodeStore().ptrNodeInfoBase( lock, node_index );
+
+            if( ( ptr_base != nullptr ) &&
+                ( ptr_base->archId() != _this_t::ARCH_ILLEGAL ) &&
+                ( ptr_base->archId() == this->archId() ) )
+            {
+                key_t const& current_key = this->remapBufferKernelConfigKey();
+                key_t new_key;
+
+                if( ( current_key.archId()  != _this_t::ARCH_ILLEGAL ) &&
+                    ( current_key.purpose() ==
+                        st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER ) )
+                {
+                    status = new_key.reset( ptr_base->nodeId(),
+                        current_key.purpose(), current_key.variant(),
+                            current_key.configStr() );
+                }
+                else if( current_key.archId() == this->archId() )
+                {
+                    status = new_key.reset( ptr_base->nodeId(),
+                        st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER, this->variant(),
+                            this->defaultKernelConfigStr().c_str() );
+                }
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+                    if( this->doPreflightCheckSelectKernelConfigByKey(
+                            new_key ) )
+                    {
+                        if( this->kernelConfigStore().hasKernel( new_key ) )
+                        {
+                            status = st::ARCH_STATUS_SUCCESS;
+                        }
+                        else if( this->kernelConfigStore(
+                            ).hasDefaultInitKernelConfigParameters( new_key ) )
+                        {
+                            status = this->doInitializeKernelConfigs( new_key );
+                        }
+
+                        if( status == st::ARCH_STATUS_SUCCESS )
+                        {
+                            status = this->doSelectRemapBufferKernelConfig(
+                                new_key );
+                        }
+                    }
+                }
+            }
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                this->m_selected_node_index = node_index;
+            }
+        }
+
+        return status;
     }
 
     /* --------------------------------------------------------------------- */
@@ -421,10 +680,53 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeControllerBase::node_index_t const new_selected_node_index )
     {
-        ( void )lock;
-        ( void )new_selected_node_index;
+        using _this_t = NodeControllerBase;
+        using ptr_config_t = _this_t::kernel_config_base_t*;
+        using ptr_node_info_t = _this_t::node_info_base_t*;
+        using key_t = _this_t::kernel_config_key_t;
 
-        return st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( new_selected_node_index != _this_t::UNDEFINED_INDEX ) &&
+            ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) )
+        {
+            ptr_node_info_t ptr_base = this->nodeStore().ptrNodeInfoBase(
+                lock, new_selected_node_index );
+
+            if( ( ptr_base != nullptr ) &&
+                ( ptr_base->archId() != _this_t::ARCH_ILLEGAL ) &&
+                ( ptr_base->archId() == this->archId() ) )
+            {
+                key_t const& current_key = this->remapCObjectBufferKernelKey();
+
+                if( ( current_key.archId()  != _this_t::ARCH_ILLEGAL ) &&
+                    ( current_key.purpose() ==
+                        st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER ) )
+                {
+                    key_t const key( ptr_base->nodeId(), current_key.purpose(),
+                               current_key.variant(), key.ptrConfigStr() );
+
+                    status = this->selectRemapCObjectBufferKernel( key );
+
+                }
+                else if( current_key.archId() == this->archId() )
+                {
+                    key_t const key( ptr_base->nodeId(),
+                        st::KERNEL_CONFIG_PURPOSE_REMAP_BUFFER, this->variant(),
+                            this->defaultKernelConfigStr().c_str() );
+
+                    status = this->selectRemapCObjectBufferKernel( key );
+                }
+            }
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                this->m_selected_node_index = new_selected_node_index;
+            }
+        }
+
+        return status;
     }
 
     /* --------------------------------------------------------------------- */
@@ -433,6 +735,8 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeControllerBase::node_index_t const selected_node_index )
     {
+        SIXTRL_ASSERT( this->nodeStore().checkLock( lock ) );
+
         ( void )lock;
         ( void )selected_node_index;
 
@@ -512,25 +816,27 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         NodeControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        using index_t = NodeControllerBase::node_index_t{ 0 };
+        using index_t = NodeControllerBase::node_index_t;
 
-        if( this->numAvailableNodes( lock ) >
-            NodeControllerBase::index_t{ 0 } )
+        if( ( this->isSyncWithNodeStore() ) &&
+            ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->numAvailableNodes( lock ) > index_t{ 0 } ) )
         {
-            status = st::ARCH_STATUS_SUCCESS:
+            auto it  = this->nodeIndicesBegin();
+            auto end = this->nodeIndicesEnd();
 
-            auto it  = this->nodeIndicesBegin( lock );
-            auto end = this->nodeIndicesEnd( lock );
-
-            SIXTRL_ASSERT( it != nullptr );
-
-            for( ; it != end ; ++it )
+            if( ( it != nullptr ) && ( end != nullptr ) )
             {
-                auto ptr_node_info = this->ptrNodeInfoBase( lock, *it );
+                status = st::ARCH_STATUS_SUCCESS;
 
-                if( ptr_node_info != nullptr )
+                for( ; it != end ; ++it )
                 {
-                    output << *ptr_node_info << "\r\n";
+                    auto ptr_node_info = this->ptrNodeInfoBase( lock, *it );
+
+                    if( ptr_node_info != nullptr )
+                    {
+                        output << *ptr_node_info << "\r\n";
+                    }
                 }
             }
         }
@@ -540,10 +846,49 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    NodeControllerBase::status_t NodeControllerBase::doAttachAllArchNodes(
+    NodeControllerBase::status_t NodeControllerBase::doResetKeyFromNodeIndex(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::kernel_config_key_t& SIXTRL_RESTRICT_REF key,
+        NodeControllerBase::node_index_t const node_index,
+        NodeControllerBase::kernel_purpose_t const purpose,
+        NodeControllerBase::variant_t const variant_flags,
+        char const* SIXTRL_RESTRICT kernel_config_str ) const
+    {
+        using _this_t = st::NodeControllerBase;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( node_index != _this_t::UNDEFINED_INDEX ) &&
+            ( this->nodeStore().checkLock( lock ) ) )
+        {
+            _this_t::node_info_base_t const* ptr_node_info =
+                this->ptrNodeInfoBase( lock, node_index );
+
+            if( ptr_node_info != nullptr )
+            {
+                status = key.reset( ptr_node_info->nodeId(),
+                           purpose, variant, kernel_config_str );
+            }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    NodeControllerBase::status_t
+    NodeControllerBase::doAttachAllArchNodes(
         NodeControllerBase::lock_t const& SIXTRL_RESTRIC_REF lock )
     {
-        NodeControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        using _this_t = NodeControllerBase;
+        using status_t = _this_t::status_t;
+        using size_t = _this_t::size_type;
+        using node_id_t = _this_t::node_id_t;
+        using index_t = _this_t::node_index_t;
+        using node_id_str_buffer_t = _this_t::node_id_str_buffer_t;
+        using node_info_base_t = _this_t::node_info_base_t;
+
+        status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( ( this->nodeStore().checkLock( lock ) ) &&
             ( this->nodeStore().hasArchitecture( lock, this->archId() ) ) )
@@ -584,6 +929,282 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
+    NodeControllerBase::status_t NodeControllerBase::doInitiallySelectNode(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::selectNodeFn select_fn,
+        char const* SIXTRL_RESTRICT config_str )
+    {
+        NodeControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) && ( select_fn != nullptr ) )
+        {
+            if( config_str != nullptr )
+            {
+                status = this->doInitiallySelectNodeByConfigStr(
+                    lock, select_fn, config_str );
+            }
+
+            if( ( status != st::ARCH_STATUS_SUCCESS ) &&
+                ( this->useAutoSelect() ) && ( this->hasDefaultNode( lock ) ) )
+            {
+                status = this->doInitiallySelectDefaultNode( lock, select_fn );
+            }
+        }
+
+        return status;
+    }
+
+    NodeControllerBase::status_t NodeControllerBase::doInitiallySelectNode(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::selectNodeFn select_fn,
+        char const* SIXTRL_RESTRICT config_str,
+        NodeControllerBase::node_id_t const& SIXTRL_RESTRICT_REF node_id )
+    {
+        using _this_t = NodeControllerBase;
+        using index_t = _this_t::node_index_t;
+
+        NodeControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) && ( select_fn != nullptr ) )
+        {
+            if( ( node_id.valid() ) && ( node_id.archId() == this->archId() ) )
+            {
+                index_t node_index =
+                    this->nodeStore().nodeIndex( lock, node_id );
+
+                if( node_index != _this_t::UNDEFINED_INDEX )
+                {
+                    status = select_fn( lock, node_index );
+                }
+            }
+
+            if( ( status != st::ARCH_STATUS_SUCCESS ) &&
+                ( config_str != nullptr ) && ( this->usesAutoSelect() ) )
+            {
+                status this->doInitialSelectNode( lock, select_fn, config_str );
+            }
+        }
+
+        return status;
+    }
+
+    NodeControllerBase::status_t NodeControllerBase::doInitiallySelectNode(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::selectNodeFn select_fn,
+        char const* SIXTRL_RESTRICT config_str,
+        NodeControllerBase::platform_id_t const platform_id,
+        NodeControllerBase::device_id_t const device_id )
+    {
+        using _this_t = NodeControllerBase;
+        using index_t = _this_t::node_index_t;
+
+        NodeControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) && ( select_fn != nullptr ) )
+        {
+            if( ( platform_id != _this_t::ILLEGAL_PLATFORM_ID ) &&
+                ( device_id   != _this_t::ILLEGAL_DEVICE_ID ) )
+            {
+                index_t node_index = this->nodeStore().nodeIndex(
+                    lock, this->archId(), platform_id, device_id );
+
+                if( node_index != _this_t::UNDEFINED_INDEX )
+                {
+                    status = select_fn( lock, node_index );
+                }
+            }
+
+            if( ( status != st::ARCH_STATUS_SUCCESS ) &&
+                ( config_str != nullptr ) && ( this->usesAutoSelect() ) )
+            {
+                status this->doInitialSelectNode( lock, select_fn, config_str );
+            }
+        }
+
+        return status;
+    }
+
+    NodeControllerBase::status_t NodeControllerBase::doInitiallySelectNode(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::selectNodeFn select_fn,
+        char const* SIXTRL_RESTRICT config_str,
+        char const* SIXTRL_RESTRICT str,
+        NodeControllerBase::node_str_role_t const str_role )
+    {
+        using _this_t = NodeControllerBase;
+        using index_t = _this_t::node_index_t;
+
+        NodeControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) && ( select_fn != nullptr ) )
+        {
+            if( ( str != nullptr ) &&
+                ( std::strlen( str ) > _this_t::size_type{ 0 } ) &&
+                ( ( str_role == _this_t::NODE_ID_STR ) ||
+                  ( str_role == _this_t::NODE_UNIQUE_ID_STR ) ) )
+            {
+                index_t node_index = this->nodeStore().nodeIndex(
+                    lock, this->archId(), str, str_role );
+
+                if( node_index != _this_t::UNDEFINED_INDEX )
+                {
+                    status = select_fn( lock, node_index );
+                }
+            }
+
+            if( ( status != st::ARCH_STATUS_SUCCESS ) &&
+                ( config_str != nullptr ) && ( this->usesAutoSelect() ) )
+            {
+                status this->doInitialSelectNode( lock, select_fn, config_str );
+            }
+        }
+
+        return status;
+    }
+
+    NodeControllerBase::status_t NodeControllerBase::doInitiallySelectNode(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::selectNodeFn select_fn,
+        char const* SIXTRL_RESTRICT config_str,
+        std::string const& SIXTRL_RESTRICT_REF str,
+        NodeControllerBase::node_str_role_t const str_role )
+    {
+        return this->doInitiallySelectNode(
+            lock, select_fn, str.c_str(), str_role );
+    }
+
+    NodeControllerBase::status_t
+    NodeControllerBase::doInitiallySelectNodeByConfigStr(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::selectNodeFn select_fn,
+        char const* SIXTRL_RESTRICT config_str )
+    {
+        using _this_t = NodeControllerBase;
+        using index_t = _this_t::node_index_t;
+
+        NodeControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) && ( select_fn != nullptr ) )
+        {
+            if( ( config_str != nullptr ) &&
+                ( std::strlen( config_str ) > _this_t::size_type{ 0 } ) )
+            {
+                index_t node_index = _this_t::UNDEFINED_INDEX;
+
+                std::string const node_id_str(
+                    st::NodeId_extract_node_id_str_from_config_str(
+                        config_str ) );
+
+                if( !node_id_str.empty() )
+                {
+                    node_index = this->nodeIndex(
+                        lock, node_id_str.c_str(), _this_t::NODE_ID_STR );
+                }
+
+                if( node_index == _this_t::UNDEFINED_INDEX )
+                {
+                    /* TODO: Properly implement searching for a node_index
+                     * by unique str from a config_str; for now, interpret
+                     * the config_str as a whole as the unique_str */
+
+                    node_index = this->nodeIndex(
+                        lock, config_str, _this_t::NODE_UNIQUE_ID_STR );
+                }
+
+                if( node_index != _this_t::UNDEFINED_INDEX )
+                {
+                    status = select_fn( lock, node_index );
+                }
+            }
+
+            if( ( status != st::ARCH_STATUS_SUCCESS ) &&
+                ( this->usesAutoSelect() ) )
+            {
+                status = this->doInitialSelectDefaultNode( lock, select_fn );
+            }
+        }
+
+        return status;
+    }
+
+    NodeControllerBase::status_t
+    NodeControllerBase::doInitiallySelectDefaultNode(
+        NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        NodeControllerBase::selectNodeFn select_fn )
+    {
+        using _this_t = st::NodeControllerBase;
+        using index_t = _this_t::node_index_t;
+
+        NodeControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->nodeStore().checkLock( lock ) ) &&
+            ( this->isSyncWithNodeStore() ) && ( select_fn != nullptr ) )
+        {
+            if( this->hasDefaultNode( lock ) )
+            {
+                index_t const node_index = this->defaultNodeIndex( lock );
+
+                if( node_index != _this_t::UNDEFINED_INDEX )
+                {
+                    status = select_fn( lock, node_index );
+                }
+            }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    NodeControllerBase::status_t NodeControllerBase::doUpdateNodeStore(
+        NodeControllerBase::node_store_t& SIXTRL_RESTRICT_REF node_store )
+    {
+        using _this_t = st::NodeControllerBase;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( this->ptrNodeStore() == &node_store )
+        {
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else if( (  this->ptrNodeStore() != &node_store ) &&
+                 (  this->nodeStore().lockable() != node_store.lockable() ) )
+        {
+            _this_t::lock_t old_store_lock( *this->nodeStore().lockable() );
+
+            if( this->hasSelectedNode( old_store_lock ) )
+            {
+                return status;
+            }
+
+            if( this->isSyncWithNodeStore() )
+            {
+                this->doClearNodeControllerBaseImpl( lock );
+            }
+
+            if( this->nodeStore().hasController( old_store_lock, this ) )
+            {
+                this->doDetachAllNodes( lock );
+            }
+
+            _this_t::lock_t new_store_lock( *this->nodeStore().lockable() );
+
+            this->m_node_store = node_store;
+            old_store_lock.unlock();
+
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
     void NodeControllerBase::doSetIsSyncWithNodeStoreFlag(
         bool const is_sync_with_node_store ) SIXTRL_NOEXCEPT
     {
@@ -592,13 +1213,33 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
+    bool NodeControllerBase::doCheckIfNodeIndexIsAvailableLocallyWithoutLock(
+        NodeControllerBase::node_index_t const index ) const SIXTRL_NOEXCEPT
+    {
+        using _this_t = st::NodeControllerBase;
+
+        bool is_node_available = false;
+
+        if( ( index != NodeControllerBase::UNDEFINED_INDEX ) &&
+            ( index >= _this_t::node_index_t{ 0 } ) &&
+            ( this->isSyncWithNodeStore() ) &&
+            ( static_cast< _this_t::size_type >( index ) <
+              this->m_available_node_ids.size() ) &&
+            ( this->m_available_node_ids[ index ].valid() ) )
+        {
+            is_node_available = true;
+        }
+
+        return is_node_available;
+    }
+
     bool NodeControllerBase::doCheckIfNodeIndexIsAvailableLocally(
             NodeControllerBase::lock_t const& SIXTRL_RESTRICT_REF lock,
             NodeControllerBase::node_index_t const index ) const SIXTRL_NOEXCEPT
     {
         bool is_node_available = false;
 
-        if( ( index != NodeControllerBase::UNDEFINED_INDEX ) &&
+        if( ( this->doCheckIfNodeIndexIsAvailableLocallyWithoutLock( index ) ) &&
             ( this->nodeStore().checkLock( lock ) ) &&
             ( index < this->numAvailableNodes( lock ) ) &&
             ( this->nodeStore().hasController( lock, *this ) ) &&

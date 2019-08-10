@@ -302,8 +302,9 @@ SIXTRL_INLINE SIXTRL_DATAPTR_DEC NS(NodeId)* NS(NodeId_preset)(
 {
     if( node_id != SIXTRL_NULLPTR )
     {
-        NS(NodeId_clear)( node_id );
-        NS(NodeId_set_arch_id)( node_id, SIXTRL_ARCHITECTURE_ILLEGAL );
+        node_id->arch_id     = SIXTRL_ARCHITECTURE_ILLEGAL;
+        node_id->platform_id = SIXTRL_NODE_ILLEGAL_PLATFORM_ID;
+        node_id->device_id   = SIXTRL_NODE_ILLEGAL_DEVICE_ID;
     }
 
     return node_id;
@@ -449,19 +450,19 @@ SIXTRL_INLINE int NS(NodeId_compare)(
         {
             cmp_result = 0;
         }
-        else if( NS(NodeId_get_arch_id)( lhs ) < NS(NodeId_get_arch_id)( rhs ) )
+        else if( NS(NodeId_get_arch_id)( lhs ) > NS(NodeId_get_arch_id)( rhs ) )
         {
-            cmp_result = +1;
+            cmp_result = -1;
         }
 
         if( cmp_result == 0 )
         {
-            if( NS(NodeId_get_platform_id)( lhs ) <
+            if( NS(NodeId_get_platform_id)( lhs ) >
                 NS(NodeId_get_platform_id)( rhs ) )
             {
                 cmp_result = +1;
             }
-            else if( NS(NodeId_get_platform_id)( lhs ) >
+            else if( NS(NodeId_get_platform_id)( lhs ) <
                      NS(NodeId_get_platform_id)( rhs ) )
             {
                 cmp_result = -1;
@@ -470,19 +471,19 @@ SIXTRL_INLINE int NS(NodeId_compare)(
 
         if( cmp_result == 0 )
         {
-            if( NS(NodeId_get_device_id)( lhs ) <
+            if( NS(NodeId_get_device_id)( lhs ) >
                 NS(NodeId_get_device_id)( rhs ) )
             {
                 cmp_result= +1;
             }
-            else if( NS(NodeId_get_device_id)( lhs ) >
+            else if( NS(NodeId_get_device_id)( lhs ) <
                      NS(NodeId_get_device_id)( rhs ) )
             {
                 cmp_result = -1;
             }
         }
     }
-    else if( NS(NodeId_is_valid)( rhs ) )
+    else if( NS(NodeId_is_valid)( lhs ) )
     {
         cmp_result = +1;
     }

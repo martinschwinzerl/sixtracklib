@@ -11,40 +11,120 @@
     #include "sixtracklib/common/control/node_id.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#endif /* C++, Host */
-
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/control/definitions.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-
 namespace st = SIXTRL_CXX_NAMESPACE;
 
-::NS(KernelConfigKey)* NS(KernelConfigKey_new)(
-    ::NS(node_id_t) const arch_id,
-    ::NS(kernel_purpose_t) const purpose,
-    ::NS(kernel_variant_t) const variant,
-    char const* SIXTRL_RESTRICT config_str )
+::NS(KernelConfigKey)* NS(KernelConfigKey_create)( void )
 {
-    return new st::KernelConfigKey( arch_id, purpose, variant, config_str );
+    return new st::KernelConfigKey;
+}
+
+::NS(KernelConfigKey)* NS(KernelConfigKey_new)(
+    NS(arch_id_t) const arch_id,
+    NS(kernel_purpose_t) const purpose,
+    NS(arch_variant_flags_t) const variant,
+    char const* SIXTRL_RESTRICT kernel_config_str )
+{
+    return new st::KernelConfigKey( arch_id, purpose, variant,
+        st::DEFAULT_KERNEL_ARGUMENT_SET, kernel_config_str );
+}
+
+::NS(KernelConfigKey)* NS(KernelConfigKey_new_from_copy)(
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT orig )
+{
+    return ( orig != nullptr ) ? new st::KernelConfigKey( *orig ) : nullptr;
+}
+
+::NS(KernelConfigKey)* NS(KernelConfigKey_new_from_node_id)(
+    const ::NS(NodeId) *const node_id,
+    ::NS(kernel_purpose_t) const purpose,
+    ::NS(arch_variant_flags_t) const variant,
+    ::NS(kernel_argument_set_t) const argument_set,
+    char const* SIXTRL_RESTRICT kernel_config_str )
+{
+    return new st::KernelConfigKey( node_id, purpose, variant,
+        argument_set, kernel_config_str );
 }
 
 NS(KernelConfigKey)* NS(KernelConfigKey_new_detailed)(
     ::NS(arch_id_t) const arch_id,
     ::NS(kernel_purpose_t) const purpose,
-    ::NS(kernel_variant_t) const variant,
-    char const* SIXTRL_RESTRICT config_str,
+    ::NS(arch_variant_flags_t) const variant,
+    ::NS(kernel_argument_set_t) const argument_set,
+    char const* SIXTRL_RESTRICT kernel_config_str,
     ::NS(node_platform_id_t) const platform_id,
     ::NS(node_device_id_t) const device_id )
 {
     st::NodeId const node_id( arch_id, platform_id, device_id );
-    return new st::KernelConfigKey( node_id, purpose, variant, config_str );
+    return new st::KernelConfigKey( node_id, purpose, variant, argument_set,
+        kernel_config_str );
 }
 
 void NS(KernelConfigKey_delete)( ::NS(KernelConfigKey)* SIXTRL_RESTRICT key )
 {
     delete key;
+}
+
+/* ------------------------------------------------------------------------- */
+
+::NS(arch_status_t) NS(KernelConfigKey_reset_to_default_values)(
+    ::NS(KernelConfigKey)* SIXTRL_RESTRICT key )
+{
+    return ( key != nullptr ) ? key->reset() : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(KernelConfigKey_reset)(
+    ::NS(KernelConfigKey)* SIXTRL_RESTRICT key,
+    ::NS(kernel_purpose_t) const purpose,
+    ::NS(arch_variant_flags_t) const variant,
+    ::NS(kernel_argument_set_t) const argument_set,
+    char const* SIXTRL_RESTRICT conf_str )
+{
+    return ( key != nullptr )
+        ? key->reset( key->nodeId(), purpose, variant, argument_set, conf_str )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(KernelConfigKey_reset_with_node_id)(
+    ::NS(KernelConfigKey)* SIXTRL_RESTRICT key,
+    const ::NS(NodeId) *const SIXTRL_RESTRICT node_id,
+    ::NS(kernel_purpose_t) const purpose,
+    ::NS(arch_variant_flags_t) const variant,
+    ::NS(kernel_argument_set_t) const argument_set,
+    char const* SIXTRL_RESTRICT conf_str )
+{
+    return ( ( key != nullptr ) && ( node_id != nullptr ) )
+        ? key->reset( node_id, purpose, variant, argument_set, conf_str )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(KernelConfigKey_reset_detailed)(
+    ::NS(KernelConfigKey)* SIXTRL_RESTRICT key,
+    ::NS(arch_id_t) const arch_id,
+    ::NS(kernel_purpose_t) const purpose,
+    ::NS(arch_variant_flags_t) const variant,
+    ::NS(kernel_argument_set_t) const argument_set,
+    char const* SIXTRL_RESTRICT conf_str,
+    ::NS(node_platform_id_t) const platform_id,
+    ::NS(node_device_id_t) const device_id )
+{
+    st::NodeId const node_id( arch_id, platform_id, device_id );
+    return ( key != nullptr )
+        ? key->reset( st::NodeId{ arch_id, platform_id, device_id },
+                      purpose, variant, argument_set, conf_str )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+/* ------------------------------------------------------------------------- */
+
+bool NS(KernelConfigKey_is_valid)(
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
+{
+    return ( ( key != nullptr ) && ( key->valid() ) );
 }
 
 /* ------------------------------------------------------------------------- */
@@ -59,7 +139,7 @@ void NS(KernelConfigKey_delete)( ::NS(KernelConfigKey)* SIXTRL_RESTRICT key )
     const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
 {
     return ( key != nullptr )
-        ? key->purpose : st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
+        ? key->purpose() : st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
 }
 
 void NS(KernelConfigKey_set_purpose)(
@@ -69,18 +149,31 @@ void NS(KernelConfigKey_set_purpose)(
     if( key != nullptr ) key->setPurpose( purpose );
 }
 
-::NS(kernel_variant_t) NS(KernelConfigKey_get_variant)(
+::NS(arch_variant_flags_t) NS(KernelConfigKey_get_variant)(
     const NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
 {
-    return ( key != nullptr )
-        ? key->variant() : st::KERNEL_CONFIG_VARIANT_NONE;
+    return ( key != nullptr ) ? key->variant() : st::ARCH_VARIANT_NONE;
 }
 
 void NS(KernelConfigKey_set_variant)(
     ::NS(KernelConfigKey)* SIXTRL_RESTRICT key,
-    ::NS(arch_variant_t) const variant )
+    ::NS(arch_variant_flags_t) const variant )
 {
     if( key != nullptr ) key->setVariant( variant );
+}
+
+::NS(kernel_argument_set_t) NS(KernelConfigKey_get_argument_set)(
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
+{
+    return ( key != nullptr )
+        ? key->argumentSet() : st::DEFAULT_KERNEL_ARGUMENT_SET;
+}
+
+void NS(KernelConfigKey_set_argument_set)(
+    ::NS(KernelConfigKey)* SIXTRL_RESTRICT key,
+    ::NS(kernel_argument_set_t) const argument_set )
+{
+    if( key != nullptr ) key->setArgumentSet( argument_set );
 }
 
 /* ------------------------------------------------------------------------- */
@@ -91,10 +184,10 @@ bool NS(KernelConfigKey_has_config_str)(
     return ( ( key != nullptr ) && ( key->hasConfigStr() ) );
 }
 
-char const* NS(KernelConfigKey_config_str)(
+char const* NS(KernelConfigKey_get_config_str)(
     const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
 {
-    return ( key != nullptr ) ? key->ptrConfigstr() : nullptr;
+    return ( key != nullptr ) ? key->ptrConfigStr() : nullptr;
 }
 
 void NS(KernelConfigKey_set_config_str)(
@@ -112,7 +205,7 @@ bool NS(KernelConfigKey_has_node_id)(
     return ( ( key != nullptr ) && ( key->hasNodeId() ) );
 }
 
-::NS(node_id_t) const* NS(KernelConfigKey_get_node_id)(
+::NS(NodeId) const* NS(KernelConfigKey_get_node_id)(
     const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
 {
     return ( key != nullptr ) ? key->ptrNodeId() : nullptr;
@@ -154,5 +247,28 @@ int NS(KernelConfigKey_compare)(
     return cmp_result;
 }
 
+bool NS(KernelConfigKey_are_equal)(
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT lhs,
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT rhs )
+{
+    return ( ( lhs != nullptr ) && ( rhs != nullptr ) && ( *lhs == *rhs ) );
+}
+
+bool NS(KernelConfigKey_are_not_equal)(
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT lhs,
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT rhs )
+{
+    return ( ( ( lhs == nullptr ) && ( rhs != nullptr ) ) ||
+             ( ( lhs != nullptr ) && ( rhs == nullptr ) ) ||
+             ( ( lhs != nullptr ) && ( rhs != nullptr ) && ( *lhs != *rhs ) ) );
+}
+
+bool NS(KernelConfigKey_are_equal_except_purpose)(
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT lhs,
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT rhs )
+{
+    return ( ( lhs != nullptr ) && ( rhs != nullptr ) &&
+             ( lhs->isEqualExceptPurpose( *rhs ) ) );
+}
 
 /* end: sixtracklib/common/control/kernel_config_key.c */

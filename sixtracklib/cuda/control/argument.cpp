@@ -28,7 +28,7 @@ namespace SIXTRL_CXX_NAMESPACE
 {
     CudaArgument::CudaArgument( CudaController* SIXTRL_RESTRICT ctrl ) :
         ArgumentBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ), 
+            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ),
         m_arg_buffer( nullptr )
     {
 
@@ -38,7 +38,7 @@ namespace SIXTRL_CXX_NAMESPACE
         CudaArgument::buffer_t const& SIXTRL_RESTRICT_REF buffer,
         CudaController* SIXTRL_RESTRICT ctrl ) :
         ArgumentBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ), 
+            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ),
         m_arg_buffer( nullptr )
     {
         using status_t = CudaArgument::status_t;
@@ -46,7 +46,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         size_t const buffer_size = buffer.size();
         this->doReserveArgumentBufferCudaBaseImpl( buffer_size );
-                
+
         void const* buffer_data_begin = buffer.dataBegin< void const* >();
 
         if( ( buffer_size > size_t{ 0 } ) &&
@@ -64,7 +64,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
             if( status == ::NS(ARCH_STATUS_SUCCESS) )
             {
-                status = ctrl->remap( 
+                status = ctrl->remap(
                     this->cudaArgBuffer(), buffer.getSlotSize() );
             }
 
@@ -80,7 +80,7 @@ namespace SIXTRL_CXX_NAMESPACE
         const CudaArgument::c_buffer_t *const SIXTRL_RESTRICT ptr_buffer,
         CudaController* SIXTRL_RESTRICT ctrl ) :
         ArgumentBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ), 
+            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ),
         m_arg_buffer( nullptr )
     {
         using status_t = CudaArgument::status_t;
@@ -102,12 +102,12 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ASSERT( this->cudaArgBuffer() != nullptr );
             SIXTRL_ASSERT( this->size() == size_t{ 0 } );
 
-            status_t status = this->cudaController()->sendMemory( 
+            status_t status = this->cudaController()->sendMemory(
                 this->cudaArgBuffer(), buffer_data_begin, buffer_size );
 
             if( status == ::NS(ARCH_STATUS_SUCCESS) )
             {
-                status = ctrl->remap( this->cudaArgBuffer(), 
+                status = ctrl->remap( this->cudaArgBuffer(),
                     ::NS(Buffer_get_slot_size( ptr_buffer ) ) );
             }
 
@@ -122,7 +122,7 @@ namespace SIXTRL_CXX_NAMESPACE
     CudaArgument::CudaArgument( CudaArgument::size_type const capacity,
         CudaController* SIXTRL_RESTRICT ctrl )  :
         ArgumentBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ), 
+            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ),
         m_arg_buffer( nullptr )
     {
         this->doReserveArgumentBufferCudaBaseImpl( capacity );
@@ -133,12 +133,12 @@ namespace SIXTRL_CXX_NAMESPACE
         CudaArgument::size_type const raw_arg_length,
         CudaController* SIXTRL_RESTRICT ctrl )  :
         ArgumentBase( st::ARCHITECTURE_CUDA,
-            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ), 
+            SIXTRL_ARCHITECTURE_CUDA_STR, nullptr, true, ctrl ),
         m_arg_buffer( nullptr )
     {
         using status_t = CudaArgument::status_t;
         using size_t   = CudaArgument::size_type;
-        
+
         this->doReserveArgumentBufferCudaBaseImpl( raw_arg_length );
 
         if( ( raw_arg_length > size_t{ 0 } ) &&
@@ -161,47 +161,24 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     }
 
+    bool CudaArgument::isAttachedToControllerNode(
+            CudaArgument::cuda_controller_t const& SIXTRL_RESTRICT_REF ctrl
+        ) const SIXTRL_NOEXCEPT
+    {
+        bool is_attached_to_ctrl_node = false;
+
+        if( ( this->cudaController() == &ctrl ) &&
+            ( ctrl.ptrNodeStore() != nullptr ) )
+        {
+            st::NodeId const* ptr_selected_node_id = ctrl.ptrSelectedNodeId();
+            is_attached_to_ctrl_node = ( ( ptr_selected_node_id != nullptr ) &&
+                ( *ptr_selected_node_id == this->m_attached_to_node ) );
+        }
+
+        return is_attached_to_ctrl_node;
+    }
+
     /* --------------------------------------------------------------------- */
-    
-    CudaArgument::ptr_cuda_controller_t
-    CudaArgument::cudaController() SIXTRL_NOEXCEPT
-    {
-        using _this_t   = CudaArgument;
-        using ptr_ctrl_t = _this_t::ptr_cuda_controller_t;
-
-        return const_cast< ptr_ctrl_t >( static_cast< _this_t const& >(
-            *this ).cudaController() );
-    }
-
-    CudaArgument::ptr_const_cuda_controller_t
-    CudaArgument::cudaController() const SIXTRL_NOEXCEPT
-    {
-        using cuda_ctrl_t = st::CudaController;
-
-        return ( this->ptrControllerBase() != nullptr )
-            ? this->ptrControllerBase()->asDerivedController< cuda_ctrl_t >(
-                    st::ARCHITECTURE_CUDA ) : nullptr;
-    }
-    
-    /* --------------------------------------------------------------------- */
-    
-    bool CudaArgument::hasCudaArgBuffer() const SIXTRL_NOEXCEPT
-    {
-        return ( ( this->hasArgumentBuffer() ) &&
-                 ( this->m_arg_buffer != nullptr ) );
-    }
-
-    CudaArgument::cuda_arg_buffer_t
-    CudaArgument::cudaArgBuffer() SIXTRL_NOEXCEPT
-    {
-        return this->m_arg_buffer;
-    }
-
-    CudaArgument::cuda_const_arg_buffer_t
-    CudaArgument::cudaArgBuffer() const SIXTRL_NOEXCEPT
-    {
-        return this->m_arg_buffer;
-    }
 
     void CudaArgument::doDeleteCudaArgumentBuffer() SIXTRL_NOEXCEPT
     {

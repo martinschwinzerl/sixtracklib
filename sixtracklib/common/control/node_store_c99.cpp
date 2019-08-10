@@ -29,7 +29,7 @@ namespace st = SIXTRL_CXX_NAMESPACE;
 
 ::NS(NodeStore) const* NS(NodeStore_get_const_ptr)( void )
 {
-    return return st::NodeStore_get_const_ptr();
+    return st::NodeStore_get_const_ptr();
 }
 
 /* ------------------------------------------------------------------------- */
@@ -38,7 +38,7 @@ namespace st = SIXTRL_CXX_NAMESPACE;
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store )
 {
     return ( node_store != nullptr )
-        ? node->numArchitectures() : ::NS(arch_size_t){ 0 };
+        ? node_store->numArchitectures() : ::NS(arch_size_t){ 0 };
 }
 
 bool NS(NodeStore_has_architecture)(
@@ -46,7 +46,7 @@ bool NS(NodeStore_has_architecture)(
     ::NS(arch_id_t) const arch_id )
 {
     return ( ( node_store != nullptr) &&
-             ( node_store->hasArchitecture( arch_id ) );
+             ( node_store->hasArchitecture( arch_id ) ) );
 }
 
 ::NS(arch_status_t) NS(NodeStore_get_architecture_ids)(
@@ -61,8 +61,7 @@ bool NS(NodeStore_has_architecture)(
         ( max_num_arch_ids > ::NS(arch_size_t){ 0 } ) )
     {
         status = node_store->architectureIds(
-            arch_ids_begin, arch_ids_begin, + max_num_arch_ids,
-                ptr_num_archs );
+            arch_ids_begin, arch_ids_begin + max_num_arch_ids, ptr_num_archs );
     }
 
     return status;
@@ -75,7 +74,7 @@ bool NS(NodeStore_has_platform)(
     ::NS(arch_id_t) const arch_id, ::NS(node_platform_id_t) const platform_id )
 {
     return ( ( node_store ) &&
-             ( node_store->hasPlatform( arch_id, platform_id ) );
+             ( node_store->hasPlatform( arch_id, platform_id ) ) );
 }
 
 bool NS(NodeStore_has_platform_by_name)(
@@ -89,6 +88,7 @@ bool NS(NodeStore_has_platform_by_name)(
 
 ::NS(node_platform_id_t) NS(NodeStore_get_platform_id_by_platform_name)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(arch_id_t) const arch_id,
     char const* SIXTRL_RESTRICT platform_name_str )
 {
     return ( node_store != nullptr )
@@ -110,7 +110,8 @@ bool NS(NodeStore_has_platform_by_name)(
     char const* SIXTRL_RESTRICT platform_name_str )
 {
     return ( node_store != nullptr )
-        ? node_store->( arch_id, platform_id, platform_name )
+        ? node_store->addPlatformNameMapping(
+            arch_id, platform_id, platform_name_str )
         : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
@@ -128,7 +129,7 @@ bool NS(NodeStore_has_platform_by_name)(
     ::NS(arch_id_t) const arch_id )
 {
     return ( node_store != nullptr )
-        ? node_store->numControllers( arch_id ) : :NS(arch_size_t){ 0 };
+        ? node_store->numControllers( arch_id ) : ::NS(arch_size_t){ 0 };
 }
 
 bool NS(NodeStore_has_controller)(
@@ -143,11 +144,10 @@ bool NS(NodeStore_has_controller)(
 
 ::NS(node_index_t) NS(NodeStore_find_node_index_by_node_id)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
-    const NS(NodeId) *const SIXTRL_RETRICT node_id )
+    const NS(NodeId) *const SIXTRL_RESTRICT node_id )
 {
     return ( ( node_store != nullptr ) && ( node_id != nullptr ) )
-        ? node_store->findNodeIndex( *node_id )
-        : st::NodeStore::UNDEFINED_INDEX;
+        ? node_store->findNodeIndex( node_id ) : st::NodeStore::UNDEFINED_INDEX;
 }
 
 ::NS(node_index_t) NS(NodeStore_find_node_index_by_arch_platform_device_ids)(
@@ -219,7 +219,7 @@ bool NS(NodeStore_has_controller)(
     const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller )
 {
     return ( ( node_store != nullptr ) && ( controller != nullptr ) )
-        ? node_store->numNodes( controller ) : ::NS(arch_size_t){ 0 };
+        ? node_store->numNodes( *controller ) : ::NS(arch_size_t){ 0 };
 }
 
 /* ------------------------------------------------------------------------- */
@@ -233,10 +233,10 @@ bool NS(NodeStore_has_controller)(
     ::NS(arch_status_t) status = st::ARCH_STATUS_GENERAL_FAILURE;
 
     if( ( node_store != nullptr ) && ( node_indices_begin != nullptr ) &&
-        ( max_num_arch_ids > ::NS(arch_size_t){ 0 } ) )
+        ( max_num_node_indices > ::NS(arch_size_t){ 0 } ) )
     {
         status = node_store->architectureIds(
-            node_indices_begin, node_indices_begin + max_num_arch_ids,
+            node_indices_begin, node_indices_begin + max_num_node_indices,
             ptr_num_node_indices );
     }
 
@@ -253,10 +253,10 @@ bool NS(NodeStore_has_controller)(
     ::NS(arch_status_t) status = st::ARCH_STATUS_GENERAL_FAILURE;
 
     if( ( node_store != nullptr ) && ( node_indices_begin != nullptr ) &&
-        ( max_num_arch_ids > ::NS(arch_size_t){ 0 } ) )
+        ( max_num_node_indices > ::NS(arch_size_t){ 0 } ) )
     {
-        status = node_store->architectureIds( node_indices_begin,
-            node_indices_begin + max_num_arch_ids, arch_id,
+        status = node_store->nodeIndices( node_indices_begin,
+            node_indices_begin + max_num_node_indices, arch_id,
                 ptr_num_node_indices );
     }
 
@@ -273,10 +273,10 @@ bool NS(NodeStore_has_controller)(
     ::NS(arch_status_t) status = st::ARCH_STATUS_GENERAL_FAILURE;
 
     if( ( node_store != nullptr ) && ( node_indices_begin != nullptr ) &&
-        ( max_num_arch_ids > ::NS(arch_size_t){ 0 } ) )
+        ( max_num_node_indices > ::NS(arch_size_t){ 0 } ) )
     {
-        status = node_store->architectureIds( node_indices_begin,
-            node_indices_begin + max_num_arch_ids, arch_id, platform_id,
+        status = node_store->nodeIndices( node_indices_begin,
+            node_indices_begin + max_num_node_indices, arch_id, platform_id,
                 ptr_num_node_indices );
     }
 
@@ -294,10 +294,10 @@ bool NS(NodeStore_has_controller)(
 
     if( ( node_store != nullptr ) && ( controller != nullptr ) &&
         ( node_indices_begin != nullptr ) &&
-        ( max_num_arch_ids > ::NS(arch_size_t){ 0 } ) )
+        ( max_num_node_indices > ::NS(arch_size_t){ 0 } ) )
     {
-        status = node_store->architectureIds( node_indices_begin,
-            node_indices_begin + max_num_arch_ids, *controller,
+        status = node_store->nodeIndices( node_indices_begin,
+            node_indices_begin + max_num_node_indices, *controller,
                 ptr_num_node_indices );
     }
 
@@ -335,7 +335,7 @@ bool NS(NodeStore_is_node_available)(
     ::NS(node_index_t) const index )
 {
     return ( node_store != nullptr )
-        ? node_store->ptrNodeInfoBase( node_index ) : nullptr;
+        ? node_store->ptrNodeInfoBase( index ) : nullptr;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -382,8 +382,8 @@ bool NS(NodeStore_is_node_available)(
     ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
     ::NS(arch_id_t) const arch_id )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) )
-        ? node_store->detachAllNodesByArchitecture( arch_id, *controller )
+    return ( node_store != nullptr )
+        ? node_store->detachAllNodesByArchitecture( arch_id )
         : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
@@ -391,7 +391,7 @@ bool NS(NodeStore_is_node_available)(
     ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
     ::NS(node_index_t) const node_index )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) )
+    return ( node_store != nullptr )
         ? node_store->detachNodeFromAllControllers( node_index )
         : st::ARCH_STATUS_GENERAL_FAILURE;
 }
@@ -410,7 +410,7 @@ bool NS(NodeStore_is_node_attached_to_any_controller)(
     ::NS(node_index_t) const node_index )
 {
     return ( ( node_store != nullptr ) &&
-        ( node_store->isNodeAttachedtoAnyController)( node_index ) );
+        ( node_store->isNodeAttachedToAnyController( node_index ) ) );
 }
 
 bool NS(NodeStore_is_node_attached_to_controller)(
@@ -465,7 +465,7 @@ bool NS(NodeStore_is_node_selected_by_any_controller)(
 {
     return ( node_store != nullptr )
         ? node_store->numSelectingControllersForNode( node_index )
-        ; ::NS(arch_size_t){ 0 };
+        : ::NS(arch_size_t){ 0 };
 }
 
 /* ------------------------------------------------------------------------- */

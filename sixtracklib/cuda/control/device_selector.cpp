@@ -30,55 +30,10 @@ namespace st = SIXTRL_CXX_NAMESPACE;
 
 namespace SIXTRL_CXX_NAMESPACE
 {
-    st::arch_status_t Cuda_init( st::NodeStore& SIXTRL_RESTRICT_REF store )
-    {
-        using node_store_t = st::NodeStore;
-        using lock_t = node_store_t::lock_t;
-
-        st::arch_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        /* TODO: Implement dlopen / dsym handling of cuda libraries here */
-
-        node_store_t& nodes_store = st::NodeStore_get();
-        lock_t& lock( *nodes_store.lockable() );
-
-        if( this->checkLock( lock ) )
-        {
-
-        }
-
-        return status;
-    }
-
-    std::unique_ptr< CudaDeviceSelector::node_info_base_t >
-    CudaDeviceSelector::MakeCudaNodeInfo(
-        CudaDeviceSelector::device_index_t const device_index )
-    {
-        using _this_t = st::CudaDeviceSelector;
-        using node_info_base_t = _this_t::node_info_base_t;
-        using node_info_t = st::CudaNodeInfo;
-
-        st::NodeStore const& nodes_store = st::NodeStore_get_const();
-
-        if( ( device_index >= _this_t::device_index_t{ 0 } ) &&
-            ( nodes_store.hasArchitecture( st::ARCHITECTURE_CUDA ) )
-        {
-            int temp_num_devices = int{ -1 };
-            ::cudaError_t err = ::cudaGetDeviceCount( &temp_num_devices );
-
-            if( ( err == ::cudaSuccess ) &&
-                ( temp_num_devices > device_index ) )
-            {
-                return std::unique_ptr< node_info_base_t >(
-                    new node_info_t( device_index ) );
-            }
-        }
-
-        return std::unique_ptr< node_info_base_t >( nullptr );
-    }
-
-    CudaDeviceSelector::CudaDeviceSelector() :
-        m_lockable(),
+    CudaDeviceSelector::CudaDeviceSelector(
+        CudaDeviceSelector::node_store_t* SIXTRL_RESTRICT ptr_node_store ) :
+        m_node_store( ( ptr_node_store != nullptr )
+            ? *ptr_node_store : st::NodeStore_get() ),
         m_num_available_devices( st::CudaDeviceSelector::size_type{ 0 } ),
         m_selected_device(  st::CudaDeviceSelector::ILLEGAL_CUDA_DEVICE_INDEX ),
         m_min_device_index( st::CudaDeviceSelector::ILLEGAL_CUDA_DEVICE_INDEX ),
@@ -88,8 +43,8 @@ namespace SIXTRL_CXX_NAMESPACE
         using status_t = _this_t::status_t;
         using lock_t   = _this_t::lock_t;
 
-        lock_t lock( *this->lockable() );
-        SIXTRL_ASSERT( this->checkLock( lock ) );
+        lock_t lock( *this->nodeStore().lockable() );
+        SIXTRL_ASSERT( this->nodeStore().checkLock( lock ) );
 
         status_t const status = this->reset( lock );
 
@@ -128,7 +83,7 @@ namespace SIXTRL_CXX_NAMESPACE
         ::cudaError_t err = ::cudaGetDeviceCount( &temp_num_devices );
 
         if( ( err == ::cudaSuccess ) &&  ( temp_num_devices > 0 ) &&
-            ( this->checkLock( lock ) ) )
+            ( this->nodeStore().checkLock( lock ) ) )
         {
             this->m_min_device_index = int{ 0 };
             this->m_max_device_index = temp_num_devices - 1;
@@ -150,6 +105,72 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
+    CudaDeviceSelector::status_t CudaDeviceSelector::reset(
+        CudaDeviceSelector::node_store_t& SIXTRL_RESTRICT_REF node_store )
+    {
+        CudaDeviceSelector::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( &node_store != this->ptrNodeStore() ) &&
+            ( this->nodeStore().lockable() != node_store.lockable() ) )
+        {
+            CudaDeviceSelector::lock_t new_store_lock( *node_store.lockable() );
+            CudaDeviceSelector::lock_t old_store_lock(
+                *this->nodeStore().lockable() );
+
+            status = this->reset( old_store_lock, node_store, new_store_lock );
+        }
+
+        return status;
+    }
+
+    CudaDeviceSelector::status_t CudaDeviceSelector::reset(
+        CudaDeviceSelector::lock_t& SIXTRL_RESTRICT_REF old_store_lock,
+        CudaDeviceSelector::node_store_t& SIXTRL_RESTRICT_REF node_store,
+        CudaDeviceSelector::lock_t const& SIXTRL_RESTRICT_REF new_store_lock )
+    {
+        CudaDeviceSelector::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( &node_store != this->ptrNodeStore() ) &&
+            (  node_store.checkLock( new_store_lock ) ) &&
+            (  this->nodeStore().checkLock( old_store_lock ) ) )
+        {
+            this->m_node_store = node_store;
+            old_store_lock.unlock();
+
+            status = this->reset( new_store_lock );
+        }
+
+        return status;
+    }
+
+    CudaDeviceSelector::status_t CudaDeviceSelector::resetIfDifferentNodeStore(
+        CudaDeviceSelector::node_store_t& SIXTRL_RESTRICT_REF node_store )
+    {
+        CudaDeviceSelector::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( this->ptrNodeStore() == &node_store )
+        {
+            status = st::ARCH_STATUS_SUCCESS:
+        }
+        else if( this->nodeStore().lockable() != node_store.lockable() )
+        {
+            CudaDeviceSelector::lock_t new_store_lock(
+                *this->nodeStore().lockable() );
+
+            CudaDeviceSelector::lock_t old_store_lock(
+                *this->nodeStore().lockable() );
+
+            this->m_node_store = node_store;
+            old_store_lock.unlock();
+
+            status = this->reset( new_store_lock, node_store );
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
     CudaDeviceSelector::status_t CudaDeviceSelector::setDeviceIndex(
         CudaDeviceSelector::lock_t const& SIXTRL_RESTRICT_REF lock,
         CudaDeviceSelector::device_index_t const new_device_index )
@@ -159,7 +180,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( ( this->checkLock( lock ) ) &&
+        if( ( this->nodeStore().checkLock( lock ) ) &&
             ( this->m_num_available_devices > size_t{ 0 } ) &&
             ( this->m_min_device_index <= new_device_index ) &&
             ( this->m_max_device_index >= new_device_index ) )

@@ -45,7 +45,8 @@ NS(output_buffer_flag_t) NS(OutputBuffer_required_for_tracking)(
     SIXTRL_PARTICLE_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT p,
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const
         SIXTRL_RESTRICT belem_buffer,
-    NS(buffer_size_t) const until_turn_elem_by_elem )
+    NS(buffer_size_t) const until_turn_elem_by_elem,
+    SIXTRL_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT ptr_num_beam_monitors )
 {
     typedef NS(buffer_size_t)           buf_size_t;
     typedef NS(particle_index_t)        part_index_t;
@@ -77,7 +78,7 @@ NS(output_buffer_flag_t) NS(OutputBuffer_required_for_tracking)(
     {
         flags = NS(OutputBuffer_required_for_tracking_detailed)( belem_buffer,
             min_part_id, max_part_id, min_elem_id, max_elem_id, min_turn_id,
-                max_turn_id, until_turn_elem_by_elem );
+                max_turn_id, until_turn_elem_by_elem, ptr_num_beam_monitors );
     }
 
     return flags;
@@ -90,7 +91,8 @@ NS(OutputBuffer_required_for_tracking_of_particle_sets)(
     SIXTRL_ARGPTR_DEC NS(buffer_size_t) const* SIXTRL_RESTRICT indices_begin,
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const
         SIXTRL_RESTRICT belem_buffer,
-    NS(buffer_size_t) const until_turn_elem_by_elem )
+    NS(buffer_size_t) const until_turn_elem_by_elem,
+    SIXTRL_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT ptr_num_beam_monitors )
 {
     typedef NS(buffer_size_t)           buf_size_t;
     typedef NS(particle_index_t)        part_index_t;
@@ -123,7 +125,7 @@ NS(OutputBuffer_required_for_tracking_of_particle_sets)(
     {
         flags = NS(OutputBuffer_required_for_tracking_detailed)( belem_buffer,
             min_part_id, max_part_id, min_elem_id, max_elem_id, min_turn_id,
-                max_turn_id, until_turn_elem_by_elem );
+                max_turn_id, until_turn_elem_by_elem, ptr_num_beam_monitors );
     }
 
     return flags;
@@ -138,7 +140,8 @@ NS(output_buffer_flag_t) NS(OutputBuffer_required_for_tracking_detailed)(
     NS(particle_index_t) const max_elem_id,
     NS(particle_index_t) const min_turn_id,
     NS(particle_index_t) const max_turn_id,
-    NS(buffer_size_t) const until_turn_elem_by_elem )
+    NS(buffer_size_t) const until_turn_elem_by_elem,
+    SIXTRL_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT ptr_num_beam_monitors )
 {
     typedef NS(buffer_size_t)           buf_size_t;
     typedef NS(object_type_id_t)        type_id_t;
@@ -148,10 +151,13 @@ NS(output_buffer_flag_t) NS(OutputBuffer_required_for_tracking_detailed)(
     typedef NS(particle_index_t)        part_index_t;
 
     NS(output_buffer_flag_t) flags = NS(OUTPUT_BUFFER_NONE);
+    buf_size_t const be_monitor_size = sizeof( NS(BeamMonitor) );
 
     SIXTRL_STATIC_VAR buf_size_t const ZERO = ( buf_size_t )0u;
     SIXTRL_STATIC_VAR address_t const ADDR_ZERO = ( address_t )0u;
     SIXTRL_STATIC_VAR part_index_t const IZERO = ( part_index_t )0u;
+
+    buf_size_t num_beam_monitors = ZERO;
 
     if( ( min_part_id >= IZERO ) && ( min_part_id <= max_part_id ) &&
         ( min_elem_id >= IZERO ) && ( min_elem_id <= max_elem_id ) &&
@@ -171,10 +177,9 @@ NS(output_buffer_flag_t) NS(OutputBuffer_required_for_tracking_detailed)(
             flags |= NS(OUTPUT_BUFFER_ELEM_BY_ELEM);
         }
 
-        if( ( be_it != SIXTRL_NULLPTR ) && ( num_belems > ZERO ) )
+        if( ( be_it != SIXTRL_NULLPTR ) && ( num_belems > ZERO ) &&
+            ( ptr_num_beam_monitors == SIXTRL_NULLPTR ) )
         {
-            buf_size_t const be_monitor_size = sizeof( NS(BeamMonitor) );
-
             obj_iter_t be_end = be_it - ( ptrdiff_t )1;
             be_it = be_it + ( ptrdiff_t )( num_belems - ( buf_size_t )1u );
 
@@ -199,6 +204,37 @@ NS(output_buffer_flag_t) NS(OutputBuffer_required_for_tracking_detailed)(
                 }
             }
         }
+        else if( ( be_it != SIXTRL_NULLPTR ) && ( num_belems > ZERO ) )
+        {
+            obj_iter_t be_end = be_it - ( ptrdiff_t )1;
+            be_it = be_it + ( ptrdiff_t )( num_belems - ( buf_size_t )1u );
+
+            for( ; be_it != be_end ; --be_it )
+            {
+                buf_size_t const obj_size = NS(Object_get_size)( be_it );
+                address_t  const addr = NS(Object_get_begin_addr)( be_it );
+                type_id_t  const type = NS(Object_get_type_id)( be_it );
+
+                if( ( addr != ADDR_ZERO ) && ( obj_size >= be_monitor_size ) &&
+                    ( type == NS(OBJECT_TYPE_BEAM_MONITOR) ) )
+                {
+                    ptr_monitor_t be_monitor =
+                        ( ptr_monitor_t )( uintptr_t )addr;
+
+                    if( ( be_monitor != SIXTRL_NULLPTR ) &&
+                        ( NS(BeamMonitor_get_num_stores)( be_monitor ) > 0 ) )
+                    {
+                        flags |= NS(OUTPUT_BUFFER_BEAM_MONITORS);
+                        ++num_beam_monitors;
+                    }
+                }
+            }
+        }
+    }
+
+    if( ptr_num_beam_monitors != SIXTRL_NULLPTR )
+    {
+        *ptr_num_beam_monitors = num_beam_monitors;
     }
 
     return flags;

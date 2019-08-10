@@ -131,6 +131,11 @@ typedef void NS(ArchData);
 
 namespace SIXTRL_CXX_NAMESPACE
 {
+    SIXTRL_INLINE ArchData::arch_id_t ArchData::archId() const SIXTRL_NOEXCEPT
+    {
+        return this->m_arch_id;
+    }
+
     SIXTRL_INLINE bool ArchData::hasHandle() const SIXTRL_NOEXCEPT
     {
         #if defined( _POSIX_VERSION )
@@ -156,26 +161,42 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_INLINE bool ArchData::isEnabled() const SIXTRL_NOEXCEPT
     {
-        return ( ( this->m_init_state & ::NS(ARCH_INIT_STATE_ENABLED) ) ==
-            this->m_init_state );
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
+        return ( ( this->m_init_state != st::ARCH_INIT_STATE_NONE ) &&
+                 ( this->m_init_state != st::ARCH_INIT_STATE_ERROR ) &&
+                 ( this->m_init_state &  st::ARCH_INIT_STATE_ENABLED ) ==
+                   this->m_init_state );
     }
 
     SIXTRL_INLINE bool ArchData::isActivated() const SIXTRL_NOEXCEPT
     {
-        return ( ( this->m_init_state & ::NS(ARCH_INIT_STATE_ACTIVATED) ) ==
-            this->m_init_state );
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
+        return ( ( this->m_init_state != st::ARCH_INIT_STATE_NONE ) &&
+                 ( this->m_init_state != st::ARCH_INIT_STATE_ERROR ) &&
+                 ( this->m_init_state &  st::ARCH_INIT_STATE_ACTIVATED ) ==
+                   this->m_init_state );
     }
 
     SIXTRL_INLINE bool ArchData::isAvailable() const SIXTRL_NOEXCEPT
     {
-        return ( ( this->m_init_state & ::NS(ARCH_INIT_STATE_AVAILABLE) ) ==
-            this->m_init_state );
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
+        return ( ( this->m_init_state != st::ARCH_INIT_STATE_NONE ) &&
+                 ( this->m_init_state != st::ARCH_INIT_STATE_ERROR ) &&
+                 ( this->m_init_state &  st::ARCH_INIT_STATE_AVAILABLE ) ==
+                   this->m_init_state );
     }
 
     SIXTRL_INLINE bool ArchData::isShutdown() const SIXTRL_NOEXCEPT
     {
-        return ( ( this->m_init_state & ::NS(ARCH_INIT_STATE_SHUTDOWN) ) ==
-            this->m_init_state );
+        namespace st = SIXTRL_CXX_NAMESPACE;
+
+        return ( ( this->m_init_state != st::ARCH_INIT_STATE_NONE ) &&
+                 ( this->m_init_state != st::ARCH_INIT_STATE_ERROR ) &&
+                 ( this->m_init_state &  st::ARCH_INIT_STATE_SHUTDOWN ) ==
+                   this->m_init_state );
     }
 
     SIXTRL_INLINE ArchData::init_flags_t

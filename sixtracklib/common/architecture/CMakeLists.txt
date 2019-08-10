@@ -38,6 +38,13 @@ set_target_properties( sixtrack_common_arch_cxx PROPERTIES
 target_compile_options( sixtrack_common_arch_cxx
     PRIVATE ${SIXTRACKLIB_CXX_FLAGS} ${SIXTRACKLIB_CPU_FLAGS} )
 
+# ------------------------------------------------------------------------------
+# pass on sixtrack_common_arch_cxx as a module for sixtracklib:
+
+set(  SIXTRACKL_LIBRARY_MODULES
+    ${SIXTRACKL_LIBRARY_MODULES}
+    $<TARGET_OBJECTS:sixtrack_common_arch_cxx> CACHE INTERNAL "" FORCE )
+
 # -----------------------------------------------------------------------------
 # install :
 

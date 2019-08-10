@@ -9,6 +9,7 @@ set(  SIXTRACKL_LINK_LIBRARIES
 set( SIXTRACKLIB_COMMON_C99_HEADERS )
 set( SIXTRACKLIB_COMMON_CXX_HEADERS )
 
+add_subdirectory( architecture   )
 add_subdirectory( generated      )
 add_subdirectory( buffer         )
 add_subdirectory( control        )
@@ -26,7 +27,7 @@ add_subdirectory( be_limit       )
 add_subdirectory( be_dipedge     )
 add_subdirectory( output         )
 add_subdirectory( particles      )
-add_subdirectory( track          )
+# add_subdirectory( track          )
 
 set( SIXTRACKLIB_COMMON_INTERNAL_CXX_HEADERS )
 set( SIXTRACKLIB_COMMON_INTERNAL_CXX_SOURCES )

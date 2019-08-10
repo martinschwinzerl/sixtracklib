@@ -347,7 +347,8 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeId::device_id_t const device_id ) : ::NS(NodeId)()
     {
         NodeId::status_t const status = ::NS(NodeId_init)(
-            this->getCApiPtr(), arch_id, platform_id, device_id );
+            ::NS(NodeId_preset)( this->getCApiPtr() ),
+                arch_id, platform_id, device_id );
 
         SIXTRL_ASSERT( status == SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS );
         ( void )status;
@@ -363,7 +364,7 @@ namespace SIXTRL_CXX_NAMESPACE
         std::string const& SIXTRL_RESTRICT_REF id_str ) : ::NS(NodeId)()
     {
         NodeId::status_t const status = ::NS(NodeId_from_node_id_str)(
-            this->getCApiPtr(), id_str.c_str() );
+            ::NS(NodeId_preset)( this->getCApiPtr() ), id_str.c_str() );
 
         SIXTRL_ASSERT( status == SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS );
         ( void )status;
@@ -373,7 +374,7 @@ namespace SIXTRL_CXX_NAMESPACE
         const char *const SIXTRL_RESTRICT id_str ) : ::NS(NodeId)()
     {
         NodeId::status_t const status = ::NS(NodeId_from_node_id_str)(
-            this->getCApiPtr(), id_str );
+            ::NS(NodeId_preset)( this->getCApiPtr() ), id_str );
 
         SIXTRL_ASSERT( status == SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS );
         ( void )status;

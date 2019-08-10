@@ -12,6 +12,7 @@
 #include "sixtracklib/common/control/argument_base.hpp"
 
 namespace st = SIXTRL_CXX_NAMESPACE;
+using _this_t = st::ControllerBase;
 
 /* ------------------------------------------------------------------------- */
 
@@ -87,7 +88,7 @@ char const* NS(Controller_get_name_str)(
 void NS(Controller_set_name)( ::NS(ControllerBase)* SIXTRL_RESTRICT ctrl,
     char const* SIXTRL_RESTRICT ctrl_name )
 {
-    if( ctrl != nullptr ) ? ctrl->setName( ctrl_name );
+    if( ctrl != nullptr ) ctrl->setName( ctrl_name );
 }
 
 /* ------------------------------------------------------------------------- */
@@ -110,7 +111,7 @@ void NS(Controller_set_default_kernel_config_str)(
 {
     if( ctrl != nullptr )
     {
-        ctrl->setDefaultKernelConfigStr( default_kernel_config_str );
+        ctrl->setDefaultConfigStr( default_kernel_config_str );
     }
 }
 
@@ -186,7 +187,7 @@ bool NS(Controller_is_cobjects_buffer_arg_remapped)(
 bool NS(Controller_is_ready_to_run_kernel)(
     const NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
-    return ( ( ctrl != nullptr ) && ( ctrl->readyForRunningKernel() ) );
+    return ( ( ctrl != nullptr ) && ( ctrl->readyForRunningKernels() ) );
 }
 
 bool NS(Controller_is_ready_to_remap)(
@@ -260,39 +261,18 @@ bool NS(Controller_variant_debug_mode)(
 ::NS(arch_size_t) NS(Controller_get_num_of_kernels)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
-    return ( ctrl != nullptr ) ? ctrl->numKernels() : ::NS(arch_size_t){ 0 };
+    return ( ( ctrl != nullptr ) && ( ctrl->hasKernelConfigStore() ) )
+        ? ctrl->ptrKernelConfigStore()->numStoredKernels()
+        : ::NS(arch_size_t){ 0 };
 }
 
 ::NS(arch_size_t) NS(Controller_get_num_keys_for_kernel_id)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
     ::NS(ctrl_kernel_id_t) const kernel_id )
 {
-    return ( ctrl != nullptr )
-        ? ctrl->numKeys( kernel_id ) : ::NS(arch_size_t){ 0 };
-}
-
-::NS(arch_size_t) NS(Controller_get_num_of_kernel_arguments)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
-    ::NS(arch_kernel_id_t) const kernel_id )
-{
-    return ( ctrl != nullptr )
-        ? ctrl->kernelNumArguments( kernel_id ) : ::NS(arch_size_t){ 0 };
-}
-
-/* ------------------------------------------------------------------------- */
-
-bool NS(Controller_kernel_has_name)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
-    NS(arch_kernel_id_t) const kernel_id )
-{
-    return ( ( ctrl != nullptr ) && ( ctrl->kernelHasName( kernel_id ) ) );
-}
-
-char const* NS(Controller_get_kernel_name_string)(
-    const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
-    ::NS(arch_kernel_id_t) const kernel_id )
-{
-    return ( ctrl != nullptr ) ? ctrl->ptrKernelNameStr( kernel_id ) : nullptr;
+    return ( ( ctrl != nullptr ) && ( ctrl->hasKernelConfigStore() ) )
+        ? ctrl->ptrKernelConfigStore()->numKernelConfigKeys( kernel_id )
+        : ::NS(arch_size_t){ 0 };
 }
 
 /* ------------------------------------------------------------------------- */
@@ -301,16 +281,18 @@ bool NS(Controller_has_kernel_id)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
     ::NS(arch_kernel_id_t) const kernel_id )
 {
-    return ( ( ctrl != nullptr ) && ( ctrl->hasKernel( kernel_id ) ) );
+    return ( ( ctrl != nullptr ) && ( ctrl->hasKernelConfigStore() ) &&
+             ( ctrl->ptrKernelConfigStore()->hasKernel( kernel_id ) ) );
 }
 
 ::NS(ctrl_kernel_id_t) NS(Controller_get_kernel_id_by_key)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
     const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT kernel_config_key )
 {
-    return ( ( ctrl != nullptr ) && ( kernel_config_key != nullptr ) )
-        ? ctrl->kernelId( *kernel_config_key )
-        : ::NS(ARCH_ILLEGAL_KERNEL_ID);
+    return ( ( ctrl != nullptr ) && ( kernel_config_key != nullptr ) &&
+             ( ctrl->hasKernelConfigStore() ) )
+        ? ctrl->ptrKernelConfigStore()->kernelId( *kernel_config_key )
+        : st::ControllerBase::ILLEGAL_KERNEL_CONFIG_ID;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -319,16 +301,21 @@ bool NS(Controller_has_kernel_id)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl,
     ::NS(arch_kernel_id_t) const kernel_id )
 {
-    return ( ctrl != nullptr )
-        ? ctrl->ptrKernelConfigBase( kernel_id ) : nullptr;
+    return ( ( ctrl != nullptr ) && ( ctrl->hasKernelConfigStore() ) )
+        ? ctrl->ptrKernelConfigStore()->ptrKernelConfigBase( kernel_id )
+        : nullptr;
 }
 
 ::NS(KernelConfigBase)* NS(Controller_kernel_config_base)(
     ::NS(ControllerBase)* SIXTRL_RESTRICT ctrl,
     ::NS(arch_kernel_id_t) const kernel_id )
 {
-    return ( ctrl != nullptr )
-        ? ctrl->ptrKernelConfigBase( kernel_id ) : nullptr;
+    return ( ( ctrl != nullptr ) &&
+             ( kernel_id != _this_t::ILLEGAL_KERNEL_CONFIG_ID ) )
+        ? const_cast< _this_t::kernel_config_base_t* >(
+            static_cast< _this_t const* >( ctrl )->ptrKernelConfigStore(
+                )->ptrKernelConfigBase( kernel_id ) )
+        : nullptr;
 }
 
 /* ========================================================================= */
@@ -343,14 +330,23 @@ bool NS(Controller_has_remap_buffer_kernel)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
     return ( ctrl != nullptr ) ? ctrl->remapBufferKernelConfigId()
-        : st::ControllerBase::ILLEGAL_KERNEL_ID;
+        : st::ControllerBase::ILLEGAL_KERNEL_CONFIG_ID;
 }
 
 ::NS(KernelConfigKey) const* NS(Controller_remap_buffer_kernel_key)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
-    return ( ctrl != nullptr )
-        ? &( ctrl->remapBufferKernelConfigKey() ) : nullptr;
+    ::NS(KernelConfigKey) const* ptr_key = nullptr;
+
+    if( ( ctrl != nullptr ) && ( ctrl->hasKernelConfigStore() ) )
+    {
+        _this_t::kernel_lock_t const lock( *ctrl->kernelLockable() );
+        ptr_key = ( ctrl->hasKernelSet( lock ) )
+            ? &ctrl->ptrKernelSetBase( lock )->currentKernelConfigKey( lock )
+            : nullptr;
+    }
+
+    return ptr_key;
 }
 
 /* ========================================================================= */
@@ -360,7 +356,7 @@ NS(arch_status_t) NS(Controller_set_active_variant_flags)(
     NS(arch_variant_flags_t) const variant_flags )
 {
     return ( ctrl != nullptr )
-        ? ctrl->setActiveVariantFlags( variant_flags )
+        ? ctrl->changeVariantFlags( variant_flags )
         : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
@@ -372,13 +368,14 @@ NS(KernelConfigStore) const* NS(Controller_get_const_kernel_config_store)(
     return ( ctrl != nullptr ) ? ctrl->ptrKernelConfigStore() : nullptr;
 }
 
-NS(KernelConfigStore)* NS(Controller_get_kernel_config_store)(
+::NS(KernelConfigStore)* NS(Controller_get_kernel_config_store)(
     NS(ControllerBase)* SIXTRL_RESTRICT ctrl )
 {
-    return ( ctrl != nullptr ) ? ctrl->ptrKernelConfigStore() : nullptr;
+    return ( ( ctrl != nullptr ) && ctrl->hasKernelConfigStore() )
+        ? const_cast< ::NS(KernelConfigStore)* >( static_cast<
+            _this_t const* >( ctrl )->ptrKernelConfigStore() )
+        : nullptr;
 }
-
-/* ========================================================================= */
 
 #endif /* C++, Host */
 

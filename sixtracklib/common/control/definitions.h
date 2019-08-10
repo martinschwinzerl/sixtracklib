@@ -16,8 +16,12 @@ typedef SIXTRL_UINT64_T             NS(arch_variant_flags_t);
 typedef NS(arch_status_t)           NS(ctrl_status_t);
 typedef NS(arch_size_t)             NS(ctrl_size_t);
 typedef NS(arch_kernel_id_t)        NS(ctrl_kernel_id_t);
+
 typedef NS(arch_variant_flags_t)    NS(kernel_variant_t);
 typedef SIXTRL_UINT32_T             NS(kernel_purpose_t);
+typedef SIXTRL_UINT64_T             NS(kernel_argument_set_t);
+typedef SIXTRL_UINT64_T             NS(kernel_op_flags_t);
+typedef NS(arch_kernel_id_t)        NS(kernel_set_id_t);
 
 typedef SIXTRL_INT64_T              NS(node_platform_id_t);
 typedef SIXTRL_INT64_T              NS(node_device_id_t);
@@ -207,6 +211,63 @@ SIXTRL_STATIC_VAR NS(node_str_role_t) const NS(NODE_STR_ROLE_ID) =
 SIXTRL_STATIC_VAR NS(node_str_role_t) const NS(NODE_STR_ROLE_UNIQUE_ID) =
     ( NS(node_str_role_t) )1u;
 
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_STATIC_VAR NS(kernel_argument_set_t) const
+    NS(DEFAULT_KERNEL_ARGUMENT_SET) = ( NS(kernel_argument_set_t) )0u;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_STATIC_VAR NS(kernel_set_id_t) const
+    NS(ILLEGAL_KERNEL_SET_ID) = ( NS(kernel_set_id_t) )0u;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const NS(KERNEL_OP_FLAGS_NONE) =
+    ( NS(kernel_op_flags_t) )0u;
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_CTRL_HAS_REQUIRED_PURPOSES) = ( NS(kernel_op_flags_t) )0x00000001;
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_CTRL_KERNELS_AVAILABLE) = ( NS(kernel_op_flags_t) )0x00000002;
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_CTRL_KERNELS_READY) = ( NS(kernel_op_flags_t) )0x00000004;
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_CTRL_READY_TO_SEND) = ( NS(kernel_op_flags_t) )0x00000008;
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_CTRL_READY_TO_RECEIVE) = ( NS(kernel_op_flags_t) )0x00000010;
+
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_TRACK_JOB_HAS_REQUIRED_PURPOSES) =
+    ( NS(kernel_op_flags_t) )0x00000100;
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_TRACK_JOB_KERNELS_AVAILABLE) =
+    ( NS(kernel_op_flags_t) )0x00000200;
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_TRACK_JOB_KERNELS_READY) =
+    ( NS(kernel_op_flags_t) )0x00000400;
+
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_HAS_ALL_REQUIRED_PURPOSES) =
+    ( NS(kernel_op_flags_t) )0x00010000;
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_ALL_REQUIRED_KERNELS_AVAILABLE) =
+    ( NS(kernel_op_flags_t) )0x00020000;
+
+SIXTRL_STATIC_VAR NS(kernel_op_flags_t) const
+NS(KERNEL_OP_ALL_REQUIRED_KERNELS_READY) =
+    ( NS(kernel_op_flags_t) )0x00040000;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #endif /* !defined( _GPUCODE ) */
 
@@ -220,6 +281,9 @@ namespace SIXTRL_CXX_NAMESPACE
     typedef ::NS(ctrl_kernel_id_t)       ctrl_kernel_id_t;
     typedef ::NS(kernel_variant_t)       kernel_variant_t;
     typedef ::NS(kernel_purpose_t)       kernel_purpose_t;
+    typedef ::NS(kernel_argument_set_t)  kernel_argument_set_t;
+    typedef ::NS(kernel_set_id_t)        kernel_set_id_t;
+    typedef ::NS(kernel_op_flags_t)      kernel_op_flags_t;
 
     typedef ::NS(arch_status_t)          arch_status_t;
     typedef ::NS(arch_id_t)              arch_id_t;
@@ -362,6 +426,70 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST node_str_role_t
         NODE_STR_ROLE_UNIQUE_ID = static_cast< node_str_role_t >( 1u );
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_argument_set_t
+        DEFAULT_KERNEL_ARGUMENT_SET = static_cast< kernel_argument_set_t >( 0u );
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_set_id_t
+        ILLEGAL_KERNEL_SET_ID = static_cast< kernel_set_id_t >( 0xFFFFFFFF );
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_FLAGS_NONE = static_cast< kernel_op_flags_t >( 0x00 );
+
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_CTRL_HAS_REQUIRED_PURPOSES =
+            static_cast< kernel_op_flags_t >( 0x0001 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_CTRL_KERNELS_AVAILABLE =
+            static_cast< kernel_op_flags_t >( 0x0002 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_CTRL_KERNELS_READY =
+            static_cast< kernel_op_flags_t >( 0x0004 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_CTRL_READY_TO_SEND =
+            static_cast< kernel_op_flags_t >( 0x0008 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_CTRL_READY_TO_RECEIVE =
+            static_cast< kernel_op_flags_t >( 0x0010 );
+
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_TRACK_JOB_HAS_REQUIRED_PURPOSES =
+            static_cast< kernel_op_flags_t >( 0x0100 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_TRACK_JOB_KERNELS_AVAILABLE =
+            static_cast< kernel_op_flags_t >( 0x0200 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_TRACK_JOB_KERNELS_READY =
+            static_cast< kernel_op_flags_t >( 0x0400 );
+
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_HAS_ALL_REQUIRED_PURPOSES =
+            static_cast< kernel_op_flags_t >( 0x00010000 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_ALL_REQUIRED_KERNELS_AVAILABLE =
+            static_cast< kernel_op_flags_t >( 0x00020000 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_op_flags_t
+        KERNEL_OP_ALL_REQUIRED_KERNELS_READY =
+            static_cast< kernel_op_flags_t >( 0x00040000 );
+
+    /* --------------------------------------------------------------------- */
 }
 
 #endif /* C++, Host */

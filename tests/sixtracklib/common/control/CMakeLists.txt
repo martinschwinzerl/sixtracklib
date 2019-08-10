@@ -52,28 +52,143 @@ if( GTEST_FOUND )
     add_test( CXX_CommonControlArchInfoTests test_arch_info_common_cxx )
 
     # ==========================================================================
-    # test_node_controller_base_common_c99:
+    # test_kernel_config_key_common_c99:
 
-    add_executable( test_node_controller_base_common_c99
-        test_node_controller_base_c99.cpp )
+    add_executable( test_kernel_config_key_common_c99
+                    test_kernel_config_key_c99.cpp )
 
     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-        test_node_controller_base_common_c99 )
+         test_kernel_config_key_common_c99 )
 
-    add_test( C99_CommonNodeControllerBaseTests
-        test_node_controller_base_common_c99 )
+    add_test( C99_CommonControlKernelConfigKeyTests
+              test_kernel_config_key_common_c99 )
+
+    # --------------------------------------------------------------------------
+    # test_kernel_config_key_common_cxx:
+
+    add_executable( test_kernel_config_key_common_cxx
+                    test_kernel_config_key_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+         test_kernel_config_key_common_cxx )
+
+    add_test( CXX_CommonControlKernelConfigKeyTests
+              test_kernel_config_key_common_cxx )
+
+    # ==========================================================================
+    # test_kernel_config_base_common_c99:
+
+    add_executable( test_kernel_config_base_common_c99
+                    test_kernel_config_base_c99.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+         test_kernel_config_base_common_c99 )
+
+    add_test( C99_CommonControlKernelConfigBaseTests
+              test_kernel_config_base_common_c99 )
+
+    # --------------------------------------------------------------------------
+    # test_kernel_config_base_common_cxx:
+
+    add_executable( test_kernel_config_base_common_cxx
+                    test_kernel_config_base_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+         test_kernel_config_base_common_cxx )
+
+    add_test( CXX_CommonControlKernelConfigBaseTests
+              test_kernel_config_base_common_cxx )
+
+    # ==========================================================================
+    # test_kernel_config_store_common_c99:
+
+    add_executable( test_kernel_config_store_common_c99
+                    test_kernel_config_store_c99.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+         test_kernel_config_store_common_c99 )
+
+    add_test( C99_CommonControlKernelConfigStoreTests
+              test_kernel_config_store_common_c99 )
+
+    set_property( TEST C99_CommonControlKernelConfigStoreTests
+        APPEND PROPERTY DEPENDS C99_CommonControlKernelConfigBaseTests
+                                C99_CommonControlKernelConfigKeyTests )
+
+
+    # --------------------------------------------------------------------------
+    # test_kernel_config_store_common_cxx:
+
+    add_executable( test_kernel_config_store_common_cxx
+                    test_kernel_config_store_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+         test_kernel_config_store_common_cxx )
+
+    add_test( CXX_CommonControlKernelStoreCommonTests
+              test_kernel_config_store_common_cxx )
+
+    set_property( TEST CXX_CommonControlKernelStoreCommonTests
+        APPEND PROPERTY DEPENDS CXX_CommonControlKernelConfigBaseTests
+                                CXX_CommonControlKernelConfigKeyTests )
+
+    # ==========================================================================
+    # test_kernel_set_base_common_c99:
+
+#     add_executable( test_kernel_set_base_common_c99
+#                     test_kernel_set_base_c99.cpp )
+#
+#     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+#          test_kernel_set_base_common_c99 )
+#
+#     add_test( C99_CommonControlKernelSetBaseTests
+#               test_kernel_set_base_common_c99 )
+#
+#     set_property( TEST C99_CommonControlKernelSetBaseTests
+#         APPEND PROPERTY DEPENDS C99_CommonControlKernelConfigStoreTests
+#                                 C99_CommonControlKernelConfigBaseTests
+#                                 C99_CommonControlKernelConfigKeyTests )
+
+    # --------------------------------------------------------------------------
+    # test_kernel_set_base_common_cxx:
+
+    add_executable( test_kernel_set_base_common_cxx
+                    test_kernel_set_base_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+         test_kernel_set_base_common_cxx )
+
+    add_test( CXX_CommonControlKernelSetBaseTests
+              test_kernel_set_base_common_cxx )
+
+    set_property( TEST CXX_CommonControlKernelSetBaseTests
+        APPEND PROPERTY DEPENDS CXX_CommonControlKernelStoreCommonTests
+                                CXX_CommonControlKernelConfigBaseTests
+                                CXX_CommonControlKernelConfigKeyTests )
+
+    # ==========================================================================
+    # test_node_controller_base_common_c99:
+
+#     add_executable( test_node_controller_base_common_c99
+#         test_node_controller_base_c99.cpp )
+
+#     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+#         test_node_controller_base_common_c99 )
+
+#     add_test( C99_CommonNodeControllerBaseTests
+#         test_node_controller_base_common_c99 )
 
     # --------------------------------------------------------------------------
     # test_node_controller_base_common_cxx:
 
-    add_executable( test_node_controller_base_common_cxx
-        test_node_controller_base_cxx.cpp )
+#     add_executable( test_node_controller_base_common_cxx
+#         test_node_controller_base_cxx.cpp )
 
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-        test_node_controller_base_common_cxx )
+#     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+#         test_node_controller_base_common_cxx )
 
-    add_test( CXX_CommonNodeControllerBaseTests
-        test_node_controller_base_common_cxx )
+#     add_test( CXX_CommonNodeControllerBaseTests
+#         test_node_controller_base_common_cxx )
 
     # *************************************************************************
     # Set all properties:

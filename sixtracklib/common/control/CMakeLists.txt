@@ -7,11 +7,14 @@ set( SIXTRL_COMMON_CONTROL_C99_HEADERS
      arch_info.h
      arch_base.h
      node_id.h
-     node_info.h
-     node_store.h
+#      node_info.h
+#      node_store.h
+     kernel_config_key.h
      kernel_config_base.h
+     kernel_config_store.h
+     kernel_set.h
      controller_base.h
-     node_controller_base.h
+#      node_controller_base.h
      argument_base.h
 )
 
@@ -32,7 +35,7 @@ set_target_properties( sixtrack_common_control_c99 PROPERTIES
     C_STANDARD_REQUIRED ON )
 
 target_compile_options( sixtrack_common_control_c99 PRIVATE
-    ${SIXTRACKLIB_CXX_FLAGS} ${SIXTRACKLIB_CPU_FLAGS} )
+    ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS} )
 
 # ------------------------------------------------------------------------------
 
@@ -40,11 +43,14 @@ set( SIXTRL_COMMON_CONTROL_CXX_HEADERS
      arch_info.hpp
      arch_base.hpp
      node_id.hpp
-     node_info.hpp
-     node_store.hpp
+#      node_info.hpp
+#      node_store.hpp
+     kernel_config_key.hpp
      kernel_config_base.hpp
-     controller_base.hpp
-     node_controller_base.hpp
+     kernel_config_store.hpp
+     kernel_set.hpp
+#      controller_base.hpp
+#      node_controller_base.hpp
      argument_base.hpp
 )
 
@@ -53,16 +59,22 @@ set( SIXTRL_COMMON_CONTROL_CXX_SOURCES
      arch_info_c99.cpp
      arch_base.cpp
      arch_base_c99.cpp
-     node_info.cpp
-     node_info_c99.cpp
-     node_store.cpp
-     node_store_c99.cpp
+#      node_info.cpp
+#      node_info_c99.cpp
+#      node_store.cpp
+#      node_store_c99.cpp
+     kernel_config_key.cpp
+     kernel_config_key_c99.cpp
      kernel_config_base.cpp
      kernel_config_base_c99.cpp
+     kernel_config_store.cpp
+     kernel_config_store_c99.cpp
+     kernel_set.cpp
+     kernel_set_c99.cpp
      controller_base.cpp
      controller_base_c99.cpp
-     node_controller_base.cpp
-     node_controller_base_c99.cpp
+#      node_controller_base.cpp
+#      node_controller_base_c99.cpp
      argument_base.cpp
      argument_base_c99.cpp
 )

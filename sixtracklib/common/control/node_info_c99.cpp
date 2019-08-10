@@ -7,11 +7,27 @@
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/control/definitions.h"
 #include "sixtracklib/common/control/node_info.hpp"
-
+#include "sixtracklib/common/control/node_store.hpp"
 
 #if !defined( _GPUCODE )
 
 namespace st = SIXTRL_CXX_NAMESPACE;
+
+/* ************************************************************************* */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN ::NS(NodeStore) const*
+NS(NodeInfo_get_ptr_const_Node_store)(
+    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN ::NS(NodeStore)* NS(NodeInfo_get_ptr_node_store)(
+    ::NS(NodeInfoBase)* SIXTRL_RESTRICT info );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN ::NS(arch_status_t)
+NS(NodeInfo_assign_to_node_store)(
+    ::NS(NodeInfoBase)* SIXTRL_RESTRICT info,
+    ::NS(NodeStore)* SIXTRL_RESTRICT store );
+
+/* ************************************************************************* */
 
 void NS(NodeInfo_delete)( ::NS(NodeInfoBase)* SIXTRL_RESTRICT node_info )
 {
@@ -65,7 +81,7 @@ bool NS(NodeInfo_has_node_store)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
 {
     return ( info != nullptr )
-        ? info->platformId() : st::NODE_ILLEGAL_PATFORM_ID;
+        ? info->platformId() : st::NODE_ILLEGAL_PLATFORM_ID;
 }
 
 ::NS(arch_status_t) NS(NodeInfo_set_platform_id)(
@@ -214,7 +230,7 @@ bool NS(NodeInfo_is_selected_by_controller)(
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {
     return ( ( info != nullptr ) && ( ctrl != nullptr ) &&
-             ( info->isSelectedByAnyController( *ctrl ) ) );
+             ( info->isSelectedByController( *ctrl ) ) );
 }
 
 ::NS(arch_size_t) NS(NodeInfo_get_num_selecting_controllers)(

@@ -43,14 +43,15 @@ namespace SIXTRL_CXX_NAMESPACE
 
         public:
 
-        using arch_id_t     = _arch_base_t::arch_id_t;
-        using size_type     = _arch_base_t::size_type;
-        using key_t         = SIXTRL_CXX_NAMESPACE::KernelConfigKey;
-        using kernel_id_t   = SIXTRL_CXX_NAMESPACE::arch_kernel_id_t;
-        using node_id_t     = SIXTRL_CXX_NAMESPACE::NodeId;
-        using platform_id_t = node_id_t::platform_id_t;
-        using device_id_t   = node_id_t::device_id_t;
-        using purpose_t     = SIXTRL_CXX_NAMESPACE::kernel_purpose_t;
+        using arch_id_t       = _arch_base_t::arch_id_t;
+        using size_type       = _arch_base_t::size_type;
+        using key_t           = SIXTRL_CXX_NAMESPACE::KernelConfigKey;
+        using node_id_t       = SIXTRL_CXX_NAMESPACE::NodeId;
+        using kernel_set_id_t = SIXTRL_CXX_NAMESPACE::kernel_set_id_t;
+        using argument_set_t  = SIXTRL_CXX_NAMESPACE::kernel_argument_set_t;
+        using platform_id_t   = node_id_t::platform_id_t;
+        using device_id_t     = node_id_t::device_id_t;
+        using purpose_t       = SIXTRL_CXX_NAMESPACE::kernel_purpose_t;
 
         static constexpr size_type
             DEFAULT_NUM_KERNEL_ARGUMENTS = size_type{ 0 };
@@ -61,21 +62,40 @@ namespace SIXTRL_CXX_NAMESPACE
         static constexpr variant_t DEFAULT_KERNEL_VARIANT =
             _arch_base_t::DEFAULT_VARIANT;
 
-        SIXTRL_HOST_FN KernelConfigBase( arch_id_t const arch_id,
-            char const* SIXTRL_RESTRICT arch_str,
+        static constexpr argument_set_t DEFAULT_ARGUMENT_SET =
+            SIXTRL_CXX_NAMESPACE::DEFAULT_KERNEL_ARGUMENT_SET;
+
+        static constexpr kernel_set_id_t ILLEGAL_KERNEL_SET_ID =
+            SIXTRL_CXX_NAMESPACE::ILLEGAL_KERNEL_SET_ID;
+
+        static constexpr size_type
+            DEFAULT_MAX_NUM_ATTACHED_KERNEL_SETS = size_type{ 1 };
+
+        SIXTRL_HOST_FN explicit KernelConfigBase(
+            arch_id_t const arch_id,
             size_type const num_kernel_args = DEFAULT_NUM_KERNEL_ARGUMENTS,
             purpose_t const purpose = DEFAULT_KERNEL_PURPOSE,
             variant_t const variant_flags = DEFAULT_KERNEL_VARIANT,
             char const* SIXTRL_RESTRICT kernel_name_str = nullptr,
             char const* SIXTRL_RESTRICT config_str = nullptr );
 
-        SIXTRL_HOST_FN KernelConfigBase( arch_id_t const arch_id,
-            std::string const& SIXTRL_RESTRICT_REF arch_str,
+        SIXTRL_HOST_FN explicit KernelConfigBase(
+            key_t const& SIXTRL_RESTRICT_REF key,
             size_type const num_kernel_args = DEFAULT_NUM_KERNEL_ARGUMENTS,
-            purpose_t const purpose = DEFAULT_KERNEL_PURPOSE,
-            variant_t const variant_flags = DEFAULT_KERNEL_VARIANT,
-            std::string const& SIXTRL_RESTRICT_REF kernel_name = std::string{},
+            char const* SIXTRL_RESTRICT kernel_name_str = nullptr );
+
+        SIXTRL_HOST_FN KernelConfigBase(
+            arch_id_t const arch_id,
+            size_type const num_kernel_args,
+            purpose_t const purpose,
+            variant_t const variant_flags,
+            std::string const& SIXTRL_RESTRICT_REF kernel_name,
             std::string const& SIXTRL_RESTRICT_REF config_str = std::string{} );
+
+        SIXTRL_HOST_FN KernelConfigBase(
+            key_t const& SIXTRL_RESTRICT_REF key,
+            size_type const num_kernel_args,
+            std::string const& SIXTRL_RESTRICT_REF kernel_name_str );
 
         SIXTRL_HOST_FN KernelConfigBase(
             KernelConfigBase const& other ) = default;
@@ -115,6 +135,31 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
+        SIXTRL_HOST_FN bool isAttachedToAnySets() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN bool isAttachedToSet(
+            kernel_set_id_t const kernel_set_id ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN bool canAttachToSet(
+            kernel_set_id_t const kernel_set_id ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type maxNumAttachedSets() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type numAttachedSets() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN kernel_set_id_t const*
+        attachedSetsBegin() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN kernel_set_id_t const*
+        attachedSetsEnd() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN status_t attachToSet(
+            kernel_set_id_t const kernel_set_id );
+
+        SIXTRL_HOST_FN status_t detachFromSet(
+            kernel_set_id_t const kernel_set_id );
+
+        /* ----------------------------------------------------------------- */
+
         SIXTRL_HOST_FN status_t setVariant( variant_t const variant );
 
         SIXTRL_HOST_FN status_t addVariantFlags(
@@ -125,12 +170,19 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
+        SIXTRL_HOST_FN void setArgumentSet(
+            argument_set_t const argument_set ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN argument_set_t argumentSet() const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
         SIXTRL_HOST_FN bool hasSpecifiedPurpose() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN bool hasPredefinedPurpose() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN bool hasUserdefinedPurpose() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN purpose_t purpose() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_t setPurpose(
+        SIXTRL_HOST_FN void setPurpose(
             purpose_t const purpose ) SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
@@ -180,6 +232,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         protected:
 
+        using kernel_set_ids_list_t = std::vector< kernel_set_id_t >;
+
         SIXTRL_HOST_FN virtual status_t doPrintToOutputStream(
             std::ostream& SIXTRL_RESTRICT_REF output ) const;
 
@@ -198,17 +252,23 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void doSetPerformsAutoUpdatesFlag(
             bool const performs_auto_updates ) SIXTRL_NOEXCEPT;
 
+        SIXTRL_HOST_FN void doSetMaxNumAttachedKernelSets(
+            size_type const max_num_attached_kernel_sets );
+
         private:
 
         SIXTRL_HOST_FN void doClearBaseImpl() SIXTRL_NOEXCEPT;
 
-        std::string m_name;
+        std::string             m_name;
+        kernel_set_ids_list_t   m_kernel_set_ids;
 
-        size_type   m_num_kernel_args;
-        purpose_t   m_purpose;
+        size_type               m_num_kernel_args;
+        size_type               m_max_attached_kernel_ids;
+        purpose_t               m_purpose;
+        argument_set_t          m_argument_set;
 
-        bool        m_needs_update;
-        bool        m_perform_auto_update;
+        bool                    m_needs_update;
+        bool                    m_perform_auto_update;
     };
 
     SIXTRL_HOST_FN std::ostream& operator<<(
@@ -276,6 +336,93 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
+    SIXTRL_INLINE bool
+    KernelConfigBase::isAttachedToAnySets() const SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( this->maxNumAttachedSets() >= this->numAttachedSets() );
+        return !this->m_kernel_set_ids.empty();
+    }
+
+    SIXTRL_INLINE bool KernelConfigBase::isAttachedToSet(
+        KernelConfigBase::kernel_set_id_t const
+            kernel_set_id ) const SIXTRL_NOEXCEPT
+    {
+        using _this_t = SIXTRL_CXX_NAMESPACE::KernelConfigBase;
+
+        SIXTRL_ASSERT( this->maxNumAttachedSets() >= this->numAttachedSets() );
+
+        SIXTRL_ASSERT( ( this->m_kernel_set_ids.empty() ) ||
+            ( std::is_sorted( this->m_kernel_set_ids.begin(),
+                              this->m_kernel_set_ids.end() ) ) );
+
+        bool const is_attached = (
+            ( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID ) &&
+            ( !this->m_kernel_set_ids.empty() ) &&
+            ( std::binary_search( this->m_kernel_set_ids.begin(),
+                    this->m_kernel_set_ids.end(), kernel_set_id ) ) );
+
+        return is_attached;
+    }
+
+    SIXTRL_INLINE bool KernelConfigBase::canAttachToSet(
+            KernelConfigBase::kernel_set_id_t const kernel_set_id
+        ) const SIXTRL_NOEXCEPT
+    {
+        using _this_t = SIXTRL_CXX_NAMESPACE::KernelConfigBase;
+
+        return ( ( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID ) &&
+                 ( this->maxNumAttachedSets() < this->numAttachedSets() ) );
+    }
+
+    SIXTRL_INLINE KernelConfigBase::size_type
+    KernelConfigBase::maxNumAttachedSets() const SIXTRL_NOEXCEPT
+    {
+        return this->m_max_attached_kernel_ids;
+    }
+
+    SIXTRL_INLINE KernelConfigBase::size_type
+    KernelConfigBase::numAttachedSets() const SIXTRL_NOEXCEPT
+    {
+        return this->m_kernel_set_ids.size();
+    }
+
+    SIXTRL_INLINE KernelConfigBase::kernel_set_id_t const*
+    KernelConfigBase::attachedSetsBegin() const SIXTRL_NOEXCEPT
+    {
+        return ( !this->m_kernel_set_ids.empty() )
+            ? this->m_kernel_set_ids.data() : nullptr;
+    }
+
+    SIXTRL_INLINE KernelConfigBase::kernel_set_id_t const*
+    KernelConfigBase::attachedSetsEnd() const SIXTRL_NOEXCEPT
+    {
+        using _this_t = SIXTRL_CXX_NAMESPACE::KernelConfigBase;
+        _this_t::kernel_set_id_t const* end_ptr = this->attachedSetsBegin();
+
+        if( ( end_ptr != nullptr ) && ( !this->m_kernel_set_ids.empty() ) )
+        {
+            std::advance( end_ptr, this->m_kernel_set_ids.size() );
+        }
+
+        return end_ptr;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE void KernelConfigBase::setArgumentSet(
+        KernelConfigBase::argument_set_t const argument_set ) SIXTRL_NOEXCEPT
+    {
+        this->m_argument_set = argument_set;
+    }
+
+    SIXTRL_INLINE KernelConfigBase::argument_set_t
+    KernelConfigBase::argumentSet() const SIXTRL_NOEXCEPT
+    {
+        return this->m_argument_set;
+    }
+
+    /* --------------------------------------------------------------------- */
+
     SIXTRL_INLINE KernelConfigBase::status_t KernelConfigBase::setVariant(
         KernelConfigBase::variant_t const variant_flags )
     {
@@ -333,6 +480,12 @@ namespace SIXTRL_CXX_NAMESPACE
     KernelConfigBase::purpose() const SIXTRL_NOEXCEPT
     {
         return this->m_purpose;
+    }
+
+    SIXTRL_INLINE void KernelConfigBase::setPurpose(
+        KernelConfigBase::purpose_t const purpose ) SIXTRL_NOEXCEPT
+    {
+        this->m_purpose = purpose;
     }
 
     /* --------------------------------------------------------------------- */
