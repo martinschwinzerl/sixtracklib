@@ -371,7 +371,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using _this_t = SIXTRL_CXX_NAMESPACE::KernelConfigBase;
 
         return ( ( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID ) &&
-                 ( this->maxNumAttachedSets() < this->numAttachedSets() ) );
+                 ( this->maxNumAttachedSets() > this->numAttachedSets() ) );
     }
 
     SIXTRL_INLINE KernelConfigBase::size_type
