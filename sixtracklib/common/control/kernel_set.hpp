@@ -163,6 +163,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using kernel_config_key_t  = kernel_set_data_t::kernel_config_key_t;
         using kernel_config_id_t   = kernel_set_data_t::kernel_config_id_t;
         using kernel_config_base_t = kernel_set_data_t::kernel_config_base_t;
+        using kernel_set_id_t      = kernel_config_id_t;
         using status_t             = kernel_set_data_t::status_t;
         using purpose_t            = kernel_set_data_t::purpose_t;
         using arch_id_t            = kernel_set_data_t::arch_id_t;
@@ -185,6 +186,9 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_CXX_NAMESPACE::ARCHITECTURE_NONE;
 
         static constexpr kernel_config_id_t ILLEGAL_KERNEL_CONFIG_ID =
+            SIXTRL_CXX_NAMESPACE::ARCH_ILLEGAL_KERNEL_ID;
+
+        static constexpr kernel_config_id_t ILLEGAL_KERNEL_SET_ID =
             SIXTRL_CXX_NAMESPACE::ARCH_ILLEGAL_KERNEL_ID;
 
         static constexpr purpose_t UNSPECIFIED_PUPRPOSE =
@@ -344,6 +348,13 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
+        SIXTRL_HOST_FN kernel_set_id_t kernelSetId() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN status_t setKernelSetId(
+            kernel_set_id_t const kernel_set_id ) SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
         SIXTRL_HOST_FN bool requires( purpose_t const purpose ) const;
         SIXTRL_HOST_FN bool pinned( purpose_t const purpose ) const;
 
@@ -420,13 +431,27 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN status_t syncWithStore(
             bool const perform_config_update_if_required = true );
 
+        SIXTRL_HOST_FN status_t syncWithStore(
+            kernel_config_key_t const& SIXTRL_RESTRICT_REF input_key,
+            bool const perform_config_update_if_required = true );
+
+        SIXTRL_HOST_FN status_t updateKernelOpFlags();
+
         SIXTRL_HOST_FN op_flags_t kernelOpFlags() const SIXTRL_NOEXCEPT;
 
         /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
         SIXTRL_HOST_FN status_t syncWithStore(
             lock_t const& SIXTRL_RESTRICT_REF lock,
+            kernel_config_key_t const& SIXTRL_RESTRICT_REF input_key,
             bool const perform_config_update_if_required = true );
+
+        SIXTRL_HOST_FN status_t syncWithStore(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            bool const perform_config_update_if_required = true );
+
+        SIXTRL_HOST_FN status_t updateKernelOpFlags(
+            lock_t const& SIXTRL_RESTRICT_REF lock ) SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
@@ -601,6 +626,14 @@ namespace SIXTRL_CXX_NAMESPACE
             bool const perform_config_update_if_required );
 
         template< typename PurposeIter >
+        SIXTRL_HOST_FN op_flags_t doUpdateKernelOpFlagsForPurposes(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            PurposeIter purposes_begin, PurposeIter purposes_end,
+            op_flags_t const requires_purpose_flag,
+            op_flags_t const available_flag,
+            op_flags_t const ready_flag );
+
+        template< typename PurposeIter >
         SIXTRL_HOST_FN op_flags_t doSyncWithStoreForPurposes(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             PurposeIter purposes_begin, PurposeIter purposes_end,
@@ -669,6 +702,7 @@ namespace SIXTRL_CXX_NAMESPACE
         kernel_config_store_base_t&         m_kernel_config_store;
         stored_kernel_op_flags_t            m_kernel_op_flags;
         sync_id_t                           m_sync_id;
+        kernel_set_id_t                     m_kernel_set_id;
 
         bool                                m_is_for_controllers;
         bool                                m_is_for_track_jobs;
@@ -891,6 +925,7 @@ namespace SIXTRL_CXX_NAMESPACE
         m_current_key(), m_purpose_to_data_map(), m_kernel_id_to_purposes_map(),
         m_purposes(), m_kernel_config_store( store ),
         m_sync_id( KernelSetBase::sync_id_value_t{ 0 } ),
+        m_kernel_set_id( KernelSetBase::ILLEGAL_KERNEL_SET_ID ),
         m_is_for_controllers( false ), m_is_for_track_jobs( false )
     {
         namespace  st = SIXTRL_CXX_NAMESPACE;
@@ -1083,6 +1118,31 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
+    SIXTRL_INLINE KernelSetBase::kernel_set_id_t
+    KernelSetBase::kernelSetId() const SIXTRL_NOEXCEPT
+    {
+        return this->m_kernel_set_id;
+    }
+
+    SIXTRL_INLINE KernelSetBase::status_t KernelSetBase::setKernelSetId(
+        KernelSetBase::kernel_set_id_t const kernel_set_id ) SIXTRL_NOEXCEPT
+    {
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::KernelSetBase;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( kernel_set_id == _this_t::ILLEGAL_KERNEL_SET_ID ) ||
+            ( this->m_kernel_set_id == _this_t::ILLEGAL_KERNEL_SET_ID ) )
+        {
+            this->m_kernel_set_id = kernel_set_id;
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
     SIXTRL_INLINE bool KernelSetBase::requires(
         KernelSetBase::purpose_t const purpose ) const
     {
@@ -1216,16 +1276,55 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     SIXTRL_INLINE KernelSetBase::status_t KernelSetBase::syncWithStore(
-        KernelSetBase::lock_t const& SIXTRL_RESTRICT_REF lock,
-        bool const perform_config_update_if_required )
+        KernelSetBase::kernel_config_key_t const& SIXTRL_RESTRICT_REF key,
+        bool const perform_config_update_if_required  )
     {
-        return this->doSyncWithStore( lock, perform_config_update_if_required );
+        using _this_t = SIXTRL_CXX_NAMESPACE::KernelSetBase;
+        _this_t::lock_t const lock( *this->kernelConfigStore().lockable() );
+        return this->syncWithStore(
+            lock, key, perform_config_update_if_required );
+    }
+
+    SIXTRL_INLINE KernelSetBase::status_t KernelSetBase::updateKernelOpFlags()
+    {
+        using _this_t = SIXTRL_CXX_NAMESPACE::KernelSetBase;
+        _this_t::lock_t const lock( *this->kernelConfigStore().lockable() );
+        return this->updateKernelOpFlags( lock );
     }
 
     SIXTRL_INLINE KernelSetBase::op_flags_t
     KernelSetBase::kernelOpFlags() const SIXTRL_NOEXCEPT
     {
         return this->m_kernel_op_flags.load();
+    }
+
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
+
+    SIXTRL_INLINE KernelSetBase::status_t KernelSetBase::syncWithStore(
+        KernelSetBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        KernelSetBase::kernel_config_key_t const& SIXTRL_RESTRICT_REF key,
+        bool const perform_config_update_if_required  )
+    {
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::KernelSetBase;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( key.archId() != _this_t::ARCH_ILLEGAL ) &&
+            ( this->checkLock( lock ) ) )
+        {
+            this->m_current_key = key;
+            status = this->doSyncWithStore(
+                lock, perform_config_update_if_required );
+        }
+
+        return status;
+    }
+
+    SIXTRL_INLINE KernelSetBase::status_t KernelSetBase::syncWithStore(
+        KernelSetBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        bool const perform_config_update_if_required )
+    {
+        return this->doSyncWithStore( lock, perform_config_update_if_required );
     }
 
     /* --------------------------------------------------------------------- */
@@ -1527,6 +1626,81 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     /* --------------------------------------------------------------------- */
+
+    template< typename PurposeIter >
+    KernelSetBase::op_flags_t KernelSetBase::doUpdateKernelOpFlagsForPurposes(
+        KernelSetBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        PurposeIter it, PurposeIter end,
+        KernelSetBase::op_flags_t const requires_purposes_flag,
+        KernelSetBase::op_flags_t const all_available_flag,
+        KernelSetBase::op_flags_t const all_ready_flag )
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::KernelSetBase;
+
+        _this_t::op_flags_t op_flags = st::KERNEL_OP_FLAGS_NONE;
+
+        if( ( std::distance( it, end ) > std::ptrdiff_t{ 0 } ) &&
+            ( ( requires_purposes_flag != all_available_flag ) ||
+              ( requires_purposes_flag == st::KERNEL_OP_FLAGS_NONE ) ) &&
+            ( ( all_available_flag != all_ready_flag ) ||
+              ( all_available_flag == st::KERNEL_OP_FLAGS_NONE ) ) &&
+            ( ( all_ready_flag != requires_purposes_flag ) ||
+              ( all_ready_flag == st::KERNEL_OP_FLAGS_NONE ) ) &&
+            ( this->checkLock( lock ) ) )
+        {
+            bool has_purposes = true;
+            bool are_available = true;
+            bool are_ready = true;
+
+            for( ; it != end ; ++it )
+            {
+                _this_t::purpose_t const purpose = *it;
+
+                auto find_it = this->doFindItemIterByPurpose( lock, purpose );
+
+                if( find_it == this->doGetPurposeToDataEndIter( lock ) )
+                {
+                    has_purposes = false;
+                    are_available = false;
+                    are_ready = false;
+                    break;
+                }
+
+                if( !find_it->second.available() )
+                {
+                    are_available = false;
+                    are_ready = false;
+                    break;
+                }
+
+                if( !find_it->second.ready() )
+                {
+                    are_ready = false;
+                    break;
+                }
+            }
+
+            if( ( has_purposes ) &&
+                ( requires_purposes_flag != st::KERNEL_OP_FLAGS_NONE ) )
+            {
+                op_flags |= requires_purposes_flag;
+            }
+
+            if( ( are_available ) &&
+                ( all_available_flag != st::KERNEL_OP_FLAGS_NONE ) )
+            {
+                op_flags |= all_available_flag;
+            }
+
+            if( ( are_ready ) && ( all_ready_flag != st::KERNEL_OP_FLAGS_NONE ) )
+            {
+                op_flags |= all_ready_flag;
+            }
+        }
+
+        return op_flags;
+    }
 
     template< typename PurposeIter >
     KernelSetBase::op_flags_t KernelSetBase::doSyncWithStoreForPurposes(

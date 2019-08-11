@@ -99,7 +99,9 @@ namespace SIXTRL_CXX_NAMESPACE
         st::ArchInfo( arch_id ),
         m_current_key(), m_purpose_to_data_map(), m_kernel_id_to_purposes_map(),
         m_purposes(), m_kernel_config_store( store ),
+        m_kernel_op_flags( st::KERNEL_OP_FLAGS_NONE ),
         m_sync_id( KernelSetBase::sync_id_value_t{ 0 } ),
+        m_kernel_set_id( KernelSetBase::ILLEGAL_KERNEL_SET_ID ),
         m_is_for_controllers( false ), m_is_for_track_jobs( false )
     {
         if( this->addPurposes( num_purposes, purposes_begin ) !=
@@ -492,7 +494,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
             this->m_current_key.setPurpose( purpose );
 
-            status = this->doSwitchKernel( lock, key, false );
+            status = this->doSwitchKernel( lock, this->m_current_key, false );
 
             if( status == _item_t::RESET_SUCCESS_UPDATED )
             {
@@ -551,6 +553,59 @@ namespace SIXTRL_CXX_NAMESPACE
                 throw std::runtime_error(
                     "unable to rollback KernelSet after failed kernel switch" );
             }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    KernelSetBase::status_t KernelSetBase::updateKernelOpFlags(
+        _set_t::lock_t const& SIXTRL_RESTRICT_REF lock ) SIXTRL_NOEXCEPT
+    {
+        _set_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _set_t::op_flags_t op_flags = st::KERNEL_OP_FLAGS_NONE;
+
+        if( this->checkLock( lock ) )
+        {
+            if( this->isForControllers() )
+            {
+                op_flags |= this->doUpdateKernelOpFlagsForPurposes( lock,
+                    &_set_t::CONTROLLER_PURPOSES[ 0 ],
+                    &_set_t::CONTROLLER_PURPOSES[
+                        _set_t::NUM_CONTROLLER_PURPOSES ],
+                    st::KERNEL_OP_CTRL_HAS_REQUIRED_PURPOSES,
+                    st::KERNEL_OP_CTRL_KERNELS_AVAILABLE,
+                    st::KERNEL_OP_CTRL_KERNELS_READY );
+            }
+
+            if( this->isForTrackJobs() )
+            {
+                op_flags |= this->doUpdateKernelOpFlagsForPurposes( lock,
+                    &_set_t::TRACK_JOB_PURPOSES[ 0 ],
+                    &_set_t::TRACK_JOB_PURPOSES[
+                        _set_t::NUM_TRACK_JOB_PURPOSES ],
+                    st::KERNEL_OP_TRACK_JOB_HAS_REQUIRED_PURPOSES,
+                    st::KERNEL_OP_TRACK_JOB_KERNELS_AVAILABLE,
+                    st::KERNEL_OP_TRACK_JOB_KERNELS_READY );
+            }
+
+            if( this->numPurposes( lock ) )
+            {
+                op_flags |= this->doUpdateKernelOpFlagsForPurposes( lock,
+                    this->purposesBegin( lock ), this->purposesEnd( lock ),
+                    st::KERNEL_OP_HAS_ALL_REQUIRED_PURPOSES,
+                    st::KERNEL_OP_ALL_REQUIRED_KERNELS_AVAILABLE,
+                    st::KERNEL_OP_ALL_REQUIRED_KERNELS_READY );
+            }
+
+            if( this->m_kernel_op_flags != op_flags )
+            {
+                this->registerChange( lock );
+                this->m_kernel_op_flags = op_flags;
+            }
+
+            status = st::ARCH_STATUS_SUCCESS;
         }
 
         return status;
@@ -774,23 +829,45 @@ namespace SIXTRL_CXX_NAMESPACE
         status = st::ARCH_STATUS_SUCCESS;
         bool has_been_updated = false;
 
-        for( auto const purpose : this->m_purposes )
+        _set_t::kernel_set_id_t const my_kernel_set_id = this->kernelSetId();
+        _set_t::kernel_config_store_base_t& store = this->kernelConfigStore();
+
+        status = st::ARCH_STATUS_SUCCESS;
+
+        if( ( my_kernel_set_id != _set_t::ILLEGAL_KERNEL_SET_ID ) &&
+            ( !this->m_kernel_id_to_purposes_map.empty() ) )
         {
-            auto it = this->doFindItemIterByPurpose( lock, purpose );
+            auto kernel_it =  this->m_kernel_id_to_purposes_map.begin();
+            auto kernel_end = this->m_kernel_id_to_purposes_map.end();
 
-            if( it != this->m_purpose_to_data_map.end() )
+            for( ; kernel_it != kernel_end ; ++kernel_it )
             {
-                status = this->doRemovePurposeBaseImpl( lock, purpose );
+                _set_t::kernel_config_id_t const kernel_id = kernel_it->first;
+                auto ptr = store.ptrKernelConfigBase( lock, kernel_id );
 
-                if( status == st::ARCH_STATUS_SUCCESS )
+                if( ( ptr != nullptr ) &&
+                    ( ptr->isAttachedToSet( my_kernel_set_id ) ) )
                 {
+                    status = ptr->detachFromSet( my_kernel_set_id );
                     has_been_updated = true;
-                }
-                else
-                {
-                    break;
+
+                    if( status != st::ARCH_STATUS_SUCCESS )
+                    {
+                        break;
+                    }
                 }
             }
+
+            this->m_kernel_id_to_purposes_map.clear();
+        }
+
+        if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+            ( this->numPurposes( lock ) > size_t{ 0 } ) )
+        {
+            this->m_purpose_to_data_map.clear();
+            this->m_purposes.clear();
+
+            has_been_updated = true;
         }
 
         if( status == st::ARCH_STATUS_SUCCESS )
@@ -1208,7 +1285,7 @@ namespace SIXTRL_CXX_NAMESPACE
         _set_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
         store_t& store = this->kernelConfigStore();
         ptr_config_t ptr_config = store.ptrKernelConfigBase( lock, kernel_id );
-        kernel_set_id_t my_kernel_set_id = store.kernelSetId( lock, *this );
+        kernel_set_id_t my_kernel_set_id = this->kernelSetId();
 
         auto it = this->doFindItemIterByPurpose( lock, purpose );
 
@@ -1367,7 +1444,8 @@ namespace SIXTRL_CXX_NAMESPACE
                 status = map_it->second.reset();
             }
 
-            if( status == st::ARCH_STATUS_SUCCESS )
+            if( ( status == st::ARCH_STATUS_SUCCESS ) ||
+                ( status == _item_t::RESET_SUCCESS_UPDATED ) )
             {
                 if( lin_it != this->m_purposes.end() )
                 {
