@@ -54,7 +54,7 @@ namespace SIXTRL_CXX_NAMESPACE
         delete set;
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     bool NS(KernelSet_is_for_controllers)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set )
@@ -68,7 +68,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return ( ( set != nullptr ) && ( set->isForTrackJobs() ) );
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     ::NS(arch_size_t) NS(KernelSet_get_num_of_purposes)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set )
@@ -91,7 +91,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ? set->numPinnedPurposes() : st::arch_size_t{ 0 };
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     ::NS(KernelConfigBase) const*
     NS(KernelSet_get_ptr_const_kernel_config_base)(
@@ -110,7 +110,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ? set->ptrKernelConfigBase( purpose ) : nullptr;
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     ::NS(ctrl_kernel_id_t) NS(KernelSet_get_kernel_config_id)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -149,7 +149,25 @@ namespace SIXTRL_CXX_NAMESPACE
             ? &set->kernelConfigKey( lock, purpose ) : nullptr;
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
+
+    ::NS(kernel_set_id_t) NS(KernelSet_get_kernel_set_id)(
+        const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set )
+    {
+        return ( set != nullptr )
+            ? set->kernelSetId() : _set_t::ILLEGAL_KERNEL_SET_ID;
+    }
+
+    ::NS(arch_status_t) NS(KernelSet_set_kernel_set_id)(
+        ::NS(KernelSetBase)* SIXTRL_RESTRICT set,
+        ::NS(kernel_set_id_t) const kernel_set_id )
+    {
+        return ( set != nullptr )
+            ? set->setKernelSetId( kernel_set_id )
+            : st::ARCH_STATUS_GENERAL_FAILURE;
+    }
+
+    /* --------------------------------------------------------------------- */
 
     bool NS(KernelSet_requires)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -165,7 +183,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return ( ( set != nullptr ) && ( set->pinned( purpose ) ) );
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     bool NS(KernelSet_is_available)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -188,7 +206,7 @@ namespace SIXTRL_CXX_NAMESPACE
                  ( set->hasKernelConfigKey( *key ) ) );
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     bool NS(KernelSet_can_switch_kernel)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -206,7 +224,7 @@ namespace SIXTRL_CXX_NAMESPACE
                  ( set->canSwitchKernels( *key ) ) );
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     ::NS(arch_status_t) NS(KernelSet_switch_kernel(
         ::NS(KernelSetBase)* SIXTRL_RESTRICT set,
@@ -226,7 +244,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ? set->switchKernels( *key ) : st::ARCH_STATUS_GENERAL_FAILURE;
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     ::NS(arch_status_t) NS(KernelSet_sync_with_store)(
         ::NS(KernelSetBase)* SIXTRL_RESTRICT set,
@@ -237,6 +255,13 @@ namespace SIXTRL_CXX_NAMESPACE
             : st::ARCH_STATUS_GENERAL_FAILURE;
     }
 
+    ::NS(arch_status_t) NS(KernelSet_update_kernel_op_flags)(
+        ::NS(KernelSetBase)* SIXTRL_RESTRICT set )
+    {
+        return ( set != nullptr )
+            ? set->updateKernelOpFlags() : st::ARCH_STATUS_GENERAL_FAILURE;
+    }
+
     ::NS(kernel_op_flags_t) NS(KernelSet_get_kernel_op_flags)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set )
     {
@@ -244,7 +269,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ? set->kernelOpFlags() : st::KERNEL_OP_FLAGS_NONE;
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     bool NS(KernelSet_config_needs_update)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -268,7 +293,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ? set->updateAllConfigs() : st::ARCH_STATUS_GENERAL_FAILURE;
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     bool NS(KernelSet_is_ready)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -291,7 +316,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return ( ( set != nullptr ) && ( set->ready() ) );
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     ::NS(arch_status_t) NS(KernelSet_reset)(
         ::NS(KernelSetBase)* SIXTRL_RESTRICT set )
@@ -316,7 +341,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ? set->reset( kernel_config_id ) : st::ARCH_STATUS_GENERAL_FAILURE;
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     ::NS(arch_status_t) NS(KernelSet_add_purpose)(
         ::NS(KernelSetBase)* SIXTRL_RESTRICT set,
@@ -344,7 +369,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ? set->removePurpose( purpose ) : st::ARCH_STATUS_GENERAL_FAILURE;
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     SIXTRL_UINT64_T NS(KernelSet_get_sync_id_value)(
         const ::NS(KernelSetBase) *const SIXTRL_RESTRICT set )
@@ -360,7 +385,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return ( ( set != nullptr ) && ( set->isSyncWith( sync_id_value ) ) );
     }
 
-    /* ----------------------------------------------------------------- */
+    /* --------------------------------------------------------------------- */
 
     ::NS(KernelConfigStore) const*
     NS(KernelSet_get_const_kernel_config_store)(

@@ -28,7 +28,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelSetBase)* NS(KernelSetBase_new_detailed)(
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelSet_delete)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_is_for_controllers)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set );
@@ -36,7 +36,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_is_for_controllers)(
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_is_for_track_jobs)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t) NS(KernelSet_get_num_of_purposes)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set );
@@ -50,7 +50,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
 NS(KernelSet_get_num_of_pinned_purposes)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelConfigBase) const*
 NS(KernelSet_get_ptr_const_kernel_config_base)(
@@ -62,7 +62,7 @@ NS(KernelSet_get_ptr_kernel_config_base)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set,
     NS(kernel_purpose_t) const purpose );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(ctrl_kernel_id_t)
 NS(KernelSet_get_kernel_config_id)(
@@ -84,7 +84,17 @@ NS(KernelSet_get_ptr_const_kernel_konfig_key)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
     NS(kernel_purpose_t) const purpose );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(kernel_set_id_t)
+NS(KernelSet_get_kernel_set_id)(
+    const NS(KernelSetBase) *const SIXTRL_RESTRICT set );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelSet_set_kernel_set_id)(
+    NS(KernelSetBase)* SIXTRL_RESTRICT set,
+    NS(kernel_set_id_t) const kernel_set_id );
+
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_requires)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -94,7 +104,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_is_pinned)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
     NS(kernel_purpose_t) const purpose );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_is_available)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -107,7 +117,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_has_kernel_config_key)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
     const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_can_switch_kernel)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -117,7 +127,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_can_switch_all_kernels)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
     NS(KernelConfigKey)* SIXTRL_RESTRICT key );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelSet_switch_kernel)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set,
@@ -128,17 +138,21 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelSet_switch_kernels)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set,
     const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelSet_sync_with_store)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set,
     bool const perform_config_update_if_required );
 
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(KernelSet_update_kernel_op_flags)(
+    NS(KernelSetBase)* SIXTRL_RESTRICT set );
+
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(kernel_op_flags_t)
 NS(KernelSet_get_kernel_op_flags)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_config_needs_update)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -151,7 +165,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelSet_update_config)(
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelSet_update_all_configs)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_is_ready)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
@@ -164,7 +178,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_is_ready_by_key)(
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_are_ready)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelSet_reset)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set );
@@ -178,7 +192,7 @@ NS(KernelSet_reset_kernel_config)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set,
     NS(ctrl_kernel_id_t) const kernel_config_id );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelSet_add_purpose)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set,
@@ -193,7 +207,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(KernelSet_remove_purpose)(
     NS(KernelSetBase)* SIXTRL_RESTRICT set,
     NS(kernel_purpose_t) const purpose );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_UINT64_T NS(KernelSet_get_sync_id_value)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set );
@@ -202,7 +216,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelSet_is_sync_with)(
     const NS(KernelSetBase) *const SIXTRL_RESTRICT set,
     SIXTRL_UINT64_T const sync_id_value );
 
-/* ----------------------------------------------------------------- */
+/* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelConfigStore) const*
 NS(KernelSet_get_const_kernel_config_store)(
