@@ -196,7 +196,7 @@ namespace SIXTRL_CXX_NAMESPACE
             kernel_set_id_t const kernel_set_id );
 
         SIXTRL_HOST_FN status_t removeKernelSet(
-            lock_t const& SIXTRL_RESTRICT_REF lock,
+            lock_t& SIXTRL_RESTRICT_REF lock,
             kernel_set_id_t const kernel_set_id )  SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
@@ -735,7 +735,7 @@ namespace SIXTRL_CXX_NAMESPACE
         KernelConfigStore::kernel_set_id_t const kernel_set_id )
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::KernelConfigStore;
-        _this_t::lock_t const lock( *this->lockable() );
+        _this_t::lock_t lock( *this->lockable() );
         return this->removeKernelSet( lock, kernel_set_id );
     }
 

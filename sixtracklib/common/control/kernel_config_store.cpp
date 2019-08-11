@@ -102,7 +102,12 @@ namespace SIXTRL_CXX_NAMESPACE
                    this ) )
             {
                 ++this->m_num_stored_kernel_sets;
-                kernel_set_id = next_kernel_set_id;
+
+                if( st::ARCH_STATUS_SUCCESS == this->m_stored_kernel_sets.back(
+                    )->setKernelSetId( next_kernel_set_id ) )
+                {
+                    kernel_set_id = next_kernel_set_id;
+                }
             }
         }
 
@@ -161,7 +166,7 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     _store_t::status_t _store_t::removeKernelSet(
-        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _store_t::lock_t& SIXTRL_RESTRICT_REF lock,
         _store_t::kernel_set_id_t const kernel_set_id )  SIXTRL_NOEXCEPT
     {
         _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
@@ -174,7 +179,10 @@ namespace SIXTRL_CXX_NAMESPACE
             ( this->m_stored_kernel_sets[ kernel_set_id ].get() != nullptr ) &&
             ( this->m_num_stored_kernel_sets > _store_t::size_type{ 0 } ) )
         {
+            lock.unlock();
             this->m_stored_kernel_sets[ kernel_set_id ].reset( nullptr );
+            lock.lock();
+
             --this->m_num_stored_kernel_sets;
             status = st::ARCH_STATUS_SUCCESS;
         }
@@ -198,7 +206,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ( key.archId() == ptr_kernel_config->archId() ) &&
             ( key.purpose() == ptr_kernel_config->purpose() ) &&
             ( ( key.variant() == st::ARCH_VARIANT_NONE ) ||
-              ( ptr_kernel_config->areVariantFlagsSet( key.archId() ) ) ) &&
+              ( ptr_kernel_config->areVariantFlagsSet( key.variant() ) ) ) &&
             ( key.hasConfigStr() == ptr_kernel_config->hasConfigStr() ) &&
             ( ( !key.hasConfigStr() ) || ( 0 == key.configStr().compare(
                 ptr_kernel_config->configStr() ) ) ) &&
