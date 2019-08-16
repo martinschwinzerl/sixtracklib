@@ -155,6 +155,26 @@ void NS(KernelConfigKey_set_purpose)(
     return ( key != nullptr ) ? key->variant() : st::ARCH_VARIANT_NONE;
 }
 
+bool NS(KernelConfigKey_are_variant_flags_set)(
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key,
+    ::NS(arch_variant_flags_t) const variant_flags )
+{
+    return ( ( key != nullptr ) &&
+             ( key->areVariantFlagsSet( variant_flags ) ) );
+}
+
+bool NS(KernelConfigKey_is_variant_debug_mode)(
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
+{
+    return ( ( key != nullptr ) && ( key->variantDebugMode() ) );
+}
+
+bool NS(KernelConfigKey_is_variant_release_mode)(
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
+{
+    return ( ( key != nullptr ) && ( key->variantReleaseMode() ) );
+}
+
 void NS(KernelConfigKey_set_variant)(
     ::NS(KernelConfigKey)* SIXTRL_RESTRICT key,
     ::NS(arch_variant_flags_t) const variant )

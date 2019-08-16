@@ -278,7 +278,7 @@ namespace SIXTRL_CXX_NAMESPACE
     Architectures const& Architectures_get_const();
 
     Architectures* Architectures_get_ptr();
-    Architectures const* Architectures_get_const_ptr();
+    Architectures const* Architectures_get_ptr_const();
 }
 
 typedef SIXTRL_CXX_NAMESPACE::Architectures NS(Architectures);
@@ -295,7 +295,7 @@ extern "C" {
 #endif /* C++, Host */
 
 NS(Architectures)* NS(Architectures_get_ptr)();
-NS(Architectures) const* NS(Architectures_get_const_ptr)();
+NS(Architectures) const* NS(Architectures_get_ptr_const)();
 
 #if  defined( __cplusplus ) && !defined( _GPUCODE ) && \
     !defined( __CUDACC__  ) && !defined( __CUDA_ARCH__ )
@@ -323,7 +323,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return &Architectures_get();
     }
 
-    SIXTRL_INLINE Architectures const* Architectures_get_const_ptr()
+    SIXTRL_INLINE Architectures const* Architectures_get_ptr_const()
     {
         return &Architectures_get();
     }

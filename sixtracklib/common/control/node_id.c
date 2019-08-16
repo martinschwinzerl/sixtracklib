@@ -216,11 +216,11 @@ NS(arch_size_t) NS(NodeId_required_str_capacity_for_format)(
                  ( arch_id_valid ) )
         {
             if( NS(Architectures_has_arch_str)(
-                    NS(Architectures_get_const_ptr)(), arch_id ) )
+                    NS(Architectures_get_ptr_const)(), arch_id ) )
             {
                 NS(arch_size_t) const arch_str_len = strlen(
                     NS(Architectures_get_arch_str)(
-                        NS(Architectures_get_const_ptr)(), arch_id ) );
+                        NS(Architectures_get_ptr_const)(), arch_id ) );
 
                 SIXTRL_ASSERT( arch_str_len > ( NS(arch_size_t) )0u );
                 requ_capacity += arch_str_len;
@@ -353,7 +353,7 @@ NS(arch_status_t) NS(NodeId_from_node_id_str)(
                 if( ret == 3 )
                 {
                     NS(Architectures) const* architectures =
-                        NS(Architectures_get_const_ptr)();
+                        NS(Architectures_get_ptr_const)();
 
                     if( NS(Architectures_has_architecture)(
                         architectures, temp_arch_id ) )
@@ -408,7 +408,7 @@ NS(arch_status_t) NS(NodeId_from_node_id_str)(
                                 arch_str_len );
 
                         NS(Architectures) const* architectures =
-                            NS(Architectures_get_const_ptr)();
+                            NS(Architectures_get_ptr_const)();
 
                         arch_id = NS(Architectures_get_arch_id)( architectures,
                             &temp_arch_str[ 0 ] );
@@ -572,14 +572,14 @@ NS(arch_status_t) NS(NodeId_to_node_id_str_with_format)(
             };
 
             if( NS(Architectures_has_arch_str)(
-                NS(Architectures_get_const_ptr)(), arch_id ) )
+                NS(Architectures_get_ptr_const)(), arch_id ) )
             {
                 SIXTRL_ASSERT( NS(Architectures_get_arch_str)(
-                    NS(Architectures_get_const_ptr)(), arch_id ) !=
+                    NS(Architectures_get_ptr_const)(), arch_id ) !=
                         SIXTRL_NULLPTR );
 
                 strncpy( temp_arch_str, NS(Architectures_get_arch_str)(
-                    NS(Architectures_get_const_ptr)(), arch_id ), 15 );
+                    NS(Architectures_get_ptr_const)(), arch_id ), 15 );
 
                 status = NS(ARCH_STATUS_SUCCESS);
             }

@@ -103,6 +103,16 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_variant_flags_t)
 NS(KernelConfigKey_get_variant)(
     const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
 
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigKey_are_variant_flags_set)(
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT key,
+    NS(arch_variant_flags_t) const variant_flags );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigKey_is_variant_debug_mode)(
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigKey_is_variant_release_mode)(
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
+
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfigKey_set_variant)(
     NS(KernelConfigKey)* SIXTRL_RESTRICT key,
     NS(arch_variant_flags_t) const variant );

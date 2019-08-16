@@ -86,7 +86,7 @@ bool NS(KernelConfigStore_has_kernel_set_by_ptr)(
         ? store->ptrKernelSetBase( kernel_set_id ) : nullptr;
 }
 
-::NS(KernelSetBase)* NS(KernelConfigStore_get_ptr_kernel_set_base)(
+::NS(KernelSetBase)* NS(KernelConfigStore_get_ptr_kernel_set)(
     ::NS(KernelConfigStore)* SIXTRL_RESTRICT store,
     ::NS(kernel_set_id_t) const kernel_set_id )
 {
@@ -297,7 +297,7 @@ NS(KernelConfigStore_get_kernel_id_by_node_id_detailed)(
 /* ----------------------------------------------------------------- */
 
 ::NS(KernelConfigBase) const*
-NS(KernelConfigStore_get_const_ptr_kernel_config_base)(
+NS(KernelConfigStore_get_ptr_const_kernel_config_base)(
     const ::NS(KernelConfigStore) *const SIXTRL_RESTRICT store,
     ::NS(arch_kernel_id_t) const kernel_id )
 {

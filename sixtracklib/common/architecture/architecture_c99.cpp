@@ -20,9 +20,9 @@ namespace st = SIXTRL_CXX_NAMESPACE;
     return st::Architectures_get_ptr();
 }
 
-::NS(Architectures) const* NS(Architectures_get_const_ptr)()
+::NS(Architectures) const* NS(Architectures_get_ptr_const)()
 {
-    return st::Architectures_get_const_ptr();
+    return st::Architectures_get_ptr_const();
 }
 
 /* ************************************************************************* */

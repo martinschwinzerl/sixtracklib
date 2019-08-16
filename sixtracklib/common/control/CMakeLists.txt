@@ -7,7 +7,7 @@ set( SIXTRL_COMMON_CONTROL_C99_HEADERS
      arch_info.h
      arch_base.h
      node_id.h
-#      node_info.h
+     node_info.h
 #      node_store.h
      kernel_config_key.h
      kernel_config_base.h
@@ -43,8 +43,8 @@ set( SIXTRL_COMMON_CONTROL_CXX_HEADERS
      arch_info.hpp
      arch_base.hpp
      node_id.hpp
-#      node_info.hpp
-#      node_store.hpp
+     node_info.hpp
+     node_store.hpp
      kernel_config_key.hpp
      kernel_config_base.hpp
      kernel_config_store.hpp
@@ -59,9 +59,9 @@ set( SIXTRL_COMMON_CONTROL_CXX_SOURCES
      arch_info_c99.cpp
      arch_base.cpp
      arch_base_c99.cpp
-#      node_info.cpp
-#      node_info_c99.cpp
-#      node_store.cpp
+     node_info.cpp
+     node_info_c99.cpp
+     node_store.cpp
 #      node_store_c99.cpp
      kernel_config_key.cpp
      kernel_config_key_c99.cpp

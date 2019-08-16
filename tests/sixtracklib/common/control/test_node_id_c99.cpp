@@ -36,7 +36,7 @@ TEST( C99_CommonControlNodeIdTests, MinimalUsage )
     static constexpr node_id_str_fmt_t FORMAT = ::NS(NODE_ID_STR_FORMAT_NOARCH);
 
     /* Verify that one suitable architecture is available */
-    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_const_ptr)();
+    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_ptr_const)();
     SIXTRL_ASSERT( ptr_archs != nullptr );
     SIXTRL_ASSERT( ::NS(Architectures_get_num_architectures)(
         ptr_archs ) > ctrl_size_t{ 0 } );
@@ -258,7 +258,7 @@ TEST( C99_CommonControlNodeIdTests, NodeIdStrHandlingDetailed )
     };
 
     /* Verify that one suitable architecture is available */
-    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_const_ptr)();
+    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_ptr_const)();
     SIXTRL_ASSERT( ptr_archs != nullptr );
     SIXTRL_ASSERT( ::NS(Architectures_get_num_architectures)(
         ptr_archs ) > ctrl_size_t{ 0 } );

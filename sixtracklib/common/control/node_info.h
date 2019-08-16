@@ -76,10 +76,10 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(NodeInfo_set_device_id)(
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_id_t) NS(NodeInfo_get_arch_id)(
     const NS(NodeInfoBase) *const SIXTRL_RESTRICT info );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeInfo_has_arch_string)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeInfo_has_arch_str)(
     const NS(NodeInfoBase) *const SIXTRL_RESTRICT info );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN char const* NS(NodeInfo_get_arch_string)(
+SIXTRL_EXTERN SIXTRL_HOST_FN char const* NS(NodeInfo_get_arch_str)(
     const NS(NodeInfoBase) *const SIXTRL_RESTRICT info );
 
 /* ------------------------------------------------------------------------- */
@@ -161,7 +161,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeInfo_maps_to_same_unique_id_string)(
 /* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
-NS(NodeInfo_required_out_string_length)(
+NS(NodeInfo_get_required_out_string_length)(
     const NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
     const NS(ControllerBase) *const SIXTRL_RESTRICT ctrl );
 

@@ -21,13 +21,14 @@ typedef NS(arch_variant_flags_t)    NS(kernel_variant_t);
 typedef SIXTRL_UINT32_T             NS(kernel_purpose_t);
 typedef SIXTRL_UINT64_T             NS(kernel_argument_set_t);
 typedef SIXTRL_UINT64_T             NS(kernel_op_flags_t);
-typedef NS(arch_kernel_id_t)        NS(kernel_set_id_t);
+typedef SIXTRL_UINT32_T             NS(kernel_set_id_t);
 
 typedef SIXTRL_INT64_T              NS(node_platform_id_t);
 typedef SIXTRL_INT64_T              NS(node_device_id_t);
 typedef SIXTRL_UINT32_T             NS(node_index_t);
 typedef SIXTRL_UINT16_T             NS(node_id_str_fmt_t);
 typedef SIXTRL_UINT8_T              NS(node_str_role_t);
+typedef SIXTRL_UINT32_T             NS(node_set_id_t);
 
 typedef enum NS(ctrl_perform_remap_flag_e)
 {
@@ -128,6 +129,11 @@ SIXTRL_STATIC_VAR NS(arch_debugging_t) const
 SIXTRL_STATIC_VAR NS(arch_kernel_id_t) const
     NS(ARCH_ILLEGAL_KERNEL_ID) = ( NS(arch_kernel_id_t) )0xFFFFFFFF;
 
+SIXTRL_STATIC_VAR NS(arch_kernel_id_t) const
+    NS(ARCH_ILLEGAL_KERNEL_CONFIG_ID) = ( NS(arch_kernel_id_t) )0xFFFFFFFF;
+
+SIXTRL_STATIC_VAR NS(kernel_set_id_t) const
+    NS(ARCH_ILLEGAL_KERNEL_SET_ID) = ( NS(kernel_set_id_t) )0xFFFFFFFF;
 
 SIXTRL_STATIC_VAR NS(arch_variant_flags_t) const
     NS(ARCH_VARIANT_NONE) = ( NS(arch_variant_flags_t) )0;
@@ -176,6 +182,9 @@ SIXTRL_STATIC_VAR NS(kernel_purpose_t) const
         ( NS(kernel_purpose_t) )1024u;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_STATIC_VAR NS(node_set_id_t) const NS(NODE_ILLEGAL_NODE_SET_ID) =
+    ( NS(node_set_id_t) )0xFFFFFFFF;
 
 SIXTRL_STATIC_VAR NS(node_platform_id_t) const NS(NODE_ILLEGAL_PLATFORM_ID) =
     ( NS(node_platform_id_t) )SIXTRL_NODE_ILLEGAL_PLATFORM_ID;
@@ -297,6 +306,7 @@ namespace SIXTRL_CXX_NAMESPACE
     typedef ::NS(node_index_t)           node_index_t;
     typedef ::NS(node_id_str_fmt_t)      node_id_str_fmt_t;
     typedef ::NS(node_str_role_t)        node_str_role_t;
+    typedef ::NS(node_set_id_t)          node_set_id_t;
 
     typedef enum
     {
@@ -332,6 +342,14 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_kernel_id_t
         ARCH_ILLEGAL_KERNEL_ID = static_cast< arch_kernel_id_t >( 0xFFFFFFFF );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_kernel_id_t
+        ARCH_ILLEGAL_KERNEL_CONFIG_ID =
+            static_cast< arch_kernel_id_t >( 0xFFFFFFFF );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_set_id_t
+        ARCH_ILLEGAL_KERNEL_SET_ID =
+            static_cast< kernel_set_id_t >( 0xFFFFFFFF );
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_variant_flags_t
         ARCH_VARIANT_NONE = static_cast< arch_variant_flags_t >( 0 );
@@ -387,6 +405,9 @@ namespace SIXTRL_CXX_NAMESPACE
             static_cast< kernel_purpose_t >( 1024 );
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST node_set_id_t
+        NODE_ILLEGAL_NODE_SET_ID = static_cast< node_set_id_t >( 0xFFFFFFFF );
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST node_platform_id_t
         NODE_ILLEGAL_PLATFORM_ID = static_cast< node_platform_id_t >( -1 );

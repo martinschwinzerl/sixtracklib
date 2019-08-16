@@ -18,7 +18,7 @@ TEST( C99_CommonControlArchInfoTests, MinimalUsage )
     using arch_id_t   = ::NS(arch_id_t);
 
     /* Verify that two architectures are available: */
-    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_const_ptr)();
+    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_ptr_const)();
     SIXTRL_ASSERT( ptr_archs != nullptr );
 
 
@@ -106,7 +106,7 @@ TEST( C99_CommonControlArchInfoTests, MinimalUsage )
     ASSERT_TRUE( ::NS(ArchInfo_has_arch_string)( arch_info_a ) );
     ASSERT_TRUE( ::NS(ArchInfo_get_arch_string)( arch_info_a ) != nullptr );
     ASSERT_TRUE( 0 == std::strcmp( ::NS(Architectures_get_arch_str)(
-                ::NS(Architectures_get_const_ptr)(),
+                ::NS(Architectures_get_ptr_const)(),
                 ::NS(ArchInfo_get_arch_id)( arch_info_a ) ),
             ::NS(ArchInfo_get_arch_string)( arch_info_a ) ) );
 

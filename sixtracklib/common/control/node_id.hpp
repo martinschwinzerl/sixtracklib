@@ -72,6 +72,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_FN explicit NodeId( const char *const SIXTRL_RESTRICT id_str );
 
+        SIXTRL_FN NodeId( arch_id_t const arch_id,
+            std::string const& SIXTRL_RESTRICT_REF id_str );
+
+        SIXTRL_FN NodeId( arch_id_t const arch_id,
+            const char *const SIXTRL_RESTRICT id_str );
+
         SIXTRL_FN NodeId( NodeId const& other ) = default;
         SIXTRL_FN NodeId( NodeId&& other ) = default;
 
@@ -378,6 +384,47 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_ASSERT( status == SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS );
         ( void )status;
+    }
+
+    SIXTRL_INLINE NodeId( arch_id_t const arch_id,
+        std::string const& SIXTRL_RESTRICT_REF id_str ) : ::NS(NodeId)()
+    {
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeId;
+
+        _this_t::status_t status = ::NS(NodeId_init)( this->getCApiPtr(),
+            arch_id, _this_t::ILLEGAL_PLATFORM_ID, _this_t::ILLEGAL_DEVICE_ID );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            status = ::NS(NodeId_from_node_id_str)(
+                this->getCApiPtr(), id_str.c_str() );
+        }
+
+        if( status != st::ARCH_STATUS_SUCCESS )
+        {
+            throw std::runtime_error( "Unable to initialize NodeId" );
+        }
+    }
+
+    SIXTRL_INLINE NodeId( arch_id_t const arch_id,
+        const char *const SIXTRL_RESTRICT id_str ) : ::NS(NodeId)()
+    {
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeId;
+
+        _this_t::status_t status = ::NS(NodeId_init)( this->getCApiPtr(),
+            arch_id, _this_t::ILLEGAL_PLATFORM_ID, _this_t::ILLEGAL_DEVICE_ID );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            status = ::NS(NodeId_from_node_id_str)( this->getCApiPtr(), id_str);
+        }
+
+        if( status != st::ARCH_STATUS_SUCCESS )
+        {
+            throw std::runtime_error( "Unable to initialize NodeId" );
+        }
     }
 
     /* --------------------------------------------------------------------- */

@@ -42,7 +42,7 @@ TEST( C99_CommonControlKernelConfigBaseTests, MinimalUsage )
     using status_t       = ::NS(arch_status_t);
 
     /* Verify that a suitable arch is available */
-    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_const_ptr)();
+    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_ptr_const)();
     SIXTRL_ASSERT( ptr_archs != nullptr );
     SIXTRL_ASSERT( ::NS(Architectures_get_num_architectures)( ptr_archs ) >
         size_t{ 0 } );

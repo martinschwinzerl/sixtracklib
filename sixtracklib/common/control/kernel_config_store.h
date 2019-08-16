@@ -64,7 +64,7 @@ NS(KernelConfigStore_get_ptr_const_kernel_set)(
     NS(kernel_set_id_t) const kernel_set_id );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelSetBase)*
-NS(KernelConfigStore_get_ptr_kernel_set_base)(
+NS(KernelConfigStore_get_ptr_kernel_set)(
     NS(KernelConfigStore)* SIXTRL_RESTRICT store,
     NS(kernel_set_id_t) const kernel_set_id );
 
@@ -184,7 +184,7 @@ NS(KernelConfigStore_get_kernel_id_by_node_id_detailed)(
 /* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelConfigBase) const*
-NS(KernelConfigStore_get_const_ptr_kernel_config_base)(
+NS(KernelConfigStore_get_ptr_const_kernel_config_base)(
     const NS(KernelConfigStore) *const SIXTRL_RESTRICT store,
     NS(arch_kernel_id_t) const kernel_id );
 

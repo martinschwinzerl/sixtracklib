@@ -39,7 +39,7 @@ TEST( C99_CommonControlKernelStoreCommonTests, AddRemoveKernelConfigs )
     using argument_set_t = ::NS(kernel_argument_set_t);
 
     /* Verify that a suitable arch is available */
-    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_const_ptr)();
+    ::NS(Architectures) const* ptr_archs = ::NS(Architectures_get_ptr_const)();
     SIXTRL_ASSERT( ptr_archs != nullptr );
     SIXTRL_ASSERT( ::NS(Architectures_get_num_architectures)( ptr_archs ) >
         size_t{ 0 } );
@@ -154,7 +154,7 @@ TEST( C99_CommonControlKernelStoreCommonTests, AddRemoveKernelConfigs )
     ASSERT_TRUE( ::NS(KernelConfigStore_get_num_kernel_config_keys)(
         store, id_remap_release ) == size_t{ 1 } );
 
-    ASSERT_TRUE( ::NS(KernelConfigStore_get_const_ptr_kernel_config_base)(
+    ASSERT_TRUE( ::NS(KernelConfigStore_get_ptr_const_kernel_config_base)(
         store, id_remap_release ) != nullptr );
 
     /* --------------------------------------------------------------------- */
@@ -206,7 +206,7 @@ TEST( C99_CommonControlKernelStoreCommonTests, AddRemoveKernelConfigs )
     ASSERT_TRUE( ::NS(KernelConfigStore_get_num_kernel_config_keys)(
         store, id_remap_release ) == size_t{ 2 } );
 
-    ASSERT_TRUE( ::NS(KernelConfigStore_get_const_ptr_kernel_config_base)(
+    ASSERT_TRUE( ::NS(KernelConfigStore_get_ptr_const_kernel_config_base)(
         store, id_remap_release ) != nullptr );
 
     /* --------------------------------------------------------------------- */
@@ -274,7 +274,7 @@ TEST( C99_CommonControlKernelStoreCommonTests, AddRemoveKernelConfigs )
     ASSERT_TRUE( ::NS(KernelConfigStore_get_num_kernel_config_keys)(
         store, id_remap_debug_0 ) == size_t{ 1 } );
 
-    ASSERT_TRUE( ::NS(KernelConfigStore_get_const_ptr_kernel_config_base)(
+    ASSERT_TRUE( ::NS(KernelConfigStore_get_ptr_const_kernel_config_base)(
         store, id_remap_debug_0 ) != nullptr );
 
     ASSERT_TRUE( ::NS(KernelConfigStore_init_kernel_config)(
@@ -286,7 +286,7 @@ TEST( C99_CommonControlKernelStoreCommonTests, AddRemoveKernelConfigs )
     ASSERT_TRUE( ::NS(KernelConfigStore_get_num_kernel_config_keys)(
         store, id_remap_debug_0 ) == size_t{ 1 } );
 
-    ASSERT_TRUE( ::NS(KernelConfigStore_get_const_ptr_kernel_config_base)(
+    ASSERT_TRUE( ::NS(KernelConfigStore_get_ptr_const_kernel_config_base)(
         store, id_remap_debug_0 ) != nullptr );
 
     /* --------------------------------------------------------------------- */
@@ -356,7 +356,7 @@ TEST( C99_CommonControlKernelStoreCommonTests, AddRemoveKernelConfigs )
     ASSERT_TRUE( ::NS(KernelConfigStore_get_num_kernel_config_keys)(
         store, id_remap_debug_0 ) == size_t{ 2 } );
 
-    ASSERT_TRUE( ::NS(KernelConfigStore_get_const_ptr_kernel_config_base)(
+    ASSERT_TRUE( ::NS(KernelConfigStore_get_ptr_const_kernel_config_base)(
         store, id_remap_debug_0 ) != nullptr );
 
     ASSERT_TRUE( id_remap_debug_0 == ::NS(KernelConfigStore_init_kernel_config)(
@@ -394,7 +394,7 @@ TEST( C99_CommonControlKernelStoreCommonTests, AddRemoveKernelConfigs )
     ASSERT_TRUE( ::NS(KernelConfigStore_get_num_kernel_config_keys)(
         store, id_remap_debug_0 ) == size_t{ 0 } );
 
-    ASSERT_TRUE( ::NS(KernelConfigStore_get_const_ptr_kernel_config_base)(
+    ASSERT_TRUE( ::NS(KernelConfigStore_get_ptr_const_kernel_config_base)(
         store, id_remap_debug_0 ) == nullptr );
 
     /* --------------------------------------------------------------------- */

@@ -13,19 +13,16 @@
 
 namespace st = SIXTRL_CXX_NAMESPACE;
 
-/* ************************************************************************* */
+// SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodeStore) const*
+// NS(NodeInfo_get_ptr_const_Node_store)(
+//     const NS(NodeInfoBase) *const SIXTRL_RESTRICT info );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN ::NS(NodeStore) const*
-NS(NodeInfo_get_ptr_const_Node_store)(
-    const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info );
+// SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodeStore)* NS(NodeInfo_get_ptr_node_store)(
+//     NS(NodeInfoBase)* SIXTRL_RESTRICT info );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN ::NS(NodeStore)* NS(NodeInfo_get_ptr_node_store)(
-    ::NS(NodeInfoBase)* SIXTRL_RESTRICT info );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN ::NS(arch_status_t)
-NS(NodeInfo_assign_to_node_store)(
-    ::NS(NodeInfoBase)* SIXTRL_RESTRICT info,
-    ::NS(NodeStore)* SIXTRL_RESTRICT store );
+// SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+// NS(NodeInfo_assign_to_node_store)( NS(NodeInfoBase)* SIXTRL_RESTRICT info,
+//     NS(NodeStore)* SIXTRL_RESTRICT store );
 
 /* ************************************************************************* */
 
@@ -117,13 +114,13 @@ bool NS(NodeInfo_has_node_store)(
     return ( info != nullptr ) ? info->archId() : st::ARCHITECTURE_ILLEGAL;
 }
 
-bool NS(NodeInfo_has_arch_string)(
+bool NS(NodeInfo_has_arch_str)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
 {
     return ( ( info != nullptr ) && ( info->hasArchStr() ) );
 }
 
-char const* NS(NodeInfo_get_arch_string)(
+char const* NS(NodeInfo_get_arch_str)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info )
 {
     return ( info != nullptr ) ? info->ptrArchStr() : nullptr;
@@ -271,7 +268,7 @@ bool NS(NodeInfo_maps_to_same_unique_id_string)(
 
 /* ------------------------------------------------------------------------- */
 
-::NS(arch_size_t) NS(NodeInfo_required_out_string_length)(
+::NS(arch_size_t) NS(NodeInfo_get_required_out_string_length)(
     const ::NS(NodeInfoBase) *const SIXTRL_RESTRICT info,
     const ::NS(ControllerBase) *const SIXTRL_RESTRICT ctrl )
 {

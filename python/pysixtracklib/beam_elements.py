@@ -244,25 +244,26 @@ class LimitEllipse(CObject):
     a_b_squ = CField(2, 'float64', alignment=8)
 
     def __init__(self, a_squ=None, b_squ=None, **kwargs):
-        if a is not None:
+        if a_squ is None:
+            a = kwargs.get( 'a', 1.0 )
             a_squ = a * a
-        if b is not None:
+
+        if b_squ is None:
+            b = kwargs.get( 'b', 1.0 )
             b_squ = b * b
 
-        if a_squ is None:
-            a_squ = 1.0
-        if b_squ is None:
-            b_squ = 1.0
+        kwargs[ 'a_squ' ] = a_squ
+        kwargs[ 'b_squ' ] = b_squ
+        a_b_squ = a_squ * b_squ
 
-        a_b_squ = None
-        if a_squ is not None and b_squ is not None:
-            a_b_squ = a_squ * b_squ
+        if not 'a_b_squ' in kwargs:
+            kwargs[ 'a_b_squ' ] = a_b_squ
 
-        if a_b_squ is not None:
-            CObject.__init__(
-                self, a_squ=a_squ, b_squ=b_squ, a_b_squ=a_b_squ, **kwargs)
+        if abs( kwargs.get( 'a_b_squ' ) - a_b_squ ) <= \
+                np.finfo('float64').resolution:
+            CObject.__init__( self, **kwargs )
         else:
-            raise ValueError("a_squ and b_squ have to be positive definite")
+            raise ValueError( "a_squ, b_squ and a_b_squ do not agree" )
 
     def set_half_axes(self, a, b):
         return self.set_half_axes_squ(a * a, b * b)
