@@ -167,7 +167,7 @@ if( GTEST_FOUND )
                                 CXX_CommonControlKernelConfigKeyTests )
 
     # ==========================================================================
-    # test_node_info_common_c99:
+    # test_node_info_base_common_c99:
 
     add_executable( test_node_info_base_common_c99
                     test_node_info_base_c99.cpp )
@@ -180,7 +180,7 @@ if( GTEST_FOUND )
         APPEND PROPERTY DEPENDS C99_CommonControlNodeIdTests )
 
     # --------------------------------------------------------------------------
-    # test_node_id_common_cxx:
+    # test_node_info_base_common_cxx:
 
     add_executable( test_node_info_base_common_cxx
                     test_node_info_base_cxx.cpp )
@@ -191,6 +191,35 @@ if( GTEST_FOUND )
 
     set_property( TEST CXX_CommonControlNodeInfoBaseTests
         APPEND PROPERTY DEPENDS CXX_CommonControlNodeIdTests )
+
+    # ==========================================================================
+    # test_node_store_common_c99:
+
+#     add_executable( test_node_store_common_c99
+#                     test_node_store_c99.cpp )
+
+#     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_node_store_common_c99 )
+#     add_test( C99_CommonControlNodeStoreTests
+#               test_node_store_common_c99 )
+#
+#     set_property( TEST C99_CommonControlNodeStoreTests
+#         APPEND PROPERTY DEPENDS
+#             C99_CommonControlNodeIdTests
+#             C99_CommonControlNodeInfoBaseTests )
+
+    # --------------------------------------------------------------------------
+    # test_node_store_common_cxx:
+
+    add_executable( test_node_store_common_cxx
+                    test_node_store_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_node_store_common_cxx )
+    add_test( CXX_CommonControlNodeStoreTests test_node_store_common_cxx )
+
+    set_property( TEST CXX_CommonControlNodeStoreTests
+        APPEND PROPERTY DEPENDS
+            CXX_CommonControlNodeIdTests
+            CXX_CommonControlNodeInfoBaseTests )
 
     # ==========================================================================
     # test_node_controller_base_common_c99:
