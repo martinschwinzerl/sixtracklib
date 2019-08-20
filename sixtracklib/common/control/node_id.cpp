@@ -10,32 +10,14 @@
 
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/control/definitions.h"
-#include "sixtracklib/common/control/control_base.hpp"
 #include "sixtracklib/common/control/node_id.h"
-
-namespace st = SIXTRL_CXX_NAMESPACE;
 
 namespace SIXTRL_CXX_NAMESPACE
 {
-    std::string NodeId_extract_node_id_str_from_config_str(
-        char const* SIXTRL_RESTRICT config_str )
-    {
-        /* std::regex re( "device_id_str[:blank:]*=[:blank:]*"
-                "([:digit:]+.[:digit:]+)[A-Za-z0-9_\\-#=:;., \t]*|"
-                "^[A-Za-z0-9_\\-#=;.:, \t]*([:digit:]+.[:digit:]+);|"
-                "([:digit:]+.[:digit:]+)" ); */
-
-        std::regex re( "\\s*([0-9]+\\.[0-9]+)[\\sA-Za-z0-9#\\;]*" );
-        std::regex_match( config_str, matches, re );
-
-        if( ( matches.ready() ) && ( !matches.empty() ) )
-        {
-            return std::string{ matches[ matches.size() - 1 ] };
-
-        }
-
-        return std::string{ "" };
-    }
+    constexpr NodeId::platform_id_t NodeId::ILLEGAL_PLATFORM_ID;
+    constexpr NodeId::device_id_t   NodeId::ILLEGAL_DEVICE_ID;
+    constexpr NodeId::arch_id_t     NodeId::ARCH_ILLEGAL;
+    constexpr NodeId::format_t      NodeId::DEFAULT_FORMAT;
 }
 
 /* end: sixtracklib/common/control/node_id.cpp */

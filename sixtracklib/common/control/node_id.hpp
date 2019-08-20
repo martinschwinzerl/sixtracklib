@@ -218,6 +218,9 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_FN bool operator==(
             NodeId const& SIXTRL_RESTRICT_REF rhs ) const SIXTRL_NOEXCEPT;
 
+        SIXTRL_FN bool operator!=(
+            NodeId const& SIXTRL_RESTRICT_REF rhs ) const SIXTRL_NOEXCEPT;
+
         SIXTRL_FN int compare( ::NS(NodeId) const&
             SIXTRL_RESTRICT_REF node ) const SIXTRL_NOEXCEPT;
 
@@ -386,7 +389,7 @@ namespace SIXTRL_CXX_NAMESPACE
         ( void )status;
     }
 
-    SIXTRL_INLINE NodeId( arch_id_t const arch_id,
+    SIXTRL_INLINE NodeId::NodeId( NodeId::arch_id_t const arch_id,
         std::string const& SIXTRL_RESTRICT_REF id_str ) : ::NS(NodeId)()
     {
         namespace  st = SIXTRL_CXX_NAMESPACE;
@@ -407,7 +410,7 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     }
 
-    SIXTRL_INLINE NodeId( arch_id_t const arch_id,
+    SIXTRL_INLINE NodeId::NodeId( NodeId::arch_id_t const arch_id,
         const char *const SIXTRL_RESTRICT id_str ) : ::NS(NodeId)()
     {
         namespace  st = SIXTRL_CXX_NAMESPACE;
@@ -701,6 +704,14 @@ namespace SIXTRL_CXX_NAMESPACE
         return ( ( this->archId() == rhs.archId() ) &&
                  ( this->platformId() == rhs.platformId() ) &&
                  ( this->deviceId() == rhs.deviceId() ) );
+    }
+
+    SIXTRL_INLINE bool NodeId::operator!=(
+            NodeId const& SIXTRL_RESTRICT_REF rhs ) const SIXTRL_NOEXCEPT
+    {
+        return ( ( this->deviceId() != rhs.deviceId() ) ||
+                 ( this->platformId() != rhs.platformId() ) ||
+                 ( this->archId() != rhs.archId() ) );
     }
 
     SIXTRL_INLINE int NodeId::compare( ::NS(NodeId) const&
