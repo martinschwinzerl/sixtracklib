@@ -46,9 +46,11 @@ namespace SIXTRL_CXX_NAMESPACE
             m_max_selection_cnt( _info_t::DEFAULT_MAX_SELECTION_COUNTER ),
             m_node_index_in_store( _info_t::UNDEFINED_INDEX )
     {
-        this->setPlatformName( platform_name );
         this->setDeviceName( device_name );
         this->setDescription( description );
+        _info_t::status_t status = this->doSetPlatformName( platform_name );
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     NodeInfoBase::NodeInfoBase(
@@ -64,9 +66,11 @@ namespace SIXTRL_CXX_NAMESPACE
             m_max_selection_cnt( _info_t::DEFAULT_MAX_SELECTION_COUNTER ),
             m_node_index_in_store( _info_t::UNDEFINED_INDEX )
     {
-        this->setPlatformName( platform_name );
         this->setDeviceName( device_name );
         this->setDescription( description );
+        _info_t::status_t status = this->doSetPlatformName( platform_name );
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     NodeInfoBase::NodeInfoBase(
@@ -84,14 +88,16 @@ namespace SIXTRL_CXX_NAMESPACE
             m_max_selection_cnt( _info_t::DEFAULT_MAX_SELECTION_COUNTER ),
             m_node_index_in_store( _info_t::UNDEFINED_INDEX )
     {
-        this->setPlatformName( platform_name );
         this->setDeviceName( device_name );
         this->setDescription( description );
+        _info_t::status_t status = this->doSetPlatformName( platform_name );
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     NodeInfoBase::NodeInfoBase(
         _info_t::arch_id_t const arch_id,
-        std::string const& SIXTRL_RESTRICT_REF platform_name,
+        std::string const& SIXTRL_RESTRICT_REF plafm_name,
         std::string const& SIXTRL_RESTRICT_REF device_name,
         std::string const& SIXTRL_RESTRICT_REF description,
         _info_t::platform_id_t const platform_id,
@@ -104,14 +110,16 @@ namespace SIXTRL_CXX_NAMESPACE
             m_max_selection_cnt( NodeInfoBase::DEFAULT_MAX_SELECTION_COUNTER ),
             m_node_index_in_store( _info_t::UNDEFINED_INDEX )
     {
-        this->setPlatformName( platform_name );
         this->setDeviceName( device_name );
         this->setDescription( description );
+        _info_t::status_t status = this->doSetPlatformName( plafm_name.c_str() );
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     NodeInfoBase::NodeInfoBase(
         _info_t::node_id_t const& SIXTRL_RESTRICT_REF node_id,
-        std::string const& SIXTRL_RESTRICT_REF platform_name,
+        std::string const& SIXTRL_RESTRICT_REF plafm_name,
         std::string const& SIXTRL_RESTRICT_REF device_name,
         std::string const& SIXTRL_RESTRICT_REF description,
         st::NodeStore* SIXTRL_RESTRICT ptr_node_store ) :
@@ -122,14 +130,16 @@ namespace SIXTRL_CXX_NAMESPACE
             m_max_selection_cnt( _info_t::DEFAULT_MAX_SELECTION_COUNTER ),
             m_node_index_in_store( _info_t::UNDEFINED_INDEX )
     {
-        this->setPlatformName( platform_name );
         this->setDeviceName( device_name );
         this->setDescription( description );
+        _info_t::status_t status = this->doSetPlatformName( plafm_name.c_str() );
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     NodeInfoBase::NodeInfoBase(
         const _info_t::c_node_id_t *const SIXTRL_RESTRICT ptr_node_id,
-        std::string const& SIXTRL_RESTRICT_REF platform_name,
+        std::string const& SIXTRL_RESTRICT_REF plafm_name,
         std::string const& SIXTRL_RESTRICT_REF device_name,
         std::string const& SIXTRL_RESTRICT_REF description,
         st::NodeStore* SIXTRL_RESTRICT ptr_node_store ) :
@@ -142,9 +152,11 @@ namespace SIXTRL_CXX_NAMESPACE
             m_max_selection_cnt( _info_t::DEFAULT_MAX_SELECTION_COUNTER ),
             m_node_index_in_store( _info_t::UNDEFINED_INDEX )
     {
-        this->setPlatformName( platform_name );
         this->setDeviceName( device_name );
         this->setDescription( description );
+        _info_t::status_t status = this->doSetPlatformName( plafm_name.c_str() );
+        SIXTRL_ASSERT( status == st::ARCH_STATUS_SUCCESS );
+        ( void )status;
     }
 
     /* --------------------------------------------------------------------- */
@@ -195,14 +207,14 @@ namespace SIXTRL_CXX_NAMESPACE
     _info_t::node_id_t const* NodeInfoBase::ptrNodeId(
         _info_t::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->ptrNodeStore() != nullptr ) ||
+        return ( ( this->ptrNodeStore() == nullptr ) ||
                  ( this->checkLock( lock ) ) ) ? &this->m_node_id : nullptr;
     }
 
     _info_t::c_node_id_t const* NodeInfoBase::ptrCNodeId(
         _info_t::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->ptrNodeStore() != nullptr ) ||
+        return ( ( this->ptrNodeStore() == nullptr ) ||
                  ( this->checkLock( lock ) ) )
             ? this->m_node_id.getCApiPtr() : nullptr;
     }
@@ -210,7 +222,7 @@ namespace SIXTRL_CXX_NAMESPACE
     _info_t::platform_id_t NodeInfoBase::platformId(
         _info_t::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->ptrNodeStore() != nullptr ) ||
+        return ( ( this->ptrNodeStore() == nullptr ) ||
                  ( this->checkLock( lock ) ) )
             ? this->m_node_id.platformId() : _info_t::ILLEGAL_PLATFORM_ID;
     }
@@ -218,7 +230,7 @@ namespace SIXTRL_CXX_NAMESPACE
     _info_t::device_id_t NodeInfoBase::deviceId(
         _info_t::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->ptrNodeStore() != nullptr ) ||
+        return ( ( this->ptrNodeStore() == nullptr ) ||
                  ( this->checkLock( lock ) ) )
             ? this->m_node_id.deviceId() : _info_t::ILLEGAL_DEVICE_ID;
     }
@@ -242,13 +254,20 @@ namespace SIXTRL_CXX_NAMESPACE
 
             if( this->m_node_index_in_store != _info_t::UNDEFINED_INDEX )
             {
-                status = this->m_node_id.setPlatformId( platform_id );
+                SIXTRL_ASSERT( this->ptrNodeStore()->isNodeAvailable(
+                                lock, this->m_node_index_in_store ) );
+
+                _info_t::node_id_t new_node_id( this->m_node_id );
+                if( new_node_id.setPlatformId( platform_id ) ==
+                    st::ARCH_STATUS_SUCCESS )
+                {
+                    status = this->ptrNodeStore()->doUpdateNodeIdToIndexMap(
+                        lock, this->m_node_id, this->m_node_index_in_store,
+                            new_node_id );
+                }
 
                 if( status == st::ARCH_STATUS_SUCCESS )
-                {
-                    status = this->ptrNodeStore()->doUpdateNodeId(
-                        lock, this->m_node_index_in_store, this->m_node_id );
-                }
+                    this->m_node_id = new_node_id;
             }
             else
             {
@@ -257,9 +276,7 @@ namespace SIXTRL_CXX_NAMESPACE
         }
 
         if( status != st::ARCH_STATUS_SUCCESS )
-        {
             this->m_node_id.setPlatformId( saved_platform_id );
-        }
 
         return status;
     }
@@ -278,21 +295,26 @@ namespace SIXTRL_CXX_NAMESPACE
         }
         else if( this->checkLock( lock ) )
         {
-            SIXTRL_ASSERT( this->ptrNodeStore() != nullptr );
-
             if( this->m_node_index_in_store != _info_t::UNDEFINED_INDEX )
             {
-                status = this->m_node_id.setDeviceId( device_id );
+                SIXTRL_ASSERT( this->ptrNodeStore()->isNodeAvailable(
+                                    lock, this->m_node_index_in_store ) );
+
+                _info_t::node_id_t new_node_id( this->m_node_id );
+                if( new_node_id.setPlatformId( device_id ) ==
+                        st::ARCH_STATUS_SUCCESS )
+                {
+                    status = this->ptrNodeStore()->doUpdateNodeIdToIndexMap(
+                        lock, this->m_node_id, this->m_node_index_in_store,
+                            new_node_id );
+                }
 
                 if( status == st::ARCH_STATUS_SUCCESS )
-                {
-                    status = this->ptrNodeStore()->doUpdateNodeId(
-                        lock, this->m_node_index_in_store, this->m_node_id );
-                }
+                    this->m_node_id = new_node_id;
             }
             else
             {
-                status = this->m_node_id.setDeviceId( device_id );
+                status = this->m_node_id.setPlatformId( device_id );
             }
         }
 
@@ -335,19 +357,23 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    void NodeInfoBase::setPlatformName(
-        const char *const SIXTRL_RESTRICT platform_name )
+    _info_t::status_t NodeInfoBase::doSetPlatformName(
+        const char *const SIXTRL_RESTRICT plafm_name )
     {
-        if( ( platform_name != nullptr ) &&
-            ( std::strlen( platform_name ) > NodeInfoBase::size_type{ 0 } ) )
+        if( ( plafm_name != nullptr ) &&
+            ( std::strlen( plafm_name ) > _info_t::size_type{ 0 } ) )
         {
-            this->m_platform_name = platform_name;
+            this->m_platform_name = plafm_name;
         }
         else
         {
             this->m_platform_name.clear();
         }
+
+        return st::ARCH_STATUS_SUCCESS;
     }
+
+    /* --------------------------------------------------------------------- */
 
     void NodeInfoBase::setDeviceName(
         const char *const SIXTRL_RESTRICT device_name )
@@ -741,8 +767,6 @@ namespace SIXTRL_CXX_NAMESPACE
         std::ostream& SIXTRL_RESTRICT_REF output,
         _info_t::node_set_id_t const node_set_id ) const
     {
-        using size_t = _info_t::size_type;
-
         char temp_node_id_str[ 32 ] =
         {
             '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
@@ -756,7 +780,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
         if( status == st::ARCH_STATUS_SUCCESS )
         {
-            bool has_node_store = false;
             bool is_attached_to_any = false;
             bool is_attached_to_set = false;
             bool is_selected_by_set = false;
@@ -766,8 +789,6 @@ namespace SIXTRL_CXX_NAMESPACE
                 ( this->checkLock( lock ) ) &&
                 ( this->m_node_index_in_store != _info_t::UNDEFINED_INDEX ) )
             {
-                has_node_store = true;
-
                 is_attached_to_any = this->isAttachedToAnySet( lock );
 
                 if( is_attached_to_any )

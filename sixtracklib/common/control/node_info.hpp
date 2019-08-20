@@ -158,6 +158,11 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN node_id_t const* ptrNodeId() const;
         SIXTRL_HOST_FN c_node_id_t const* ptrCNodeId() const;
 
+        using SIXTRL_CXX_NAMESPACE::ArchInfo::archId;
+
+        SIXTRL_HOST_FN arch_id_t archId(
+            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
         SIXTRL_HOST_FN platform_id_t platformId() const;
         SIXTRL_HOST_FN device_id_t deviceId() const;
 
@@ -206,10 +211,10 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN std::string const& platformName() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN char const* ptrPlatformNameStr() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void setPlatformName(
+        SIXTRL_HOST_FN status_t setPlatformName(
             std::string const& SIXTRL_RESTRICT_REF platform_name );
 
-        SIXTRL_HOST_FN void setPlatformName(
+        SIXTRL_HOST_FN status_t setPlatformName(
             const char *const SIXTRL_RESTRICT platform_name );
 
         SIXTRL_HOST_FN bool hasDeviceName() const SIXTRL_NOEXCEPT;
@@ -232,20 +237,20 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void setDescription(
             const char *const SIXTRL_RESTRICT description_str );
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN bool hasUniqueIdStr() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN std::string const& uniqueIdStr() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN char const* ptrUniqueIdStr() const SIXTRL_NOEXCEPT;
 
-        bool mapsToSame( NodeInfoBase const&
+        SIXTRL_HOST_FN bool mapsToSame( NodeInfoBase const&
             SIXTRL_RESTRICT node ) const SIXTRL_NOEXCEPT;
 
-        bool mapsToSame( std::string const&
+        SIXTRL_HOST_FN bool mapsToSame( std::string const&
             SIXTRL_RESTRICT_REF node ) const SIXTRL_NOEXCEPT;
 
-        bool mapsToSame( char const* SIXTRL_RESTRICT
+        SIXTRL_HOST_FN bool mapsToSame( char const* SIXTRL_RESTRICT
             node ) const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
@@ -374,6 +379,9 @@ namespace SIXTRL_CXX_NAMESPACE
             bool requires_exact_match = false ) SIXTRL_NOEXCEPT;
 
         protected:
+
+        SIXTRL_HOST_FN status_t doSetPlatformName(
+            char const* SIXTRL_RESTRICT platform_name );
 
         SIXTRL_HOST_FN virtual status_t doPrintToOutputStream(
             lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -543,6 +551,18 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->ptrCNodeId( _this_t::lock_t{} );
     }
 
+    SIXTRL_INLINE NodeInfoBase::arch_id_t NodeInfoBase::archId(
+            NodeInfoBase::lock_t const& SIXTRL_RESTRICT_REF lock
+        ) const SIXTRL_NOEXCEPT
+    {
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeInfoBase;
+
+        return ( ( this->ptrNodeStore() == nullptr ) ||
+                 ( this->checkLock( lock ) ) )
+            ? this->archId() : _this_t::ARCH_ILLEGAL;
+    }
+
     SIXTRL_INLINE NodeInfoBase::platform_id_t NodeInfoBase::platformId() const
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeInfoBase;
@@ -565,7 +585,7 @@ namespace SIXTRL_CXX_NAMESPACE
             return this->setPlatformId( lock, platform_id );
         }
 
-        return this->platformId( _this_t::lock_t{} );
+        return this->setPlatformId( _this_t::lock_t{}, platform_id );
     }
 
     SIXTRL_INLINE NodeInfoBase::device_id_t NodeInfoBase::deviceId() const
@@ -595,6 +615,15 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
+    SIXTRL_INLINE NodeInfoBase::node_index_t NodeInfoBase::nodeIndex() const
+    {
+        using _this_t = SIXTRL_CXX_NAMESPACE::NodeInfoBase;
+        _this_t::lock_t const lock( *this->lockable() );
+        return this->nodeIndex( lock );
+    }
+
+    /* --------------------------------------------------------------------- */
+
     SIXTRL_INLINE bool NodeInfoBase::hasPlatformName() const SIXTRL_NOEXCEPT
     {
         return !this->m_platform_name.empty();
@@ -612,10 +641,16 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->m_platform_name.c_str();
     }
 
-    SIXTRL_INLINE void NodeInfoBase::setPlatformName(
+    SIXTRL_INLINE NodeInfoBase::status_t NodeInfoBase::setPlatformName(
         std::string const& SIXTRL_RESTRICT_REF platform_name )
     {
-        this->setPlatformName( platform_name.c_str() );
+        return this->doSetPlatformName( platform_name.c_str() );
+    }
+
+    SIXTRL_INLINE NodeInfoBase::status_t NodeInfoBase::setPlatformName(
+        char const* SIXTRL_RESTRICT platform_name )
+    {
+        return this->doSetPlatformName( platform_name );
     }
 
     SIXTRL_INLINE bool NodeInfoBase::hasDeviceName() const SIXTRL_NOEXCEPT
