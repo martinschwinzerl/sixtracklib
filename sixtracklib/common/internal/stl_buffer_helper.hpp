@@ -20,8 +20,6 @@
     #include "sixtracklib/common/control/definitions.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#endif /* C++, Host */
-
 namespace SIXTRL_CXX_NAMESPACE
 {
     template< typename Iter, typename T >
@@ -30,8 +28,8 @@ namespace SIXTRL_CXX_NAMESPACE
         bool const check_sorting = false );
 
     template< typename T, class Allocator >
-    SIXTRL_STATIC SIXTRL_HOST_FN status_t Vector_add_sorted(
-        std::vector< T, Allocator >& SIXTRL_RESTRICT_REF vector,
+    SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_CXX_NAMESPACE::arch_status_t
+    Vector_add_sorted( std::vector< T, Allocator >& SIXTRL_RESTRICT_REF vector,
         T const& SIXTRL_RESTRICT_REF value_to_insert,
         T const& SIXTRL_RESTRICT_REF save_value_to_compare_against = T{},
         bool const keep_ordered = true );
@@ -56,37 +54,37 @@ namespace SIXTRL_CXX_NAMESPACE
         Value const& SIXTRL_RESTRICT_REF default_value = Value{} );
 
 
-    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN bool Map_ordered_vec_has_value(
         std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc > const&
             SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key,
         T const& SIXTRL_RESTRICT_REF value );
 
-    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN bool Map_ordered_vec_empty(
         std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc > const&
             SIXTRL_RESTRICT_REF map, Key const& SIXTRL_RESTRICT_REF key );
 
-    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_CXX_NAMESPACE::arch_size_t
     Map_ordered_vec_size( std::map< Key, std::vector< T, VecAlloc >,
             Cmp, Alloc > const& SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key );
 
-    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_CXX_NAMESPACE::arch_size_t
     Map_ordered_vec_size( std::map< Key, std::vector< T, VecAlloc >,
             Cmp, Alloc > const& SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key );
 
-    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_CXX_NAMESPACE::arch_status_t
     Map_remove_if_ordered_vec_empty( std::map< Key, std::vector< T, VecAlloc >,
             Cmp, Alloc >& SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key );
 
-    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_CXX_NAMESPACE::arch_status_t Map_remove_value_from_ordered_vec(
         std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc >&
             SIXTRL_RESTRICT_REF map,
@@ -94,7 +92,7 @@ namespace SIXTRL_CXX_NAMESPACE
         T const& SIXTRL_RESTRICT_REF value,
         bool const remove_entry_if_ordered_vec_is_empty = false );
 
-    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_CXX_NAMESPACE::arch_status_t Map_ordered_vec_insert_value(
         std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc >&
             SIXTRL_RESTRICT_REF map,
@@ -103,24 +101,24 @@ namespace SIXTRL_CXX_NAMESPACE
         T const& SIXTRL_RESTRICT_REF save_value_to_compare_against = T{},
         bool const keep_ordered = true );
 
-    typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN T const* Map_ordered_vec_begin(
         std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc > const&
             SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key );
 
-    typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN T const* Map_ordered_vec_end(
         std::map< Key, std::vector< T, VecAlloc >,
             Cmp, Alloc > const& SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key );
 
-    typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN T* Map_ordered_vec_begin(
         std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc >&
             SIXTRL_RESTRICT_REF map, Key const& SIXTRL_RESTRICT_REF key );
 
-    typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN T* Map_ordered_vec_end(
         std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc >&
             SIXTRL_RESTRICT_REF map, Key const& SIXTRL_RESTRICT_REF key );
@@ -270,7 +268,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 std::sort( vector.begin(), vector.end() );
             }
 
-            SIXTRL_ASSSERT( ( !keep_ordered ) ||
+            SIXTRL_ASSERT( ( !keep_ordered ) ||
                 ( std::is_sorted( vector.begin(), vector.end() ) ) );
 
             status = st::ARCH_STATUS_SUCCESS;
@@ -304,7 +302,7 @@ namespace SIXTRL_CXX_NAMESPACE
         Value const& SIXTRL_RESTRICT_REF default_value  )
     {
         auto it = map.find( key );
-        return ( it != map.end() ) ? it->second() : default_value;
+        return ( it != map.end() ) ? it->second : default_value;
     }
 
     template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
@@ -430,7 +428,7 @@ namespace SIXTRL_CXX_NAMESPACE
             : st::ARCH_STATUS_GENERAL_FAILURE;
     }
 
-    typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
     SIXTRL_INLINE T const* Map_ordered_vec_begin(
         std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc >
             const& SIXTRL_RESTRICT_REF map,
@@ -447,7 +445,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return ptr;
     }
 
-    typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
     SIXTRL_INLINE T const* Map_ordered_vec_end( std::map< Key, std::vector< T,
             VecAlloc >, Cmp, Alloc > const& SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key )
@@ -465,7 +463,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return ptr;
     }
 
-    typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
     SIXTRL_INLINE T* Map_ordered_vec_begin( std::map< Key, std::vector< T,
             VecAlloc >, Cmp, Alloc >& SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key )
@@ -477,7 +475,7 @@ namespace SIXTRL_CXX_NAMESPACE
             static_cast< map_t const& >( map ), key ) );
     }
 
-    typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
     SIXTRL_INLINE T* Map_ordered_vec_end( std::map< Key, std::vector< T,
             VecAlloc >, Cmp, Alloc >& SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key )
@@ -725,6 +723,8 @@ namespace SIXTRL_CXX_NAMESPACE
             static_cast< map_t const& >( map ), key ) );
     }
 }
+
+#endif /* c++, Host */
 
 #endif /* SIXTRACKLIB_COMMON_INTERNAL_STL_BUFFER_HELPER_CXX_HPP__ */
 
