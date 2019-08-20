@@ -83,18 +83,23 @@ TEST( CXX_CommonControlNodeInfoBaseTests, NodeInfoCreationNoNodeStore )
     temp_node_id.setPlatformId( platform_id_t{ 2 } );
     temp_node_id.setDeviceId( device_id_t{ 72 } );
 
-    status = node_info_a.nodeId().fromString(
-        temp_node_id.toString( st::NODE_ID_STR_FORMAT_ARCHSTR ) );
-
+    status = node_info_a.setPlatformId( temp_node_id.platformId() );
     ASSERT_TRUE( status == st::ARCH_STATUS_SUCCESS );
+
+    status = node_info_a.setDeviceId( temp_node_id.deviceId() );
+    ASSERT_TRUE( status == st::ARCH_STATUS_SUCCESS );
+
     ASSERT_TRUE( node_info_a.nodeId().valid() );
     ASSERT_TRUE( node_info_a.nodeId() == temp_node_id );
 
     temp_node_id.setPlatformId( platform_id_t{ 3 } );
     temp_node_id.setDeviceId( device_id_t{ 14 } );
 
-    status = node_info_a.nodeId().fromString(
-        temp_node_id.toString( st::NODE_ID_STR_FORMAT_NOARCH ) );
+    status = node_info_a.setPlatformId( temp_node_id.platformId() );
+    ASSERT_TRUE( status == st::ARCH_STATUS_SUCCESS );
+
+    status = node_info_a.setDeviceId( temp_node_id.deviceId() );
+    ASSERT_TRUE( status == st::ARCH_STATUS_SUCCESS );
 
     ASSERT_TRUE( status == st::ARCH_STATUS_SUCCESS );
     ASSERT_TRUE( node_info_a.archId() == arch_id );
