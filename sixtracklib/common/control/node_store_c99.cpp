@@ -6,30 +6,36 @@
 #include <cstring>
 #include <utility>
 
-
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/control/definitions.h"
-#include "sixtracklib/common/control/controller_base.h"
 #include "sixtracklib/common/control/node_id.h"
+#include "sixtracklib/common/control/node_id.hpp"
 #include "sixtracklib/common/control/node_store.hpp"
 #include "sixtracklib/common/control/node_info.hpp"
 
-#include "sixtracklib/common/control/controller_base.hpp"
-#include "sixtracklib/common/control/node_controller_base.hpp"
-#include "sixtracklib/common/control/node_id.hpp"
-#include "sixtracklib/common/control/node_info.hpp"
-
 namespace st = SIXTRL_CXX_NAMESPACE;
+using _store_t = st::NodeStore;
 
-
-::NS(NodeStore)* NS(NodeStore_get_ptr)( void )
+::NS(NodeStore)* NS(NodeStore_get_global_ptr)( void )
 {
     return st::NodeStore_get_ptr();
 }
 
-::NS(NodeStore) const* NS(NodeStore_get_const_ptr)( void )
+::NS(NodeStore) const* NS(NodeStore_get_global_const_ptr)( void )
 {
     return st::NodeStore_get_const_ptr();
+}
+
+/* ------------------------------------------------------------------------- */
+
+::NS(NodeStore)* NS(NodeStore_new)()
+{
+    return new st::NodeStore;
+}
+
+void NS(NodeStore_delete)( ::NS(NodeStore)* SIXTRL_RESTRICT store )
+{
+    delete store;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -77,67 +83,12 @@ bool NS(NodeStore_has_platform)(
              ( node_store->hasPlatform( arch_id, platform_id ) ) );
 }
 
-bool NS(NodeStore_has_platform_by_name)(
-    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
-    ::NS(arch_id_t) const arch_id,
-    char const* SIXTRL_RESTRICT platform_name_str )
-{
-    return ( ( node_store ) &&
-             ( node_store->hasPlatform( arch_id, platform_name_str ) ) );
-}
-
-::NS(node_platform_id_t) NS(NodeStore_get_platform_id_by_platform_name)(
-    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
-    ::NS(arch_id_t) const arch_id,
-    char const* SIXTRL_RESTRICT platform_name_str )
-{
-    return ( node_store != nullptr )
-        ? node_store->platformIdByName( arch_id, platform_name_str )
-        : st::NodeStore::ILLEGAL_PLATFORM_ID;
-}
-
 ::NS(arch_size_t) NS(NodeStore_get_num_platforms)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     ::NS(arch_id_t) const arch_id )
 {
     return ( node_store != nullptr )
         ? node_store->numPlatforms( arch_id ) : ::NS(arch_size_t){ 0 };
-}
-
-::NS(arch_status_t) NS(NodeStore_add_platform_name_mapping)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store, ::NS(arch_id_t) const arch_id,
-    ::NS(node_platform_id_t) const platform_id,
-    char const* SIXTRL_RESTRICT platform_name_str )
-{
-    return ( node_store != nullptr )
-        ? node_store->addPlatformNameMapping(
-            arch_id, platform_id, platform_name_str )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
-}
-
-/* ------------------------------------------------------------------------- */
-
-::NS(arch_size_t) NS(NodeStore_get_num_of_controllers)(
-    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store )
-{
-    return ( node_store != nullptr )
-        ? node_store->numControllers() : ::NS(arch_size_t){ 0 };
-}
-
-::NS(arch_size_t) NS(NodeStore_get_num_controllers_by_architecture)(
-    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
-    ::NS(arch_id_t) const arch_id )
-{
-    return ( node_store != nullptr )
-        ? node_store->numControllers( arch_id ) : ::NS(arch_size_t){ 0 };
-}
-
-bool NS(NodeStore_has_controller)(
-    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller )
-{
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) &&
-             ( node_store->hasController( *controller ) ) );
 }
 
 /* ------------------------------------------------------------------------- */
@@ -214,12 +165,46 @@ bool NS(NodeStore_has_controller)(
         : ::NS(arch_size_t){ 0 };
 }
 
-::NS(arch_size_t) NS(NodeStore_get_num_nodes_for_controller)(
-    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller )
+::NS(node_index_t) NS(NodeStore_get_min_attached_node_index)(
+    const NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    NS(node_set_id_t) const node_set_id )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) )
-        ? node_store->numNodes( *controller ) : ::NS(arch_size_t){ 0 };
+    return ( node_store != nullptr )
+        ? node_store->minAttachedNodeIndex( node_set_id )
+        : _store_t::UNDEFINED_INDEX;
+}
+
+::NS(node_index_t) NS(NodeStore_get_max_attached_node_index)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_set_id_t) const node_set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->maxAttachedNodeIndex( node_set_id )
+        : _store_t::UNDEFINED_INDEX;
+}
+
+::NS(arch_size_t) NS(NodeStore_get_num_nodes_for_set)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_set_id_t) const node_set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->numNodes( node_set_id ) : st::arch_size_t{ 0 };
+}
+
+::NS(arch_size_t) NS(NodeStore_get_num_selected_nodes_for_set)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_set_id_t) const node_set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->numSelectedNodes( node_set_id ) : st::arch_size_t{ 0 };
+}
+
+::NS(arch_size_t) NS(NodeStore_get_num_default_nodes_for_set)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_set_id_t) const node_set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->numDefaultNodes( node_set_id ) : st::arch_size_t{ 0 };
 }
 
 /* ------------------------------------------------------------------------- */
@@ -283,21 +268,22 @@ bool NS(NodeStore_has_controller)(
     return status;
 }
 
-::NS(arch_status_t) NS(NodeStore_get_node_indices_for_controller)(
+::NS(arch_status_t) NS(NodeStore_get_node_indices_for_set)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     ::NS(arch_size_t) const max_num_node_indices,
     ::NS(node_index_t)* SIXTRL_RESTRICT node_indices_begin,
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller,
+    ::NS(node_set_id_t) const node_set_id,
     ::NS(arch_size_t)* SIXTRL_RESTRICT ptr_num_node_indices )
 {
     ::NS(arch_status_t) status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-    if( ( node_store != nullptr ) && ( controller != nullptr ) &&
+    if( ( node_store != nullptr ) &&
+        ( node_set_id != _store_t::ILLEGAL_NODE_SET_ID ) &&
         ( node_indices_begin != nullptr ) &&
         ( max_num_node_indices > ::NS(arch_size_t){ 0 } ) )
     {
         status = node_store->nodeIndices( node_indices_begin,
-            node_indices_begin + max_num_node_indices, *controller,
+            node_indices_begin + max_num_node_indices, node_set_id,
                 ptr_num_node_indices );
     }
 
@@ -340,132 +326,243 @@ bool NS(NodeStore_is_node_available)(
 
 /* ------------------------------------------------------------------------- */
 
-::NS(arch_status_t) NS(NodeStore_attach_node_to_controller)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
-    ::NS(node_index_t) const node_index,
-    ::NS(ControllerBase)* SIXTRL_RESTRICT controller )
+bool NS(NodeStore_has_node_sets)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) )
-        ? node_store->attachNodeToController( node_index, *controller )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
+    return ( ( node_store != nullptr ) && ( node_store->hasNodeSets() ) );
 }
 
-::NS(arch_status_t) NS(NodeStore_attach_all_architecture_nodes_to_controller)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
-    ::NS(ControllerBase)* SIXTRL_RESTRICT controller )
+::NS(arch_size_t) NS(NodeStore_get_num_node_sets)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) )
-        ? node_store->attachAllArchitectureNodesToController( *controller )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
+    return ( node_store )
+        ? node_store->numNodeSets() : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
-::NS(arch_status_t) NS(NodeStore_detach_node_from_controller)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
-    ::NS(node_index_t) const node_index,
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller )
+bool NS(NodeStore_has_node_set)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_set_id_t) const set_id )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) )
-        ? node_store->detachNodeFromController( node_index, *controller )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
+    return ( ( node_store ) && ( node_store->hasNodeSet( set_id ) ) );
 }
 
-::NS(arch_status_t) NS(NodeStore_detach_all_nodes_from_controller)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller )
+bool NS(NodeStore_has_node_set_by_ptr)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(NodeSetBase)* SIXTRL_RESTRICT node_set )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) )
-        ? node_store->detachAllNodesFromController( *controller )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
+    return ( ( node_store != nullptr ) && ( node_set != nullptr ) &&
+             ( node_store->hasNodeSet( *node_set ) ) );
 }
 
-::NS(arch_status_t) NS(NodeStore_detach_all_nodes_by_architecture)(
+::NS(node_set_id_t) NS(NodeStore_add_node_set)(
     ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
-    ::NS(arch_id_t) const arch_id )
+    ::NS(NodeSetBase)* SIXTRL_RESTRICT ptr_node_set_to_store )
+{
+    _store_t::node_set_id_t node_set_id = _store_t::ILLEGAL_NODE_SET_ID;
+
+    if( ( node_store != nullptr ) && ( ptr_node_set_to_store != nullptr ) )
+    {
+        std::unique_ptr< _store_t::node_set_base_t > ptr(
+            ptr_node_set_to_store );
+
+        if( ptr.get() == ptr_node_set_to_store )
+        {
+            node_set_id = node_store->addNodeSet( std::move( ptr ) );
+        }
+    }
+
+    return node_set_id;
+}
+
+::NS(arch_status_t) NS(NodeStore_remove_node_set)(
+    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
+    ::NS(node_set_id_t) const set_id )
 {
     return ( node_store != nullptr )
-        ? node_store->detachAllNodesByArchitecture( arch_id )
+        ? node_store->removeNodeSet( set_id ) : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(node_set_id_t) NS(NodeStore_get_node_set_id)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(NodeSetBase)* SIXTRL_RESTRICT node_set )
+{
+    return ( ( node_store != nullptr ) && ( node_set != nullptr ) )
+        ? node_store->nodeSetId( *node_set ) : _store_t::ILLEGAL_NODE_SET_ID;
+}
+
+::NS(NodeSetBase)* NS(NodeStore_get_ptr_node_set)(
+    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
+    ::NS(node_set_id_t) const node_set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->ptrNodeSetBase( node_set_id ) : nullptr;
+}
+
+::NS(NodeSetBase) const* NS(NodeStore_get_ptr_const_Node_set_base)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_set_id_t) const node_set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->ptrNodeSetBase( node_set_id ) : nullptr;
+}
+
+/* ------------------------------------------------------------------------- */
+
+::NS(node_index_t) NS(NodeStore_add_node)(
+    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
+    ::NS(NodeInfoBase)* SIXTRL_RESTRICT ptr_node_info_to_store )
+{
+    _store_t::node_index_t node_index = _store_t::UNDEFINED_INDEX;
+
+    if( ( node_store != nullptr ) && ( ptr_node_info_to_store != nullptr ) )
+    {
+        std::unique_ptr< ::NS(NodeInfoBase) > ptr( ptr_node_info_to_store );
+
+        if( ptr.get() == ptr_node_info_to_store )
+        {
+            node_index = node_store->addNode( std::move( ptr ) );
+        }
+    }
+
+    return node_index;
+}
+
+::NS(arch_status_t) NS(NodeStore_remove_node)(
+    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
+    ::NS(node_index_t) const node_index )
+{
+    return ( node_store != nullptr ) ? node_store->removeNode( node_index )
         : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
-::NS(arch_status_t) NS(NodeStore_detach_node_from_all_controllers)(
+::NS(arch_status_t) NS(NodeStore_attach_node_to_set)(
+    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
+    ::NS(node_index_t) const node_index,
+    ::NS(node_set_id_t) const set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->attachNodeToSet( node_index, set_id )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(NodeStore_attach_all_architecture_nodes_to_set)(
+    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
+    ::NS(arch_id_t) const arch_id, ::NS(node_set_id_t) const node_set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->attachAllArchitectureNodesToSet( arch_id, node_set_id )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(NodeStore_detach_node_from_set)(
+    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
+    ::NS(node_index_t) const node_index,
+    ::NS(node_set_id_t) const node_set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->detachNodeFromSet( node_index, node_set_id )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(NodeStore_detach_all_nodes_from_set)(
+    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
+    ::NS(node_set_id_t) const set_id )
+{
+    return ( node_store != nullptr )
+        ? node_store->detachAllNodesFromSet( set_id )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(NodeStore_detach_node_from_all_sets)(
     ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
     ::NS(node_index_t) const node_index )
 {
     return ( node_store != nullptr )
-        ? node_store->detachNodeFromAllControllers( node_index )
+        ? node_store->detachNodeFromAllSets( node_index )
         : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
-::NS(arch_size_t) NS(NodeStore_get_num_controllers_attached_to_node)(
+::NS(arch_size_t) NS(NodeStore_num_sets_attached_to_node)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     ::NS(node_index_t) const node_index )
 {
     return ( node_store != nullptr )
-        ? node_store->numControllersAttachedToNode( node_index )
-        : ::NS(arch_size_t){ 0 };
+        ? node_store->numSetsAttachedToNode( node_index ) : st::arch_size_t{ 0 };
 }
 
-bool NS(NodeStore_is_node_attached_to_any_controller)(
+bool NS(NodeStore_is_node_attached_to_any_set)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     ::NS(node_index_t) const node_index )
 {
     return ( ( node_store != nullptr ) &&
-        ( node_store->isNodeAttachedToAnyController( node_index ) ) );
+        ( node_store->isNodeAttachedToAnySet( node_index ) ) );
 }
 
-bool NS(NodeStore_is_node_attached_to_controller)(
+bool NS(NodeStore_is_node_attached_to_set)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     ::NS(node_index_t) const node_index,
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller )
+    ::NS(node_set_id_t) const node_set_id )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) &&
-        ( node_store->isNodeAttachedToController( node_index, *controller ) ) );
+    return ( ( node_store != nullptr ) &&
+        ( node_store->isNodeAttachedToSet( node_index, node_set_id ) ) );
 }
 
-::NS(arch_status_t) NS(NodeStore_mark_node_as_selected_by_controller)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
-    ::NS(node_index_t) const node_index,
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller )
+bool NS(NodeStore_can_node_be_selected_by_set)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_index_t) const index, ::NS(node_set_id_t) const node_set_id )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) )
-        ? node_store->markNodeAsSelectedByController( node_index, *controller )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
+    return ( ( node_store != nullptr ) &&
+             ( node_store->canNodeBeSelectedBySet( index, node_set_id ) ) );
 }
 
-::NS(arch_status_t) NS(NodeStore_unselect_node_for_controller)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
-    ::NS(node_index_t) const node_index,
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller )
+bool NS(NodeStore_is_node_selected_by_set)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_index_t) const node_index, ::NS(node_set_id_t) const set_id )
 {
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) )
-        ? node_store->unselectNodeForController( node_index, *controller )
-        : st::ARCH_STATUS_GENERAL_FAILURE;
+    return ( ( node_store != nullptr ) &&
+             ( node_store->isNodeSelectedBySet( node_index, set_id ) ) );
 }
 
-bool NS(NodeStore_is_node_selected_by_controller)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
-    ::NS(node_index_t) const node_index,
-    const ::NS(ControllerBase) *const  SIXTRL_RESTRICT controller )
-{
-    return ( ( node_store != nullptr ) && ( controller != nullptr ) &&
-        ( node_store->isNodeSelectedByController( node_index, *controller ) ) );
-}
-
-bool NS(NodeStore_is_node_selected_by_any_controller)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store,
+bool NS(NodeStore_is_node_selected_by_any_set)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     ::NS(node_index_t) const node_index )
 {
     return ( ( node_store != nullptr ) &&
-        ( node_store->isNodeSelectedByAnyController( node_index ) ) );
+             ( node_store->isNodeSelectedByAnySet( node_index ) ) );
 }
 
-::NS(arch_size_t) NS(NodeStore_get_num_selecting_controllers_for_node)(
+::NS(arch_size_t) NS(NodeStore_num_selecting_sets_for_node)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     ::NS(node_index_t) const node_index )
 {
     return ( node_store != nullptr )
-        ? node_store->numSelectingControllersForNode( node_index )
-        : ::NS(arch_size_t){ 0 };
+        ? node_store->numSelectingSetsForNode( node_index )
+        : st::arch_size_t{ 0 };
+}
+
+bool NS(NodeStore_is_node_default_for_set)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_index_t) const node_index, ::NS(node_set_id_t) const set_id )
+{
+    return ( ( node_store != nullptr ) &&
+             ( node_store->isNodeDefaultForSet( node_index, set_id ) ) );
+}
+
+bool NS(NodeStore_is_node_default_for_any_set)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_index_t) const node_index )
+{
+    return ( ( node_store != nullptr ) &&
+             ( node_store->isNodeDefaultForAnySet( node_index ) ) );
+}
+
+::NS(arch_size_t) NS(NodeStore_get_num_sets_having_node_as_default)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    ::NS(node_index_t) const index )
+{
+    return ( node_store != nullptr )
+        ? node_store->numSetsHavingNodeAsDefault( index )
+        : st::arch_size_t{ 0 };
 }
 
 /* ------------------------------------------------------------------------- */
@@ -476,21 +573,21 @@ void NS(NodeStore_clear)(
     if( node_store != nullptr ) node_store->clear();
 }
 
-::NS(arch_status_t) NS(NodeStore_rebuild)(
-    ::NS(NodeStore)* SIXTRL_RESTRICT node_store )
-{
-    return ( node_store != nullptr )
-        ? node_store->rebuild() : st::ARCH_STATUS_GENERAL_FAILURE;
-}
-
 /* ------------------------------------------------------------------------- */
 
-bool NS(NodeStore_check_lock)(
-    const ::NS(NodeStore) *const  SIXTRL_RESTRICT node_store,
-    const ::NS(NodeStoreLock) *const SIXTRL_RESTRICT lock )
+SIXTRL_UINT64_T NS(NodeStore_get_sync_id_value)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store )
 {
-    return ( ( node_store != nullptr ) && ( lock != nullptr ) &&
-             ( node_store->checkLock( *lock ) ) );
+    return ( node_store != nullptr )
+        ? node_store->syncIdValue() : _store_t::ILLEGAL_SYNC_ID_VALUE;
+}
+
+bool NS(NodeStore_is_sync_with)(
+    const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    SIXTRL_UINT64_T const sync_id_value )
+{
+    return ( ( node_store != nullptr ) &&
+             ( node_store->isSyncWith( sync_id_value ) ) );
 }
 
 /* end: sixtracklib/common/control/node_store_c99.cpp */

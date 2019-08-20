@@ -69,8 +69,6 @@ namespace SIXTRL_CXX_NAMESPACE
         m_node_set_to_sel_node_idxs(), m_node_set_to_def_node_idxs(),
         m_node_idx_to_set_ids(), m_node_idx_to_sel_set_ids(),
         m_node_idx_to_def_set_ids(), m_arch_platform_to_devices(),
-        m_arch_platform_to_platform_name(),
-        m_arch_platform_name_to_platform_id(),
         m_node_id_to_node_index(), m_stored_node_infos(), m_stored_node_sets(),
         m_sync_id( _store_t::sync_id_value_t{ 0 } ),
         m_num_node_infos( _store_t::size_type{ 0 } ),
@@ -84,8 +82,6 @@ namespace SIXTRL_CXX_NAMESPACE
         m_node_set_to_sel_node_idxs(), m_node_set_to_def_node_idxs(),
         m_node_idx_to_set_ids(), m_node_idx_to_sel_set_ids(),
         m_node_idx_to_def_set_ids(), m_arch_platform_to_devices(),
-        m_arch_platform_to_platform_name(),
-        m_arch_platform_name_to_platform_id(),
         m_node_id_to_node_index(), m_stored_node_infos(), m_stored_node_sets(),
         m_sync_id( _store_t::ILLEGAL_SYNC_ID_VALUE ),
         m_num_node_infos( _store_t::size_type{ 0 } ),
@@ -99,8 +95,6 @@ namespace SIXTRL_CXX_NAMESPACE
         m_node_set_to_sel_node_idxs(), m_node_set_to_def_node_idxs(),
         m_node_idx_to_set_ids(), m_node_idx_to_sel_set_ids(),
         m_node_idx_to_def_set_ids(), m_arch_platform_to_devices(),
-        m_arch_platform_to_platform_name(),
-        m_arch_platform_name_to_platform_id(),
         m_node_id_to_node_index(), m_stored_node_infos(), m_stored_node_sets(),
         m_sync_id( _store_t::ILLEGAL_SYNC_ID_VALUE ),
         m_num_node_infos( _store_t::size_type{ 0 } ),
@@ -134,12 +128,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
             this->m_arch_platform_to_devices =
                 other.m_arch_platform_to_devices;
-
-            this->m_arch_platform_to_platform_name =
-                other.m_arch_platform_to_platform_name;
-
-            this->m_arch_platform_name_to_platform_id =
-                other.m_arch_platform_name_to_platform_id;
 
             this->m_node_id_to_node_index = other.m_node_id_to_node_index;
 
@@ -233,12 +221,6 @@ namespace SIXTRL_CXX_NAMESPACE
             this->m_arch_platform_to_devices =
                 std::move( other.m_arch_platform_to_devices );
 
-            this->m_arch_platform_to_platform_name =
-                std::move( other.m_arch_platform_to_platform_name );
-
-            this->m_arch_platform_name_to_platform_id =
-                std::move( other.m_arch_platform_name_to_platform_id );
-
             this->m_node_id_to_node_index =
                 std::move( other.m_node_id_to_node_index );
 
@@ -293,71 +275,6 @@ namespace SIXTRL_CXX_NAMESPACE
         return is_available;
     }
 
-    bool NodeStore::hasPlatform(
-        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        NodeStore::arch_id_t const arch_id,
-        std::string const& SIXTRL_RESTRICT_REF name ) const SIXTRL_NOEXCEPT
-    {
-        return this->hasPlatform( lock, arch_id,
-            this->platformIdByName( lock, arch_id, name ) );
-    }
-
-    bool NodeStore::hasPlatformName(
-        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        _store_t::arch_id_t const arch_id,
-        _store_t::platform_id_t const platform_id ) const SIXTRL_NOEXCEPT
-    {
-        return ( ( this->hasPlatform( lock, arch_id, platform_id ) ) &&
-                 ( st::Map_has_key( this->m_arch_platform_to_platform_name,
-                    std::make_pair( arch_id, platform_id ) ) ) );
-    }
-
-    std::string const& NodeStore::platformNameByPlatformId(
-        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock, arch_id_t const arch_id,
-        _store_t::platform_id_t const platform_id ) const
-    {
-        if( !this->checkLock( lock ) )
-        {
-            throw std::runtime_error( "lock handle is not properly locked" );
-        }
-
-        auto it = this->m_arch_platform_to_platform_name.end();
-
-        if( this->hasPlatform( lock, arch_id, platform_id ) )
-        {
-            it = this->m_arch_platform_to_platform_name.find(
-                std::make_pair( arch_id, platform_id ) );
-        }
-
-        if( it == this->m_arch_platform_to_platform_name.end() )
-        {
-            throw std::runtime_error( "no platform name alias available" );
-        }
-
-        return it->second;
-    }
-
-    char const* NodeStore::ptrPlatformNameByPlatformId(
-        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        _store_t::arch_id_t const arch_id,
-        _store_t::platform_id_t const platform_id ) const SIXTRL_NOEXCEPT
-    {
-        char const* ptr_platform_name = nullptr;
-
-        if( this->hasPlatform( lock, arch_id, platform_id ) )
-        {
-            auto it = this->m_arch_platform_to_platform_name.find(
-                std::make_pair( arch_id, platform_id ) );
-
-            if( it != this->m_arch_platform_to_platform_name.end() )
-            {
-                ptr_platform_name = it->second.c_str();
-            }
-        }
-
-        return ptr_platform_name;
-    }
-
     _store_t::size_type NodeStore::numPlatforms(
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::arch_id_t const arch_id ) const SIXTRL_NOEXCEPT
@@ -395,172 +312,6 @@ namespace SIXTRL_CXX_NAMESPACE
         }
 
         return num_platforms;
-    }
-
-    NodeStore::platform_id_t NodeStore::platformIdByName(
-        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        NodeStore::arch_id_t const arch_id,
-        std::string const& SIXTRL_RESTRICT_REF
-            platform_name ) const SIXTRL_NOEXCEPT
-    {
-        _store_t::platform_id_t platform_id = _store_t::ILLEGAL_PLATFORM_ID;
-
-        if( ( this->hasArchitecture( lock, arch_id ) ) &&
-            ( !platform_name.empty() ) )
-        {
-            SIXTRL_ASSERT( this->checkLock( lock ) );
-
-            auto it = this->m_arch_platform_name_to_platform_id.find(
-                std::make_pair( arch_id, platform_name ) );
-
-            if( it != this->m_arch_platform_name_to_platform_id.end() )
-            {
-                platform_id = it->second;
-
-                if( platform_id != _store_t::ILLEGAL_PLATFORM_ID )
-                {
-                    auto name_it = this->m_arch_platform_to_platform_name.find(
-                        std::make_pair( arch_id, platform_id ) );
-
-                    if( name_it != this->m_arch_platform_to_platform_name.end() )
-                    {
-                        if( name_it->second.compare( platform_name ) != 0 )
-                        {
-                            platform_id = _store_t::ILLEGAL_PLATFORM_ID;
-                        }
-                    }
-                }
-            }
-        }
-
-        return platform_id;
-    }
-
-    _store_t::status_t NodeStore::addPlatformNameMapping(
-        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        NodeStore::arch_id_t const arch_id,
-        NodeStore::platform_id_t const platform_id,
-        std::string const& SIXTRL_RESTRICT_REF platform_name )
-    {
-        _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( ( this->hasArchitecture( lock, arch_id ) ) &&
-            ( platform_id != NodeStore::ILLEGAL_PLATFORM_ID ) )
-        {
-            SIXTRL_ASSERT( this->checkLock( lock ) );
-
-            auto name_it = this->m_arch_platform_to_platform_name.find(
-                std::make_pair( arch_id, platform_id ) );
-
-            if( name_it != this->m_arch_platform_to_platform_name.end() )
-            {
-                std::string const old_platform_name = name_it->second;
-
-                auto pid_it = this->m_arch_platform_name_to_platform_id.find(
-                    std::make_pair( arch_id, old_platform_name ) );
-
-                if( pid_it != this->m_arch_platform_name_to_platform_id.end() )
-                {
-                    this->m_arch_platform_name_to_platform_id.erase( pid_it );
-
-                    if( !platform_name.empty() )
-                    {
-                        name_it->second = platform_name;
-                        auto arch_platform_name =
-                            std::make_pair( arch_id, platform_name );
-
-                        auto res =
-                        this->m_arch_platform_name_to_platform_id.emplace(
-                            std::make_pair( arch_platform_name, platform_id ) );
-
-                        if( res.second )
-                        {
-                            status = st::ARCH_STATUS_SUCCESS;
-                        }
-                    }
-                    else
-                    {
-                        this->m_arch_platform_to_platform_name.erase( name_it );
-                        status = st::ARCH_STATUS_SUCCESS;
-                    }
-                }
-            }
-            else if( !platform_name.empty() )
-            {
-                /* Have not found a (archid,platformid) -> name mapping;
-                 * verify that there is also no inverse mapping! */
-
-                auto temp_it = this->m_arch_platform_name_to_platform_id.begin();
-                auto temp_end = this->m_arch_platform_name_to_platform_id.end();
-                auto found_entry = temp_end;
-
-                for( ; temp_it != temp_end ; ++temp_it )
-                {
-                    if( ( temp_it->first.first == arch_id ) &&
-                        ( temp_it->second == platform_id ) )
-                    {
-                        found_entry = temp_it;
-                    }
-                }
-
-                if( found_entry == temp_end )
-                {
-                    /* Nothing found, so it's safe to insert the mappings */
-
-                    auto res1 = this->m_arch_platform_to_platform_name.insert(
-                        std::make_pair( std::make_pair( arch_id, platform_id ),
-                            platform_name ) );
-
-                    auto res2 =
-                    this->m_arch_platform_name_to_platform_id.insert(
-                        std::make_pair( std::make_pair( arch_id, platform_name),
-                                        platform_id ) );
-
-                    if( ( res2.second ) && ( res1.second ) )
-                    {
-                        status = st::ARCH_STATUS_SUCCESS;
-                    }
-                }
-            }
-        }
-
-        return status;
-    }
-
-    _store_t::status_t NodeStore::addPlatformNameMapping(
-        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        NodeStore::arch_id_t const arch_id,
-        NodeStore::platform_id_t const platform_id,
-        char const* SIXTRL_RESTRICT platform_name )
-    {
-        _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( ( arch_id != _store_t::ARCH_ILLEGAL ) &&
-            ( platform_id != _store_t::ILLEGAL_PLATFORM_ID ) &&
-            ( platform_name != nullptr ) &&
-            ( this->checkLock( lock ) ) &&
-            ( this->hasArchitecture( lock, arch_id ) ) &&
-            ( this->hasPlatform( lock, arch_id, platform_id ) ) )
-        {
-            auto const arch_plfm_name = std::make_pair(
-                arch_id, std::string{ platform_name } );
-
-            if( st::Map_has_value_for_key(
-                    this->m_arch_platform_name_to_platform_id,
-                        arch_plfm_name, platform_id ) )
-            {
-                status = st::ARCH_STATUS_SUCCESS;
-            }
-            else
-            {
-                auto res = this->m_arch_platform_name_to_platform_id.insert(
-                    std::make_pair( arch_plfm_name, platform_id ) );
-
-                if( res.second ) status = st::ARCH_STATUS_SUCCESS;
-            }
-        }
-
-        return status;
     }
 
     /* --------------------------------------------------------------------- */
@@ -774,6 +525,42 @@ namespace SIXTRL_CXX_NAMESPACE
         return num_nodes;
     }
 
+    _store_t::size_type NodeStore::numSelectedNodes(
+        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _store_t::node_set_id_t const node_set_id ) const SIXTRL_NOEXCEPT
+    {
+        _store_t::size_type num_nodes = _store_t::size_type{ 0 };
+
+        if( this->hasNodeSet( lock, node_set_id ) )
+        {
+            SIXTRL_ASSERT( node_set_id != _store_t::ILLEGAL_NODE_SET_ID );
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+
+            num_nodes = st::Map_ordered_vec_size(
+                this->m_node_set_to_sel_node_idxs, node_set_id );
+        }
+
+        return num_nodes;
+    }
+
+    _store_t::size_type NodeStore::numDefaultNodes(
+        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _store_t::node_set_id_t const node_set_id ) const SIXTRL_NOEXCEPT
+    {
+        _store_t::size_type num_nodes = _store_t::size_type{ 0 };
+
+        if( this->hasNodeSet( lock, node_set_id ) )
+        {
+            SIXTRL_ASSERT( node_set_id != _store_t::ILLEGAL_NODE_SET_ID );
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+
+            num_nodes = st::Map_ordered_vec_size(
+                this->m_node_set_to_def_node_idxs, node_set_id );
+        }
+
+        return num_nodes;
+    }
+
     /* --------------------------------------------------------------------- */
 
     bool NodeStore::isNodeAvailable(
@@ -911,7 +698,6 @@ namespace SIXTRL_CXX_NAMESPACE
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _store_t::ptr_stored_node_set_t&& ptr_node_set )
     {
-        using size_t = _store_t::size_type;
         using node_set_map_t =_store_t::node_set_to_node_indices_t;
         using indices_list_t = _store_t::node_indices_list_t;
         using nset_id_t = _store_t::node_set_id_t;
@@ -974,8 +760,6 @@ namespace SIXTRL_CXX_NAMESPACE
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _store_t::node_set_id_t const node_set_id ) SIXTRL_NOEXCEPT
     {
-        using node_idx_map_t = _store_t::node_index_to_node_set_ids_t;
-
         _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
         st::NodeSetBase* ptr_set = this->ptrNodeSetBase( lock, node_set_id );
 
@@ -1165,7 +949,6 @@ namespace SIXTRL_CXX_NAMESPACE
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _store_t::arch_id_t const arch_id, node_set_id_t const node_set_id )
     {
-        using size_t = _store_t::size_type;
         _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( ( this->hasArchitecture( lock, arch_id ) ) &&
@@ -1528,7 +1311,7 @@ namespace SIXTRL_CXX_NAMESPACE
     bool NodeStore::isNodeSelectedBySet(
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _store_t::node_index_t const node_index,
-        _store_t::node_set_id_t const node_set_id )
+        _store_t::node_set_id_t const node_set_id ) const
     {
         bool is_selected_by_set = false;
 
@@ -1703,6 +1486,29 @@ namespace SIXTRL_CXX_NAMESPACE
         return ptr_end;
     }
 
+    _store_t::size_type NodeStore::numSetsHavingNodeAsDefault(
+        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _store_t::node_index_t const index ) const SIXTRL_NOEXCEPT
+    {
+        _store_t::size_type num_sets = _store_t::size_type{ 0 };
+
+        if( ( this->isNodeAvailable( lock, index ) ) &&
+            ( st::Map_has_key( this->m_node_idx_to_def_set_ids, index ) ) )
+        {
+            SIXTRL_ASSERT( index != _store_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+
+            num_sets = st::Map_ordered_vec_size(
+                this->m_node_idx_to_def_set_ids, index );
+
+            SIXTRL_ASSERT( ( num_sets == _store_t::size_type{ 0 } ) ||
+                ( ( this->numNodeSets( lock ) > _store_t::size_type{ 0 } ) &&
+                  ( this->isNodeDefaultForAnySet( lock, index ) ) ) );
+        }
+
+        return num_sets;
+    }
+
     /* --------------------------------------------------------------------- */
 
     _store_t::sync_id_value_t NodeStore::registerChange(
@@ -1731,7 +1537,6 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::ptr_stored_node_info_t&& ptr_node_info )
     {
-        using index_t = _store_t::node_index_t;
         using node_id_t = _store_t::node_id_t;
         using arch_id_t = _store_t::arch_id_t;
         using platform_id_t = _store_t::platform_id_t;
@@ -1742,13 +1547,14 @@ namespace SIXTRL_CXX_NAMESPACE
             ( ptr_node_info.get() != nullptr ) &&
             ( ( ptr_node_info->ptrNodeStore() == nullptr ) ||
               ( ptr_node_info->ptrNodeStore() == this ) ) &&
-            ( ptr_node_info->archId() != node_id_t::ARCH_ILLEGAL ) &&
-            ( ptr_node_info->deviceId() == node_id_t::ILLEGAL_DEVICE_ID ) )
+            ( ptr_node_info->archId( lock ) != node_id_t::ARCH_ILLEGAL ) &&
+            ( ptr_node_info->platformId( lock ) !=
+                node_id_t::ILLEGAL_PLATFORM_ID ) &&
+            ( ptr_node_info->deviceId( lock ) ==
+                node_id_t::ILLEGAL_DEVICE_ID ) )
         {
-            bool is_existing_platform = false;
             arch_id_t const arch_id = ptr_node_info->archId();
-            platform_id_t platform_id = ptr_node_info->platformId();
-            bool const has_platform_name = ptr_node_info->hasPlatformName();
+            platform_id_t const platform_id = ptr_node_info->platformId();
             device_id_t device_id = node_id_t::ILLEGAL_DEVICE_ID;
 
             _store_t::status_t status =
@@ -1756,64 +1562,53 @@ namespace SIXTRL_CXX_NAMESPACE
                     ? this->doAddArchitecture( lock, arch_id )
                     : st::ARCH_STATUS_SUCCESS;
 
-            if( st::ARCH_STATUS_SUCCESS == status )
+            if( ( st::ARCH_STATUS_SUCCESS == status ) &&
+                ( !this->hasPlatform( lock, arch_id, platform_id ) ) )
             {
-                SIXTRL_ASSERT( this->hasArchitecture( lock, arch_id ) );
-
-                if( ( platform_id == _store_t::ILLEGAL_PLATFORM_ID ) &&
-                    ( has_platform_name ) )
-                {
-                    platform_id = this->platformIdByName(
-                        lock, arch_id, ptr_node_info->platformName() );
-
-                    if( platform_id != _store_t::ILLEGAL_PLATFORM_ID )
-                    {
-                        is_existing_platform = true;
-                    }
-                }
-
-                if( platform_id == _store_t::ILLEGAL_PLATFORM_ID )
-                {
-                    platform_id = this->doGetNextPlatformId( lock, arch_id );
-                    status = this->doAddPlatform( lock, arch_id, platform_id );
-                }
+                status = this->doAddPlatform( lock, arch_id, platform_id );
             }
 
-            if( ( st::ARCH_STATUS_SUCCESS == status ) &&
-                ( this->hasPlatform( lock, arch_id, platform_id ) ) )
+            if( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( !this->hasPlatform( lock, arch_id, platform_id ) ) )
             {
-                device_id = this->doGetNextDeviceId(
-                    lock, arch_id, platform_id );
-
-                if( device_id != _store_t::ILLEGAL_DEVICE_ID )
+                if( status == st::ARCH_STATUS_SUCCESS )
                 {
                     status = st::ARCH_STATUS_GENERAL_FAILURE;
                 }
+
+                return status;
             }
 
-            if(  st::ARCH_STATUS_SUCCESS == status )
+            SIXTRL_ASSERT( st::ARCH_STATUS_SUCCESS == status );
+            SIXTRL_ASSERT( this->hasPlatform( lock, arch_id, platform_id ) );
+
+            device_id = this->doGetNextDeviceId( lock, arch_id, platform_id );
+
+            if( ( platform_id != _store_t::ILLEGAL_PLATFORM_ID ) &&
+                ( device_id   != _store_t::ILLEGAL_DEVICE_ID   ) )
             {
-                if( ( platform_id != _store_t::ILLEGAL_PLATFORM_ID ) &&
-                    ( device_id != _store_t::ILLEGAL_DEVICE_ID ) )
-                {
-                    SIXTRL_ASSERT(
-                        ( platform_id == ptr_node_info->platformId() ) ||
-                        ( ptr_node_info->platformId() ==
-                            _store_t::ILLEGAL_PLATFORM_ID ) );
+                SIXTRL_ASSERT(
+                    ( platform_id == ptr_node_info->platformId() ) ||
+                    ( ptr_node_info->platformId() ==
+                        _store_t::ILLEGAL_PLATFORM_ID ) );
 
-                    status = ptr_node_info->setDeviceId( device_id );
-
-                    if( platform_id != ptr_node_info->platformId() )
-                    {
-                        status |= ptr_node_info->setPlatformId( platform_id );
-                    }
-                }
+                status = ptr_node_info->setDeviceId( device_id );
 
                 if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                    ( !ptr_node_info->nodeId().valid() ) )
+                    ( platform_id != ptr_node_info->platformId() ) )
                 {
-                    status = st::ARCH_STATUS_GENERAL_FAILURE;
+                    status = ptr_node_info->setPlatformId( platform_id );
                 }
+            }
+
+            if( status != st::ARCH_STATUS_SUCCESS )
+            {
+                return status;
+            }
+
+            if( !ptr_node_info->nodeId().valid() )
+            {
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
             }
 
             if( st::ARCH_STATUS_SUCCESS == status )
@@ -1822,14 +1617,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 status = this->doPrepareNewNodeIndex( lock,
                     ptr_node_info->nodeId(), index );
-
-                if( ( st::ARCH_STATUS_SUCCESS== status ) &&
-                    ( platform_id != _store_t::ILLEGAL_PLATFORM_ID ) &&
-                    ( !is_existing_platform ) && ( has_platform_name ) )
-                {
-                    status = this->addPlatformNameMapping( lock, arch_id,
-                        platform_id, ptr_node_info->platformName() );
-                }
 
                 if( ( status == st::ARCH_STATUS_SUCCESS ) &&
                     ( ptr_node_info->ptrNodeStore() == nullptr ) )
@@ -1855,44 +1642,17 @@ namespace SIXTRL_CXX_NAMESPACE
         }
         else if( ( this->checkLock( lock ) ) &&
             ( ptr_node_info.get() != nullptr ) &&
-            ( ptr_node_info->nodeId().valid() ) )
+            ( ptr_node_info->ptrNodeStore() == this ) &&
+            ( ptr_node_info->nodeIndex( lock ) != _store_t::UNDEFINED_INDEX ) &&
+            ( ptr_node_info->nodeId( lock ).valid() ) )
         {
-            arch_id_t const arch_id = ptr_node_info->archId();
-            SIXTRL_ASSERT( arch_id == ptr_node_info->archId() );
-
-            index_t current_index = this->findNodeIndex(
-                ptr_node_info->nodeId() );
-
-            status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-            if( current_index != node_id_t::UNDEFINED_INDEX )
+            if( ( st::Map_has_key( this->m_node_id_to_node_index,
+                    ptr_node_info->nodeId( lock ) ) ) &&
+                ( st::Map_has_value_for_key( this->m_node_id_to_node_index,
+                    ptr_node_info->nodeId( lock ),
+                    ptr_node_info->nodeIndex( lock ) ) ) )
             {
-                status = st::ARCH_STATUS_SUCCESS;
-
-                if( ptr_node_info->hasPlatformName() )
-                {
-                    auto it = this->m_arch_platform_to_platform_name.find(
-                        std::make_pair( ptr_node_info->archId(),
-                            ptr_node_info->platformId() ) );
-
-                    if( it != this->m_arch_platform_to_platform_name.end() )
-                    {
-                        if( 0 != ptr_node_info->platformName().compare(
-                                it->second ) )
-                        {
-                            status = this->addPlatformNameMapping(
-                                lock, ptr_node_info->archId(),
-                                    ptr_node_info->platformId(),
-                                        ptr_node_info->platformName() );
-                        }
-                    }
-                }
-            }
-
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( current_index != NodeStore::UNDEFINED_INDEX ) )
-            {
-                index = current_index;
+                index = ptr_node_info->nodeIndex( lock );
             }
         }
 
@@ -1903,7 +1663,6 @@ namespace SIXTRL_CXX_NAMESPACE
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _store_t::node_index_t const idx )
     {
-        using nset_id_t = _store_t::node_set_id_t;
         using nidx_nset_map_t = _store_t::node_index_to_node_set_ids_t;
 
         _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
@@ -2091,46 +1850,44 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        auto ptr_node = this->ptrNodeInfoBase( lock, index );
+        auto ptr_set = this->ptrNodeSetBase( lock, node_set_id );
 
-        if( ( ptr_node != nullptr ) &&
-            ( this->hasNodeSet( lock, node_set_id ) ) &&
+        if( ( ptr_set != nullptr ) && ( ptr_set->ptrNodeStore() == this ) &&
+            ( this->isNodeAvailable( lock, index ) ) &&
             ( this->isNodeAttachedToSet( lock, index, node_set_id ) ) &&
-            ( !this->isNodeSelectedBySet( lock, index, node_set_id ) ) &&
-            ( ptr_node->maxSelectionCount() < st::Map_ordered_vec_size(
-                this->m_node_idx_to_sel_set_ids, index ) ) )
+            ( !this->isNodeDefaultForSet( lock, index, node_set_id ) ) )
         {
             SIXTRL_ASSERT( index != _store_t::UNDEFINED_INDEX );
             SIXTRL_ASSERT( node_set_id != _store_t::ILLEGAL_NODE_SET_ID );
             SIXTRL_ASSERT( this->checkLock( lock ) );
-            SIXTRL_ASSERT( this->isNodeAvailable( lock, index ) );
+            SIXTRL_ASSERT( this->hasNodeSet( lock, node_set_id ) );
 
             SIXTRL_ASSERT(  st::Map_has_key(
-                this->m_node_idx_to_sel_set_ids, index ) );
+                this->m_node_idx_to_def_set_ids, index ) );
 
             SIXTRL_ASSERT( !st::Map_ordered_vec_has_value(
-                this->m_node_idx_to_sel_set_ids, index, node_set_id ) );
+                this->m_node_idx_to_def_set_ids, index, node_set_id ) );
 
             SIXTRL_ASSERT(  st::Map_has_key(
-                this->m_node_set_to_sel_node_idxs, node_set_id ) );
+                this->m_node_set_to_def_node_idxs, node_set_id ) );
 
             SIXTRL_ASSERT( !st::Map_ordered_vec_has_value(
-                this->m_node_set_to_sel_node_idxs, node_set_id, index ) );
+                this->m_node_set_to_def_node_idxs, node_set_id, index ) );
 
             status = st::Map_ordered_vec_insert_value(
-                this->m_node_idx_to_sel_set_ids, index, node_set_id );
+                this->m_node_idx_to_def_set_ids, index, node_set_id );
 
             if( status == st::ARCH_STATUS_SUCCESS )
             {
                 status = st::Map_ordered_vec_insert_value(
-                    this->m_node_set_to_sel_node_idxs, node_set_id, index );
+                    this->m_node_set_to_def_node_idxs, node_set_id, index );
             }
 
             this->registerChange( lock );
         }
 
         SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
-            ( this->isNodeSelectedBySet( lock, index, node_set_id ) ) );
+            ( this->isNodeDefaultForSet( lock, index, node_set_id ) ) );
 
         return status;
     }
@@ -2142,35 +1899,99 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        auto ptr_set  = this->ptrNodeSetBase( lock, node_set_id );
-        auto ptr_node = this->ptrNodeInfoBase( lock, node_index );
-
-        if( ( ptr_node != nullptr ) && ( ptr_set != nullptr ) &&
-            ( this->m_node_idx_to_set_ids.find( node_index ) !=
-              this->m_node_idx_to_set_ids.end() ) )
+        if( this->isNodeDefaultForSet( lock, node_index, node_set_id ) )
         {
             SIXTRL_ASSERT( this->checkLock( lock ) );
-            SIXTRL_ASSERT( node_index  != _store_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( node_index != _store_t::UNDEFINED_INDEX );
             SIXTRL_ASSERT( node_set_id != _store_t::ILLEGAL_NODE_SET_ID );
+            SIXTRL_ASSERT( this->isNodeAvailable( lock, node_index ) );
+            SIXTRL_ASSERT( this->hasNodeSet( lock, node_set_id ) );
+            SIXTRL_ASSERT( this->isNodeAttachedToSet(
+                lock, node_index, node_set_id ) );
 
-            _store_t::node_index_to_node_set_ids_t::iterator it =
-                this->m_node_idx_to_def_set_ids.find( node_index );
+            SIXTRL_ASSERT( st::Map_has_key(
+                this->m_node_idx_to_set_ids, node_index ) );
 
-            if( (  it != this->m_node_idx_to_def_set_ids.end() ) &&
-                ( !it->second.empty() ) )
+            SIXTRL_ASSERT( st::Map_has_key(
+                this->m_node_idx_to_def_set_ids, node_index ) );
+
+            SIXTRL_ASSERT( st::Map_ordered_vec_has_value(
+                this->m_node_idx_to_def_set_ids, node_index, node_set_id ) );
+
+            SIXTRL_ASSERT( st::Map_has_key(
+                this->m_node_set_to_node_idxs, node_set_id ) );
+
+            SIXTRL_ASSERT( st::Map_has_key(
+                this->m_node_set_to_def_node_idxs, node_set_id ) );
+
+            SIXTRL_ASSERT( st::Map_ordered_vec_has_value(
+                m_node_set_to_def_node_idxs, node_set_id, node_index ) );
+
+            status = st::Map_remove_value_from_ordered_vec(
+                this->m_node_set_to_def_node_idxs, node_set_id, node_index );
+
+            if( status == st::ARCH_STATUS_SUCCESS )
             {
-                SIXTRL_ASSERT( std::is_sorted(
-                    it->second.begin(), it->second.end() ) );
+                status = st::Map_remove_value_from_ordered_vec(
+                    this->m_node_idx_to_def_set_ids, node_index, node_set_id );
+            }
 
-                auto temp_it = std::lower_bound( it->second.begin(),
-                    it->second.end(), node_set_id );
+            this->registerChange( lock );
+        }
 
-                if( temp_it != it->second.end() )
+        return status;
+    }
+
+    _store_t::status_t NodeStore::doUpdateNodeIdToIndexMap(
+        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _store_t::node_id_t const& SIXTRL_RESTRICT_REF current_node_id,
+        _store_t::node_index_t const node_index,
+        _store_t::node_id_t const& SIXTRL_RESTRICT_REF new_node_id )
+    {
+        _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        auto ptr_node = this->ptrNodeInfoBase( lock, node_index );
+
+        if( ( new_node_id.valid() ) &&
+            ( ptr_node != nullptr ) && ( ptr_node->ptrNodeStore() == this ) &&
+            ( ( ptr_node->nodeIndex( lock ) == node_index ) ||
+              ( ptr_node->nodeIndex( lock ) == _store_t::UNDEFINED_INDEX ) ) &&
+            ( st::Map_has_key( this->m_node_id_to_node_index,
+                       ptr_node->nodeId( lock ) ) ) &&
+            ( st::Map_has_value_for_key( this->m_node_id_to_node_index,
+                ptr_node->nodeId( lock ), node_index ) ) )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( this->isNodeAvailable( lock, node_index ) );
+
+            status = st::ARCH_STATUS_SUCCESS;
+
+            if( new_node_id != current_node_id )
+            {
+                status = ( !st::Map_has_key( this->m_node_id_to_node_index,
+                             new_node_id ) )
+                    ? st::ARCH_STATUS_SUCCESS : st::ARCH_STATUS_GENERAL_FAILURE;
+
+                if( status == st::ARCH_STATUS_SUCCESS )
                 {
-                    it->second.erase( temp_it );
-                    status = st::ARCH_STATUS_SUCCESS;
+                   this->m_node_id_to_node_index.erase( current_node_id );
+
+                   auto res = this->m_node_id_to_node_index.emplace(
+                       std::make_pair( new_node_id, node_index ) );
+
+                   if( !res.second )
+                   {
+                       status = st::ARCH_STATUS_GENERAL_FAILURE;
+                   }
                 }
             }
+
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( ( st::Map_has_key( this->m_node_id_to_node_index,
+                         new_node_id ) ) &&
+                  ( st::Map_has_value_for_key( this->m_node_id_to_node_index,
+                         new_node_id, node_index ) ) ) );
+
         }
 
         return status;
@@ -2207,20 +2028,21 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             SIXTRL_ASSERT( this->checkLock( lock ) );
             SIXTRL_ASSERT( arch_id != _store_t::ARCH_ILLEGAL );
+            SIXTRL_ASSERT( st::Map_has_key(
+                this->m_arch_to_platforms, arch_id ) );
+
+            SIXTRL_ASSERT( !st::Map_ordered_vec_has_value(
+                this->m_arch_to_platforms, arch_id,
+                    _store_t::ILLEGAL_PLATFORM_ID ) );
 
             auto it = this->m_arch_to_platforms.find( arch_id );
-            if( it != this->m_arch_to_platforms.end() )
-            {
-                SIXTRL_ASSERT( std::is_sorted( it->second.begin(),
-                    it->second.end() ) );
+            SIXTRL_ASSERT( it != this->m_arch_to_platforms.end() );
 
-                SIXTRL_ASSERT( !std::binary_search( it->second.begin(),
-                    it->second.end(), _store_t::ILLEGAL_PLATFORM_ID ) );
+            platform_id = ( it->second.empty() ) ? _store_t::platform_id_t{ 0 }
+                : it->second.back() + _store_t::platform_id_t{ 1 };
 
-                platform_id = ( it->second.empty() )
-                    ? _store_t::platform_id_t{ 0 }
-                    : it->second.back() + _store_t::platform_id_t{ 1 };
-            }
+            SIXTRL_ASSERT( !st::Map_ordered_vec_has_value(
+                this->m_arch_to_platforms, arch_id, platform_id ) );
         }
 
         return platform_id;
@@ -2233,51 +2055,26 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( ( arch_id != _store_t::ARCH_ILLEGAL ) &&
-            ( platform_id != _store_t::ILLEGAL_PLATFORM_ID ) &&
-            ( this->checkLock( lock ) ) )
+        auto const arch_platform_pair = std::make_pair( arch_id, platform_id );
+
+        if( ( platform_id != _store_t::ILLEGAL_PLATFORM_ID ) &&
+            ( this->hasArchitecture( lock, arch_id ) ) &&
+            ( !st::Map_ordered_vec_has_value( this->m_arch_to_platforms,
+                arch_id, platform_id ) ) &&
+            ( !st::Map_has_key( this->m_arch_platform_to_devices,
+                    arch_platform_pair ) ) )
         {
-            auto arch_it = this->m_arch_to_platforms.find( arch_id );
+            status = st::Map_ordered_vec_insert_value(
+                this->m_arch_to_platforms, arch_id, platform_id );
 
-            if( arch_it == this->m_arch_to_platforms.end() )
+            if( status == st::ARCH_STATUS_SUCCESS )
             {
-                return status;
+                auto res = this->m_arch_platform_to_devices.emplace(
+                    std::make_pair( arch_platform_pair,
+                        _store_t::devices_list_t{} ) );
+
+                if( !res.second ) status = st::ARCH_STATUS_GENERAL_FAILURE;
             }
-
-            SIXTRL_ASSERT( std::is_sorted( arch_it->second.begin(),
-                arch_it->second.end() ) );
-
-            if( std::binary_search( arch_it->second.begin(),
-                arch_it->second.end(), platform_id ) )
-            {
-                return status;
-            }
-
-            auto const arch_platform_pair =
-                std::make_pair( arch_id, platform_id );
-
-            SIXTRL_ASSERT( this->m_arch_platform_to_devices.end() ==
-                this->m_arch_platform_to_devices.find( arch_platform_pair ) );
-
-            SIXTRL_ASSERT( !std::binary_search( arch_it.second.begin(),
-                arch_it->second.end(), _store_t::ILLEGAL_PLATFORM_ID ) );
-
-            _store_t::platform_id_t const prev_back =
-                ( !arch_it->second.empty() )
-                    ? arch_it->second.back() : _store_t::platform_id_t{ 0 };
-
-            arch_it->second.push_back( platform_id );
-
-            if( prev_back > platform_id )
-            {
-                std::sort( arch_it->second.begin(), arch_it->second.end() );
-            }
-
-            auto res = this->m_arch_platform_to_devices.emplace(
-                std::make_pair( arch_platform_pair,
-                    _store_t::devices_list_t{} ) );
-
-            if( res.second ) status = st::ARCH_STATUS_SUCCESS;
         }
 
         return status;
@@ -2305,7 +2102,7 @@ namespace SIXTRL_CXX_NAMESPACE
                     it->second.begin(), it->second.end() ) );
 
                 SIXTRL_ASSERT( !std::binary_search( it->second.begin(),
-                    it->second.end(), _store_t::ILLEGAL_DEVICE_ID ) ) );
+                    it->second.end(), _store_t::ILLEGAL_DEVICE_ID ) );
 
                 device_id = ( it->second.empty() ) ? _store_t::device_id_t{ 0 }
                     : ( it->second.back() + _store_t::device_id_t{ 1 } );
@@ -2320,91 +2117,51 @@ namespace SIXTRL_CXX_NAMESPACE
         _store_t::node_id_t const& SIXTRL_RESTRICT_REF node_id,
         _store_t::node_index_t const node_index )
     {
+        using nidx_nset_map_t = _store_t::node_index_to_node_set_ids_t;
+        using nidxs_list_t    = _store_t::node_indices_list_t;
         _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( ( node_id.valid() ) && ( index != _store_t::UNDEFINED_INDEX ) &&
-            ( this->hasPlatform( lock, node_id.archId(),
-                node_id.platformId() ) ) )
+        auto const arch_plfm_pair = std::make_pair(
+            node_id.archId(), node_id.platformId() );
+
+        nidx_nset_map_t& nidx_to_nsets  = this->m_node_idx_to_set_ids;
+        nidx_nset_map_t& nidx_to_sel_nsets = this->m_node_idx_to_sel_set_ids;
+        nidx_nset_map_t& nidx_to_def_nsets = this->m_node_idx_to_def_set_ids;
+
+        if( ( node_id.valid() ) && ( node_index != _store_t::UNDEFINED_INDEX ) &&
+            ( this->hasArchitecture( lock, node_id.archId() ) ) &&
+            ( !st::Map_has_key( nidx_to_nsets, node_index ) ) &&
+            ( !st::Map_has_key( nidx_to_sel_nsets, node_index ) ) &&
+            ( !st::Map_has_key( nidx_to_def_nsets, node_index ) ) &&
+            ( !st::Map_has_key( this->m_node_id_to_node_index, node_id ) ) &&
+            (  st::Map_has_key( this->m_arch_platform_to_devices, arch_plfm_pair ) ) )
         {
-            auto arch_platform_pair = std::make_pair(
-                node_id.archId(), node_id.platformId() );
+            SIXTRL_ASSERT( this->checkLock( lock ) );
 
-            SIXTRL_ASSERT( this->m_node_id_to_node_index.find( node_id ) ==
-                           this->m_node_id_to_node_index.end() );
+            _store_t::device_id_t const device_id = node_id.deviceId();
+            SIXTRL_ASSERT( device_id != _store_t::ILLEGAL_DEVICE_ID );
 
-            SIXTRL_ASSERT( this->m_arch_platform_to_devices.end() ==
-                this->m_arch_platform_to_devices.find( arch_platform_pair ) );
-
-            SIXTRL_ASSERT( this->m_node_idx_to_set_ids.end() ==
-                this->m_node_idx_to_set_ids.find( node_index ) );
-
-            SIXTRL_ASSERT( this->m_node_idx_to_sel_set_ids.end() ==
-                this->m_node_idx_to_sel_set_ids.find( node_index ) );
-
-            SIXTRL_ASSERT( this->m_node_idx_to_def_set_ids.end() ==
-                this->m_node_idx_to_def_set_ids.find( node_index ) );
-
-            auto arch_platform_it = this->m_arch_platform_to_devices.find(
-                arch_platform_pair );
-
-            if( arch_platform_it == this->m_arch_platform_to_devices.end() )
-            {
-                auto res = this->m_arch_platform_to_devices.emplace(
-                    std::make_pair( arch_platform_pair,
-                        _store_t::devices_list_t{ node_id.deviceId() } ) );
-
-                if( res.second ) status = st::ARCH_STATUS_SUCCESS;
-            }
-            else
-            {
-                SIXTRL_ASSERT( std::is_sorted( arch_platform_it->second.begin(),
-                    arch_platform_it->second.end() ) );
-
-                if( !std::binary_search( arch_platform_it->second.begin(),
-                        arch_platform_it->second.begin(), device_id ) )
-                {
-                    SIXTRL_ASSERT( !std::binary_search(
-                        arch_platform_it->second.begin(),
-                        arch_platform_it->second.end(),
-                        _this_t::ILLEGAL_DEVICE_ID ) );
-
-                    _store_t::device_id_t const prev_back =
-                        ( !arch_platform_it->second.empty() )
-                            ? arch_platform_it->second.back()
-                            : _store_t_device_id_t{ 0 };
-
-                    arch_platform_it->second.push_back( device_id );
-
-                    if( prev_back > device_id )
-                    {
-                        std::sort( arch_platform_it->second.begin(),
-                                   arch_platform_it->second.end() );
-                    }
-
-                    status = st::ARCH_STATUS_SUCCESS;
-                }
-            }
+            status = st::Map_ordered_vec_insert_value(
+                this->m_arch_platform_to_devices, arch_plfm_pair, device_id );
 
             if( status == st::ARCH_STATUS_SUCCESS )
             {
-                status = st::ARCH_STATUS_GENERAL_FAILURE;
-
                 auto res1 = this->m_node_idx_to_set_ids.emplace(
-                std::make_pair( node_index, _store_t::node_indices_list_t{} ) );
+                    std::make_pair( node_index, nidxs_list_t{} ) );
 
                 auto res2 = this->m_node_idx_to_sel_set_ids.emplace(
-                std::make_pair( node_index, _store_t::node_indices_list_t{} ) );
+                    std::make_pair( node_index, nidxs_list_t{} ) );
 
                 auto res3 = this->m_node_idx_to_def_set_ids.emplace(
-                std::make_pair( node_index, _store_t::node_indices_list_t{} ) );
+                    std::make_pair( node_index, nidxs_list_t{} ) );
 
                 auto res4 = this->m_node_id_to_node_index.insert(
                     std::make_pair( node_id, node_index ) );
 
-                if( ( res1.second ) && ( res2.second ) && ( res3.second ) &&
-                    ( res4.second ) )
+                if( ( !res1.second ) || ( !res2.second ) ||
+                    ( !res3.second ) || ( !res4.second ) )
                 {
-                    status = st::ARCH_STATUS_SUCCESS;
+                    status = st::ARCH_STATUS_GENERAL_FAILURE;
                 }
             }
         }
@@ -2416,14 +2173,20 @@ namespace SIXTRL_CXX_NAMESPACE
 
     void NodeStore::doClearWithoutLocking() SIXTRL_NOEXCEPT
     {
-        this->m_stored_node_infos.clear();
-        this->m_stored_node_sets.clear();
-
         this->m_arch_to_platforms.clear();
+
         this->m_node_idx_to_set_ids.clear();
         this->m_node_idx_to_sel_set_ids.clear();
         this->m_node_idx_to_def_set_ids.clear();
+
+        this->m_node_set_to_node_idxs.clear();
+        this->m_node_set_to_sel_node_idxs.clear();
+        this->m_node_set_to_def_node_idxs.clear();
+
         this->m_node_id_to_node_index.clear();
+
+        this->m_stored_node_infos.clear();
+        this->m_stored_node_sets.clear();
 
         this->m_num_node_infos = _store_t::size_type{ 0 };
         this->m_num_node_sets  = _store_t::size_type{ 0 };
