@@ -53,8 +53,11 @@ TEST( CXX_CommonControlNodeStoreTests, NodeStoreCreateAddNodeInfoDestroy )
     ASSERT_TRUE( store.numNodes( arch_id ) == size_t{ 0 } );
     ASSERT_TRUE( store.numNodeSets() == size_t{ 0 } );
 
+<<<<<<< HEAD
     /* Create first node with non-set platform_id and device_id: */
 
+=======
+>>>>>>> origin/cuda_dev
     std::unique_ptr< node_info_t > ptr_node( new node_info_t( arch_id ) );
     node_info_t const* ptr_cmp_node = ptr_node.get();
 
@@ -72,8 +75,11 @@ TEST( CXX_CommonControlNodeStoreTests, NodeStoreCreateAddNodeInfoDestroy )
     SIXTRL_ASSERT( ptr_node->deviceName().compare( "device00" ) == 0 );
     SIXTRL_ASSERT( ptr_node->description().compare( "descr 00" ) == 0 );
 
+<<<<<<< HEAD
     /* add first node info to the store: */
 
+=======
+>>>>>>> origin/cuda_dev
     node_index_t const node_100_idx = store.addNode( std::move( ptr_node ) );
 
     ASSERT_TRUE( node_100_idx != store_t::UNDEFINED_INDEX );
@@ -111,10 +117,15 @@ TEST( CXX_CommonControlNodeStoreTests, NodeStoreCreateAddNodeInfoDestroy )
     ASSERT_TRUE( store.numNodes( arch_id ) == size_t{ 1 } );
     ASSERT_TRUE( store.numNodes( arch_id, platform_id_t{ 0 } ) == size_t{ 1 } );
 
+<<<<<<< HEAD
     /* create a second node_info to the exisiting platform: */
 
     ptr_node.reset( new node_info_t( arch_id, "platform0", "device01",
          "descr 01", platform_id_t{ 0 }, store_t::ILLEGAL_DEVICE_ID ) );
+=======
+    ptr_node.reset( new node_info_t( arch_id, "platform0", "device01",
+         "descr 01", platform_id_t{ 0 }, _store_t::ILLEGAL_DEVICE_ID ) );
+>>>>>>> origin/cuda_dev
 
     SIXTRL_ASSERT( ptr_node.get() != nullptr );
     ptr_cmp_node = ptr_node.get();
@@ -127,8 +138,11 @@ TEST( CXX_CommonControlNodeStoreTests, NodeStoreCreateAddNodeInfoDestroy )
     SIXTRL_ASSERT( ptr_node->deviceName().compare( "device01" ) == 0 );
     SIXTRL_ASSERT( ptr_node->description().compare( "descr 11" ) == 0 );
 
+<<<<<<< HEAD
     /* add second node to the store */
 
+=======
+>>>>>>> origin/cuda_dev
     node_index_t const node_101_idx = store.addNode( std::move( ptr_node ) );
 
     ASSERT_TRUE( node_101_idx != store_t::UNDEFINED_INDEX );
