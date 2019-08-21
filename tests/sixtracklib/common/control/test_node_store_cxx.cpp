@@ -245,19 +245,20 @@ TEST( CXX_CommonControlNodeStoreTests, NodeStoreCreateAddNodeInfoDestroy )
 
     /* try to add the same node again, expect to get the same node_index */
 
-    ptr_node.reset( new node_info_t( arch_id, "platform1", "device10",
-         "descr 10", platform_id_t{ 1 }, device_id_t{ 0 }, &store ) );
+    ptr_node.reset( new node_info_t( arch_id, "platform1", "device10 updated",
+         "descr 10 updated", platform_id_t{ 1 }, device_id_t{ 0 }, &store ) );
 
     SIXTRL_ASSERT( ptr_node.get() != nullptr );
     ptr_cmp_node = ptr_node.get();
 
+    SIXTRL_ASSERT( ptr_cmp_node != store.ptrNodeInfoBase( node_110_idx ) );
     SIXTRL_ASSERT( ptr_node->archId() == arch_id );
     SIXTRL_ASSERT( ptr_node->platformId() == platform_id_t{ 1 } );
     SIXTRL_ASSERT( ptr_node->deviceId() == device_id_t{ 0 } );
     SIXTRL_ASSERT( ptr_node->hasPlatformName() );
     SIXTRL_ASSERT( ptr_node->platformName().compare( "platform1" ) == 0 );
-    SIXTRL_ASSERT( ptr_node->deviceName().compare( "device10" ) == 0 );
-    SIXTRL_ASSERT( ptr_node->description().compare( "descr 10" ) == 0 );
+    SIXTRL_ASSERT( ptr_node->deviceName().compare( "device10 updated" ) == 0 );
+    SIXTRL_ASSERT( ptr_node->description().compare( "descr 10 updated" ) == 0 );
 
     node_index_t const node_110_idx_duplicate =
         store.addNode( std::move( ptr_node ) );
@@ -266,13 +267,46 @@ TEST( CXX_CommonControlNodeStoreTests, NodeStoreCreateAddNodeInfoDestroy )
     ASSERT_TRUE( node_110_idx_duplicate == node_110_idx );
     ASSERT_TRUE( store.hasArchitecture( arch_id ) );
     ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx ) != nullptr );
-    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx ) != ptr_cmp_node );
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx ) == ptr_cmp_node );
 
     ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->ptrNodeStore() ==
                  &store );
 
     ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->nodeIndex() ==
                  node_110_idx );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx ) != nullptr );
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx ) == ptr_cmp_node );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->ptrNodeStore() ==
+                 &store );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->nodeIndex() ==
+                 node_110_idx );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->platformId() !=
+                 store_t::ILLEGAL_PLATFORM_ID );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->deviceId() !=
+                 store_t::ILLEGAL_DEVICE_ID );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->platformId() ==
+                 platform_id_t{ 1 } );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->deviceId() ==
+                 device_id_t{ 0 } );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->hasPlatformName() );
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->platformName().compare(
+                 "platform1" ) == 0 );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->hasDeviceName() );
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->deviceName().compare(
+                 "device10 updated" ) == 0 );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->hasDescription() );
+    ASSERT_TRUE( store.ptrNodeInfoBase( node_110_idx )->description().compare(
+                 "descr 10 updated" ) == 0 );
 
     ASSERT_TRUE( store.hasPlatform( arch_id, platform_id_t{ 1 } ) );
     ASSERT_TRUE( store.totalNumNodes() == size_t{ 3 } );
@@ -687,19 +721,20 @@ TEST( CXX_CommonControlNodeStoreTests,
 
     /* try to add the same node again, expect to get the same node_index */
 
-    ptr_node.reset( new node_info_t( arch_id, "platform1", "device10",
-         "descr 10", platform_id_t{ 1 }, device_id_t{ 0 }, &store ) );
+    ptr_node.reset( new node_info_t( arch_id, "platform1", "device10 updated",
+         "descr 10 updated", platform_id_t{ 1 }, device_id_t{ 0 }, &store ) );
 
     SIXTRL_ASSERT( ptr_node.get() != nullptr );
     ptr_cmp_node = ptr_node.get();
 
+    ASSERT_TRUE( ptr_cmp_node != store.ptrNodeInfoBase( lock, node_110_idx ) );
     SIXTRL_ASSERT( ptr_node->archId( lock ) == arch_id );
     SIXTRL_ASSERT( ptr_node->platformId( lock ) == platform_id_t{ 1 } );
     SIXTRL_ASSERT( ptr_node->deviceId( lock ) == device_id_t{ 0 } );
     SIXTRL_ASSERT( ptr_node->hasPlatformName() );
     SIXTRL_ASSERT( ptr_node->platformName().compare( "platform1" ) == 0 );
-    SIXTRL_ASSERT( ptr_node->deviceName().compare( "device10" ) == 0 );
-    SIXTRL_ASSERT( ptr_node->description().compare( "descr 10" ) == 0 );
+    SIXTRL_ASSERT( ptr_node->deviceName().compare( "device10 updated" ) == 0 );
+    SIXTRL_ASSERT( ptr_node->description().compare( "descr 10 updated" ) == 0 );
 
     node_index_t const node_110_idx_duplicate = store.addNode(
         lock, std::move( ptr_node ) );
@@ -708,13 +743,43 @@ TEST( CXX_CommonControlNodeStoreTests,
     ASSERT_TRUE( node_110_idx_duplicate == node_110_idx );
     ASSERT_TRUE( store.hasArchitecture( lock, arch_id ) );
     ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx ) != nullptr );
-    ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx ) != ptr_cmp_node );
+    ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx ) == ptr_cmp_node );
 
     ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx )->ptrNodeStore() ==
                  &store );
 
     ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx )->nodeIndex(
             lock ) == node_110_idx );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx )->platformId(
+            lock ) != store_t::ILLEGAL_PLATFORM_ID );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx )->deviceId(
+            lock ) != store_t::ILLEGAL_DEVICE_ID );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx )->platformId(
+            lock ) == platform_id_t{ 1 } );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx )->deviceId(
+            lock ) == device_id_t{ 0 } );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase(
+        lock, node_110_idx )->hasPlatformName() );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase(
+        lock, node_110_idx )->platformName().compare( "platform1" ) == 0 );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx )->hasDeviceName() );
+    ASSERT_TRUE( store.ptrNodeInfoBase(
+        lock, node_110_idx )->deviceName().compare( "device10 updated" ) == 0 );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase(
+        lock, node_110_idx )->hasDescription() );
+
+    ASSERT_TRUE( store.ptrNodeInfoBase( lock, node_110_idx
+        )->description().compare( "descr 10 updated" ) == 0 );
+
+
 
     ASSERT_TRUE( store.hasPlatform( lock, arch_id, platform_id_t{ 1 } ) );
     ASSERT_TRUE( store.totalNumNodes( lock ) == size_t{ 3 } );
