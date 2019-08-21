@@ -1199,7 +1199,10 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
         SIXTRL_ASSERT( this->checkLock( lock ) );
-        return this->m_stored_node_infos.size();
+        SIXTRL_ASSERT( this->m_num_node_infos <=
+                       this->m_stored_node_infos.size() );
+
+        return this->m_num_node_infos;
     }
 
     SIXTRL_INLINE NodeStore::node_index_t NodeStore::minAttachedNodeIndex(
@@ -1865,8 +1868,8 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE NodeStore::status_t NodeStore::removeNode(
         NodeStore::node_index_t const node_index )
     {
-        NodeStore::lock_t const lock( *this->lockable() );
-        return this->doRemoveNode( lock, node_index );
+        SIXTRL_CXX_NAMESPACE::NodeStore::lock_t const lock( *this->lockable() );
+        return this->removeNode( lock, node_index );
     }
 
     SIXTRL_INLINE NodeStore::status_t NodeStore::attachNodeToSet(
@@ -1988,14 +1991,42 @@ namespace SIXTRL_CXX_NAMESPACE
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::ptr_stored_node_info_t&& ptr_stored_node_info )
     {
-        return this->doAddNode( lock, std::move( ptr_stored_node_info ) );
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeStore;
+
+        _this_t::node_index_t const expected_node_index = static_cast<
+            _this_t::node_index_t  >( this->m_stored_node_infos.size() );
+
+        _this_t::node_index_t const node_index = this->doAddNode(
+            lock, std::move( ptr_stored_node_info ) );
+
+        if( ( node_index != _this_t::UNDEFINED_INDEX ) &&
+            ( node_index == expected_node_index ) )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            ++this->m_num_node_infos;
+        }
+
+        return node_index;
     }
 
     SIXTRL_INLINE NodeStore::status_t NodeStore::removeNode(
         NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
         NodeStore::node_index_t const node_index )
     {
-        return this->doRemoveNode( lock, node_index );
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeStore;
+
+        _this_t::status_t status = this->doRemoveNode( lock, node_index );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( this->m_num_node_infos > _this_t::size_type{ 0 } );
+            --this->m_num_node_infos;
+        }
+
+        return status;
     }
 
     /* --------------------------------------------------------------------- */

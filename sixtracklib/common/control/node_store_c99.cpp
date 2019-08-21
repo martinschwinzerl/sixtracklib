@@ -141,7 +141,7 @@ bool NS(NodeStore_has_platform)(
 
 /* ------------------------------------------------------------------------- */
 
-::NS(arch_size_t) NS(NodeStore_total_num_nodes)(
+::NS(arch_size_t) NS(NodeStore_get_total_num_nodes)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store )
 {
     return ( node_store != nullptr )
@@ -398,7 +398,7 @@ bool NS(NodeStore_has_node_set_by_ptr)(
         ? node_store->ptrNodeSetBase( node_set_id ) : nullptr;
 }
 
-::NS(NodeSetBase) const* NS(NodeStore_get_ptr_const_Node_set_base)(
+::NS(NodeSetBase) const* NS(NodeStore_get_ptr_const_node_set_base)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     ::NS(node_set_id_t) const node_set_id )
 {

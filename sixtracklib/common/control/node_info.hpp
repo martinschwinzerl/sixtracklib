@@ -618,8 +618,19 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_INLINE NodeInfoBase::node_index_t NodeInfoBase::nodeIndex() const
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeInfoBase;
-        _this_t::lock_t const lock( *this->lockable() );
-        return this->nodeIndex( lock );
+
+        if( ( this->ptrNodeStore() != nullptr ) &&
+            ( this->lockable() != nullptr ) )
+        {
+            _this_t::lock_t const lock( *this->lockable() );
+            return this->m_node_index_in_store;
+        }
+        else if( this->ptrNodeStore() == nullptr )
+        {
+            return this->m_node_index_in_store;
+        }
+
+        return _this_t::UNDEFINED_INDEX;
     }
 
     /* --------------------------------------------------------------------- */

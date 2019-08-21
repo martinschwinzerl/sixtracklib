@@ -301,7 +301,7 @@ namespace SIXTRL_CXX_NAMESPACE
                                     lock, this->m_node_index_in_store ) );
 
                 _info_t::node_id_t new_node_id( this->m_node_id );
-                if( new_node_id.setPlatformId( device_id ) ==
+                if( new_node_id.setDeviceId( device_id ) ==
                         st::ARCH_STATUS_SUCCESS )
                 {
                     status = this->ptrNodeStore()->doUpdateNodeIdToIndexMap(
@@ -314,7 +314,7 @@ namespace SIXTRL_CXX_NAMESPACE
             }
             else
             {
-                status = this->m_node_id.setPlatformId( device_id );
+                status = this->m_node_id.setDeviceId( device_id );
             }
         }
 
@@ -348,6 +348,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 ( ( this->m_node_index_in_store != _info_t::UNDEFINED_INDEX ) &&
                   ( node_index == _info_t::UNDEFINED_INDEX ) ) )
             {
+                this->m_node_index_in_store = node_index;
                 status = st::ARCH_STATUS_SUCCESS;
             }
         }

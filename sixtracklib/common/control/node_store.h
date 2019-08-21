@@ -92,7 +92,7 @@ NS(NodeStore_find_node_index_by_arch_node_id_str)(
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t) NS(NodeStore_total_num_nodes)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t) NS(NodeStore_get_total_num_nodes)(
     const NS(NodeStore) *const SIXTRL_RESTRICT node_store );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t) NS(NodeStore_get_num_nodes)(
