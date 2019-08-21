@@ -195,17 +195,17 @@ if( GTEST_FOUND )
     # ==========================================================================
     # test_node_store_common_c99:
 
-#     add_executable( test_node_store_common_c99
-#                     test_node_store_c99.cpp )
+    add_executable( test_node_store_common_c99
+                    test_node_store_c99.cpp )
 
-#     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_node_store_common_c99 )
-#     add_test( C99_CommonControlNodeStoreTests
-#               test_node_store_common_c99 )
-#
-#     set_property( TEST C99_CommonControlNodeStoreTests
-#         APPEND PROPERTY DEPENDS
-#             C99_CommonControlNodeIdTests
-#             C99_CommonControlNodeInfoBaseTests )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_node_store_common_c99 )
+    add_test( C99_CommonControlNodeStoreTests
+              test_node_store_common_c99 )
+
+    set_property( TEST C99_CommonControlNodeStoreTests
+        APPEND PROPERTY DEPENDS
+            C99_CommonControlNodeIdTests
+            C99_CommonControlNodeInfoBaseTests )
 
     # --------------------------------------------------------------------------
     # test_node_store_common_cxx:
