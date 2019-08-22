@@ -1,5 +1,5 @@
 # ==============================================================================
-# tests/sixtracklib/testlib/common/particles/CMakeLists.txt
+# tests/sixtracklib/testlib/common/CMakeLists.txt
 
 message( STATUS "---- processing tests/sixtracklib/testlib/common/CMakeLists.txt" )
 
@@ -11,10 +11,12 @@ set( SIXTRL_TESTLIB_COMMON_INSTALL_CXX_PATH
 
 # ------------------------------------------------------------------------------
 
+add_subdirectory( architecture )
 add_subdirectory( beam_elements )
+add_subdirectory( control )
+add_subdirectory( output )
 add_subdirectory( particles )
 # add_subdirectory( track )
-add_subdirectory( output )
 
 # ------------------------------------------------------------------------------
 
