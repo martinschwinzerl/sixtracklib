@@ -24,7 +24,7 @@ extern "C" {
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(NodeSetBase)* NS(NodeSet_new)(
     NS(NodeStore)* SIXTRL_RESTRICT node_store );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_set_id_t) NS(NodeSet_node_set_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(node_set_id_t) NS(NodeSet_get_node_set_id)(
     const NS(NodeSetBase) *const SIXTRL_RESTRICT set );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(NodeSet_set_node_set_id)(

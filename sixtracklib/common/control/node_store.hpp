@@ -1218,7 +1218,7 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             auto it = this->m_node_set_to_node_idxs.find( node_set_id );
             if( ( it != this->m_node_set_to_node_idxs.end() ) &&
-                ( it->second.empty() ) )
+                ( !it->second.empty() ) )
             {
                 SIXTRL_ASSERT( std::is_sorted(
                     it->second.begin(), it->second.end() ) );
@@ -1251,7 +1251,7 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             auto it = this->m_node_set_to_node_idxs.find( node_set_id );
             if( ( it != this->m_node_set_to_node_idxs.end() ) &&
-                ( it->second.empty() ) )
+                ( !it->second.empty() ) )
             {
                 SIXTRL_ASSERT( std::is_sorted(
                     it->second.begin(), it->second.end() ) );
@@ -1261,7 +1261,7 @@ namespace SIXTRL_CXX_NAMESPACE
             }
 
             SIXTRL_ASSERT( ( node_index == _this_t::UNDEFINED_INDEX ) ||
-                ( ( st::Map_ordered_vec_empty( this->m_node_set_to_node_idxs,
+                ( ( !st::Map_ordered_vec_empty( this->m_node_set_to_node_idxs,
                        node_set_id ) ) &&
                   ( this->isNodeAvailable( lock, node_index ) ) &&
                   ( this->isNodeAttachedToSet(

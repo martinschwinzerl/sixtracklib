@@ -220,7 +220,7 @@ bool NS(NodeStore_has_platform)(
     if( ( node_store != nullptr ) && ( node_indices_begin != nullptr ) &&
         ( max_num_node_indices > ::NS(arch_size_t){ 0 } ) )
     {
-        status = node_store->architectureIds(
+        status = node_store->nodeIndices(
             node_indices_begin, node_indices_begin + max_num_node_indices,
             ptr_num_node_indices );
     }
@@ -230,8 +230,8 @@ bool NS(NodeStore_has_platform)(
 
 ::NS(arch_status_t) NS(NodeStore_get_node_indices_for_architecture)(
     const ::NS(NodeStore) *const SIXTRL_RESTRICT node_store,
-    ::NS(node_index_t)* SIXTRL_RESTRICT node_indices_begin,
     ::NS(arch_size_t) const max_num_node_indices,
+    ::NS(node_index_t)* SIXTRL_RESTRICT node_indices_begin,
     ::NS(arch_id_t) const arch_id,
     ::NS(arch_size_t)* SIXTRL_RESTRICT ptr_num_node_indices )
 {

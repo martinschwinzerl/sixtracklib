@@ -220,7 +220,9 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         return ( ( this->ptrNodeStore() != nullptr ) &&
                  ( this->nodeSetId() != _base_t::ILLEGAL_NODE_SET_ID ) &&
-                 ( this->nodeStore().hasNodeSet( lock, this->nodeSetId() ) ) )
+                 ( this->nodeStore().hasNodeSet( lock, this->nodeSetId() ) ) &&
+                 ( this->nodeStore().numNodes( lock, this->nodeSetId() ) >
+                    _base_t::size_type{ 0 } ) )
             ? this->nodeStore().minAttachedNodeIndex( lock, this->nodeSetId() )
             : _base_t::UNDEFINED_INDEX;
     }
@@ -230,7 +232,9 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         return ( ( this->ptrNodeStore() != nullptr ) &&
                  ( this->nodeSetId() != _base_t::ILLEGAL_NODE_SET_ID ) &&
-                 ( this->nodeStore().hasNodeSet( lock, this->nodeSetId() ) ) )
+                 ( this->nodeStore().hasNodeSet( lock, this->nodeSetId() ) ) &&
+                 ( this->nodeStore().numNodes( lock, this->nodeSetId() ) >
+                    _base_t::size_type{ 0 } ) )
             ? this->nodeStore().maxAttachedNodeIndex( lock, this->nodeSetId() )
             : _base_t::UNDEFINED_INDEX;
     }

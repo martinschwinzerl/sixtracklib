@@ -921,7 +921,11 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ASSERT( st::Map_has_key( nidx_to_sel_nsets, node_index ) );
             SIXTRL_ASSERT( st::Map_has_key( nidx_to_def_nsets, node_index ) );
 
-            if( ( !st::Map_ordered_vec_has_value(
+            size_t const num_sets_attached =
+                st::Map_ordered_vec_size( nidx_to_nsets, node_index );
+
+            if( ( num_sets_attached < ptr_node->maxAttachementCount() ) &&
+                ( !st::Map_ordered_vec_has_value(
                     nset_to_idx, node_set_id, node_index ) ) &&
                 ( !st::Map_ordered_vec_has_value(
                     nidx_to_nsets, node_index, node_set_id ) ) )
@@ -951,6 +955,10 @@ namespace SIXTRL_CXX_NAMESPACE
                 {
                     this->registerChange( lock );
                 }
+
+                SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                    ( st::Map_ordered_vec_size( nidx_to_nsets, node_index ) ==
+                      ( num_sets_attached + size_t{ 1 } ) ) );
             }
         }
 
@@ -1354,14 +1362,14 @@ namespace SIXTRL_CXX_NAMESPACE
 
     bool NodeStore::isNodeSelectedByAnySet(
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        _store_t::node_index_t const node_index ) const
+        _store_t::node_index_t const nidx ) const
     {
         bool const is_selected_by_any = ( ( this->checkLock( lock ) ) &&
-                ( st::Map_has_key( this->m_node_idx_to_set_ids, node_index ) ) &&
-                ( st::Map_ordered_vec_empty( this->m_node_idx_to_set_ids,
-                        node_index ) ) );
+                (  st::Map_has_key( this->m_node_idx_to_set_ids, nidx ) ) &&
+                ( !st::Map_ordered_vec_empty( this->m_node_idx_to_sel_set_ids,
+                        nidx ) ) );
 
-        SIXTRL_ASSERT( this->isNodeAvailable( lock, node_index ) );
+        SIXTRL_ASSERT( this->isNodeAvailable( lock, nidx ) );
 
         return is_selected_by_any;
     }
@@ -1454,8 +1462,8 @@ namespace SIXTRL_CXX_NAMESPACE
         _store_t::node_index_t const node_index ) const SIXTRL_NOEXCEPT
     {
         bool const is_default_for_any = ( ( this->checkLock( lock ) ) &&
-            ( this->isNodeAvailable( lock, node_index ) ) &&
-            ( st::Map_ordered_vec_empty( this->m_node_idx_to_def_set_ids,
+            (  this->isNodeAvailable( lock, node_index ) ) &&
+            ( !st::Map_ordered_vec_empty( this->m_node_idx_to_def_set_ids,
                 node_index ) ) );
 
         SIXTRL_ASSERT( ( !is_default_for_any ) ||
@@ -1634,7 +1642,9 @@ namespace SIXTRL_CXX_NAMESPACE
                         status = ptr_node_info->setDeviceId( lock, device_id );
                     }
                 }
-                else if( !st::Map_has_key( arch_plfm_devices_map, arch_pflm ) )
+                else if(
+                    ( !st::Map_has_key( arch_plfm_devices_map, arch_pflm ) ) &&
+                    ( device_id == _store_t::ILLEGAL_DEVICE_ID ) )
                 {
                     status = st::ARCH_STATUS_GENERAL_FAILURE;
                 }

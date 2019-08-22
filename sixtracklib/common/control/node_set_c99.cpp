@@ -34,7 +34,7 @@ using _single_t = st::NodeSetSingle;
     return ( store != nullptr ) ? new st::NodeSetBase( *store ) : nullptr;
 }
 
-::NS(node_set_id_t) NS(NodeSet_node_set_id)(
+::NS(node_set_id_t) NS(NodeSet_get_node_set_id)(
     const ::NS(NodeSetBase) *const SIXTRL_RESTRICT set )
 {
     return ( set != nullptr ) ? set->nodeSetId() : _base_t::ILLEGAL_NODE_SET_ID;
