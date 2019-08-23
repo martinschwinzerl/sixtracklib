@@ -58,12 +58,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
     NodeSetBase::NodeSetBase(
         st::NodeStore& SIXTRL_RESTRICT_REF node_store ) :
-        m_node_store( node_store ),
-        m_expected_sync_id_value( _base_t::sync_id_value_t{ 0 } ),
         m_min_num_selectable_nodes( _base_t::size_type{ 0 } ),
         m_max_num_selectable_nodes( _base_t::size_type{ 0 } ),
         m_min_num_default_nodes( _base_t::size_type{ 0 } ),
         m_max_num_default_nodes( _base_t::size_type{ 0 } ),
+        m_node_store( node_store ),
+        m_expected_sync_id_value( _base_t::sync_id_value_t{ 0 } ),
         m_my_node_set_id( _base_t::ILLEGAL_NODE_SET_ID ),
         m_is_single_node_set( false ),
         m_allows_duplicate_nodes( false ),
@@ -74,12 +74,12 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     NodeSetBase::NodeSetBase( st::NodeSetBase const& orig ) :
+        m_min_num_selectable_nodes( orig.m_min_num_selectable_nodes.load() ),
+        m_max_num_selectable_nodes( orig.m_max_num_selectable_nodes.load() ),
+        m_min_num_default_nodes( orig.m_min_num_default_nodes.load() ),
+        m_max_num_default_nodes( orig.m_max_num_default_nodes.load() ),
         m_node_store( orig.m_node_store ),
         m_expected_sync_id_value( orig.m_expected_sync_id_value ),
-        m_min_num_selectable_nodes( orig.m_min_num_selectable_nodes ),
-        m_max_num_selectable_nodes( orig.m_max_num_selectable_nodes ),
-        m_min_num_default_nodes( orig.m_min_num_default_nodes ),
-        m_max_num_default_nodes( orig.m_max_num_default_nodes ),
         m_my_node_set_id( orig.m_my_node_set_id ),
         m_is_single_node_set( orig.m_is_single_node_set ),
         m_allows_duplicate_nodes( orig.m_allows_duplicate_nodes ),
@@ -92,14 +92,12 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     NodeSetBase::NodeSetBase( st::NodeSetBase&& orig ) :
+        m_min_num_selectable_nodes( orig.m_min_num_selectable_nodes.load() ),
+        m_max_num_selectable_nodes( orig.m_max_num_selectable_nodes.load() ),
+        m_min_num_default_nodes( orig.m_min_num_default_nodes.load() ),
+        m_max_num_default_nodes( orig.m_max_num_default_nodes.load() ),
         m_node_store( orig.m_node_store ),
         m_expected_sync_id_value( std::move( orig.m_expected_sync_id_value ) ),
-        m_min_num_selectable_nodes( std::move(
-            orig.m_min_num_selectable_nodes ) ),
-        m_max_num_selectable_nodes( std::move(
-            orig.m_max_num_selectable_nodes ) ),
-        m_min_num_default_nodes( std::move( orig.m_min_num_default_nodes ) ),
-        m_max_num_default_nodes( std::move( orig.m_max_num_default_nodes ) ),
         m_my_node_set_id( std::move( orig.m_my_node_set_id ) ),
         m_is_single_node_set( std::move( orig.m_is_single_node_set ) ),
         m_allows_duplicate_nodes( std::move( orig.m_allows_duplicate_nodes ) ),
@@ -108,7 +106,11 @@ namespace SIXTRL_CXX_NAMESPACE
         m_can_unselect_node( std::move( orig.m_can_unselect_node ) ),
         m_use_autoselect( std::move( orig.m_use_autoselect ) )
     {
+        orig.m_min_num_default_nodes.store( _base_t::size_type{ 0 } );
+        orig.m_max_num_default_nodes.store( _base_t::size_type{ 0 } );
 
+        orig.m_min_num_selectable_nodes.store( _base_t::size_type{ 0 } );
+        orig.m_max_num_selectable_nodes.store( _base_t::size_type{ 0 } );
     }
 
     st::NodeSetBase& NodeSetBase::operator=( st::NodeSetBase const& rhs )
@@ -122,10 +124,19 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ASSERT( this->lockable() == rhs.lockable() );
             this->m_node_store                = rhs.m_node_store;
             this->m_expected_sync_id_value    = rhs.m_expected_sync_id_value;
-            this->m_min_num_selectable_nodes  = rhs.m_min_num_selectable_nodes;
-            this->m_max_num_selectable_nodes  = rhs.m_max_num_selectable_nodes;
-            this->m_min_num_default_nodes     = rhs.m_min_num_default_nodes;
-            this->m_max_num_default_nodes     = rhs.m_max_num_default_nodes;
+
+            this->m_min_num_selectable_nodes.store(
+                rhs.m_min_num_selectable_nodes.load() );
+
+            this->m_max_num_selectable_nodes.store(
+                rhs.m_max_num_selectable_nodes.load() );
+
+            this->m_min_num_default_nodes.store(
+                rhs.m_min_num_default_nodes.load() );
+
+            this->m_max_num_default_nodes.store(
+                rhs.m_max_num_default_nodes.load() );
+
             this->m_my_node_set_id            = rhs.m_my_node_set_id;
             this->m_is_single_node_set        = rhs.m_is_single_node_set;
             this->m_allows_duplicate_nodes    = rhs.m_allows_duplicate_nodes;
@@ -165,17 +176,23 @@ namespace SIXTRL_CXX_NAMESPACE
                 std::move( rhs.m_expected_sync_id_value );
             rhs.m_expected_sync_id_value = _base_t::ILLEGAL_SYNC_ID_VALUE;
 
-            this->m_min_num_selectable_nodes =
-                std::move( rhs.m_min_num_selectable_nodes );
+            this->m_min_num_selectable_nodes.store(
+                rhs.m_min_num_selectable_nodes.load() );
 
-            this->m_max_num_selectable_nodes =
-                std::move( rhs.m_max_num_selectable_nodes );
+            this->m_max_num_selectable_nodes.store(
+                rhs.m_max_num_selectable_nodes.load() );
 
-            this->m_min_num_default_nodes =
-                std::move( rhs.m_min_num_default_nodes );
+            this->m_min_num_default_nodes.store(
+                rhs.m_min_num_default_nodes.load() );
 
-            this->m_max_num_default_nodes =
-                std::move( rhs.m_max_num_default_nodes );
+            this->m_max_num_default_nodes.store(
+                rhs.m_max_num_default_nodes.load() );
+
+            rhs.m_min_num_selectable_nodes.store( _base_t::size_type{ 0 } );
+            rhs.m_max_num_selectable_nodes.store( _base_t::size_type{ 0 } );
+
+            rhs.m_min_num_default_nodes.store( _base_t::size_type{ 0 } );
+            rhs.m_max_num_default_nodes.store( _base_t::size_type{ 0 } );
 
             this->m_my_node_set_id = std::move( rhs.m_my_node_set_id );
 
@@ -386,10 +403,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
     bool NodeSetBase::canSelectNode(
         _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        _base_t::node_index_t const node_index ) const SIXTRL_NOEXCEPT
+        _base_t::node_index_t const index ) const
     {
-        return this->nodeStore().canNodeBeSelectedBySet( lock,
-            node_index, this->nodeSetId() );
+        return this->doCheckCanSelectNode( lock, index );
     }
 
     /* --------------------------------------------------------------------- */
@@ -404,57 +420,81 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    bool NodeSetBase::canChangeToNode(
+    bool NodeSetBase::canChangeSelectedNodeTo(
         _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _base_t::node_index_t const current_node_idx,
         _base_t::node_index_t const next_node_idx ) const
     {
         return ( ( this->checkLock( lock ) ) &&
-            ( this->supportsChangingNode() ) &&
             ( this->nodeStore().hasNodeSet( lock, this->nodeSetId() ) ) &&
             ( this->nodeStore().isNodeSelectedBySet(
                 lock, current_node_idx, this->nodeSetId() ) ) &&
-            ( this->nodeStore().canNodeBeSelectedBySet(
-                lock, next_node_idx, this->nodeSetId() ) ) );
+            ( ( ( this->nodeStore().canNodeBeSelectedBySet(
+                    lock, next_node_idx, this->nodeSetId(), true ) ) &&
+                ( this->supportsChangingSelectedNode() ) ) ||
+              ( this->nodeStore().isNodeSelectedBySet(
+                  lock, next_node_idx, this->nodeSetId() ) ) ) );
     }
 
-    _base_t::status_t NodeSetBase::changeToNode(
+    _base_t::status_t NodeSetBase::changeSelectedNodeTo(
         _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _base_t::node_index_t const current_node_idx,
         _base_t::node_index_t const next_node_idx )
     {
         _base_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( ( this->supportsChangingNode() ) &&
-            ( this->nodeSetId() == _base_t::ILLEGAL_NODE_SET_ID ) &&
-            ( this->ptrNodeStore() != nullptr ) &&
-            ( this->nodeStore().isNodeSelectedBySet(
-                lock, current_node_idx, this->nodeSetId() ) ) &&
+        if( ( this->ptrNodeStore() != nullptr ) &&
             ( this->nodeStore().canNodeBeSelectedBySet(
-                lock, next_node_idx, this->nodeSetId() ) ) )
+                lock, next_node_idx, this->nodeSetId(), true ) ) )
         {
             SIXTRL_ASSERT( this->checkLock( lock ) );
-            SIXTRL_ASSERT( current_node_idx != _base_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->nodeSetId() != _base_t::ILLEGAL_NODE_SET_ID );
             SIXTRL_ASSERT( next_node_idx != _base_t::UNDEFINED_INDEX );
 
-            if( this->supportsDirectlyChangingSelectedNode() )
+            if( ( current_node_idx != _base_t::UNDEFINED_INDEX ) &&
+                ( current_node_idx != next_node_idx ) &&
+                ( this->supportsChangingSelectedNode() ) &&
+                ( this->nodeStore().isNodeSelectedBySet( lock,
+                    current_node_idx, this->nodeSetId() ) ) )
             {
-                status = this->doChangeToNode(
-                    lock, current_node_idx, next_node_idx );
-
-            }
-            else if( this->supportsUnselectingNode() )
-            {
-                status = this->doUnselectNode( lock, current_node_idx );
-
-                if( status == st::ARCH_STATUS_SUCCESS )
+                if( this->supportsDirectlyChangingSelectedNode() )
                 {
-                    SIXTRL_ASSERT( this->nodeStore().isNodeSelectedBySet(
-                        lock, current_node_idx, this->nodeSetId() ) );
+                    status = this->doChangeSelectedNodeTo(
+                        lock, current_node_idx, next_node_idx );
+                }
+                else if( this->supportsUnselectingNode() )
+                {
+                    status = this->doUnselectNode( lock, current_node_idx );
 
-                    status = this->doSelectNode( lock, next_node_idx );
+                    if( status == st::ARCH_STATUS_SUCCESS )
+                    {
+                        SIXTRL_ASSERT( !this->nodeStore().isNodeSelectedBySet(
+                            lock, current_node_idx, this->nodeSetId() ) );
+
+                        status = this->doSelectNode( lock, next_node_idx );
+                    }
                 }
             }
+            else if( current_node_idx == _base_t::UNDEFINED_INDEX )
+            {
+                status = this->doSelectNode( lock, next_node_idx );
+            }
+            else if( ( next_node_idx == current_node_idx ) &&
+                     ( this->nodeStore().isNodeSelectedBySet( lock,
+                         next_node_idx, this->nodeSetId() ) ) )
+            {
+                status = st::ARCH_STATUS_SUCCESS;
+            }
+        }
+        else if( ( this->ptrNodeStore() != nullptr ) &&
+                 ( this->nodeStore().isNodeSelectedBySet(
+                    lock, next_node_idx, this->nodeSetId() ) ) )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( this->nodeSetId() != _base_t::ILLEGAL_NODE_SET_ID );
+            SIXTRL_ASSERT( next_node_idx != _base_t::UNDEFINED_INDEX );
+
+            status = st::ARCH_STATUS_SUCCESS;
         }
 
         return status;
@@ -464,32 +504,122 @@ namespace SIXTRL_CXX_NAMESPACE
 
     bool NodeSetBase::canUnselectNode(
         _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        _base_t::node_index_t const node_index ) const SIXTRL_NOEXCEPT
+        _base_t::node_index_t const index ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->checkLock( lock ) ) &&
+        _base_t::size_type const num_selected_nodes =
+            this->doGetNumSelectedNodes( lock );
+
+        _base_t::node_set_id_t const set_id = this->nodeSetId();
+
+        bool can_unselect = ( ( this->ptrNodeStore() != nullptr ) &&
             ( this->supportsUnselectingNode() ) &&
-            ( this->nodeStore().hasNodeSet( lock, this->nodeSetId() ) ) &&
-            ( this->nodeStore().isNodeSelectedBySet(
-                lock, node_index, this->nodeSetId() ) ) );
+            ( num_selected_nodes >= this->minNumSelectableNodes() ) &&
+            ( this->nodeStore().isNodeSelectedBySet( lock, index, set_id ) ) );
+
+        if( can_unselect )
+        {
+            SIXTRL_ASSERT( index  != _base_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( set_id != _base_t::ILLEGAL_NODE_SET_ID );
+
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( this->nodeStore().hasNodeSet( lock, set_id ) );
+            SIXTRL_ASSERT( this->nodeStore().isNodeAttachedToSet(
+                lock, index, set_id ) );
+
+            if( ( this->minNumSelectableNodes() > _base_t::size_type{ 0 } ) &&
+                ( this->minNumSelectableNodes() == num_selected_nodes ) )
+            {
+                can_unselect = false;
+
+                if( this->usesAutoSelect() )
+                {
+                    _base_t::node_index_t const next_idx_to_select =
+                        this->doGetNextDefaultNodeIndexToSelect( lock,
+                            _base_t::size_type{ 1 }, &index );
+
+                    if( ( next_idx_to_select != _base_t::UNDEFINED_INDEX ) &&
+                        ( next_idx_to_select != index ) )
+                    {
+                        SIXTRL_ASSERT( this->nodeStore().isNodeDefaultForSet(
+                            lock, next_idx_to_select, set_id ) );
+
+                        SIXTRL_ASSERT( !this->nodeStore().isNodeSelectedBySet(
+                            lock, next_idx_to_select, set_id ) );
+
+                        SIXTRL_ASSERT( this->nodeStore().canNodeBeSelectedBySet(
+                            lock, next_idx_to_select, set_id, true ) );
+
+                        can_unselect = true;
+                    }
+                }
+            }
+        }
+
+        return can_unselect;
     }
 
     _base_t::status_t NodeSetBase::unselectNode(
         _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        _base_t::node_index_t const node_index )
+        _base_t::node_index_t const index )
     {
-        _base_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        using size_t  = _base_t::size_type;
+        using index_t = _base_t::node_index_t;
 
-        if( ( this->supportsUnselectingNode() ) &&
-            ( this->nodeSetId() == _base_t::ILLEGAL_NODE_SET_ID ) &&
-            ( this->doGetNumSelectedNodes( lock ) >
-              this->doGetMinNumSelectableNodes( lock ) ) &&
-            ( this->ptrNodeStore() != nullptr ) &&
-            ( this->nodeStore().isNodeSelectedBySet(
-                lock, node_index, this->nodeSetId() ) ) )
+        _base_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        size_t const num_selected_nodes = this->doGetNumSelectedNodes( lock );
+        _base_t::node_set_id_t const set_id = this->nodeSetId();
+
+        if( ( this->ptrNodeStore() != nullptr ) &&
+            ( this->supportsUnselectingNode() ) &&
+            ( num_selected_nodes >= this->minNumSelectableNodes() ) &&
+            ( this->nodeStore().isNodeSelectedBySet( lock, index, set_id ) ) )
         {
+            SIXTRL_ASSERT( index  != _base_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( set_id != _base_t::ILLEGAL_NODE_SET_ID );
+
             SIXTRL_ASSERT( this->checkLock( lock ) );
-            SIXTRL_ASSERT( node_index != _base_t::UNDEFINED_INDEX );
-            status = this->doUnselectNode( lock, node_index );
+            SIXTRL_ASSERT( this->nodeStore().hasNodeSet( lock, set_id ) );
+            SIXTRL_ASSERT( this->nodeStore().isNodeAttachedToSet(
+                lock, index, set_id ) );
+
+            if( this->minNumSelectableNodes() < num_selected_nodes )
+            {
+                status = this->doUnselectNode( lock, index );
+            }
+            else if( ( this->minNumSelectableNodes() == num_selected_nodes ) &&
+                     ( this->usesAutoSelect() ) )
+            {
+                index_t const next = this->doGetNextDefaultNodeIndexToSelect(
+                    lock, size_t{ 1 }, &index );
+
+                if( ( next != _base_t::UNDEFINED_INDEX ) && ( next != index ) )
+                {
+                    SIXTRL_ASSERT( this->nodeStore().isNodeDefaultForSet(
+                        lock, next, set_id ) );
+
+                    SIXTRL_ASSERT( !this->nodeStore().isNodeSelectedBySet(
+                        lock, next, set_id ) );
+
+                    SIXTRL_ASSERT( this->nodeStore().canNodeBeSelectedBySet(
+                        lock, next, set_id, true ) );
+
+                    status = this->doUnselectNode( lock, index );
+
+                    if( status == st::ARCH_STATUS_SUCCESS )
+                    {
+                        SIXTRL_ASSERT( this->nodeStore().canNodeBeSelectedBySet(
+                            lock, next, set_id ) );
+
+                        status = this->doSelectNode( lock, next );
+                    }
+                }
+            }
+
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( ( ( this->doGetNumSelectedNodes( lock ) >=
+                    this->minNumSelectableNodes() ) ) &&
+                    ( !this->nodeStore().isNodeSelectedBySet(
+                        lock, index, set_id ) ) ) );
         }
 
         return status;
@@ -616,6 +746,36 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
+    bool NodeSetBase::doCheckCanSelectNode(
+        _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _base_t::node_index_t const index ) const
+    {
+        bool can_select_node = false;
+
+        _base_t::node_set_id_t const set_id = this->nodeSetId();
+
+        if( ( index != _base_t::UNDEFINED_INDEX ) &&
+            ( this->ptrNodeStore() != nullptr ) &&
+            ( this->nodeStore().isNodeAttachedToSet( lock, index, set_id ) ) )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( this->nodeStore().hasNodeSet( lock, set_id ) );
+            SIXTRL_ASSERT( this->nodeStore().isNodeAvailable( lock, index ) );
+
+            if( this->nodeStore().isNodeSelectedBySet( lock, index, set_id ) )
+            {
+                can_select_node = true;
+            }
+            else if( this->nodeStore().canNodeBeSelectedBySet(
+                    lock, index, set_id ) )
+            {
+                can_select_node = true;
+            }
+        }
+
+        return can_select_node;
+    }
+
     _base_t::status_t NodeSetBase::doSelectNode(
         _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _base_t::node_index_t const node_index )
@@ -641,7 +801,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    _base_t::status_t NodeSetBase::doChangeToNode(
+    _base_t::status_t NodeSetBase::doChangeSelectedNodeTo(
         _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _base_t::node_index_t const current_node_idx,
         _base_t::node_index_t const next_node_idx )
@@ -652,11 +812,12 @@ namespace SIXTRL_CXX_NAMESPACE
             ( this->nodeStore().isNodeSelectedBySet(
                 lock, current_node_idx, this->nodeSetId() ) ) &&
             ( this->nodeStore().canNodeBeSelectedBySet(
-                lock, next_node_idx, this->nodeSetId() ) ) )
+                lock, next_node_idx, this->nodeSetId(), true ) ) )
         {
             SIXTRL_ASSERT( this->checkLock( lock ) );
             SIXTRL_ASSERT( current_node_idx != _base_t::UNDEFINED_INDEX );
             SIXTRL_ASSERT( next_node_idx != _base_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->nodeSetId() != _base_t::ILLEGAL_NODE_SET_ID );
             SIXTRL_ASSERT( this->supportsDirectlyChangingSelectedNode() );
 
             status = this->nodeStore().doMarkNodeAsSelectedBySet(
@@ -690,6 +851,7 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             SIXTRL_ASSERT( this->checkLock( lock ) );
             SIXTRL_ASSERT( current_node_idx != _base_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->nodeSetId() != _base_t::ILLEGAL_NODE_SET_ID );
 
             status = this->nodeStore().doUnselectNodeFromSet(
                     lock, current_node_idx, this->nodeSetId() );
@@ -697,6 +859,57 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
                 ( !this->nodeStore().isNodeSelectedBySet(
                       lock, current_node_idx, this->nodeSetId() ) ) );
+        }
+
+        return status;
+    }
+
+    _base_t::status_t NodeSetBase::doAddDefaultNode(
+        _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _base_t::node_index_t const node_index )
+    {
+        _base_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( node_index != _base_t::UNDEFINED_INDEX ) &&
+            ( this->ptrNodeStore() != nullptr ) &&
+            ( this->nodeStore().canNodeBeMadeDefaultForSet(
+                lock, node_index, this->nodeSetId() ) ) )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( node_index != _base_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->nodeSetId() != _base_t::ILLEGAL_NODE_SET_ID );
+
+            status = this->nodeStore().doMarkNodeAsDefaultForSet(
+                lock, node_index, this->nodeSetId() );
+
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( this->nodeStore().isNodeDefaultForSet(
+                    lock, node_index, this->nodeSetId() ) ) );
+        }
+
+        return status;
+    }
+
+    _base_t::status_t NodeSetBase::doRemoveDefaultNode(
+        _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _base_t::node_index_t const node_index )
+    {
+        _base_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->ptrNodeStore() != nullptr ) &&
+            ( this->nodeStore().isNodeDefaultForSet(
+                lock, node_index, this->nodeSetId() ) ) )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( node_index != _base_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->nodeSetId() != _base_t::ILLEGAL_NODE_SET_ID );
+
+            status = this->nodeStore().doRemoveDefaultNodeFromSet(
+                    lock, node_index, this->nodeSetId() );
+
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                ( !this->nodeStore().isNodeDefaultForSet(
+                      lock, node_index, this->nodeSetId() ) ) );
         }
 
         return status;
@@ -827,18 +1040,79 @@ namespace SIXTRL_CXX_NAMESPACE
         }
         else
         {
-            output_stream << "min num selects : "
-                          << this->doGetMinNumSelectableNodes( lock )
-                          << "\r\nmax num selects : "
-                          << this->doGetMaxNumSelectableNodes( lock )
-                          << "\r\n\r\nmin num default : "
-                          << this->doGetMinNumDefaultNodes( lock )
-                          << "\r\nmax num default : "
-                          << this->doGetMaxNumDefaultNodes( lock )
-                          << "\r\n\r\n";
+            output_stream
+                << "min num selects : " << this->minNumSelectableNodes()
+                << "\r\nmax num selects : " << this->maxNumSelectableNodes()
+                << "\r\n\r\nmin num default : " << this->minNumDefaultNodes()
+                << "\r\nmax num default : " << this->maxNumDefaultNodes()
+                << "\r\n\r\n";
         }
 
         return st::ARCH_STATUS_SUCCESS;
+    }
+
+    _base_t::node_index_t NodeSetBase::doGetNextDefaultNodeIndexToSelect(
+            _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+            size_type const num_indices_to_exclude,
+            node_index_t const* SIXTRL_RESTRICT excl_indices_begin
+        ) const SIXTRL_NOEXCEPT
+    {
+        using size_t = _base_t::size_type;
+
+        _base_t::node_set_id_t const set_id = this->nodeSetId();
+        _base_t::node_index_t next_default_node_idx = _base_t::UNDEFINED_INDEX;
+
+        if( ( num_indices_to_exclude > size_t{ 0 } ) &&
+            ( excl_indices_begin == nullptr ) )
+        {
+            return next_default_node_idx;
+        }
+
+        _base_t::node_index_t const* excl_indices_end = excl_indices_begin;
+        std::advance( excl_indices_end, num_indices_to_exclude );
+
+        SIXTRL_ASSERT( ( num_indices_to_exclude == size_t{ 0 } ) ||
+            ( std::is_sorted( excl_indices_begin, excl_indices_end ) ) );
+
+        if( ( this->ptrNodeStore() != nullptr ) &&
+            ( this->nodeStore().hasNodeSet( lock, set_id ) ) )
+        {
+            SIXTRL_ASSERT( set_id != _base_t::ILLEGAL_NODE_SET_ID );
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+
+            size_t const num_default_nodes =
+                this->nodeStore().numDefaultNodes( lock, set_id );
+
+            auto it = this->nodeStore().defaultNodeIndicesBegin( lock, set_id );
+            auto end = this->nodeStore().defaultNodeIndicesEnd( lock, set_id );
+
+            if( ( num_default_nodes > size_t{ 0 } ) && ( it != nullptr ) )
+            {
+                for( ; it != end ; ++it )
+                {
+                    SIXTRL_ASSERT( *it != _base_t::UNDEFINED_INDEX );
+                    SIXTRL_ASSERT( this->nodeStore().isNodeAttachedToSet(
+                        lock, *it, set_id ) );
+
+                    SIXTRL_ASSERT( this->nodeStore().isNodeDefaultForSet(
+                        lock, *it, set_id )  );
+
+                    if( ( !this->nodeStore().isNodeSelectedBySet(
+                            lock, *it, set_id ) ) &&
+                        (  this->nodeStore().canNodeBeSelectedBySet(
+                            lock, *it, set_id, true ) ) &&
+                        ( ( num_indices_to_exclude == size_t{ 0 } ) ||
+                          ( !std::binary_search( excl_indices_begin,
+                                excl_indices_end, *it ) ) ) )
+                    {
+                        next_default_node_idx = *it;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return next_default_node_idx;
     }
 
     /* --------------------------------------------------------------------- */
@@ -850,7 +1124,7 @@ namespace SIXTRL_CXX_NAMESPACE
         _base_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
         if( ( this->ptrNodeStore() != nullptr ) && ( this->checkLock( lock ) ) )
         {
-            this->m_min_num_selectable_nodes = min_num_selectable_nodes;
+            this->m_min_num_selectable_nodes.store( min_num_selectable_nodes );
             status = st::ARCH_STATUS_SUCCESS;
         }
 
@@ -864,7 +1138,7 @@ namespace SIXTRL_CXX_NAMESPACE
         _base_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
         if( ( this->ptrNodeStore() != nullptr ) && ( this->checkLock( lock ) ) )
         {
-            this->m_max_num_selectable_nodes = max_num_selectable_nodes;
+            this->m_max_num_selectable_nodes.store( max_num_selectable_nodes );
             status = st::ARCH_STATUS_SUCCESS;
         }
 
@@ -888,7 +1162,7 @@ namespace SIXTRL_CXX_NAMESPACE
         _base_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
         if( ( this->ptrNodeStore() != nullptr ) && ( this->checkLock( lock ) ) )
         {
-            this->m_min_num_default_nodes = min_num_default_nodes;
+            this->m_min_num_default_nodes.store( min_num_default_nodes );
             status = st::ARCH_STATUS_SUCCESS;
         }
 
@@ -902,7 +1176,7 @@ namespace SIXTRL_CXX_NAMESPACE
         _base_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
         if( ( this->ptrNodeStore() != nullptr ) && ( this->checkLock( lock ) ) )
         {
-            this->m_max_num_default_nodes = max_num_default_nodes;
+            this->m_max_num_default_nodes.store( max_num_default_nodes );
             status = st::ARCH_STATUS_SUCCESS;
         }
 
@@ -931,7 +1205,7 @@ namespace SIXTRL_CXX_NAMESPACE
         _single_t::node_index_t const current_node_idx =
             this->selectedNodeIndex();
 
-        SIXTRL_ASSERT( this->doGetMaxNumSelectableNodes( lock ) == size_t{ 1 } );
+        SIXTRL_ASSERT( this->maxNumSelectableNodes() == size_t{ 1 } );
 
         if( ( index != _single_t::UNDEFINED_INDEX ) &&
             ( index != current_node_idx ) &&
@@ -942,7 +1216,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 lock, index, this->nodeSetId() ) ) )
         {
             if( ( this->doGetNumSelectedNodes( lock ) <
-                  this->doGetMaxNumSelectableNodes( lock ) ) &&
+                  this->maxNumSelectableNodes() ) &&
                 ( this->nodeStore().canNodeBeSelectedBySet(
                     lock, index, this->nodeSetId() ) ) )
             {
@@ -953,10 +1227,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 status = this->doSelectNode( lock, index );
             }
-            else if( ( this->supportsChangingNode() ) &&
+            else if( ( this->supportsChangingSelectedNode() ) &&
                 ( this->doGetNumSelectedNodes( lock ) == size_t{ 1 } ) &&
                 ( this->nodeStore().canNodeBeSelectedBySet(
-                    lock, index, this->nodeSetId() ) ) )
+                    lock, index, this->nodeSetId(), true ) ) )
             {
                 SIXTRL_ASSERT( current_node_idx != _single_t::UNDEFINED_INDEX );
                 SIXTRL_ASSERT( this->nodeStore().isNodeSelectedBySet(
@@ -964,7 +1238,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 if( this->supportsDirectlyChangingSelectedNode() )
                 {
-                    status = this->doChangeToNode(
+                    status = this->doChangeSelectedNodeTo(
                         lock, current_node_idx, index );
                 }
                 else if( ( this->supportsUnselectingNode() ) &&
@@ -983,7 +1257,7 @@ namespace SIXTRL_CXX_NAMESPACE
             }
         }
         else if( ( index == current_node_idx ) &&
-                 ( this->nodeSetId() == _single_t::ILLEGAL_NODE_SET_ID ) &&
+                 ( this->nodeSetId() != _single_t::ILLEGAL_NODE_SET_ID ) &&
                  ( this->ptrNodeStore() != nullptr ) &&
                  ( this->nodeStore().isNodeSelectedBySet(
                      lock, index, this->nodeSetId() ) ) &&
@@ -1009,18 +1283,20 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    bool NodeSetSingle::canChangeToNode(
+    bool NodeSetSingle::canChangeSelectedNodeTo(
         _single_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _single_t::node_index_t const index ) const SIXTRL_NOEXCEPT
     {
-        return this->canChangeToNode( lock, this->selectedNodeIndex(), index );
+        return this->canChangeSelectedNodeTo(
+            lock, this->selectedNodeIndex(), index );
     }
 
-    _single_t::status_t NodeSetSingle::changeToNode(
+    _single_t::status_t NodeSetSingle::changeSelectedNodeTo(
         _single_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _single_t::node_index_t const index )
     {
-        return this->changeToNode( lock, this->selectedNodeIndex(), index );
+        return this->changeSelectedNodeTo(
+            lock, this->selectedNodeIndex(), index );
     }
 
     /* --------------------------------------------------------------------- */
@@ -1077,6 +1353,158 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 status = _base_t::doSyncWithNodeStore( lock, node_store );
             }
+        }
+
+        return status;
+    }
+
+    bool NodeSetSingle::doCheckCanSelectNode(
+        _base_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _base_t::node_index_t const index ) const
+    {
+        using size_t = _base_t::size_type;
+
+        _base_t::node_set_id_t const set_id = this->nodeSetId();
+        _base_t::node_index_t const selected_idx = this->selectedNodeIndex();
+
+        bool can_select_node = (
+            ( index != _base_t::UNDEFINED_INDEX ) &&
+            ( this->ptrNodeStore() != nullptr ) &&
+            ( this->checkLock( lock ) ) &&
+            ( this->nodeStore().isNodeAttachedToSet( lock, index, set_id ) ) &&
+            ( ( ( selected_idx == _base_t::UNDEFINED_INDEX ) &&
+                ( this->doGetNumSelectedNodes( lock ) == size_t{ 0 } ) )||
+              ( this->nodeStore().isNodeSelectedBySet(
+                lock, selected_idx, set_id ) ) ) );
+
+        if( can_select_node )
+        {
+            can_select_node = false;
+
+            if( ( selected_idx != index ) &&
+                ( selected_idx != _base_t::UNDEFINED_INDEX ) )
+            {
+                SIXTRL_ASSERT( this->nodeStore().isNodeAttachedToSet(
+                    lock, selected_idx, set_id ) );
+
+                if( ( this->supportsChangingSelectedNode() ) &&
+                    ( this->nodeStore().canNodeBeSelectedBySet(
+                        lock, index, set_id, true ) ) )
+                {
+                    can_select_node = true;
+                }
+            }
+            else if( ( selected_idx == _base_t::UNDEFINED_INDEX ) &&
+                     ( this->nodeStore().canNodeBeSelectedBySet(
+                         lock, index, set_id ) ) )
+            {
+                can_select_node = true;
+            }
+            else if( selected_idx == index )
+            {
+                can_select_node = true;
+            }
+        }
+
+        return can_select_node;
+    }
+
+    _single_t::status_t NodeSetSingle::doSelectNode(
+        _single_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _single_t::node_index_t const node_index )
+    {
+        _single_t::status_t const status =
+            _base_t::doSelectNode( lock, node_index );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( node_index != _single_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->doGetNumSelectedNodes( lock ) ==
+                           _single_t::size_type{ 1 } );
+
+            this->m_selected_node_index.store( node_index );
+        }
+
+        return status;
+    }
+
+    _single_t::status_t NodeSetSingle::doUnselectNode(
+        _single_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _single_t::node_index_t const node_index )
+    {
+        _single_t::status_t const status =
+            _base_t::doUnselectNode( lock, node_index );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( node_index != _single_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->doGetNumSelectedNodes( lock ) ==
+                           _single_t::size_type{ 0 } );
+
+            this->m_selected_node_index.store( _single_t::UNDEFINED_INDEX );
+        }
+
+        return status;
+    }
+
+    _single_t::status_t NodeSetSingle::doChangeSelectedNodeTo(
+        _single_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _single_t::node_index_t const current_node_idx,
+        _single_t::node_index_t const next_node_idx )
+    {
+        _single_t::status_t const status =
+            _base_t::doChangeSelectedNodeTo( lock, current_node_idx, next_node_idx );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( next_node_idx != _single_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->doGetNumSelectedNodes( lock ) ==
+                           _single_t::size_type{ 1 } );
+
+            this->m_selected_node_index.store( next_node_idx );
+        }
+
+        return status;
+    }
+
+    _single_t::status_t NodeSetSingle::doAddDefaultNode(
+        _single_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _single_t::node_index_t const node_index )
+    {
+        _single_t::status_t const status =
+            _base_t::doAddDefaultNode( lock, node_index );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( node_index != _single_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->doGetNumDefaultNodes( lock ) ==
+                           _single_t::size_type{ 1 } );
+
+            this->m_default_node_index.store( node_index );
+        }
+
+        return status;
+    }
+
+    _single_t::status_t NodeSetSingle::doRemoveDefaultNode(
+        _single_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _single_t::node_index_t const node_index )
+    {
+        _single_t::status_t const status =
+            _base_t::doRemoveDefaultNode( lock, node_index );
+
+        if( status == st::ARCH_STATUS_SUCCESS )
+        {
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+            SIXTRL_ASSERT( node_index != _single_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( this->doGetNumDefaultNodes( lock ) ==
+                           _single_t::size_type{ 0 } );
+
+            this->m_default_node_index.store( _single_t::UNDEFINED_INDEX );
         }
 
         return status;

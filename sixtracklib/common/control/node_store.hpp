@@ -527,7 +527,8 @@ namespace SIXTRL_CXX_NAMESPACE
             node_set_id_t const node_set_id ) const;
 
         SIXTRL_HOST_FN bool canNodeBeSelectedBySet( node_index_t const index,
-            node_set_id_t const node_set_id ) const;
+            node_set_id_t const node_set_id,
+            bool const ignore_max_limit = false ) const;
 
         SIXTRL_HOST_FN bool isNodeSelectedBySet(
             node_index_t const node_index, node_set_id_t const set_id ) const;
@@ -537,6 +538,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN size_type numSelectingSetsForNode(
             node_index_t const node_index ) const;
+
+        SIXTRL_HOST_FN bool canNodeBeMadeDefaultForSet(
+            node_index_t const index, node_set_id_t const node_set_id ) const;
 
         SIXTRL_HOST_FN bool isNodeDefaultForSet(
             node_index_t const node_index, node_set_id_t const set_id ) const;
@@ -595,7 +599,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN bool canNodeBeSelectedBySet(
             lock_t const& SIXTRL_RESTRICT_REF lock, node_index_t const index,
-            node_set_id_t const node_set_id ) const SIXTRL_NOEXCEPT;
+            node_set_id_t const node_set_id,
+            bool const ignore_max_limit = false ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN bool isNodeSelectedBySet(
             lock_t const& SIXTRL_RESTRICT_REF lock, node_index_t const index,
@@ -614,6 +619,10 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN node_set_id_t const* selectingNodeSetIdsEnd(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             node_index_t const node_index ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN bool canNodeBeMadeDefaultForSet(
+            lock_t const& SIXTRL_RESTRICT_REF lock, node_index_t const index,
+            node_set_id_t const node_set_id ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN size_type numSetsHavingNodeAsDefault(
             lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -1935,10 +1944,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
     SIXTRL_INLINE bool NodeStore::canNodeBeSelectedBySet(
         NodeStore::node_index_t const node_index,
-        NodeStore::node_set_id_t const node_set_id ) const
+        NodeStore::node_set_id_t const node_set_id,
+        bool const ignore_max_limit ) const
     {
         NodeStore::lock_t const lock( *this->lockable() );
-        return this->canNodeBeSelectedBySet( lock, node_index, node_set_id );
+        return this->canNodeBeSelectedBySet(
+            lock, node_index, node_set_id, ignore_max_limit );
     }
 
     SIXTRL_INLINE bool NodeStore::isNodeSelectedBySet(
@@ -1961,6 +1972,14 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         NodeStore::lock_t const lock( *this->lockable() );
         return this->numSelectingSetsForNode( lock, node_index );
+    }
+
+    SIXTRL_INLINE bool NodeStore::canNodeBeMadeDefaultForSet(
+        NodeStore::node_index_t const index,
+        NodeStore::node_set_id_t const node_set_id ) const
+    {
+        NodeStore::lock_t const lock( *this->lockable() );
+        return this->canNodeBeMadeDefaultForSet( lock, index, node_set_id );
     }
 
     SIXTRL_INLINE bool NodeStore::isNodeDefaultForSet(

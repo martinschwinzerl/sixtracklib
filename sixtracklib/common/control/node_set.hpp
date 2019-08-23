@@ -172,6 +172,9 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN bool isSelected( node_index_t const index ) const;
         SIXTRL_HOST_FN bool canSelectNode( node_index_t const index ) const;
 
+        SIXTRL_HOST_FN size_type minNumSelectableNodes() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type maxNumSelectableNodes() const SIXTRL_NOEXCEPT;
+
         /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
         SIXTRL_HOST_FN bool isSelected( lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -179,11 +182,14 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN bool canSelectNode(
             lock_t const& SIXTRL_RESTRICT_REF lock,
-            node_index_t const node_index ) const SIXTRL_NOEXCEPT;
+            node_index_t const node_index ) const;
 
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN bool isDefault( node_index_t const node_index ) const;
+
+        SIXTRL_HOST_FN size_type minNumDefaultNodes() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type maxNumDefaultNodes() const SIXTRL_NOEXCEPT;
 
         /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
@@ -192,27 +198,27 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN bool supportsChangingNode() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool supportsChangingSelectedNode() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN bool
             supportsDirectlyChangingSelectedNode() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool canChangeToNode(
+        SIXTRL_HOST_FN bool canChangeSelectedNodeTo(
             node_index_t const current_node_idx,
             node_index_t const next_node_idx ) const;
 
-        SIXTRL_HOST_FN status_t changeToNode(
+        SIXTRL_HOST_FN status_t changeSelectedNodeTo(
             node_index_t const current_node_idx,
             node_index_t const next_node_idx );
 
         /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
-        SIXTRL_HOST_FN bool canChangeToNode(
+        SIXTRL_HOST_FN bool canChangeSelectedNodeTo(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             node_index_t const current_node_idx,
             node_index_t const next_node_idx ) const;
 
-        SIXTRL_HOST_FN status_t changeToNode(
+        SIXTRL_HOST_FN status_t changeSelectedNodeTo(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             node_index_t const current_node_idx,
             node_index_t const next_node_idx );
@@ -308,16 +314,28 @@ namespace SIXTRL_CXX_NAMESPACE
             lock_t const& SIXTRL_RESTRICT_REF lock,
             SIXTRL_CXX_NAMESPACE::NodeStore& SIXTRL_RESTRICT node_store );
 
+        SIXTRL_HOST_FN virtual bool doCheckCanSelectNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const node_index ) const;
+
         SIXTRL_HOST_FN virtual status_t doSelectNode(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             node_index_t const node_index );
 
-        SIXTRL_HOST_FN virtual status_t doChangeToNode(
+        SIXTRL_HOST_FN virtual status_t doChangeSelectedNodeTo(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             node_index_t const current_node_idx,
             node_index_t const next_node_idx );
 
         SIXTRL_HOST_FN virtual status_t doUnselectNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const current_node_idx );
+
+        SIXTRL_HOST_FN virtual status_t doAddDefaultNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const current_node_idx );
+
+        SIXTRL_HOST_FN virtual status_t doRemoveDefaultNode(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             node_index_t const current_node_idx );
 
@@ -330,15 +348,9 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN size_type doGetNumSelectedNodes(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type doGetMinNumSelectableNodes(
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
-
         SIXTRL_HOST_FN status_t doSetMinNumSelectableNodes(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             size_type const min_num_selectable_nodes ) SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type doGetMaxNumSelectableNodes(
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN status_t doSetMaxNumSelectableNodes(
             lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -349,19 +361,21 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN size_type doGetNumDefaultNodes(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type doGetMinNumDefaultNodes(
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
-
         SIXTRL_HOST_FN status_t doSetMinNumDefaultNodes(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             size_type const max_num_default_nodes ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type doGetMaxNumDefaultNodes(
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
-
         SIXTRL_HOST_FN status_t doSetMaxNumDefaultNodes(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             size_type const max_num_default_nodes ) SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN node_index_t doGetNextDefaultNodeIndexToSelect(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            size_type const num_node_indices_to_exclude,
+            node_index_t const* SIXTRL_RESTRICT excl_indices_begin
+        ) const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
@@ -385,14 +399,13 @@ namespace SIXTRL_CXX_NAMESPACE
 
         private:
 
+        std::atomic< size_type >          m_min_num_selectable_nodes;
+        std::atomic< size_type >          m_max_num_selectable_nodes;
+        std::atomic< size_type >          m_min_num_default_nodes;
+        std::atomic< size_type >          m_max_num_default_nodes;
+
         SIXTRL_CXX_NAMESPACE::NodeStore&  m_node_store;
-
         sync_id_value_t                   m_expected_sync_id_value;
-        size_type                         m_min_num_selectable_nodes;
-        size_type                         m_max_num_selectable_nodes;
-
-        size_type                         m_min_num_default_nodes;
-        size_type                         m_max_num_default_nodes;
         node_set_id_t                     m_my_node_set_id;
 
         bool                              m_is_single_node_set;
@@ -411,6 +424,9 @@ namespace SIXTRL_CXX_NAMESPACE
         public:
 
         explicit NodeSetSingle(
+            SIXTRL_CXX_NAMESPACE::NodeStore& SIXTRL_RESTRICT_REF node_store );
+
+        NodeSetSingle( lock_t const& SIXTRL_RESTRICT_REF lock,
             SIXTRL_CXX_NAMESPACE::NodeStore& SIXTRL_RESTRICT_REF node_store );
 
         NodeSetSingle( NodeSetSingle const& other ) = default;
@@ -449,7 +465,7 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN c_node_id_t const* ptrDefaultCNodeId() const;
 
         SIXTRL_HOST_FN bool hasDefaultNode() const;
-        SIXTRL_HOST_FN bool requiresDefaultNode() const;
+        SIXTRL_HOST_FN bool requiresDefaultNode() const SIXTRL_NOEXCEPT;
 
         /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
@@ -462,31 +478,56 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN bool hasDefaultNode(
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool requiresDefaultNode(
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
-
         /* ----------------------------------------------------------------- */
 
-        using _node_set_base_t::canChangeToNode;
-        using _node_set_base_t::changeToNode;
+        using _node_set_base_t::canChangeSelectedNodeTo;
+        using _node_set_base_t::changeSelectedNodeTo;
 
-        SIXTRL_HOST_FN bool canChangeToNode( node_index_t const index ) const;
-        SIXTRL_HOST_FN status_t changeToNode( node_index_t const index );
+        SIXTRL_HOST_FN bool canChangeSelectedNodeTo(
+            node_index_t const index ) const;
+
+        SIXTRL_HOST_FN status_t changeSelectedNodeTo(
+            node_index_t const index );
 
         /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
-        SIXTRL_HOST_FN bool canChangeToNode(
+        SIXTRL_HOST_FN bool canChangeSelectedNodeTo(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             node_index_t const index ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_t changeToNode(
+        SIXTRL_HOST_FN status_t changeSelectedNodeTo(
             lock_t const& SIXTRL_RESTRICT_REF lock, node_index_t const index );
 
         protected:
 
-        SIXTRL_HOST_FN status_t doSyncWithNodeStore(
+        SIXTRL_HOST_FN virtual status_t doSyncWithNodeStore(
             lock_t const& SIXTRL_RESTRICT_REF lock,
             SIXTRL_CXX_NAMESPACE::NodeStore& SIXTRL_RESTRICT_REF st ) override;
+
+        SIXTRL_HOST_FN virtual bool doCheckCanSelectNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const node_index ) const override;
+
+        SIXTRL_HOST_FN virtual status_t doSelectNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const node_index) override;
+
+        SIXTRL_HOST_FN virtual status_t doUnselectNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const node_index) override;
+
+        SIXTRL_HOST_FN virtual status_t doChangeSelectedNodeTo(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const current_node_idx,
+            node_index_t const next_node_idx ) override;
+
+        SIXTRL_HOST_FN virtual status_t doAddDefaultNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const node_index ) override;
+
+        SIXTRL_HOST_FN virtual status_t doRemoveDefaultNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const node_index ) override;
 
         private:
 
@@ -668,6 +709,18 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->canSelectNode( lock, node_index );
     }
 
+    SIXTRL_INLINE NodeSetBase::size_type
+    NodeSetBase::minNumSelectableNodes() const SIXTRL_NOEXCEPT
+    {
+        return this->m_min_num_selectable_nodes.load();
+    }
+
+    SIXTRL_INLINE NodeSetBase::size_type
+    NodeSetBase::maxNumSelectableNodes() const SIXTRL_NOEXCEPT
+    {
+        return this->m_max_num_selectable_nodes.load();
+    }
+
     /* -------------------------------------------------------------------- */
 
     SIXTRL_INLINE bool NodeSetBase::isDefault(
@@ -678,9 +731,21 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->isDefault( lock, node_index );
     }
 
-    /* -------------------------------------------------------------------- */
+    SIXTRL_INLINE NodeSetBase::size_type
+    NodeSetBase::minNumDefaultNodes() const SIXTRL_NOEXCEPT
+    {
+        return this->m_min_num_default_nodes.load();
+    }
 
-    SIXTRL_INLINE bool NodeSetBase::supportsChangingNode()
+    SIXTRL_INLINE NodeSetBase::size_type
+    NodeSetBase::maxNumDefaultNodes() const SIXTRL_NOEXCEPT
+    {
+        return this->m_max_num_default_nodes.load();
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE bool NodeSetBase::supportsChangingSelectedNode()
         const SIXTRL_NOEXCEPT
     {
         return ( ( this->m_can_directly_change_selected_node ) ||
@@ -693,22 +758,22 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->m_can_directly_change_selected_node;
     }
 
-    SIXTRL_INLINE bool NodeSetBase::canChangeToNode(
+    SIXTRL_INLINE bool NodeSetBase::canChangeSelectedNodeTo(
         NodeSetBase::node_index_t const current_node_idx,
         NodeSetBase::node_index_t const next_node_idx ) const
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeSetBase;
         _this_t::lock_t const lock( *this->lockable() );
-        return this->canChangeToNode( lock, current_node_idx, next_node_idx );
+        return this->canChangeSelectedNodeTo( lock, current_node_idx, next_node_idx );
     }
 
-    SIXTRL_INLINE NodeSetBase::status_t NodeSetBase::changeToNode(
+    SIXTRL_INLINE NodeSetBase::status_t NodeSetBase::changeSelectedNodeTo(
         NodeSetBase::node_index_t const current_node_idx,
         NodeSetBase::node_index_t const next_node_idx )
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeSetBase;
         _this_t::lock_t const lock( *this->lockable() );
-        return this->changeToNode( lock, current_node_idx, next_node_idx );
+        return this->changeSelectedNodeTo( lock, current_node_idx, next_node_idx );
     }
 
     /* -------------------------------------------------------------------- */
@@ -858,40 +923,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* -------------------------------------------------------------------- */
 
-    SIXTRL_INLINE NodeSetBase::size_type
-    NodeSetBase::doGetMinNumSelectableNodes( NodeSetBase::lock_t const&
-        SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( this->checkLock( lock ) );
-        return this->m_min_num_selectable_nodes;
-    }
-
-    SIXTRL_INLINE NodeSetBase::size_type
-    NodeSetBase::doGetMaxNumSelectableNodes( NodeSetBase::lock_t const&
-        SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( this->checkLock( lock ) );
-        return this->m_max_num_selectable_nodes;
-    }
-
-    SIXTRL_INLINE NodeSetBase::size_type NodeSetBase::doGetMinNumDefaultNodes(
-        NodeSetBase::lock_t const&
-            SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( this->checkLock( lock ) );
-        return this->m_min_num_default_nodes;
-    }
-
-    SIXTRL_INLINE NodeSetBase::size_type NodeSetBase::doGetMaxNumDefaultNodes(
-        NodeSetBase::lock_t const&
-            SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( this->checkLock( lock ) );
-        return this->m_max_num_default_nodes;
-    }
-
-    /* -------------------------------------------------------------------- */
-
     SIXTRL_INLINE void NodeSetBase::doSetExpectedSyncIdValue(
         NodeSetBase::sync_id_value_t const exp_sync_id_value ) SIXTRL_NOEXCEPT
     {
@@ -966,13 +997,34 @@ namespace SIXTRL_CXX_NAMESPACE
 
      SIXTRL_INLINE NodeSetSingle::NodeSetSingle(
         SIXTRL_CXX_NAMESPACE::NodeStore& SIXTRL_RESTRICT_REF node_store ) :
-        SIXTRL_CXX_NAMESPACE::NodeSetBase( node_store )
+        SIXTRL_CXX_NAMESPACE::NodeSetBase( node_store ),
+        m_selected_node_index(
+            SIXTRL_CXX_NAMESPACE::NodeSetSingle::UNDEFINED_INDEX ),
+        m_default_node_index(
+            SIXTRL_CXX_NAMESPACE::NodeSetSingle::UNDEFINED_INDEX )
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeSetSingle;
         _this_t::lock_t const lock( *node_store.lockable() );
 
         this->doSetIsSingleNodeSetFlag( true );
         this->doSetMaxNumSelectableNodes( lock, _this_t::size_type{ 1 } );
+        this->doSetMaxNumDefaultNodes( lock, _this_t::size_type{ 1 } );
+    }
+
+    SIXTRL_INLINE NodeSetSingle::NodeSetSingle(
+        SIXTRL_CXX_NAMESPACE::NodeSetSingle::lock_t const&
+            SIXTRL_RESTRICT_REF lock,
+        SIXTRL_CXX_NAMESPACE::NodeStore& SIXTRL_RESTRICT_REF node_store ) :
+        SIXTRL_CXX_NAMESPACE::NodeSetBase( node_store ),
+        m_selected_node_index(
+            SIXTRL_CXX_NAMESPACE::NodeSetSingle::UNDEFINED_INDEX ),
+        m_default_node_index(
+            SIXTRL_CXX_NAMESPACE::NodeSetSingle::UNDEFINED_INDEX )
+    {
+        using _this_t = SIXTRL_CXX_NAMESPACE::NodeSetSingle;
+        this->doSetIsSingleNodeSetFlag( true );
+        this->doSetMaxNumSelectableNodes( lock, _this_t::size_type{ 1 } );
+        this->doSetMaxNumDefaultNodes( lock, _this_t::size_type{ 1 } );
     }
 
     /* --------------------------------------------------------------------- */
@@ -1067,30 +1119,29 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->ptrCNodeIdByNodeIndex( lock, this->defaultNodeIndex() );
     }
 
-    SIXTRL_INLINE bool NodeSetSingle::requiresDefaultNode( NodeSetSingle::lock_t
-        const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+    SIXTRL_INLINE bool
+    NodeSetSingle::requiresDefaultNode() const SIXTRL_NOEXCEPT
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeSetSingle;
-        return ( this->doGetMinNumDefaultNodes( lock ) >
-                _this_t::size_type{ 0 } );
+        return ( this->minNumDefaultNodes() > _this_t::size_type{ 0 } );
     }
 
     /* ----------------------------------------------------------------- */
 
-    SIXTRL_INLINE NodeSetSingle::status_t NodeSetSingle::changeToNode(
+    SIXTRL_INLINE NodeSetSingle::status_t NodeSetSingle::changeSelectedNodeTo(
         NodeSetSingle::node_index_t const index )
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeSetSingle;
         _this_t::lock_t const lock( *this->lockable() );
-        return this->changeToNode( lock, index );
+        return this->changeSelectedNodeTo( lock, index );
     }
 
-    SIXTRL_INLINE bool NodeSetSingle::canChangeToNode(
+    SIXTRL_INLINE bool NodeSetSingle::canChangeSelectedNodeTo(
         NodeSetSingle::node_index_t const index ) const
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeSetSingle;
         _this_t::lock_t const lock( *this->lockable() );
-        return this->canChangeToNode( lock, index );
+        return this->canChangeSelectedNodeTo( lock, index );
     }
 }
 

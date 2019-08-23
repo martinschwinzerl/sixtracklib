@@ -73,28 +73,46 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeSet_can_select_node)(
     const NS(NodeSetBase) *const SIXTRL_RESTRICT set,
     NS(node_index_t) const index );
 
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
+NS(NodeSet_get_min_num_selectable_nodes)(
+    const NS(NodeSetBase) *const SIXTRL_RESTRICT set );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
+NS(NodeSet_get_max_num_selectable_nodes)(
+    const NS(NodeSetBase) *const SIXTRL_RESTRICT set );
+
 /* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeSet_is_default)(
     const NS(NodeSetBase) *const SIXTRL_RESTRICT set,
     NS(node_index_t) const node_index );
 
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
+NS(NodeSet_get_min_num_default_nodes)(
+    const NS(NodeSetBase) *const SIXTRL_RESTRICT set );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
+NS(NodeSet_get_max_num_default_nodes)(
+    const NS(NodeSetBase) *const SIXTRL_RESTRICT set );
+
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeSet_supports_changing_node)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeSet_supports_changing_selected_node)(
     const NS(NodeSetBase) *const SIXTRL_RESTRICT set );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool
 NS(NodeSet_supports_directly_changing_selected_node)(
     const NS(NodeSetBase) *const SIXTRL_RESTRICT set );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeSet_can_change_from_node_to_node)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool
+NS(NodeSet_can_change_selection_from_node_to_node)(
     const NS(NodeSetBase) *const SIXTRL_RESTRICT set,
     NS(node_index_t) const current_node_idx,
     NS(node_index_t) const next_node_idx );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
-NS(NodeSet_change_from_node_to_node)( NS(NodeSetBase)* SIXTRL_RESTRICT set,
+NS(NodeSet_change_selection_from_node_to_node)(
+    NS(NodeSetBase)* SIXTRL_RESTRICT set,
     NS(node_index_t) const current_node_idx,
     NS(node_index_t) const next_node_idx );
 
@@ -193,11 +211,12 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeSet_has_default_node)(
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeSet_can_change_to_node)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeSet_can_change_selection_to_node)(
     const NS(NodeSetBase) *const SIXTRL_RESTRICT set,
     NS(node_index_t) const index );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t) NS(NodeSet_change_to_node)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(NodeSet_change_selection_to_node)(
     NS(NodeSetBase)* SIXTRL_RESTRICT set, NS(node_index_t) const index );
 
 #endif /* !defiend( _GPUCODE ) */

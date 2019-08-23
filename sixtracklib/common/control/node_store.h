@@ -254,7 +254,7 @@ NS(NodeStore_detach_node_from_all_sets)(
     NS(node_index_t) const node_index );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
-NS(NodeStore_num_sets_attached_to_node)(
+NS(NodeStore_get_num_sets_attached_to_node)(
     const NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     NS(node_index_t) const node_index );
 
@@ -282,7 +282,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(NodeStore_is_node_selected_by_any_set)(
     NS(node_index_t) const node_index );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
-NS(NodeStore_num_selecting_sets_for_node)(
+NS(NodeStore_get_num_selecting_sets_for_node)(
     const NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     NS(node_index_t) const node_index );
 
@@ -298,6 +298,12 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
 NS(NodeStore_get_num_sets_having_node_as_default)(
     const NS(NodeStore) *const SIXTRL_RESTRICT node_store,
     NS(node_index_t) const index );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool
+NS(NodeStore_can_node_be_made_default_for_set)(
+    const NS(NodeStore) *const SIXTRL_RESTRICT node_store,
+    NS(node_index_t) const index, NS(node_set_id_t) const node_set_id );
+
 
 /* ------------------------------------------------------------------------- */
 

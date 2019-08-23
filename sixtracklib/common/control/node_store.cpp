@@ -1022,7 +1022,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     _store_t::status_t NodeStore::detachNodeFromSet(
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        _store_t::node_index_t const node_index,
+        _store_t::node_index_t const index,
         _store_t::node_set_id_t const node_set_id )
     {
         using nset_nidx_map_t = _store_t::node_set_to_node_indices_t;
@@ -1039,18 +1039,18 @@ namespace SIXTRL_CXX_NAMESPACE
         nidx_nset_map_t& nidx_to_def_nsets = this->m_node_idx_to_def_set_ids;
 
         if( ( this->hasNodeSet( lock, node_set_id ) ) &&
-            ( this->isNodeAvailable( lock, node_index ) ) &&
+            ( this->isNodeAvailable( lock, index ) ) &&
             ( st::Map_has_key( nset_to_idx, node_set_id ) ) &&
-            ( st::Map_has_key( nidx_to_nsets, node_index ) ) )
+            ( st::Map_has_key( nidx_to_nsets, index ) ) )
         {
             SIXTRL_ASSERT( node_set_id != _store_t::ILLEGAL_NODE_SET_ID );
-            SIXTRL_ASSERT( node_index  != _store_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( index  != _store_t::UNDEFINED_INDEX );
             SIXTRL_ASSERT( this->checkLock( lock ) );
 
-            auto ptr_node = this->ptrNodeInfoBase( lock, node_index );
+            auto ptr_node = this->ptrNodeInfoBase( lock, index );
             SIXTRL_ASSERT( ptr_node != nullptr );
             SIXTRL_ASSERT( ptr_node->ptrNodeStore() == this );
-            SIXTRL_ASSERT( ptr_node->nodeIndex( lock ) == node_index );
+            SIXTRL_ASSERT( ptr_node->nodeIndex( lock ) == index );
             SIXTRL_ASSERT( ptr_node->nodeId( lock ).valid() );
 
             if( !st::Map_has_key( this->m_node_id_to_node_index,
@@ -1059,19 +1059,28 @@ namespace SIXTRL_CXX_NAMESPACE
                 return status;
             }
 
+            auto ptr_set = this->ptrNodeSetBase( lock, node_set_id );
+            SIXTRL_ASSERT( ptr_set != nullptr );
+            SIXTRL_ASSERT( ptr_set->ptrNodeStore() == this );
+            SIXTRL_ASSERT( ptr_set->nodeSetId() == node_set_id );
+
+            bool const needs_set_updating =
+                ( ( this->isNodeSelectedBySet( lock, index, node_set_id ) ) ||
+                  ( this->isNodeDefaultForSet( lock, index, node_set_id ) ) );
+
             SIXTRL_ASSERT( st::Map_has_key( nset_to_sel_idx, node_set_id ) );
             SIXTRL_ASSERT( st::Map_has_key( nset_to_def_idx, node_set_id ) );
 
-            SIXTRL_ASSERT( st::Map_has_key( nidx_to_sel_nsets, node_index ) );
-            SIXTRL_ASSERT( st::Map_has_key( nidx_to_def_nsets, node_index ) );
+            SIXTRL_ASSERT( st::Map_has_key( nidx_to_sel_nsets, index ) );
+            SIXTRL_ASSERT( st::Map_has_key( nidx_to_def_nsets, index ) );
 
             status = st::Map_remove_value_from_ordered_vec(
-                nset_to_idx, node_set_id, node_index );
+                nset_to_idx, node_set_id, index );
 
             if( status == st::ARCH_STATUS_SUCCESS )
             {
                 status = st::Map_remove_value_from_ordered_vec(
-                    nidx_to_nsets, node_index, node_set_id );
+                    nidx_to_nsets, index, node_set_id );
             }
 
             if( status == st::ARCH_STATUS_SUCCESS )
@@ -1080,40 +1089,46 @@ namespace SIXTRL_CXX_NAMESPACE
             }
 
             if( st::Map_ordered_vec_has_value(
-                    nset_to_def_idx, node_set_id, node_index ) )
+                    nset_to_def_idx, node_set_id, index ) )
             {
                 status = st::Map_remove_value_from_ordered_vec(
-                    nset_to_def_idx, node_set_id, node_index );
+                    nset_to_def_idx, node_set_id, index );
             }
 
             if( ( status == st::ARCH_STATUS_SUCCESS ) &&
                 ( st::Map_ordered_vec_has_value(
-                    nset_to_sel_idx, node_set_id, node_index )
+                    nset_to_sel_idx, node_set_id, index )
                 ) )
             {
                 status = st::Map_remove_value_from_ordered_vec(
-                    nset_to_sel_idx, node_set_id, node_index );
+                    nset_to_sel_idx, node_set_id, index );
             }
 
             if( ( status == st::ARCH_STATUS_SUCCESS ) &&
                 ( st::Map_ordered_vec_has_value(
-                    nidx_to_def_nsets, node_index, node_set_id ) ) )
+                    nidx_to_def_nsets, index, node_set_id ) ) )
             {
                 status = st::Map_remove_value_from_ordered_vec(
-                    nidx_to_def_nsets, node_index, node_set_id );
+                    nidx_to_def_nsets, index, node_set_id );
             }
 
             if( ( status == st::ARCH_STATUS_SUCCESS ) &&
                 ( st::Map_ordered_vec_has_value(
-                    nidx_to_sel_nsets, node_index, node_set_id ) ) )
+                    nidx_to_sel_nsets, index, node_set_id ) ) )
             {
                 status = st::Map_remove_value_from_ordered_vec(
-                    nidx_to_sel_nsets, node_index, node_set_id );
+                    nidx_to_sel_nsets, index, node_set_id );
+            }
+
+            if( ( needs_set_updating ) && ( st::ARCH_STATUS_SUCCESS !=
+                    ptr_set->syncWithStore( lock ) ) )
+            {
+                status = st::ARCH_STATUS_GENERAL_FAILURE;
             }
         }
 
         SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
-            ( !this->isNodeAttachedToSet( lock, node_index, node_set_id ) ) );
+            ( !this->isNodeAttachedToSet( lock, index, node_set_id ) ) );
 
         return status;
     }
@@ -1131,6 +1146,9 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( this->hasNodeSet( lock, node_set_id ) ) &&
             ( st::Map_has_key( nset_to_idx, node_set_id ) ) )
         {
+            auto ptr_set = this->ptrNodeSetBase( lock, node_set_id );
+            if( ptr_set == nullptr ) return status;
+
             SIXTRL_ASSERT( node_set_id != _store_t::ILLEGAL_NODE_SET_ID );
             SIXTRL_ASSERT( this->checkLock( lock ) );
 
@@ -1141,6 +1159,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
             if( !it->second.empty() )
             {
+                bool has_changed_set = false;
                 std::vector< node_index_t > const node_indices( it->second );
 
                 for( auto const node_index : node_indices )
@@ -1148,10 +1167,14 @@ namespace SIXTRL_CXX_NAMESPACE
                     status = this->detachNodeFromSet(
                         lock, node_index, node_set_id );
 
-                    if( status != st::ARCH_STATUS_SUCCESS )
-                    {
-                        break;
-                    }
+                    has_changed_set |= ( status == st::ARCH_STATUS_SUCCESS );
+                    if( status != st::ARCH_STATUS_SUCCESS ) break;
+                }
+
+                if( ( has_changed_set ) && ( st::ARCH_STATUS_SUCCESS !=
+                        ptr_set->syncWithStore( lock ) ) )
+                {
+                    status = st::ARCH_STATUS_GENERAL_FAILURE;
                 }
             }
         }
@@ -1199,10 +1222,7 @@ namespace SIXTRL_CXX_NAMESPACE
                     status = this->detachNodeFromSet(
                         lock, node_index, node_set_id );
 
-                    if( status != st::ARCH_STATUS_SUCCESS )
-                    {
-                        break;
-                    }
+                    if( status != st::ARCH_STATUS_SUCCESS ) break;
                 }
             }
         }
@@ -1299,7 +1319,8 @@ namespace SIXTRL_CXX_NAMESPACE
     bool NodeStore::canNodeBeSelectedBySet(
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
         _store_t::node_index_t const node_index,
-        _store_t::node_set_id_t const node_set_id ) const SIXTRL_NOEXCEPT
+        _store_t::node_set_id_t const node_set_id,
+        bool const ignore_max_limits ) const SIXTRL_NOEXCEPT
     {
         bool can_be_selected_by_set = false;
 
@@ -1311,18 +1332,32 @@ namespace SIXTRL_CXX_NAMESPACE
             ( st::Map_ordered_vec_has_value( this->m_node_set_to_node_idxs,
                 node_set_id, node_index ) ) &&
             ( st::Map_ordered_vec_has_value( this->m_node_idx_to_set_ids,
-                node_index, node_set_id ) ) )
+                node_index, node_set_id ) ) &&
+            ( st::Map_has_key( this->m_node_idx_to_sel_set_ids,
+                node_index ) ) &&
+            ( !st::Map_ordered_vec_has_value( this->m_node_idx_to_sel_set_ids,
+                node_index, node_set_id ) ) &&
+            ( st::Map_has_key( this->m_node_set_to_sel_node_idxs,
+                node_set_id ) ) &&
+            ( !st::Map_ordered_vec_has_value( this->m_node_set_to_sel_node_idxs,
+                node_set_id, node_index ) ) &&
+            ( ( ignore_max_limits ) ||
+              ( ( st::Map_ordered_vec_size( this->m_node_idx_to_sel_set_ids,
+                    node_index ) < ptr_node->maxSelectionCount() ) &&
+                ( st::Map_ordered_vec_size( this->m_node_set_to_sel_node_idxs,
+                    node_set_id ) < ptr_set->maxNumSelectableNodes() ) ) ) )
         {
             SIXTRL_ASSERT( node_index  != _store_t::UNDEFINED_INDEX );
             SIXTRL_ASSERT( node_set_id != _store_t::ILLEGAL_NODE_SET_ID );
             SIXTRL_ASSERT( this->checkLock( lock ) );
 
-            auto it = this->m_node_idx_to_sel_set_ids.find( node_index );
-            if( ( it != this->m_node_idx_to_sel_set_ids.end() ) &&
-                ( it->second.size() < ptr_node->maxSelectionCount() ) )
-            {
-                can_be_selected_by_set = true;
-            }
+            SIXTRL_ASSERT( this->isNodeAttachedToSet(
+                lock, node_index, node_set_id ) );
+
+            SIXTRL_ASSERT( !this->isNodeSelectedBySet(
+                lock, node_index, node_set_id ) );
+
+            can_be_selected_by_set = true;
         }
 
         return can_be_selected_by_set;
@@ -1349,7 +1384,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 lock, node_index, node_set_id ) );
 
             SIXTRL_ASSERT( st::Map_ordered_vec_has_value(
-                this->m_node_set_to_def_node_idxs, node_set_id, node_index ) );
+                this->m_node_set_to_node_idxs, node_set_id, node_index ) );
 
             SIXTRL_ASSERT( st::Map_ordered_vec_has_value(
                 this->m_node_idx_to_set_ids, node_index, node_set_id ) );
@@ -1434,6 +1469,49 @@ namespace SIXTRL_CXX_NAMESPACE
                         index ) ) ) );
 
         return ptr_end;
+    }
+
+    bool NodeStore::canNodeBeMadeDefaultForSet(
+        _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _store_t::node_index_t const node_index,
+        _store_t::node_set_id_t const node_set_id ) const SIXTRL_NOEXCEPT
+    {
+        bool can_be_made_default = false;
+
+        auto ptr_node = this->ptrNodeInfoBase( lock, node_index );
+        auto ptr_set  = this->ptrNodeSetBase( lock, node_set_id );
+
+        if( ( ptr_node != nullptr ) && ( ptr_node->ptrNodeStore() == this ) &&
+            ( ptr_set  != nullptr ) && ( ptr_set->ptrNodeStore() == this ) &&
+            ( st::Map_ordered_vec_has_value( this->m_node_set_to_node_idxs,
+                node_set_id, node_index ) ) &&
+            ( st::Map_ordered_vec_has_value( this->m_node_idx_to_set_ids,
+                node_index, node_set_id ) ) &&
+            ( st::Map_has_key( this->m_node_idx_to_def_set_ids,
+                node_index ) ) &&
+            ( !st::Map_ordered_vec_has_value( this->m_node_idx_to_def_set_ids,
+                node_index, node_set_id ) ) &&
+            ( st::Map_has_key( this->m_node_set_to_def_node_idxs,
+                node_set_id ) ) &&
+            ( !st::Map_ordered_vec_has_value( this->m_node_set_to_def_node_idxs,
+                node_set_id, node_index ) ) &&
+            (  st::Map_ordered_vec_size( this->m_node_idx_to_def_set_ids,
+                node_index ) < ptr_set->maxNumDefaultNodes() ) )
+        {
+            SIXTRL_ASSERT( node_index  != _store_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( node_set_id != _store_t::ILLEGAL_NODE_SET_ID );
+            SIXTRL_ASSERT( this->checkLock( lock ) );
+
+            SIXTRL_ASSERT( this->isNodeAttachedToSet(
+                lock, node_index, node_set_id ) );
+
+            SIXTRL_ASSERT( !this->isNodeDefaultForSet(
+                lock, node_index, node_set_id ) );
+
+            can_be_made_default = true;
+        }
+
+        return can_be_made_default;
     }
 
     bool NodeStore::isNodeDefaultForSet(
@@ -1835,7 +1913,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ( this->hasNodeSet( lock, node_set_id ) ) &&
             ( this->isNodeAttachedToSet( lock, index, node_set_id ) ) &&
             ( !this->isNodeSelectedBySet( lock, index, node_set_id ) ) &&
-            ( ptr_node->maxSelectionCount() < st::Map_ordered_vec_size(
+            ( ptr_node->maxSelectionCount() > st::Map_ordered_vec_size(
                 this->m_node_idx_to_sel_set_ids, index ) ) )
         {
             SIXTRL_ASSERT( index != _store_t::UNDEFINED_INDEX );
@@ -1875,29 +1953,29 @@ namespace SIXTRL_CXX_NAMESPACE
 
     _store_t::status_t NodeStore::doUnselectNodeFromSet(
         _store_t::lock_t const& SIXTRL_RESTRICT_REF lock,
-        _store_t::node_index_t const node_index,
+        _store_t::node_index_t const index,
         _store_t::node_set_id_t const node_set_id )
     {
         _store_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( this->isNodeSelectedBySet( lock, node_index, node_set_id ) )
+        if( this->isNodeSelectedBySet( lock, index, node_set_id ) )
         {
             SIXTRL_ASSERT( this->checkLock( lock ) );
-            SIXTRL_ASSERT( node_index != _store_t::UNDEFINED_INDEX );
+            SIXTRL_ASSERT( index != _store_t::UNDEFINED_INDEX );
             SIXTRL_ASSERT( node_set_id != _store_t::ILLEGAL_NODE_SET_ID );
-            SIXTRL_ASSERT( this->isNodeAvailable( lock, node_index ) );
+            SIXTRL_ASSERT( this->isNodeAvailable( lock, index ) );
             SIXTRL_ASSERT( this->hasNodeSet( lock, node_set_id ) );
             SIXTRL_ASSERT( this->isNodeAttachedToSet(
-                lock, node_index, node_set_id ) );
+                lock, index, node_set_id ) );
 
             SIXTRL_ASSERT( st::Map_has_key(
-                this->m_node_idx_to_set_ids, node_index ) );
+                this->m_node_idx_to_set_ids, index ) );
 
             SIXTRL_ASSERT( st::Map_has_key(
-                this->m_node_idx_to_sel_set_ids, node_index ) );
+                this->m_node_idx_to_sel_set_ids, index ) );
 
             SIXTRL_ASSERT( st::Map_ordered_vec_has_value(
-                this->m_node_idx_to_sel_set_ids, node_index, node_set_id ) );
+                this->m_node_idx_to_sel_set_ids, index, node_set_id ) );
 
             SIXTRL_ASSERT( st::Map_has_key(
                 this->m_node_set_to_node_idxs, node_set_id ) );
@@ -1906,23 +1984,23 @@ namespace SIXTRL_CXX_NAMESPACE
                 this->m_node_set_to_sel_node_idxs, node_set_id ) );
 
             SIXTRL_ASSERT( st::Map_ordered_vec_has_value(
-                m_node_set_to_sel_node_idxs, node_set_id, node_index ) );
+                m_node_set_to_sel_node_idxs, node_set_id, index ) );
 
             status = st::Map_remove_value_from_ordered_vec(
-                this->m_node_set_to_sel_node_idxs, node_set_id, node_index );
+                this->m_node_set_to_sel_node_idxs, node_set_id, index );
 
             if( status == st::ARCH_STATUS_SUCCESS )
             {
                 status = st::Map_remove_value_from_ordered_vec(
-                    this->m_node_idx_to_sel_set_ids, node_index, node_set_id );
+                    this->m_node_idx_to_sel_set_ids, index, node_set_id );
             }
 
             this->registerChange( lock );
         }
 
-        SIXTRL_ASSERT( ( status == st::ARCH_STATUS_SUCCESS ) &&
-            ( ( this->isNodeAttachedToSet( lock, node_index, node_set_id ) ) &&
-              ( this->isNodeSelectedBySet( lock, node_index, node_set_id ) ) ) );
+        SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+            ( (  this->isNodeAttachedToSet( lock, index, node_set_id ) ) &&
+              ( !this->isNodeSelectedBySet( lock, index, node_set_id ) ) ) );
 
         return status;
     }
@@ -1958,16 +2036,23 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ASSERT( !st::Map_ordered_vec_has_value(
                 this->m_node_set_to_def_node_idxs, node_set_id, index ) );
 
-            status = st::Map_ordered_vec_insert_value(
-                this->m_node_idx_to_def_set_ids, index, node_set_id );
-
-            if( status == st::ARCH_STATUS_SUCCESS )
+            if( ptr_set->maxNumDefaultNodes() > st::Map_ordered_vec_size(
+                    this->m_node_set_to_def_node_idxs, node_set_id ) )
             {
-                status = st::Map_ordered_vec_insert_value(
-                    this->m_node_set_to_def_node_idxs, node_set_id, index );
-            }
+                SIXTRL_ASSERT( this->canNodeBeMadeDefaultForSet( lock,
+                    index, node_set_id ) );
 
-            this->registerChange( lock );
+                status = st::Map_ordered_vec_insert_value(
+                    this->m_node_idx_to_def_set_ids, index, node_set_id );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = st::Map_ordered_vec_insert_value(
+                        this->m_node_set_to_def_node_idxs, node_set_id, index );
+                }
+
+                this->registerChange( lock );
+            }
         }
 
         SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
@@ -2009,7 +2094,15 @@ namespace SIXTRL_CXX_NAMESPACE
                 this->m_node_set_to_def_node_idxs, node_set_id ) );
 
             SIXTRL_ASSERT( st::Map_ordered_vec_has_value(
-                m_node_set_to_def_node_idxs, node_set_id, node_index ) );
+                this->m_node_set_to_def_node_idxs, node_set_id, node_index ) );
+
+            SIXTRL_ASSERT( st::Map_ordered_vec_size(
+                this->m_node_set_to_def_node_idxs, node_set_id ) <=
+                this->ptrNodeSetBase( lock, node_set_id )->maxNumDefaultNodes() );
+
+            SIXTRL_ASSERT( st::Map_ordered_vec_size(
+                this->m_node_idx_to_def_set_ids, node_index ) >
+                    _store_t::size_type{ 0 } );
 
             status = st::Map_remove_value_from_ordered_vec(
                 this->m_node_set_to_def_node_idxs, node_set_id, node_index );

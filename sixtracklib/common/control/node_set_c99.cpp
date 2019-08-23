@@ -132,6 +132,20 @@ bool NS(NodeSet_can_select_node)(
     return ( ( set != nullptr ) && ( set->canSelectNode( node_index ) ) );
 }
 
+::NS(arch_size_t) NS(NodeSet_get_min_num_selectable_nodes)(
+    const ::NS(NodeSetBase) *const SIXTRL_RESTRICT set )
+{
+    return ( set != nullptr )
+        ? set->minNumSelectableNodes() : st::arch_size_t{ 0 };
+}
+
+::NS(arch_size_t) NS(NodeSet_get_max_num_selectable_nodes)(
+    const ::NS(NodeSetBase) *const SIXTRL_RESTRICT set )
+{
+    return ( set != nullptr )
+        ? set->maxNumSelectableNodes() : st::arch_size_t{ 0 };
+}
+
 /* ------------------------------------------------------------------------- */
 
 bool NS(NodeSet_is_default)(
@@ -141,12 +155,26 @@ bool NS(NodeSet_is_default)(
     return ( ( set != nullptr ) && ( set->isDefault( node_index ) ) );
 }
 
-/* ------------------------------------------------------------------------- */
-
-bool NS(NodeSet_supports_changing_node)(
+::NS(arch_size_t) NS(NodeSet_get_min_num_default_nodes)(
     const ::NS(NodeSetBase) *const SIXTRL_RESTRICT set )
 {
-    return ( ( set != nullptr ) && ( set->supportsChangingNode() ) );
+    return ( set != nullptr )
+        ? set->minNumDefaultNodes() : st::arch_size_t{ 0 };
+}
+
+::NS(arch_size_t) NS(NodeSet_get_max_num_default_nodes)(
+    const ::NS(NodeSetBase) *const SIXTRL_RESTRICT set )
+{
+    return ( set != nullptr )
+        ? set->maxNumDefaultNodes() : st::arch_size_t{ 0 };
+}
+
+/* ------------------------------------------------------------------------- */
+
+bool NS(NodeSet_supports_changing_selected_node)(
+    const ::NS(NodeSetBase) *const SIXTRL_RESTRICT set )
+{
+    return ( ( set != nullptr ) && ( set->supportsChangingSelectedNode() ) );
 }
 
 bool NS(NodeSet_supports_directly_changing_selected_node)(
@@ -156,22 +184,22 @@ bool NS(NodeSet_supports_directly_changing_selected_node)(
              ( set->supportsDirectlyChangingSelectedNode() ) );
 }
 
-bool NS(NodeSet_can_change_from_node_to_node)(
+bool NS(NodeSet_can_change_selection_from_node_to_node)(
     const ::NS(NodeSetBase) *const SIXTRL_RESTRICT set,
     ::NS(node_index_t) const current_node_idx,
     ::NS(node_index_t) const next_node_idx )
 {
-    return ( ( set != nullptr ) &&
-             ( set->canChangeToNode( current_node_idx, next_node_idx ) ) );
+    return ( ( set != nullptr ) && ( set->canChangeSelectedNodeTo(
+        current_node_idx, next_node_idx ) ) );
 }
 
-::NS(arch_status_t) NS(NodeSet_change_from_node_to_node)(
+::NS(arch_status_t) NS(NodeSet_change_selection_from_node_to_node)(
     ::NS(NodeSetBase)* SIXTRL_RESTRICT set,
     ::NS(node_index_t) const current_node_idx,
     ::NS(node_index_t) const next_node_idx )
 {
     return ( set != nullptr )
-        ? set->changeToNode( current_node_idx, next_node_idx )
+        ? set->changeSelectedNodeTo( current_node_idx, next_node_idx )
         : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
@@ -337,20 +365,20 @@ bool NS(NodeSet_has_default_node)(
 
 /* ------------------------------------------------------------------------- */
 
-bool NS(NodeSet_can_change_to_node)(
+bool NS(NodeSet_can_change_selection_to_node)(
     const ::NS(NodeSetBase) *const SIXTRL_RESTRICT set,
     ::NS(node_index_t) const index )
 {
     _single_t const* ptr = st::NodeSet_as_node_set_single( set );
-    return ( ( ptr != nullptr ) && ( ptr->canChangeToNode( index ) ) );
+    return ( ( ptr != nullptr ) && ( ptr->canChangeSelectedNodeTo( index ) ) );
 }
 
-::NS(arch_status_t) NS(NodeSet_change_to_node)(
+::NS(arch_status_t) NS(NodeSet_change_selection_to_node)(
     ::NS(NodeSetBase)* SIXTRL_RESTRICT set,
     ::NS(node_index_t) const index )
 {
     _single_t* ptr = st::NodeSet_as_node_set_single( set );
-    return ( ptr != nullptr ) ? ptr->changeToNode( index )
+    return ( ptr != nullptr ) ? ptr->changeSelectedNodeTo( index )
         : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
