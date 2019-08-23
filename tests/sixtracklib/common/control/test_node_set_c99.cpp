@@ -1,4 +1,4 @@
-#include "sixtracklib/common/control/node_store.h"
+#include "sixtracklib/common/control/node_set.h"
 
 #include <cstddef>
 #include <cstdlib>
@@ -12,6 +12,7 @@
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/control/definitions.h"
 #include "sixtracklib/common/control/node_info.h"
+#include "sixtracklib/common/control/node_set.h"
 #include "sixtracklib/testlib.h"
 
 TEST( C99_CommonControlNodeSetTests, NodeSetBaseBasicUsage )

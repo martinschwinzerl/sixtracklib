@@ -253,6 +253,37 @@ if( GTEST_FOUND )
             CXX_CommonControlNodeStoreTests )
 
     # ==========================================================================
+    # test_node_set_single_common_c99:
+
+    add_executable( test_node_set_single_common_c99
+                    test_node_set_single_c99.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_node_set_single_common_c99 )
+    add_test( C99_CommonControlNodeSetSingleTests
+              test_node_set_single_common_c99 )
+
+    set_property( TEST C99_CommonControlNodeSetSingleTests APPEND PROPERTY DEPENDS
+            C99_CommonControlNodeIdTests
+            C99_CommonControlNodeInfoBaseTests
+            C99_CommonControlNodeStoreTests
+            C99_CommonControlNodeSetTests )
+
+    # --------------------------------------------------------------------------
+    # test_node_set_common_cxx:
+
+    add_executable( test_node_set_single_common_cxx
+                    test_node_set_single_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_node_set_single_common_cxx )
+    add_test( CXX_CommonControlNodeSetSingleTests test_node_set_single_common_cxx )
+
+    set_property( TEST CXX_CommonControlNodeSetSingleTests APPEND PROPERTY DEPENDS
+            CXX_CommonControlNodeIdTests
+            CXX_CommonControlNodeInfoBaseTests
+            CXX_CommonControlNodeStoreTests
+            CXX_CommonControlNodeSetTests )
+
+    # ==========================================================================
     # test_node_controller_base_common_c99:
 
 #     add_executable( test_node_controller_base_common_c99

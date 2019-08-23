@@ -1,4 +1,4 @@
-#include "sixtracklib/common/control/node_store.hpp"
+#include "sixtracklib/common/control/node_set.hpp"
 
 #include <cstddef>
 #include <cstdlib>
