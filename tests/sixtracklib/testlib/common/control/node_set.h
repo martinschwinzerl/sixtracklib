@@ -73,6 +73,16 @@ SIXTRL_EXTERN SIXTRL_HOST_FN void
 NS(TestNodeSetSingle_set_use_auto_select_flag)(
     NS(TestNodeSetSingle)* SIXTRL_RESTRICT node_set, bool const flag );
 
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(TestNodeSetSingle_select_default_node)(
+    NS(TestNodeSetSingle)* SIXTRL_RESTRICT node_set,
+    NS(node_index_t) const node_index );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(TestNodeSetSingle_remove_default_node)(
+    NS(TestNodeSetSingle)* SIXTRL_RESTRICT node_set );
+
+
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 }
 #endif /* C++ */

@@ -54,6 +54,16 @@ namespace SIXTRL_CXX_NAMESPACE
             this->doSetUseAutoselectFlag( false );
         }
 
+        TestNodeSetSingle::TestNodeSetSingle(
+            st::NodeStore::lock_t const& SIXTRL_RESTRICT_REF lock,
+            st::NodeStore& SIXTRL_RESTRICT_REF store ) :
+            st::NodeSetSingle( lock, store )
+        {
+            this->doSetCanDirectlyChangeSelectedNodeFlag( true );
+            this->doSetCanUnselectNodeFlag( true );
+            this->doSetUseAutoselectFlag( false );
+        }
+
         void TestNodeSetSingle::setMinNumSelectableNodes(
             TestNodeSetSingle::size_type const min_sel_cnt )
         {
@@ -82,6 +92,34 @@ namespace SIXTRL_CXX_NAMESPACE
             this->doSetMaxNumDefaultNodes( lock, max_default_cnt );
         }
 
+        void TestNodeSetSingle::setMinNumSelectableNodes(
+            TestNodeSetSingle::lock_t const& SIXTRL_RESTRICT_REF lock,
+            TestNodeSetSingle::size_type const min_sel_cnt )
+        {
+            this->doSetMinNumSelectableNodes( lock, min_sel_cnt );
+        }
+
+        void TestNodeSetSingle::setMaxNumSelectableNodes(
+            TestNodeSetSingle::lock_t const& SIXTRL_RESTRICT_REF lock,
+            TestNodeSetSingle::size_type const max_sel_cnt )
+        {
+            this->doSetMaxNumSelectableNodes( lock, max_sel_cnt );
+        }
+
+        void TestNodeSetSingle::setMinNumDefaultNodes(
+            TestNodeSetSingle::lock_t const& SIXTRL_RESTRICT_REF lock,
+            TestNodeSetSingle::size_type const min_default_cnt )
+        {
+            this->doSetMinNumDefaultNodes( lock, min_default_cnt );
+        }
+
+        void TestNodeSetSingle::setMaxNumDefaultNodes(
+            TestNodeSetSingle::lock_t const& SIXTRL_RESTRICT_REF lock,
+            TestNodeSetSingle::size_type const max_default_cnt )
+        {
+            this->doSetMaxNumDefaultNodes( lock, max_default_cnt );
+        }
+
         void TestNodeSetSingle::setCanDirectlyChangeSelectedNodeFlag(
             bool const flag )
         {
@@ -97,6 +135,32 @@ namespace SIXTRL_CXX_NAMESPACE
         void TestNodeSetSingle::setUseAutoselectFlag( bool const flag )
         {
             this->doSetUseAutoselectFlag( flag );
+        }
+
+        TestNodeSetSingle::status_t TestNodeSetSingle::selectDefaultNode(
+            TestNodeSetSingle::node_index_t const node_index )
+        {
+            TestNodeSetSingle::lock_t const lock( *this->lockable() );
+            return selectDefaultNode( lock, node_index );
+        }
+
+        TestNodeSetSingle::status_t TestNodeSetSingle::selectDefaultNode(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            node_index_t const node_index )
+        {
+            return this->doAddDefaultNode( lock, node_index );
+        }
+
+        TestNodeSetSingle::status_t TestNodeSetSingle::removeDefaultNode()
+        {
+            TestNodeSetSingle::lock_t const lock( *this->lockable() );
+            return doRemoveDefaultNode( lock, this->defaultNodeIndex() );
+        }
+
+        TestNodeSetSingle::status_t TestNodeSetSingle::removeDefaultNode(
+            TestNodeSetSingle::lock_t const& SIXTRL_RESTRICT_REF lock )
+        {
+            return doRemoveDefaultNode( lock, this->defaultNodeIndex() );
         }
     }
 }

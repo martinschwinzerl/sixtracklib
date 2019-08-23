@@ -63,6 +63,11 @@ namespace SIXTRL_CXX_NAMESPACE
                 SIXTRL_CXX_NAMESPACE::NodeStore& SIXTRL_RESTRICT_REF store );
 
             SIXTRL_HOST_FN TestNodeSetSingle(
+                SIXTRL_CXX_NAMESPACE::NodeStore::lock_t const&
+                    SIXTRL_RESTRICT_REF lock,
+                SIXTRL_CXX_NAMESPACE::NodeStore& SIXTRL_RESTRICT_REF store );
+
+            SIXTRL_HOST_FN TestNodeSetSingle(
                 TestNodeSetSingle const& ) = default;
 
             SIXTRL_HOST_FN TestNodeSetSingle(
@@ -79,12 +84,37 @@ namespace SIXTRL_CXX_NAMESPACE
             void setMinNumSelectableNodes( size_type const min_sel_cnt );
             void setMaxNumSelectableNodes( size_type const max_sel_cnt );
 
+            void setMinNumSelectableNodes(
+                lock_t const& SIXTRL_RESTRICT_REF lock,
+                size_type const min_sel_cnt );
+
+            void setMaxNumSelectableNodes(
+            lock_t const& SIXTRL_RESTRICT_REF lock,
+            size_type const max_sel_cnt );
+
             void setMinNumDefaultNodes( size_type const min_default_cnt );
             void setMaxNumDefaultNodes( size_type const max_default_cnt );
+
+            void setMinNumDefaultNodes( lock_t const& SIXTRL_RESTRICT_REF lock,
+                size_type const min_default_cnt );
+
+            void setMaxNumDefaultNodes( lock_t const& SIXTRL_RESTRICT_REF lock,
+                size_type const max_default_cnt );
 
             void setCanDirectlyChangeSelectedNodeFlag( bool const flag );
             void setCanUnselectNodeFlag( bool const flag );
             void setUseAutoselectFlag( bool const flag );
+
+            status_t selectDefaultNode( node_index_t const node_index );
+
+            status_t selectDefaultNode(
+                lock_t const& SIXTRL_RESTRICT_REF lock,
+                node_index_t const node_index );
+
+            status_t removeDefaultNode();
+
+            status_t removeDefaultNode(
+                lock_t const& SIXTRL_RESTRICT_REF lock );
         };
     }
 }

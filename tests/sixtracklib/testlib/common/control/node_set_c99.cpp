@@ -7,6 +7,7 @@
     #include "sixtracklib/common/control/node_store.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
+namespace st = SIXTRL_CXX_NAMESPACE;
 namespace st_tests = SIXTRL_CXX_NAMESPACE::tests;
 
 ::NS(TestNodeSetBase)* NS(TestNodeSetBase_create)(
@@ -107,6 +108,21 @@ void NS(TestNodeSetSingle_set_use_auto_select_flag)(
     ::NS(TestNodeSetSingle)* SIXTRL_RESTRICT node_set, bool const flag )
 {
     if( node_set != nullptr ) node_set->setUseAutoselectFlag( flag );
+}
+
+::NS(arch_status_t) NS(TestNodeSetSingle_select_default_node)(
+    ::NS(TestNodeSetSingle)* SIXTRL_RESTRICT node_set,
+    ::NS(node_index_t) const node_index )
+{
+    return ( node_set != nullptr ) ? node_set->selectDefaultNode( node_index )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(TestNodeSetSingle_remove_default_node)(
+    ::NS(TestNodeSetSingle)* SIXTRL_RESTRICT node_set )
+{
+    return ( node_set != nullptr ) ? node_set->removeDefaultNode()
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* end: tests/sixtracklib/testlib/common/control/node_set_c99.cpp */

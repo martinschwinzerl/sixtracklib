@@ -77,15 +77,15 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 }
 
+extern "C" {
+
 typedef SIXTRL_CXX_NAMESPACE::tests::TestNodeInfo NS(TestNodeInfo);
+
+}
 
 #else /* C++, Host */
 
-extern "C" {
-
 typedef void NS(TestNodeInfo);
-
-}
 
 #endif /* C++, Host */
 #endif /* SIXTRACKLIB_TESTS_COMMON_CONTROL_TEST_NODE_INFO_HPP__ */
