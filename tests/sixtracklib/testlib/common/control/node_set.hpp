@@ -51,8 +51,22 @@ namespace SIXTRL_CXX_NAMESPACE
             void setMinNumSelectableNodes( size_type const min_sel_cnt );
             void setMaxNumSelectableNodes( size_type const max_sel_cnt );
 
+            void setMinNumSelectableNodes(
+                lock_t const& SIXTRL_RESTRICT_REF lock,
+                size_type const min_sel_cnt );
+
+            void setMaxNumSelectableNodes(
+                lock_t const& SIXTRL_RESTRICT_REF lock,
+                size_type const max_sel_cnt );
+
             void setMinNumDefaultNodes( size_type const min_default_cnt );
             void setMaxNumDefaultNodes( size_type const max_default_cnt );
+
+            void setMinNumDefaultNodes( lock_t const& SIXTRL_RESTRICT_REF lock,
+                size_type const min_default_cnt );
+
+            void setMaxNumDefaultNodes( lock_t const& SIXTRL_RESTRICT_REF lock,
+                size_type const max_default_cnt );
         };
 
         class TestNodeSetSingle : public SIXTRL_CXX_NAMESPACE::NodeSetSingle

@@ -13,6 +13,7 @@ namespace SIXTRL_CXX_NAMESPACE
             st::NodeStore& SIXTRL_RESTRICT_REF store ) :
             st::NodeSetBase( store )
         {
+
         }
 
         void TestNodeSetBase::setMinNumSelectableNodes(
@@ -40,6 +41,34 @@ namespace SIXTRL_CXX_NAMESPACE
             _set_t::size_type const max_default_cnt )
         {
             _set_t::lock_t const lock( *this->lockable() );
+            this->doSetMaxNumDefaultNodes( lock, max_default_cnt );
+        }
+
+        void TestNodeSetBase::setMinNumSelectableNodes(
+            _set_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+            _set_t::size_type const min_sel_cnt )
+        {
+            this->doSetMinNumSelectableNodes( lock, min_sel_cnt );
+        }
+
+        void TestNodeSetBase::setMaxNumSelectableNodes(
+            _set_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+            _set_t::size_type const max_sel_cnt )
+        {
+            this->doSetMaxNumSelectableNodes( lock, max_sel_cnt );
+        }
+
+        void TestNodeSetBase::setMinNumDefaultNodes(
+            _set_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+            _set_t::size_type const min_default_cnt )
+        {
+            this->doSetMinNumDefaultNodes( lock, min_default_cnt );
+        }
+
+        void TestNodeSetBase::setMaxNumDefaultNodes(
+            _set_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+            _set_t::size_type const max_default_cnt )
+        {
             this->doSetMaxNumDefaultNodes( lock, max_default_cnt );
         }
 
