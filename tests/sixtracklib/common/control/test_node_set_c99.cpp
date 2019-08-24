@@ -161,6 +161,9 @@ TEST( C99_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
     /* create a new node set ... */
 
     node_set_t* ptr_node_set_1a = ::NS(TestNodeSetBase_create)( store );
+    ::NS(TestNodeSetBase_set_max_num_selectable_nodes)(
+        ptr_node_set_1a, size_t{ 1 } );
+
     ASSERT_TRUE( ptr_node_set_1a != nullptr );
     ASSERT_TRUE( ::NS(NodeSet_get_ptr_node_store)( ptr_node_set_1a ) != nullptr );
     ASSERT_TRUE( ::NS(NodeSet_get_ptr_node_store)( ptr_node_set_1a ) == store );
@@ -275,6 +278,9 @@ TEST( C99_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
     /* Add another node_set for arch_ids[ 0 ]: */
 
      node_set_t* ptr_node_set_1b = ::NS(TestNodeSetBase_create)( store );
+     ::NS(TestNodeSetBase_set_max_num_selectable_nodes)(
+        ptr_node_set_1b, size_t{ 1 } );
+
     ASSERT_TRUE( ptr_node_set_1b != nullptr );
 
     ASSERT_TRUE( ::NS(NodeSet_get_ptr_node_store)( ptr_node_set_1b ) != nullptr );
@@ -355,6 +361,9 @@ TEST( C99_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
     /* Add another node_set for arch_ids[ 1 ]: */
 
      node_set_t* ptr_node_set_2a = ::NS(TestNodeSetBase_create)( store );
+     ::NS(TestNodeSetBase_set_max_num_selectable_nodes)(
+        ptr_node_set_2a, size_t{ 1 } );
+
     ASSERT_TRUE( ptr_node_set_2a != nullptr );
 
     ASSERT_TRUE( ::NS(NodeSet_get_ptr_node_store)( ptr_node_set_2a ) != nullptr );
@@ -432,6 +441,9 @@ TEST( C99_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
     /* Add another node_set for arch_ids[ 1 ]: */
 
     node_set_t* ptr_node_set_2b = ::NS(TestNodeSetBase_create)( store );
+    ::NS(TestNodeSetBase_set_max_num_selectable_nodes)(
+        ptr_node_set_2b, size_t{ 1 } );
+
     ASSERT_TRUE( ptr_node_set_2b != nullptr );
 
     ASSERT_TRUE( ::NS(NodeSet_get_ptr_node_store)( ptr_node_set_2b ) != nullptr );
@@ -516,6 +528,9 @@ TEST( C99_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
      * arch_ids[ 2 ], arch_ids[ 3 ], arch_ids[ 4 ] : */
 
     node_set_t* ptr_node_set_3 = ::NS(TestNodeSetBase_create)( store );
+    ::NS(TestNodeSetBase_set_max_num_selectable_nodes)(
+        ptr_node_set_3, size_t{ 1 } );
+
     ASSERT_TRUE( ptr_node_set_3 != nullptr );
 
     ASSERT_TRUE( ::NS(NodeSet_get_ptr_node_store)(

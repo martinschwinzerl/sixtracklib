@@ -150,7 +150,8 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
     /* create a new node set ... */
 
     ptr_node_set_t ptr_node_set( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_1a = ptr_node_set.get();
+    node_set_t* ptr_node_set_1a = ptr_node_set.get();
+    ptr_node_set_1a->setMaxNumSelectableNodes( size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
@@ -232,7 +233,9 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
     /* Add another node_set for arch_ids[ 0 ]: */
 
     ptr_node_set.reset( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_1b = ptr_node_set.get();
+    node_set_t* ptr_node_set_1b = ptr_node_set.get();
+
+    ptr_node_set_1b->setMaxNumSelectableNodes( size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
@@ -288,7 +291,9 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
     /* Add another node_set for arch_ids[ 1 ]: */
 
     ptr_node_set.reset( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_2a = ptr_node_set.get();
+    node_set_t* ptr_node_set_2a = ptr_node_set.get();
+
+    ptr_node_set_2a->setMaxNumSelectableNodes( size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
@@ -345,7 +350,9 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
     /* Add another node_set for arch_ids[ 1 ]: */
 
     ptr_node_set.reset( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_2b = ptr_node_set.get();
+    node_set_t* ptr_node_set_2b = ptr_node_set.get();
+
+    ptr_node_set_2b->setMaxNumSelectableNodes( size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
@@ -406,7 +413,9 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsage )
      * arch_ids[ 2 ], arch_ids[ 3 ], arch_ids[ 4 ] : */
 
     ptr_node_set.reset( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_3 = ptr_node_set.get();
+    node_set_t* ptr_node_set_3 = ptr_node_set.get();
+
+    ptr_node_set_3->setMaxNumSelectableNodes( size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
@@ -640,7 +649,9 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsageExtLock )
     /* create a new node set ... */
 
     ptr_node_set_t ptr_node_set( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_1a = ptr_node_set.get();
+    node_set_t* ptr_node_set_1a = ptr_node_set.get();
+
+    ptr_node_set_1a->setMaxNumSelectableNodes( lock, size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
@@ -750,7 +761,9 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsageExtLock )
     /* Add another node_set for arch_ids[ 0 ]: */
 
     ptr_node_set.reset( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_1b = ptr_node_set.get();
+    node_set_t* ptr_node_set_1b = ptr_node_set.get();
+
+    ptr_node_set_1b->setMaxNumSelectableNodes( lock, size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
@@ -836,7 +849,9 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsageExtLock )
     /* Add another node_set for arch_ids[ 1 ]: */
 
     ptr_node_set.reset( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_2a = ptr_node_set.get();
+    node_set_t* ptr_node_set_2a = ptr_node_set.get();
+
+    ptr_node_set_2a->setMaxNumSelectableNodes( lock, size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
@@ -918,7 +933,9 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsageExtLock )
     /* Add another node_set for arch_ids[ 1 ]: */
 
     ptr_node_set.reset( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_2b = ptr_node_set.get();
+    node_set_t* ptr_node_set_2b = ptr_node_set.get();
+
+    ptr_node_set_2b->setMaxNumSelectableNodes( lock, size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
@@ -1005,7 +1022,9 @@ TEST( CXX_CommonControlNodeSetTests, NodeSetBaseBasicUsageExtLock )
      * arch_ids[ 2 ], arch_ids[ 3 ], arch_ids[ 4 ] : */
 
     ptr_node_set.reset( new node_set_t( store ) );
-    node_set_t const* ptr_node_set_3 = ptr_node_set.get();
+    node_set_t* ptr_node_set_3 = ptr_node_set.get();
+
+    ptr_node_set_3->setMaxNumSelectableNodes( lock, size_t{ 1 } );
 
     ASSERT_TRUE( ptr_node_set.get() != nullptr );
     ASSERT_TRUE( ptr_node_set->ptrNodeStore() == &store );
