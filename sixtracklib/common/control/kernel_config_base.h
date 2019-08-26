@@ -109,7 +109,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfig_has_config_str)(
 SIXTRL_EXTERN SIXTRL_HOST_FN char const* NS(KernelConfig_get_config_str)(
     const NS(KernelConfigBase) *const SIXTRL_RESTRICT config );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN ::NS(arch_status_t)
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
 NS(KernelConfig_update_config_str)(
     NS(KernelConfigBase)* SIXTRL_RESTRICT config,
     char const* SIXTRL_RESTRICT config_str );
