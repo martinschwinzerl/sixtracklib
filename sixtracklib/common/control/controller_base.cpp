@@ -29,6 +29,16 @@ namespace SIXTRL_CXX_NAMESPACE
 {
     using _this_t = st::ControllerBase;
 
+    constexpr _this_t::arch_id_t        _this_t::ARCH_ILLEGAL;
+    constexpr _this_t::arch_id_t        _this_t::NO_ARCH_ID;
+    constexpr _this_t::kernel_id_t      _this_t::ILLEGAL_KERNEL_CONFIG_ID;
+    constexpr _this_t::kernel_set_id_t  _this_t::ILLEGAL_KERNEL_SET_ID;
+    constexpr _this_t::sync_id_value_t  _this_t::ILLEGAL_SYNC_ID_VALUE;
+    constexpr _this_t::kernel_purpose_t _this_t::UNSPECIFIED_PURPOSE;
+    constexpr _this_t::kernel_purpose_t _this_t::PURPOSE_REMAP_BUFFER;
+
+    /* ********************************************************************* */
+
     void ControllerBase::setName( std::string const& SIXTRL_RESTRICT_REF name )
     {
         this->setName( name.c_str() );
@@ -49,11 +59,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    ControllerBase::status_t ControllerBase::send(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT arg,
+    _this_t::status_t ControllerBase::send(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT arg,
         const void *const SIXTRL_RESTRICT src_begin,
-        ControllerBase::size_type const src_size )
+        _this_t::size_type const src_size )
     {
         using size_t = _this_t::size_type;
         _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
@@ -71,11 +81,11 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    ControllerBase::status_t ControllerBase::send(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT arg,
-        const ControllerBase::c_buffer_t *const SIXTRL_RESTRICT source,
-        ControllerBase::perform_remap_flag_t const perform_remap_flag )
+    _this_t::status_t ControllerBase::send(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT arg,
+        const _this_t::c_buffer_t *const SIXTRL_RESTRICT source,
+        _this_t::perform_remap_flag_t const perform_remap_flag )
     {
         using size_t     = _this_t::size_type;
         using data_ptr_t = void const*;
@@ -108,11 +118,11 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    ControllerBase::status_t ControllerBase::send(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT arg,
-        ControllerBase::buffer_t const& SIXTRL_RESTRICT_REF source,
-        ControllerBase::perform_remap_flag_t const perform_remap_flag )
+    _this_t::status_t ControllerBase::send(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT arg,
+        _this_t::buffer_t const& SIXTRL_RESTRICT_REF source,
+        _this_t::perform_remap_flag_t const perform_remap_flag )
     {
         using size_t     = _this_t::size_type;
         using data_ptr_t = void const*;
@@ -145,12 +155,12 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    ControllerBase::status_t ControllerBase::receive(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+    _this_t::status_t ControllerBase::receive(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
         void* SIXTRL_RESTRICT dest_begin,
-        ControllerBase::size_type const dest_capacity,
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT src_arg,
-        ControllerBase::perform_remap_flag_t const perform_remap_flag )
+        _this_t::size_type const dest_capacity,
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT src_arg,
+        _this_t::perform_remap_flag_t const perform_remap_flag )
     {
         _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
@@ -175,11 +185,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
     }
 
-    ControllerBase::status_t ControllerBase::receive(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
-        ControllerBase::c_buffer_t* SIXTRL_RESTRICT destination,
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT src_arg,
-        ControllerBase::perform_remap_flag_t const perform_remap_flag )
+    _this_t::status_t ControllerBase::receive(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::c_buffer_t* SIXTRL_RESTRICT destination,
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT src_arg,
+        _this_t::perform_remap_flag_t const perform_remap_flag )
     {
         using size_t     = _this_t::size_type;
         using data_ptr_t = void*;
@@ -207,11 +217,11 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    ControllerBase::status_t ControllerBase::receive(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
-        ControllerBase::buffer_t& SIXTRL_RESTRICT_REF destination,
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT src_arg,
-        ControllerBase::perform_remap_flag_t const perform_remap_flag )
+    _this_t::status_t ControllerBase::receive(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::buffer_t& SIXTRL_RESTRICT_REF destination,
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT src_arg,
+        _this_t::perform_remap_flag_t const perform_remap_flag )
     {
         using size_t  = _this_t::size_type;
         using data_ptr_t = void*;
@@ -242,8 +252,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    ControllerBase::status_t ControllerBase::remap(
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT ptr_arg )
+    _this_t::status_t ControllerBase::remap(
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT ptr_arg )
     {
         using _this_t = st::ControllerBase;
         _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
@@ -263,18 +273,16 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    ControllerBase::status_t ControllerBase::remap(
-        ControllerBase::arg_base_ref_t SIXTRL_RESTRICT_REF arg )
+    _this_t::status_t ControllerBase::remap(
+        _this_t::arg_base_ref_t SIXTRL_RESTRICT_REF arg )
     {
         return this->remap( &arg );
     }
 
     bool ControllerBase::isRemapped(
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT ptr_arg )
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT ptr_arg )
     {
-        ControllerBase::status_t local_status =
-            st::ARCH_STATUS_GENERAL_FAILURE;
-
+        _this_t::status_t local_status = st::ARCH_STATUS_GENERAL_FAILURE;
         bool const is_remapped = this->doIsCObjectsBufferArgRemapped(
             ptr_arg, &local_status );
 
@@ -289,123 +297,87 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    ControllerBase::status_t ControllerBase::doSyncWithKernelSetBaseImpl(
-            ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock )
+    bool ControllerBase::canChangeVariantFlags(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::variant_t const new_variant_flags ) const SIXTRL_NOEXCEPT
     {
-        using kernel_set_id_t = _this_t::kernel_set_id_t;
-
-        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( ( this->hasKernelConfigStore() ) &&
-            ( this->hasKernelSet( lock ) ) )
-        {
-            kernel_set_id_t const kernel_set_id = this->kernelSetId( lock );
-
-            SIXTRL_ASSERT( this->checkKernelLock( lock ) );
-            SIXTRL_ASSERT( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID );
-
-            SIXTRL_ASSERT( this->ptrKernelConfigStore()->hasKernelSet(
-            lock, kernel_set_id ) );
-
-            SIXTRL_ASSERT( this->ptrKernelConfigStore()->ptrKernelSetBase(
-            lock, kernel_set_id ) == this->ptrKernelSetBase( lock ) );
-
-            status = this->ptrKernelConfigStore()->updateKernelSet(
-            lock, kernel_set_id );
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                if( !this->ptrKernelSetBase()->isSyncWith(
-                    this->m_expected_kernel_set_sync_id ) )
-                {
-                    status = this->doFetchOpFlagsAndSyncIdFromKernelSet(
-                        lock, kernel_set_id );
-                }
-
-                SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
-                    ( this->ptrKernelSetBase( lock )->isSyncWith(
-                    this->m_expected_kernel_set_sync_id ) ) );
-            }
-        }
-
-        return status;
+        _this_t::kernel_config_key_t key( this->currentKey( lock ) );
+        key.setVariant( new_variant_flags );
+        return this->canChangeToKey( lock, key );
     }
 
-    ControllerBase::status_t ControllerBase::doSyncWithKernelSet(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock )
+    _this_t::status_t ControllerBase::changeVariantFlags(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::variant_t const new_variant_flags )
     {
-        return this->doSyncWithKernelSetBaseImpl( lock );
-    }
-
-    bool ControllerBase::hasRemapBufferKernel( ControllerBase::kernel_lock_t
-        const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
-    {
-       return ( this->remapBufferKernelConfigId( lock ) !=
-        _this_t::ILLEGAL_KERNEL_CONFIG_ID );
-    }
-
-    ControllerBase::kernel_id_t ControllerBase::remapBufferKernelConfigId(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF
-            lock ) const SIXTRL_NOEXCEPT
-    {
-        _this_t::kernel_id_t kernel_id = _this_t::ILLEGAL_KERNEL_CONFIG_ID;
-
-        if( (  this->ptrKernelSetBase( lock ) != nullptr ) &&
-            (  this->ptrKernelConfigStore() != nullptr ) &&
-            (  this->ptrKernelConfigStore() ==
-              &this->ptrKernelSetBase( lock )->kernelConfigStore() ) )
-        {
-            kernel_id = this->ptrKernelSetBase( lock )->kernelConfigId(
-                lock, _this_t::PURPOSE_REMAP_BUFFER );
-        }
-
-        SIXTRL_ASSERT( ( kernel_id == _this_t::ILLEGAL_KERNEL_CONFIG_ID ) ||
-            ( ( this->kernelSetId( lock ) != _this_t::ILLEGAL_KERNEL_SET_ID ) &&
-              ( this->ptrKernelConfigStore()->checkLock( lock ) ) &&
-              ( this->ptrKernelSetBase( lock ) ==
-                this->ptrKernelConfigStore()->ptrKernelSetBase(
-                    lock, this->kernelSetId( lock ) ) ) &&
-              ( this->ptrKernelSetBase( lock )->ptrKernelConfigBase(
-                lock, kernel_id ) != nullptr ) &&
-              ( this->ptrKernelConfigStore()->ptrKernelConfigBase(
-                    lock, kernel_id ) ==
-                this->ptrKernelSetBase( lock )->ptrKernelConfigBase(
-                    lock, kernel_id ) ) &&
-              ( this->ptrKernelConfigStore()->ptrKernelConfigBase(
-                    lock, kernel_id )->isAttachedToSet(
-                        this->kernelSetId( lock ) ) ) ) );
-
-        return kernel_id;
-    }
-
-    ControllerBase::kernel_config_key_t const&
-    ControllerBase::remapBufferKernelConfigKey( ControllerBase::kernel_lock_t
-        const& SIXTRL_RESTRICT_REF lock ) const
-    {
-        if( (  this->ptrKernelSetBase( lock ) != nullptr ) &&
-            (  this->ptrKernelConfigStore() != nullptr ) &&
-            (  this->ptrKernelConfigStore() ==
-              &this->ptrKernelSetBase( lock )->kernelConfigStore() ) )
-        {
-            return this->ptrKernelSetBase( lock )->kernelConfigKey(
-                lock, _this_t::PURPOSE_REMAP_BUFFER );
-        }
-
-        throw std::runtime_error(
-            "unable to obtain remapBufferKernelConfigKey() from kernel set" );
+        _this_t::kernel_config_key_t key( this->currentKey( lock ) );
+        key.setVariant( new_variant_flags );
+        return this->changeToKey( lock, key );
     }
 
     /* --------------------------------------------------------------------- */
 
-    ControllerBase::status_t ControllerBase::changeVariantFlags(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
-        ControllerBase::variant_t const new_variant_flags )
+    bool ControllerBase::canChangeArgumentSet(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::kernel_argument_set_t const arg_set ) const SIXTRL_NOEXCEPT
+    {
+        _this_t::kernel_config_key_t key( this->currentKey( lock ) );
+        key.setArgumentSet( arg_set );
+        return this->canChangeToKey( lock, key );
+    }
+
+    _this_t::status_t ControllerBase::changeArgumentSet(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::kernel_argument_set_t const arg_set )
+    {
+        _this_t::kernel_config_key_t key( this->currentKey( lock ) );
+        key.setArgumentSet( arg_set );
+        return this->changeToKey( lock, key );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    bool ControllerBase::canChangeToKey(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::kernel_config_key_t& SIXTRL_RESTRICT_REF new_key )
+        const SIXTRL_NOEXCEPT
+    {
+        return ( ( new_key.isEqualExceptPurpose( this->currentKey( lock ) ) ) ||
+                 ( this->doCheckCanSwitchAllKernels( lock, new_key ) ) );
+    }
+
+    _this_t::status_t ControllerBase::changeToKey(
+            _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+            _this_t::kernel_config_key_t& SIXTRL_RESTRICT_REF new_key )
     {
         _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-        if( this->checkKernelLock( lock ) )
+        if( ( this->ptrKernelConfigStore() == nullptr ) ||
+            ( !this->checkKernelLock( lock ) ) ) return status;
+
+        _this_t::kernel_config_key_t const& cur_key( this->currentKey( lock ) );
+
+        if( new_key.isEqualExceptPurpose( cur_key ) )
         {
-            status = this->doChangeVariantFlags( new_variant_flags );
+            status = st::ARCH_STATUS_SUCCESS;
+        }
+        else
+        {
+            bool const changes_variant = (
+                new_key.variant() != cur_key.variant() );
+
+            status = this->doSwitchAllKernels( lock, new_key );
+
+            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+                ( !this->isSyncWithKernelSet() ) )
+            {
+                status = this->syncWithKernelSet( lock );
+            }
+
+            if( ( status == st::ARCH_STATUS_SUCCESS ) && ( changes_variant ) )
+            {
+                status = this->doChangeVariantFlags( new_key.variant() );
+            }
         }
 
         return status;
@@ -415,7 +387,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     void ControllerBase::print( ::FILE* SIXTRL_RESTRICT output ) const
     {
-        ControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( output != nullptr )
         {
@@ -426,7 +398,7 @@ namespace SIXTRL_CXX_NAMESPACE
             {
                 std::string const temp_str = a2str.str();
 
-                ControllerBase::size_type ret = std::fprintf(
+                _this_t::size_type ret = std::fprintf(
                     output, "%s", temp_str.c_str() );
 
                 SIXTRL_ASSERT( ret > ControllerBase::size_type{ 0 } );
@@ -435,9 +407,9 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     }
 
-    ControllerBase::size_type ControllerBase::requiredOutStringLength() const
+    _this_t::size_type ControllerBase::requiredOutStringLength() const
     {
-        ControllerBase::size_type capacity = ControllerBase::size_type{ 0 };
+        _this_t::size_type capacity = ControllerBase::size_type{ 0 };
 
         std::ostringstream a2str;
         if( st::ARCH_STATUS_SUCCESS == this->doPrintToOutputStream( a2str ) )
@@ -460,13 +432,13 @@ namespace SIXTRL_CXX_NAMESPACE
         return a2str.str();
     }
 
-    ControllerBase::status_t ControllerBase::toString(
-        ControllerBase::size_type const str_repr_capacity,
+    _this_t::status_t ControllerBase::toString(
+        _this_t::size_type const str_repr_capacity,
         char* SIXTRL_RESTRICT str_repr_begin ) const SIXTRL_NOEXCEPT
     {
-        using size_t = ControllerBase::size_type;
+        using size_t = _this_t::size_type;
 
-        ControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( ( str_repr_capacity > size_t{ 0 } ) &&
             ( str_repr_begin != nullptr ) )
@@ -508,6 +480,7 @@ namespace SIXTRL_CXX_NAMESPACE
         m_default_key( arch_id ), m_name(),
         m_my_own_kernel_config_store( nullptr ),
         m_ptr_kernel_config_store( ptr_store ),
+        m_ptr_kernel_set( nullptr ),
         m_op_flags( st::KERNEL_OP_FLAGS_NONE ),
         m_expected_kernel_set_sync_id( _this_t::ILLEGAL_SYNC_ID_VALUE ),
         m_kernel_set_id( _this_t::ILLEGAL_KERNEL_SET_ID ),
@@ -523,13 +496,12 @@ namespace SIXTRL_CXX_NAMESPACE
                 ( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID ) )
             {
                 status = this->doUpdateKernelSet( lock, kernel_set_id );
-            }
 
-            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->ptrKernelSetBase( lock ) != nullptr ) )
-            {
-                status = this->doFetchOpFlagsAndSyncIdFromKernelSet(
-                    lock, kernel_set_id );
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = this->doFetchOpFlagsAndSyncIdFromKernelSet(
+                        lock, kernel_set_id );
+                }
             }
         }
     }
@@ -543,7 +515,8 @@ namespace SIXTRL_CXX_NAMESPACE
             _this_t::_base_arch_obj_t::DEFAULT_VARIANT, config_str ),
         m_default_key( arch_id ), m_name(),
         m_my_own_kernel_config_store( nullptr ),
-        m_ptr_kernel_config_store(),
+        m_ptr_kernel_config_store( nullptr ),
+        m_ptr_kernel_set( nullptr ),
         m_op_flags( st::KERNEL_OP_FLAGS_NONE ),
         m_expected_kernel_set_sync_id( _this_t::ILLEGAL_SYNC_ID_VALUE ),
         m_kernel_set_id( _this_t::ILLEGAL_KERNEL_SET_ID ),
@@ -559,162 +532,124 @@ namespace SIXTRL_CXX_NAMESPACE
                 ( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID ) )
             {
                 status = this->doUpdateKernelSet( lock, kernel_set_id );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = this->doFetchOpFlagsAndSyncIdFromKernelSet(
+                        lock, kernel_set_id );
+                }
             }
+        }
+    }
+
+    ControllerBase::ControllerBase(
+        _this_t::kernel_lock_t& SIXTRL_RESTRICT_REF lock,
+        _this_t::arch_id_t const arch_id,
+        _this_t::kernel_config_store_base_t* SIXTRL_RESTRICT ptr_store,
+        _this_t::kernel_set_id_t const kernel_set_id,
+        char const* SIXTRL_RESTRICT config_str ) :
+        _this_t::_base_arch_obj_t( arch_id,
+            _this_t::_base_arch_obj_t::DEFAULT_VARIANT, config_str ),
+        m_default_key( arch_id ), m_name(),
+        m_my_own_kernel_config_store( nullptr ),
+        m_ptr_kernel_config_store( ptr_store ),
+        m_ptr_kernel_set( nullptr ),
+        m_op_flags( st::KERNEL_OP_FLAGS_NONE ),
+        m_expected_kernel_set_sync_id( _this_t::ILLEGAL_SYNC_ID_VALUE ),
+        m_kernel_set_id( _this_t::ILLEGAL_KERNEL_SET_ID ),
+        m_uses_nodes( false )
+    {
+        if( ( ptr_store != nullptr ) && ( ptr_store->checkLock( lock ) ) )
+        {
+            _this_t::status_t status = this->doAssignPtrKernelConfigStore(
+                lock, ptr_store );
 
             if( ( status == st::ARCH_STATUS_SUCCESS ) &&
-                ( this->ptrKernelSetBase( lock ) != nullptr ) )
+                ( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID ) )
             {
-                status = this->doFetchOpFlagsAndSyncIdFromKernelSet(
-                    lock, kernel_set_id );
+                status = this->doUpdateKernelSet( lock, kernel_set_id );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = this->doFetchOpFlagsAndSyncIdFromKernelSet(
+                        lock, kernel_set_id );
+                }
+            }
+        }
+    }
+
+    ControllerBase::ControllerBase(
+        _this_t::kernel_lock_t& SIXTRL_RESTRICT_REF lock,
+        _this_t::arch_id_t const arch_id,
+        _this_t::ptr_kernel_config_store_t&& kernel_config_store,
+        _this_t::kernel_set_id_t const kernel_set_id,
+        char const* SIXTRL_RESTRICT config_str ) :
+        _this_t::_base_arch_obj_t( arch_id,
+            _this_t::_base_arch_obj_t::DEFAULT_VARIANT, config_str ),
+        m_default_key( arch_id ), m_name(),
+        m_my_own_kernel_config_store( nullptr ),
+        m_ptr_kernel_config_store( nullptr ),
+        m_ptr_kernel_set( nullptr ),
+        m_op_flags( st::KERNEL_OP_FLAGS_NONE ),
+        m_expected_kernel_set_sync_id( _this_t::ILLEGAL_SYNC_ID_VALUE ),
+        m_kernel_set_id( _this_t::ILLEGAL_KERNEL_SET_ID ),
+        m_uses_nodes( false )
+    {
+        if( ( kernel_config_store.get() != nullptr ) &&
+            ( kernel_config_store->checkLock( lock ) ) )
+        {
+            _this_t::status_t status = this->doUpdateOwnKernelConfigStore(
+                lock, std::move( kernel_config_store ) );
+
+            if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+                ( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID ) )
+            {
+                status = this->doUpdateKernelSet( lock, kernel_set_id );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = this->doFetchOpFlagsAndSyncIdFromKernelSet(
+                        lock, kernel_set_id );
+                }
             }
         }
     }
 
     void ControllerBase::doClear(
-        ControllerBase::kernel_lock_t const& SIXTRL_RESTRICT_REF lock )
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock )
     {
         if( this->hasKernelSet( lock ) )
         {
-            _this_t::kernel_set_t* ptr_kernel_set =
-                this->ptrKernelSetBase( lock );
-
-            if( ptr_kernel_set != nullptr )
-            {
-                ptr_kernel_set->reset( lock );
-            }
-
+            _this_t::kernel_set_t* ptr_kernel_set = this->ptrKernelSet( lock );
+            if( ptr_kernel_set != nullptr )  ptr_kernel_set->reset( lock );
             this->doResetOpFlagsAndSyncId();
         }
-
-        return;
     }
 
     /* --------------------------------------------------------------------- */
 
-    ControllerBase::status_t ControllerBase::doChangeVariantFlags(
-        ControllerBase::variant_t const new_variant_flags )
-    {
-        using _this_t = st::ControllerBase;
-        using _base_t = _this_t::_base_arch_obj_t;
-        using kset_t  = _this_t::kernel_set_t;
-
-        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( !this->hasKernelConfigStore() )
-        {
-            return status;
-        }
-
-        _this_t::kernel_lock_t const lock( *this->kernelLockable() );
-
-        if( !this->hasKernelSet( lock ) )
-        {
-            return status;
-        }
-
-        if( ( !this->isSyncWithKernelSet() ) &&
-            (  this->syncWithKernelSet( lock ) != st::ARCH_STATUS_SUCCESS ) )
-        {
-            return status;
-        }
-
-        SIXTRL_ASSERT( this->isSyncWithKernelSet() );
-
-        kset_t& kernel_set = *this->ptrKernelSetBase( lock );
-        kset_t const& const_kernel_set = kernel_set;
-
-        bool const current_key_valid =
-            const_kernel_set.currentKernelConfigKey( lock ).valid();
-
-        if( ( current_key_valid ) &&
-            ( const_kernel_set.currentKernelConfigKey( lock ).archId() !=
-                this->archId() ) )
-        {
-            return status;
-        }
-
-        _this_t::kernel_config_key_t key;
-
-        if( current_key_valid )
-        {
-            key = const_kernel_set.currentKernelConfigKey( lock );
-        }
-        else if( this->defaultKey().valid() )
-        {
-            key = this->defaultKey();
-        }
-
-        if( !key.valid() ) return status;
-
-        if( ( current_key_valid ) &&
-            ( key.variant() == new_variant_flags ) )
-        {
-            return st::ARCH_STATUS_SUCCESS;
-        }
-
-        /* ----------------------------------------------------------------- */
-        /* if we are here, the "easy" cases are not applicable:
-         * - key points to either current_key or default key
-         * - key is valid
-         * - key.variant() differs from the new_variant_flags */
-
-
-        key.setVariant( new_variant_flags );
-        SIXTRL_ASSERT( key.valid() );
-
-        if( const_kernel_set.canSwitchKernels( lock, key ) )
-        {
-            status = kernel_set.switchKernels( lock, key );
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                status = _base_t::doChangeVariantFlags( new_variant_flags );
-            }
-
-            if( status == st::ARCH_STATUS_SUCCESS )
-            {
-                /* We save the send and receive flags as these would otherwise
-                  * be overwritten by the update process.
-                  * If a different behaviour is required, please
-                  * explicitly set send/receive to false before calling
-                  * this function and re-initilizae the flags afterwards */
-
-                static constexpr _this_t::op_flags_t FLAGS_TO_SAVE =
-                    st::KERNEL_OP_CTRL_READY_TO_SEND |
-                    st::KERNEL_OP_CTRL_READY_TO_RECEIVE;
-
-                status = this->doFetchOpFlagsAndSyncIdFromKernelSet(
-                    lock, this->kernelSetId( lock ), FLAGS_TO_SAVE );
-            }
-        }
-
-        return status;
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    ControllerBase::status_t ControllerBase::doSend(
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT,
+    _this_t::status_t ControllerBase::doSend(
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT,
         const void *const SIXTRL_RESTRICT, size_type const )
     {
         return st::ARCH_STATUS_GENERAL_FAILURE;
     }
 
-    ControllerBase::status_t ControllerBase::doReceive( void* SIXTRL_RESTRICT,
-        ControllerBase::size_type const,
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT )
+    _this_t::status_t ControllerBase::doReceive( void* SIXTRL_RESTRICT,
+        _this_t::size_type const,
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT )
     {
         return st::ARCH_STATUS_GENERAL_FAILURE;
     }
 
-    ControllerBase::status_t ControllerBase::doRemapCObjectsBufferArg(
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT )
+    _this_t::status_t ControllerBase::doRemapCObjectsBufferArg(
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT )
     {
         return st::ARCH_STATUS_GENERAL_FAILURE;
     }
 
     bool ControllerBase::doIsCObjectsBufferArgRemapped(
-        ControllerBase::ptr_arg_base_t SIXTRL_RESTRICT,
+        _this_t::ptr_arg_base_t SIXTRL_RESTRICT,
         ControllerBase::status_t* SIXTRL_RESTRICT ptr_status )
     {
         if( ptr_status != nullptr )
@@ -725,10 +660,16 @@ namespace SIXTRL_CXX_NAMESPACE
         return false;
     }
 
-    ControllerBase::status_t ControllerBase::doPrintToOutputStream(
+    _this_t::status_t ControllerBase::doCreateKernelSet(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock )
+    {
+        return this->doCreateKernelSetBaseImpl( kernel_lock );
+    }
+
+    _this_t::status_t ControllerBase::doPrintToOutputStream(
         std::ostream& SIXTRL_RESTRICT_REF output ) const
     {
-        ControllerBase::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( this->archId() != st::ARCHITECTURE_ILLEGAL )
         {
@@ -759,6 +700,55 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
+    _this_t::status_t ControllerBase::doSyncWithKernelSet(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        return this->doSyncWithKernelSetBaseImpl( lock );
+    }
+
+    bool ControllerBase::doCheckCanSwitchAllKernels(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        ControllerBase::kernel_config_key_t& SIXTRL_RESTRICT_REF new_key
+    ) const SIXTRL_NOEXCEPT
+    {
+        bool can_switch_all_kernels = false;
+
+        if( ( this->ptrKernelConfigStore() != nullptr ) &&
+            ( this->checkKernelLock( lock ) ) )
+        {
+            auto kernel_set = this->ptrKernelConfigStore()->ptrKernelSetBase(
+                lock, this->m_kernel_set_id );
+
+            can_switch_all_kernels = ( ( kernel_set != nullptr ) &&
+                ( kernel_set->canSwitchKernels( lock, new_key ) ) );
+        }
+
+        return can_switch_all_kernels;
+    }
+
+    _this_t::status_t ControllerBase::doSwitchAllKernels(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
+        _this_t::kernel_config_key_t& SIXTRL_RESTRICT_REF new_key )
+    {
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->ptrKernelConfigStore() != nullptr ) &&
+            ( this->checkKernelLock( lock ) ) )
+        {
+            auto kernel_set = this->ptrKernelConfigStore()->ptrKernelSetBase(
+                lock, this->m_kernel_set_id );
+
+            if( kernel_set != nullptr )
+            {
+                status = kernel_set->switchKernels( lock, new_key );
+            }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
     _this_t::kernel_config_store_base_t*
     ControllerBase::ptrKernelConfigStore() SIXTRL_NOEXCEPT
     {
@@ -774,6 +764,95 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     /* --------------------------------------------------------------------- */
+
+    _this_t::status_t ControllerBase::doSyncWithKernelSetBaseImpl(
+            _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        using kernel_set_id_t = _this_t::kernel_set_id_t;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->hasKernelConfigStore() ) &&
+            ( this->hasKernelSet( lock ) ) )
+        {
+            kernel_set_id_t const kernel_set_id = this->kernelSetId( lock );
+
+            SIXTRL_ASSERT( this->checkKernelLock( lock ) );
+            SIXTRL_ASSERT( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID );
+
+            SIXTRL_ASSERT( this->ptrKernelConfigStore()->hasKernelSet(
+            lock, kernel_set_id ) );
+
+            SIXTRL_ASSERT( this->ptrKernelConfigStore()->ptrKernelSetBase(
+            lock, kernel_set_id ) == this->ptrKernelSet( lock ) );
+
+            status = this->ptrKernelConfigStore()->updateKernelSet(
+            lock, kernel_set_id );
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                if( !this->ptrKernelSet( lock )->isSyncWith(
+                    this->m_expected_kernel_set_sync_id ) )
+                {
+                    status = this->doFetchOpFlagsAndSyncIdFromKernelSet(
+                        lock, kernel_set_id );
+                }
+
+                SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                    ( this->ptrKernelSet( lock )->isSyncWith(
+                    this->m_expected_kernel_set_sync_id ) ) );
+            }
+        }
+
+        return status;
+    }
+
+    _this_t::status_t ControllerBase::doCreateKernelSetBaseImpl(
+        _this_t::kernel_lock_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        using set_t = _this_t::kernel_set_t;
+        using kernel_set_id_t = _this_t::kernel_set_id_t;
+
+        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( this->ptrKernelConfigStore() != nullptr ) &&
+            ( this->checkKernelLock( lock ) ) &&
+            ( this->m_kernel_set_id == _this_t::ILLEGAL_KERNEL_SET_ID ) &&
+            ( this->m_ptr_kernel_set == nullptr ) )
+        {
+            kernel_set_id_t kernel_set_id = _this_t::ILLEGAL_KERNEL_SET_ID;
+
+            std::unique_ptr< set_t > ptr_kernel_set( new set_t(
+                lock, this->archId(), *this->ptrKernelConfigStore() ) );
+
+            set_t* _ptr_kernel_set = ptr_kernel_set.get();
+            set_t const* _ptr_c_kernel_set = _ptr_kernel_set;
+
+            if( _ptr_kernel_set != nullptr )
+            {
+                kernel_set_id = this->ptrKernelConfigStore()->addKernelSet(
+                    lock, std::move( ptr_kernel_set ) );
+            }
+
+            if( ( kernel_set_id != _this_t::ILLEGAL_KERNEL_SET_ID ) &&
+                ( _ptr_kernel_set != nullptr ) )
+            {
+                _this_t::kernel_config_key_t key(
+                    _ptr_c_kernel_set->currentKernelConfigKey( lock ) );
+
+                key.setVariant( this->variant() );
+                status = _ptr_kernel_set->syncWithStore( lock, key );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    this->m_ptr_kernel_set = _ptr_kernel_set;
+                    this->m_kernel_set_id  = kernel_set_id;
+                }
+            }
+        }
+
+        return status;
+    }
 
     _this_t::status_t ControllerBase::doUpdateOwnKernelConfigStore(
         _this_t::kernel_lock_t& SIXTRL_RESTRICT lock,
@@ -946,18 +1025,24 @@ namespace SIXTRL_CXX_NAMESPACE
                         this->kernelSetId( lock );
 
                     _this_t::kernel_set_t* ptr_saved_kernel_set =
-                        this->ptrKernelSetBase( lock );
+                        this->ptrKernelSet( lock );
 
-                    if( this->ptrKernelSetBase( lock ) != nullptr )
+                    if( this->ptrKernelSet( lock ) != nullptr )
                     {
                         this->doResetOpFlagsAndSyncId();
                     }
 
                     this->m_kernel_set_id = kernel_set_id;
-                    this->m_ptr_kernel_set = this->ptrKernelConfigStore(
+                    auto ptr_base = this->ptrKernelConfigStore(
                         )->ptrKernelSetBase( lock, kernel_set_id );
 
-                    if( ( this->ptrKernelSetBase( lock ) != nullptr ) &&
+                    if( ( ptr_base == nullptr ) ||
+                        ( !ptr_base->isForControllers() ) )
+                    {
+                        return status;
+                    }
+
+                    if( ( this->ptrKernelSet( lock ) != nullptr ) &&
                         ( this->kernelSetId( lock ) !=
                             _this_t::ILLEGAL_KERNEL_SET_ID ) )
                     {
