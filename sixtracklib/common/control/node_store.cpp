@@ -38,7 +38,6 @@
     #include "sixtracklib/common/internal/stl_buffer_helper.hpp"
     #include "sixtracklib/common/control/node_id.hpp"
     #include "sixtracklib/common/control/arch_info.hpp"
-    #include "sixtracklib/common/control/controller_base.hpp"
     #include "sixtracklib/common/control/node_id.h"
     #include "sixtracklib/common/control/node_id.hpp"
     #include "sixtracklib/common/control/node_info.hpp"
