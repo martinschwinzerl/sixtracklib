@@ -24,6 +24,35 @@
 namespace st = SIXTRL_CXX_NAMESPACE;
 using _set_t = st::KernelSetBase;
 
+::NS(kernel_purpose_t) NS(KernelSet_get_default_controller_purpose)(
+    ::NS(arch_size_t) const ii )
+{
+    return ( ii < _set_t::NUM_CONTROLLER_PURPOSES )
+        ? _set_t::CONTROLLER_PURPOSES[ ii ]
+        : st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
+}
+
+::NS(arch_size_t) NS(KernelSet_get_num_default_controller_purposes)()
+{
+    return _set_t::NUM_CONTROLLER_PURPOSES;
+}
+
+/* ------------------------------------------------------------------------- */
+
+::NS(kernel_purpose_t) NS(KernelSet_get_default_track_job_purpose)(
+    ::NS(arch_size_t) const ii )
+{
+    return ( ii < _set_t::NUM_TRACK_JOB_PURPOSES )
+        ? _set_t::TRACK_JOB_PURPOSES[ ii ]
+        : st::KERNEL_CONFIG_PURPOSE_UNSPECIFIED;
+}
+
+::NS(arch_size_t) NS(KernelSet_get_num_default_track_job_purposes)()
+{
+    return _set_t::NUM_TRACK_JOB_PURPOSES;
+}
+
+/* ========================================================================= */
 
 ::NS(KernelSetBase)* NS(KernelSetBase_new)(
     ::NS(arch_id_t) const arch_id,
@@ -415,6 +444,53 @@ NS(KernelSet_get_const_kernel_config_store)(
     ::NS(KernelSetBase)* SIXTRL_RESTRICT set )
 {
     return ( set != nullptr ) ? &set->kernelConfigStore() : nullptr;
+}
+
+/* ========================================================================= */
+
+::NS(ControllerKernelSetBase)* NS(ControllerKernelSet_new)(
+    ::NS(arch_id_t) const arch_id,
+    ::NS(KernelConfigStore)* SIXTRL_RESTRICT kernel_conf_store )
+{
+    return ( kernel_conf_store != nullptr )
+        ? new st::ControllerKernelSetBase( arch_id, *kernel_conf_store )
+        : nullptr;
+}
+
+/* ------------------------------------------------------------------------- */
+
+::NS(arch_status_t) NS(ControllerKernelSet_init_default_controller_kernels)(
+    ::NS(ControllerKernelSetBase)* SIXTRL_RESTRICT ctrl )
+{
+    return ( ctrl != nullptr )
+        ? ctrl->initDefaultControllerKernels()
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+::NS(arch_status_t) NS(ControllerKernelSet_configure_default_controller_kernels)(
+    ::NS(ControllerKernelSetBase)* SIXTRL_RESTRICT ctrl )
+{
+    return ( ctrl != nullptr )
+        ? ctrl->configureDefaultControllerKernels()
+        : st::ARCH_STATUS_GENERAL_FAILURE;
+}
+
+/* ------------------------------------------------------------------------- */
+
+::NS(arch_kernel_id_t) NS(ControllerKernelSet_init_remap_buffer_kernel_config)(
+    ::NS(ControllerKernelSetBase)* SIXTRL_RESTRICT ctrl,
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT key )
+{
+    return ( ( ctrl != nullptr ) && ( key != nullptr ) )
+        ? ctrl->initRemapBufferKernelConfig( *key )
+        : st::ARCH_ILLEGAL_KERNEL_CONFIG_ID;
+}
+
+::NS(arch_status_t) NS(ControllerKernelSet_configure_remap_buffer_kernel_config)(
+    ::NS(ControllerKernelSetBase)* SIXTRL_RESTRICT ctrl )
+{
+    return ( ctrl != nullptr ) ? ctrl->configureRemapBufferKernelConfig()
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* end: sixtracklib/common/control/kernel_set_c99.cpp */

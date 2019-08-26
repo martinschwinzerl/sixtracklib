@@ -2,11 +2,12 @@
 #define SIXTRACKLIB_COMMON_CONTROL_KERNEL_CONFIG_SET_C99_H__
 
 #if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/control/kernel_set.hpp"
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/control/kernel_config_key.h"
     #include "sixtracklib/common/control/kernel_config_base.h"
-    #include "sixtracklib/common/control/kernel_set.hpp"
+    #include "sixtracklib/common/control/kernel_config_store.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -14,6 +15,22 @@ extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
 #if !defined( _GPUCODE )
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(kernel_purpose_t)
+NS(KernelSet_get_default_controller_purpose)( NS(arch_size_t) const ii );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
+NS(KernelSet_get_num_default_controller_purposes)();
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(kernel_purpose_t)
+NS(KernelSet_get_default_track_job_purpose)( NS(arch_size_t) const ii );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_size_t)
+NS(KernelSet_get_num_default_track_job_purposes)();
+
+/* ========================================================================= */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelSetBase)* NS(KernelSetBase_new)(
     NS(arch_id_t) const arch_id,
@@ -236,6 +253,35 @@ NS(KernelSet_get_const_kernel_config_store)(
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(KernelConfigStore)*
 NS(KernelSet_get_kernel_config_store)( NS(KernelSetBase)* SIXTRL_RESTRICT set );
+
+/* ========================================================================= */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(ControllerKernelSetBase)*
+NS(ControllerKernelSet_new)(
+    NS(arch_id_t) const arch_id,
+    NS(KernelConfigStore)* SIXTRL_RESTRICT kernel_conf_store );
+
+/* ----------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ControllerKernelSet_init_default_controller_kernels)(
+    NS(ControllerKernelSetBase)* SIXTRL_RESTRICT ctrl );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ControllerKernelSet_configure_default_controller_kernels)(
+    NS(ControllerKernelSetBase)* SIXTRL_RESTRICT ctrl );
+
+/* ----------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_kernel_id_t)
+NS(ControllerKernelSet_init_remap_buffer_kernel_config)(
+    NS(ControllerKernelSetBase)* SIXTRL_RESTRICT ctrl,
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT key );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ControllerKernelSet_configure_remap_buffer_kernel_config)(
+    NS(ControllerKernelSetBase)* SIXTRL_RESTRICT ctrl );
+
 
 #endif /* !defined( _GPUCODE ) */
 

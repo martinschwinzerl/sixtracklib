@@ -50,6 +50,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using kernel_config_base_t = SIXTRL_CXX_NAMESPACE::KernelConfigBase;
         using kernel_config_key_t  = SIXTRL_CXX_NAMESPACE::KernelConfigKey;
         using kernel_config_id_t   = SIXTRL_CXX_NAMESPACE::arch_kernel_id_t;
+        using kernel_set_id_t      = SIXTRL_CXX_NAMESPACE::kernel_set_id_t;
         using purpose_t            = SIXTRL_CXX_NAMESPACE::kernel_purpose_t;
         using arch_id_t            = kernel_config_base_t::arch_id_t;
         using status_t             = kernel_config_base_t::status_t;
@@ -158,11 +159,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
         using kernel_set_data_t    = SIXTRL_CXX_NAMESPACE::KernelSetItemData;
         using op_flags_t           = SIXTRL_CXX_NAMESPACE::kernel_op_flags_t;
+        using kernel_set_id_t      = SIXTRL_CXX_NAMESPACE::kernel_set_id_t;
 
         using kernel_config_key_t  = kernel_set_data_t::kernel_config_key_t;
         using kernel_config_id_t   = kernel_set_data_t::kernel_config_id_t;
         using kernel_config_base_t = kernel_set_data_t::kernel_config_base_t;
-        using kernel_set_id_t      = kernel_config_id_t;
         using status_t             = kernel_set_data_t::status_t;
         using purpose_t            = kernel_set_data_t::purpose_t;
         using arch_id_t            = kernel_set_data_t::arch_id_t;
@@ -230,6 +231,18 @@ namespace SIXTRL_CXX_NAMESPACE
 
         template< typename PurposeIter >
         SIXTRL_HOST_FN KernelSetBase(
+            arch_id_t const arch_id,
+            kernel_config_store_base_t& SIXTRL_RESTRICT_REF kernel_conf_store,
+            PurposeIter purposes_begin, PurposeIter purposes_end );
+
+        SIXTRL_HOST_FN KernelSetBase( lock_t const& SIXTRL_RESTRICT_REF lock,
+            arch_id_t const arch_id,
+            kernel_config_store_base_t& SIXTRL_RESTRICT_REF kernel_conf_store,
+            size_type const num_purposes = size_type{ 0 },
+            purpose_t const* SIXTRL_RESTRICT purposes_begin = nullptr );
+
+        template< typename PurposeIter >
+        SIXTRL_HOST_FN KernelSetBase( lock_t const& SIXTRL_RESTRICT_REF lock,
             arch_id_t const arch_id,
             kernel_config_store_base_t& SIXTRL_RESTRICT_REF kernel_conf_store,
             PurposeIter purposes_begin, PurposeIter purposes_end );
@@ -723,6 +736,10 @@ namespace SIXTRL_CXX_NAMESPACE
             kernel_config_store_base_t& SIXTRL_RESTRICT_REF kernel_conf_store );
 
         SIXTRL_HOST_FN ControllerKernelSetBase(
+            lock_t const& SIXTRL_RESTRICT_REF lock, arch_id_t const arch_id,
+            kernel_config_store_base_t& SIXTRL_RESTRICT_REF kernel_conf_store );
+
+        SIXTRL_HOST_FN ControllerKernelSetBase(
             ControllerKernelSetBase const& orig ) = default;
 
         SIXTRL_HOST_FN ControllerKernelSetBase(
@@ -927,17 +944,34 @@ namespace SIXTRL_CXX_NAMESPACE
         m_kernel_set_id( KernelSetBase::ILLEGAL_KERNEL_SET_ID ),
         m_is_for_controllers( false ), m_is_for_track_jobs( false )
     {
-        namespace  st = SIXTRL_CXX_NAMESPACE;
-        using _this_t = st::KernelSetBase;
-        _this_t::lock_t const lock( *store.lockable() );
+        SIXTRL_CXX_NAMESPACE::KernelSetBase::lock_t const
+            lock( *store.lockable() );
 
-        _this_t::status_t const status =
+        SIXTRL_CXX_NAMESPACE::KernelSetBase::status_t const status =
             this->doAddPurposes( lock, purposes_begin, purposes_end );
 
-        if( status != st::ARCH_STATUS_SUCCESS )
-        {
+        if( status != SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS )
             throw std::runtime_error( "unable to init KernelSetBase" );
-        }
+    }
+
+    template< typename PurposeIter >
+    KernelSetBase::KernelSetBase(
+        KernelSetBase::lock_t const& SIXTRL_RESTRICT_REF lock,
+        KernelSetBase::arch_id_t const arch_id,
+        KernelSetBase::kernel_config_store_base_t& SIXTRL_RESTRICT_REF store,
+        PurposeIter purposes_begin, PurposeIter purposes_end ) :
+        SIXTRL_CXX_NAMESPACE::ArchInfo( arch_id ),
+        m_current_key(), m_purpose_to_data_map(), m_kernel_id_to_purposes_map(),
+        m_purposes(), m_kernel_config_store( store ),
+        m_sync_id( KernelSetBase::sync_id_value_t{ 0 } ),
+        m_kernel_set_id( KernelSetBase::ILLEGAL_KERNEL_SET_ID ),
+        m_is_for_controllers( false ), m_is_for_track_jobs( false )
+    {
+        SIXTRL_CXX_NAMESPACE::KernelSetBase::status_t const status =
+            this->doAddPurposes( lock, purposes_begin, purposes_end );
+
+        if( status != SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS )
+            throw std::runtime_error( "unable to init KernelSetBase" );
     }
 
     /* --------------------------------------------------------------------- */

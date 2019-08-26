@@ -97,7 +97,8 @@ namespace SIXTRL_CXX_NAMESPACE
         _set_t::size_type const num_purposes,
         _set_t::purpose_t const* SIXTRL_RESTRICT purposes_begin ) :
         st::ArchInfo( arch_id ),
-        m_current_key(), m_purpose_to_data_map(), m_kernel_id_to_purposes_map(),
+        m_current_key( arch_id ), m_purpose_to_data_map(),
+        m_kernel_id_to_purposes_map(),
         m_purposes(), m_kernel_config_store( store ),
         m_kernel_op_flags( st::KERNEL_OP_FLAGS_NONE ),
         m_sync_id( KernelSetBase::sync_id_value_t{ 0 } ),
@@ -106,9 +107,29 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         if( this->addPurposes( num_purposes, purposes_begin ) !=
             SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS )
-        {
-            throw std::runtime_error( "unable to init KernelSet" );
-        }
+                throw std::runtime_error( "unable to init KernelSet" );
+    }
+
+    KernelSetBase::KernelSetBase(
+        _set_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _set_t::arch_id_t const arch_id,
+        _set_t::kernel_config_store_base_t& SIXTRL_RESTRICT_REF store,
+        _set_t::size_type const num_purposes,
+        _set_t::purpose_t const* SIXTRL_RESTRICT purposes_begin ) :
+        st::ArchInfo( arch_id ),
+        m_current_key( arch_id  ), m_purpose_to_data_map(),
+        m_kernel_id_to_purposes_map(),
+        m_purposes(), m_kernel_config_store( store ),
+        m_kernel_op_flags( st::KERNEL_OP_FLAGS_NONE ),
+        m_sync_id( KernelSetBase::sync_id_value_t{ 0 } ),
+        m_kernel_set_id( KernelSetBase::ILLEGAL_KERNEL_SET_ID ),
+        m_is_for_controllers( false ), m_is_for_track_jobs( false )
+    {
+        store.checkLockAndThrowOnError( lock );
+
+        if( this->addPurposes( lock, num_purposes, purposes_begin ) !=
+            SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS )
+                throw std::runtime_error( "unable to init KernelSet" );
     }
 
     KernelSetBase::~KernelSetBase()
@@ -590,7 +611,7 @@ namespace SIXTRL_CXX_NAMESPACE
                     st::KERNEL_OP_TRACK_JOB_KERNELS_READY );
             }
 
-            if( this->numPurposes( lock ) )
+            if( this->numPurposes( lock ) > _set_t::size_type{ 0 } )
             {
                 op_flags |= this->doUpdateKernelOpFlagsForPurposes( lock,
                     this->purposesBegin( lock ), this->purposesEnd( lock ),
@@ -1496,6 +1517,17 @@ namespace SIXTRL_CXX_NAMESPACE
         this->doSetIsForControllersFlag( true );
     }
 
+    ControllerKernelSetBase::ControllerKernelSetBase(
+        _ctrl_set_t::lock_t const& SIXTRL_RESTRICT_REF lock,
+        _ctrl_set_t::arch_id_t const arch_id,
+        _ctrl_set_t::kernel_config_store_base_t& SIXTRL_RESTRICT_REF store ) :
+        st::KernelSetBase( lock, arch_id, store,
+             _ctrl_set_t::NUM_CONTROLLER_PURPOSES,
+            &_ctrl_set_t::CONTROLLER_PURPOSES[ 0 ] )
+    {
+        this->doSetIsForControllersFlag( true );
+    }
+
     _ctrl_set_t::kernel_config_id_t
     ControllerKernelSetBase::initRemapBufferKernelConfig(
         _ctrl_set_t::lock_t const& SIXTRL_RESTRICT_REF lock,
@@ -1585,10 +1617,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
             input_key.setPurpose( _ctrl_set_t::PURPOSE_REMAP_BUFFER );
 
-            if( this->initRemapBufferKernelConfig( lock, input_key ) !=
-                _ctrl_set_t::ILLEGAL_KERNEL_CONFIG_ID )
+            _ctrl_set_t::kernel_set_id_t const remap_kernel_id =
+                this->initRemapBufferKernelConfig( lock, input_key );
+
+            if(  remap_kernel_id != _ctrl_set_t::ILLEGAL_KERNEL_CONFIG_ID )
             {
-                status = st::ARCH_STATUS_SUCCESS;
+                status = this->syncWithStore( lock, input_key );
             }
 
             /* ------------------------------------------------------------- */
