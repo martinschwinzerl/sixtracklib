@@ -4,6 +4,7 @@
 #include "sixtracklib/testlib.h"
 
 #include "sixtracklib/testlib/common/architecture/architecture.hpp"
+#include "sixtracklib/testlib/common/control/controller_base.hpp"
 #include "sixtracklib/testlib/common/control/node_info.hpp"
 #include "sixtracklib/testlib/common/control/node_set.hpp"
 #include "sixtracklib/testlib/common/particles/particles_addr.hpp"

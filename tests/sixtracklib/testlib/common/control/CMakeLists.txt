@@ -2,6 +2,7 @@
 # tests/sixtracklib/testlib/common/control/CMakeLists.txt
 
 set( SIXTRL_TESTLIB_COMMON_CONTROL_C99_HEADERS
+     controller_base.h
      node_info.h
      node_set.h
 )
@@ -11,11 +12,14 @@ set( SIXTRL_TESTLIB_COMMON_CONTROL_C99_SOURCES )
 # ------------------------------------------------------------------------------
 
 set( SIXTRL_TESTLIB_COMMON_CONTROL_CXX_HEADERS
+    controller_base.hpp
     node_info.hpp
     node_set.hpp
 )
 
 set( SIXTRL_TESTLIB_COMMON_CONTROL_CXX_SOURCES
+     controller_base.cpp
+     controller_base_c99.cpp
      node_info.cpp
      node_info_c99.cpp
      node_set.cpp

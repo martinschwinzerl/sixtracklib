@@ -10,6 +10,7 @@
 #include "sixtracklib/testlib/common/random.h"
 #include "sixtracklib/testlib/common/time.h"
 #include "sixtracklib/testlib/common/architecture/architecture.h"
+#include "sixtracklib/testlib/common/control/controller_base.h"
 #include "sixtracklib/testlib/common/control/node_info.h"
 #include "sixtracklib/testlib/common/control/node_set.h"
 #include "sixtracklib/testlib/common/particles/particles.h"
