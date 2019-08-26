@@ -508,7 +508,7 @@ namespace SIXTRL_CXX_NAMESPACE
             lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN void checkLockAndThrowOnError(
-            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+            lock_t const& SIXTRL_RESTRICT_REF lock ) const;
 
         /* ----------------------------------------------------------------- */
 
@@ -1271,6 +1271,13 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         return ( ( lock.owns_lock() ) &&
                  ( lock.mutex() == this->lockable() ) );
+    }
+
+    SIXTRL_INLINE void KernelConfigStore::checkLockAndThrowOnError(
+        KernelConfigStore::lock_t const& SIXTRL_RESTRICT_REF lock ) const
+    {
+        if( !this->checkLock( lock ) )
+            throw std::runtime_error( "Not properly locked lock handle" );
     }
 
     /* --------------------------------------------------------------------- */

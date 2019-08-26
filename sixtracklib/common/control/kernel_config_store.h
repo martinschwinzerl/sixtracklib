@@ -37,7 +37,7 @@ NS(KernelConfigStore_get_num_kernel_sets)(
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(kernel_set_id_t)
 NS(KernelConfigStore_add_kernel_set)(
-    ::NS(KernelConfigStore)* SIXTRL_RESTRICT store,
+    NS(KernelConfigStore)* SIXTRL_RESTRICT store,
     NS(KernelSetBase)* ptr_kernel_set_to_take_ownership );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigStore_has_kernel_set)(
@@ -50,7 +50,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(KernelConfigStore_has_kernel_set_by_ptr)(
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
 NS(KernelConfigStore_update_kernel_set)(
-    ::NS(KernelConfigStore)* SIXTRL_RESTRICT store,
+    NS(KernelConfigStore)* SIXTRL_RESTRICT store,
     NS(kernel_set_id_t) const kernel_set_id );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(kernel_set_id_t)
