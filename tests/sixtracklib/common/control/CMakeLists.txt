@@ -167,6 +167,40 @@ if( GTEST_FOUND )
                                 CXX_CommonControlKernelConfigKeyTests )
 
     # ==========================================================================
+    # test_controller_base_common_c99:
+
+    add_executable( test_controller_base_common_c99
+                    test_controller_base_c99.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_controller_base_common_c99 )
+    add_test( C99_CommonControlControllerBaseTests
+              test_controller_base_common_c99 )
+
+    set_property( TEST C99_CommonControlControllerBaseTests APPEND PROPERTY DEPENDS
+            C99_CommonControlKernelConfigStoreTests
+            C99_CommonControlKernelConfigBaseTests
+            C99_CommonControlKernelConfigKeyTests
+            C99_CommonControlKernelSetBaseTests )
+
+    # --------------------------------------------------------------------------
+    # test_controller_base_common_cxx:
+
+    add_executable( test_controller_base_common_cxx
+                    test_controller_base_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+         test_controller_base_common_cxx )
+
+    add_test( CXX_CommonControlControllerBaseTests
+              test_controller_base_common_cxx )
+
+    set_property( TEST CXX_CommonControlControllerBaseTests APPEND PROPERTY DEPENDS
+            CXX_CommonControlKernelStoreCommonTests
+            CXX_CommonControlKernelConfigBaseTests
+            CXX_CommonControlKernelConfigKeyTests
+            CXX_CommonControlKernelSetBaseTests )
+
+    # ==========================================================================
     # test_node_info_base_common_c99:
 
     add_executable( test_node_info_base_common_c99
