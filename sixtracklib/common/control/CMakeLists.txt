@@ -51,7 +51,7 @@ set( SIXTRL_COMMON_CONTROL_CXX_HEADERS
      kernel_config_base.hpp
      kernel_config_store.hpp
      kernel_set.hpp
-#      controller_base.hpp
+     controller_base.hpp
 #      node_controller_base.hpp
      argument_base.hpp
 )
