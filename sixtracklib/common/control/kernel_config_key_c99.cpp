@@ -64,6 +64,17 @@ NS(KernelConfigKey)* NS(KernelConfigKey_new_detailed)(
         kernel_config_str );
 }
 
+void NS(KernelConfigKey_assign_from)(
+    ::NS(KernelConfigKey)* SIXTRL_RESTRICT destination,
+    const ::NS(KernelConfigKey) *const SIXTRL_RESTRICT source )
+{
+    if( ( destination != nullptr ) &&( source != nullptr ) &&
+        ( destination != source ) )
+    {
+        *destination = *source;
+    }
+}
+
 void NS(KernelConfigKey_delete)( ::NS(KernelConfigKey)* SIXTRL_RESTRICT key )
 {
     delete key;

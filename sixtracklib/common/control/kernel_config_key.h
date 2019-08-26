@@ -48,6 +48,10 @@ NS(KernelConfigKey_new_detailed)(
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfigKey_delete)(
     NS(KernelConfigKey)* SIXTRL_RESTRICT key );
 
+SIXTRL_EXTERN SIXTRL_HOST_FN void NS(KernelConfigKey_assign_from)(
+    NS(KernelConfigKey)* SIXTRL_RESTRICT destination,
+    const NS(KernelConfigKey) *const SIXTRL_RESTRICT source );
+
 /* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
