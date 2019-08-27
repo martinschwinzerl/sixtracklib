@@ -51,8 +51,9 @@ set( SIXTRL_COMMON_CONTROL_CXX_HEADERS
      kernel_config_base.hpp
      kernel_config_store.hpp
      kernel_set.hpp
+     node_set_kernel_set_op.hpp
      controller_base.hpp
-#      node_controller_base.hpp
+     node_controller_base.hpp
      argument_base.hpp
 )
 
@@ -76,9 +77,10 @@ set( SIXTRL_COMMON_CONTROL_CXX_SOURCES
      kernel_config_store_c99.cpp
      kernel_set.cpp
      kernel_set_c99.cpp
+     node_set_kernel_set_op.cpp
      controller_base.cpp
      controller_base_c99.cpp
-#      node_controller_base.cpp
+     node_controller_base.cpp
 #      node_controller_base_c99.cpp
      argument_base.cpp
      argument_base_c99.cpp
