@@ -250,6 +250,11 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN status_t syncWithStore(
             lock_t const& SIXTRL_RESTRICT_REF lock );
 
+        SIXTRL_HOST_FN sync_id_value_t syncIdValue() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN sync_id_value_t syncIdValue(
+            lock_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN size_type requiredOutStringLength() const;
@@ -818,6 +823,20 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->syncWithStore( lock );
     }
 
+    SIXTRL_INLINE NodeSetBase::sync_id_value_t
+    NodeSetBase::syncIdValue() const SIXTRL_NOEXCEPT
+    {
+        return this->m_expected_sync_id_value;
+    }
+
+    SIXTRL_INLINE NodeSetBase::sync_id_value_t
+    NodeSetBase::syncIdValue( NodeSetBase::lock_t const&
+        SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+    {
+        return ( this->checkLock( lock ) ) ? this->m_expected_sync_id_value
+            : SIXTRL_CXX_NAMESPACE::NodeSetBase::ILLEGAL_SYNC_ID_VALUE;
+    }
+
     SIXTRL_INLINE NodeSetBase::size_type
     NodeSetBase::requiredOutStringLength() const
     {
@@ -846,7 +865,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeSetBase;
         _this_t::lock_t const lock( *this->lockable() );
-        this->printOut();
+        this->printOut( lock );
     }
 
     SIXTRL_INLINE std::string NodeSetBase::toString() const
@@ -862,7 +881,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         using _this_t = SIXTRL_CXX_NAMESPACE::NodeSetBase;
         _this_t::lock_t const lock( *this->lockable() );
-        return this->toString( out_str_capacity, out_str );
+        return this->toString( lock, out_str_capacity, out_str );
     }
 
     SIXTRL_INLINE std::ostream& operator<<(
