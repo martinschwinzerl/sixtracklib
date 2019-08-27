@@ -69,7 +69,15 @@ namespace SIXTRL_CXX_NAMESPACE
             private:
 
             SIXTRL_HOST_FN status_t doInitTestControllerBase(
-                kernel_lock_t const& SIXTRL_RESTRICT_REF lock );
+                kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
+                kernel_config_store_base_t*
+                    SIXTRL_RESTRICT ext_kernel_conf_store,
+                kernel_set_id_t kernel_set_id );
+
+            SIXTRL_HOST_FN status_t doInitTestControllerBase(
+                kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
+                ptr_kernel_config_store_t&& kernel_conf_store,
+                kernel_set_id_t kernel_set_id );
         };
     }
 }
