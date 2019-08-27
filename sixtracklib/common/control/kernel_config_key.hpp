@@ -45,6 +45,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using purpose_t      = SIXTRL_CXX_NAMESPACE::kernel_purpose_t;
         using argument_set_t = SIXTRL_CXX_NAMESPACE::kernel_argument_set_t;
         using node_id_t      = SIXTRL_CXX_NAMESPACE::NodeId;
+        using c_node_id_t    = node_id_t::c_api_t;
         using arch_id_t      = node_id_t::arch_id_t;
         using platform_id_t  = node_id_t::platform_id_t;
         using device_id_t    = node_id_t::device_id_t;
@@ -108,6 +109,16 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN void setArgumentSet(
             argument_set_t const argument_set ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN void setNodeId(
+            node_id_t const& SIXTRL_RESTRICT_REF node_id ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN void setNodeId(
+            const c_node_id_t *const SIXTRL_RESTRICT node_id ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN void setPlatformAndDeviceId(
+            platform_id_t const platform_id,
+            device_id_t const device_id ) SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN void setConfigStr(
             std::string const& SIXTRL_RESTRICT_REF config_str );

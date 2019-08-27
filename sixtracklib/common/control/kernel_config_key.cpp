@@ -14,6 +14,31 @@ namespace SIXTRL_CXX_NAMESPACE
     constexpr _this_t::arch_id_t      _this_t::ARCH_ILLEGAL;
     constexpr _this_t::argument_set_t _this_t::DEFAULT_ARGUMENT_SET;
 
+
+    void KernelConfigKey::setNodeId( KernelConfigKey::node_id_t const&
+        SIXTRL_RESTRICT_REF node_id ) SIXTRL_NOEXCEPT
+    {
+        this->m_node_id = node_id;
+    }
+
+    void KernelConfigKey::setNodeId( const KernelConfigKey::c_node_id_t *const
+        SIXTRL_RESTRICT ptr_node_id ) SIXTRL_NOEXCEPT
+    {
+        if( ( ptr_node_id != nullptr ) &&
+            ( ptr_node_id != this->m_node_id.getCApiPtr() ) )
+        {
+            this->m_node_id = *( st::asCxxNodeId( ptr_node_id ) );
+        }
+    }
+
+    void KernelConfigKey::setPlatformAndDeviceId(
+        KernelConfigKey::platform_id_t const platform_id,
+        KernelConfigKey::device_id_t const device_id ) SIXTRL_NOEXCEPT
+    {
+        this->m_node_id.setPlatformId( platform_id );
+        this->m_node_id.setDeviceId( device_id );
+    }
+
     void KernelConfigKey::setConfigStr(
         char const* SIXTRL_RESTRICT config_str )
     {
