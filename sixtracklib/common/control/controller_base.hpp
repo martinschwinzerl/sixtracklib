@@ -355,7 +355,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN bool canChangeVariantFlags(
             kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
-            variant_t const var ) const SIXTRL_NOEXCEPT;
+            variant_t const var ) const;
 
         SIXTRL_HOST_FN status_t changeVariantFlags(
             kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
@@ -373,7 +373,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN bool canChangeArgumentSet(
             kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
-            kernel_argument_set_t const arg_set ) const SIXTRL_NOEXCEPT;
+            kernel_argument_set_t const arg_set ) const;
 
         SIXTRL_HOST_FN status_t changeArgumentSet(
             kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
@@ -391,7 +391,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN bool canChangeToKey(
             kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
-            kernel_config_key_t& SIXTRL_RESTRICT_REF key ) const SIXTRL_NOEXCEPT;
+            kernel_config_key_t& SIXTRL_RESTRICT_REF key ) const;
 
         SIXTRL_HOST_FN status_t changeToKey(
             kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
@@ -454,32 +454,7 @@ namespace SIXTRL_CXX_NAMESPACE
             return ( haystack & ( ~needle ) );
         }
 
-        SIXTRL_HOST_FN ControllerBase(
-            arch_id_t const arch_id,
-            kernel_config_store_base_t* SIXTRL_RESTRICT
-                ptr_kernel_config_store = nullptr,
-            kernel_set_id_t const kernel_set_id = ILLEGAL_KERNEL_SET_ID,
-            char const* SIXTRL_RESTRICT config_str = nullptr );
-
-        SIXTRL_HOST_FN ControllerBase(
-            arch_id_t const arch_id,
-            ptr_kernel_config_store_t&& kernel_config_store,
-            kernel_set_id_t const kernel_set = ILLEGAL_KERNEL_SET_ID,
-            char const* SIXTRL_RESTRICT config_str = nullptr );
-
-        SIXTRL_HOST_FN ControllerBase(
-            kernel_lock_t& SIXTRL_RESTRICT_REF lock,
-            arch_id_t const arch_id,
-            kernel_config_store_base_t* SIXTRL_RESTRICT
-                ptr_kernel_config_store,
-            kernel_set_id_t const kernel_set_id = ILLEGAL_KERNEL_SET_ID,
-            char const* SIXTRL_RESTRICT config_str = nullptr );
-
-        SIXTRL_HOST_FN ControllerBase(
-            kernel_lock_t& SIXTRL_RESTRICT_REF lock,
-            arch_id_t const arch_id,
-            ptr_kernel_config_store_t&& kernel_config_store,
-            kernel_set_id_t const kernel_set = ILLEGAL_KERNEL_SET_ID,
+        SIXTRL_HOST_FN ControllerBase( arch_id_t const arch_id,
             char const* SIXTRL_RESTRICT config_str = nullptr );
 
         SIXTRL_HOST_FN ControllerBase( ControllerBase const& other ) = default;
@@ -536,8 +511,13 @@ namespace SIXTRL_CXX_NAMESPACE
             ptr_arg_base_t SIXTRL_RESTRICT arg,
             status_t* SIXTRL_RESTRICT ptr_status );
 
-        SIXTRL_HOST_FN virtual status_t doCreateKernelSet(
-            kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock );
+        SIXTRL_HOST_FN virtual bool doCheckIfCanChangeAllKernelsWithKey(
+            kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
+            kernel_config_key_t& SIXTRL_RESTRICT_REF new_key ) const;
+
+        SIXTRL_HOST_FN virtual status_t doChangeAllKernelsWithKey(
+            kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
+            kernel_config_key_t& SIXTRL_RESTRICT_REF new_key );
 
         SIXTRL_HOST_FN virtual status_t doSyncWithKernelSet(
             kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock );
@@ -550,27 +530,18 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN kernel_config_key_t& defaultKey(
             kernel_lock_t const& SIXTRL_RESTRICT_REF lock ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool doCheckCanSwitchAllKernels(
-                kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
-                kernel_config_key_t& SIXTRL_RESTRICT_REF new_key
-        ) const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN status_t doSwitchAllKernels(
-            kernel_lock_t const& SIXTRL_RESTRICT_REF lock,
-            kernel_config_key_t& SIXTRL_RESTRICT_REF new_key );
-
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN status_t doUpdateOwnKernelConfigStore(
-            kernel_lock_t& SIXTRL_RESTRICT kernel_lock,
-            ptr_kernel_config_store_t&& kernel_config_store );
+        SIXTRL_HOST_FN status_t doInitKernelConfigStore(
+            kernel_lock_t const& SIXTRL_RESTRICT kernel_lock,
+            kernel_config_store_base_t* SIXTRL_RESTRICT ext_kernel_conf_store );
 
-        SIXTRL_HOST_FN status_t doAssignPtrKernelConfigStore(
-            kernel_lock_t& SIXTRL_RESTRICT kernel_lock,
-            kernel_config_store_base_t* SIXTRL_RESTRICT ptr_kernel_conf_store );
+        SIXTRL_HOST_FN status_t doInitKernelConfigStore(
+            kernel_lock_t const& SIXTRL_RESTRICT kernel_lock,
+            ptr_kernel_config_store_t&& kernel_conf_store_to_take_ownership );
 
-        SIXTRL_HOST_FN status_t doUpdateKernelSet(
-            kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock,
+        SIXTRL_HOST_FN status_t doInitKernelSet(
+            kernel_lock_t const& SIXTRL_RESTRICT kernel_lock,
             kernel_set_id_t const kernel_set_id );
 
         SIXTRL_HOST_FN status_t doFetchOpFlagsAndSyncIdFromKernelSet(
@@ -611,9 +582,6 @@ namespace SIXTRL_CXX_NAMESPACE
         private:
 
         SIXTRL_HOST_FN status_t doSyncWithKernelSetBaseImpl(
-            kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock );
-
-        SIXTRL_HOST_FN  status_t doCreateKernelSetBaseImpl(
             kernel_lock_t const& SIXTRL_RESTRICT_REF kernel_lock );
 
         kernel_config_key_t         m_default_key;
