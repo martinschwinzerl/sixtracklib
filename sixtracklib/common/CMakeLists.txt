@@ -10,6 +10,7 @@ set( SIXTRACKLIB_COMMON_C99_HEADERS )
 set( SIXTRACKLIB_COMMON_CXX_HEADERS )
 
 add_subdirectory( generated      )
+# add_subdirectory( beam_elements  )
 add_subdirectory( buffer         )
 add_subdirectory( control        )
 add_subdirectory( context        )
