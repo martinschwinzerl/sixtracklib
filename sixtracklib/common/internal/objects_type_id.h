@@ -28,6 +28,8 @@ typedef enum NS(object_type_values_e)
     NS(OBJECT_TYPE_SPACE_CHARGE_BUNCHED)  =         14,
     NS(OBJECT_TYPE_DIPEDGE)               =         24,
     NS(OBJECT_TYPE_PARTICLES_ADDR)        =        512,
+    NS(OBJECT_TYPE_TRACK_PARTICLE)        =        513,
+    NS(OBJECT_TYPE_PARTICLE_SET)          =        514,
     NS(OBJECT_TYPE_LINE)                  =       1024,
     NS(OBJECT_TYPE_ELEM_BY_ELEM_CONF)     =      65535,
     NS(OBJECT_TYPE_LAST_AVAILABLE)        =      65535,
@@ -54,6 +56,14 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST object_type_id_t
         OBJECT_TYPE_PARTICLE     = static_cast< object_type_id_t >(
             NS(OBJECT_TYPE_PARTICLE) );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST object_type_id_t
+        OBJECT_TYPE_TRACK_PARTICLE = static_cast< object_type_id_t >(
+            NS(OBJECT_TYPE_TRACK_PARTICLE) );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST object_type_id_t
+        OBJECT_TYPE_PARTICLE_SET = static_cast< object_type_id_t >(
+            NS(OBJECT_TYPE_PARTICLE_SET) );
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST object_type_id_t
         OBJECT_TYPE_DRIFT        = static_cast< object_type_id_t >(
