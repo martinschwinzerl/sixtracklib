@@ -150,8 +150,16 @@ class Multipole(CObject):
 
     @property
     def ksl(self):
-        return [self.bal[ii + 1] * Multipole._factorial(ii // 2 + 1)
+        return [self.bal[ii + 1] * Multipole._factorial(ii // 2)
                 for ii in range(0, len(self.bal), 2)]
+
+    def set_knl(self, order, value):
+        assert order <= self.order
+        self.bal[order * 2] = value / Multipole._factorial(order)
+
+    def set_ksl(self, order, value):
+        assert order <= self.order
+        self.bal[order * 2 + 1] = value / Multipole._factorial(order)
 
 
 class Cavity(CObject):
