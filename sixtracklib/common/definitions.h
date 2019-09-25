@@ -1,6 +1,12 @@
 #ifndef SIXTRACKLIB_COMMON_DEFINITIONS_H__
 #define SIXTRACKLIB_COMMON_DEFINITIONS_H__
 
+#if !defined( SIXTRL_DEBUG )
+    #if !defined( NDEBUG )
+        #define SIXTRL_DEBUG 1
+    #endif /* !defined( NDEBUG ) */
+#endif /* !defined( SIXTRL_DEBUG ) */
+
 #if !defined(SIXTRL_EXTERN)
     #if !defined( __cplusplus ) && !defined(_GPUCODE)
         #define SIXTRL_EXTERN extern

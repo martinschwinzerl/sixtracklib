@@ -4,6 +4,7 @@ set( SIXTRL_COMMON_BUFFER_HEADERS
      buffer_garbage.h
      buffer_generic.h
      buffer_object.h
+     buffer_toc.h
      buffer_type.h
      managed_buffer_minimal.h
      managed_buffer_remap.h
@@ -32,30 +33,62 @@ target_include_directories( sixtrack_common_buffer PRIVATE
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include> )
 
-set_target_properties( sixtrack_common_buffer PROPERTIES LINKER_LANGUAGE C )
-set_target_properties( sixtrack_common_buffer PROPERTIES POSITION_INDEPENDENT_CODE ON )
-set_target_properties( sixtrack_common_buffer PROPERTIES C_STANDARD 99 )
-set_target_properties( sixtrack_common_buffer PROPERTIES C_STANDARD_REQUIRED ON )
+set_target_properties( sixtrack_common_buffer PROPERTIES LINKER_LANGUAGE C
+    POSITION_INDEPENDENT_CODE ON C_STANDARD 99 C_STANDARD_REQUIRED ON )
 
 target_compile_options( sixtrack_common_buffer PRIVATE
-                        -Wall -Werror -pedantic -ansi
-                        ${SIXTRACKLIB_CPU_FLAGS} )
+        ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS} )
+
+# - - - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - -
+
+set( SIXTRL_COMMON_BUFFER_CXX_HEADERS
+    buffer_toc.hpp
+)
+
+set( SIXTRL_COMMON_BUFFER_CXX_SOURCES
+    buffer_toc.cpp
+    buffer_toc_c99.cpp
+)
+
+add_library( sixtrack_common_buffer_cxx OBJECT
+    ${SIXTRL_COMMON_BUFFER_HEADERS}
+    ${SIXTRL_COMMON_BUFFER_CXX_HEADERS}
+    ${SIXTRL_COMMON_BUFFER_CXX_SOURCES}
+)
+
+target_include_directories( sixtrack_common_buffer_cxx PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include> )
+
+set_target_properties( sixtrack_common_buffer_cxx PROPERTIES
+    LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON CXX_STANDARD 11
+    CXX_STANDARD_REQUIRED ON )
+
+target_compile_options( sixtrack_common_buffer_cxx PRIVATE
+        ${SIXTRACKLIB_CXX_FLAGS} ${SIXTRACKLIB_CPU_FLAGS} )
 
 # ------------------------------------------------------------------------------
 # pass on sixtrack_common_buffer as a module for sixtracklib:
 
-set(  SIXTRACKL_LIBRARY_MODULES
-    ${SIXTRACKL_LIBRARY_MODULES}
-    $<TARGET_OBJECTS:sixtrack_common_buffer> CACHE INTERNAL "" FORCE )
+set(  SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
+    $<TARGET_OBJECTS:sixtrack_common_buffer>
+    $<TARGET_OBJECTS:sixtrack_common_buffer_cxx> CACHE INTERNAL "" FORCE )
 
 # -----------------------------------------------------------------------------
 # install :
 
-set( SIXTRACKLIB_COMMON_BUFFER_C99_INSTALL_PATH
-     include/sixtracklib/common/buffer )
+set( SIXTRACKLIB_COMMON_BUFFER_INSTALL_PATH
+     "${SIXTRL_COMMON_INSTALL_PATH}/buffer" )
 
-install( FILES ${SIXTRL_COMMON_BUFFER_HEADERS}
-         DESTINATION ${SIXTRACKLIB_COMMON_BUFFER_C99_INSTALL_PATH} )
+if( SIXTRL_COMMON_BUFFER_HEADERS )
+     install( FILES ${SIXTRL_COMMON_BUFFER_HEADERS}
+              DESTINATION ${SIXTRACKLIB_COMMON_BUFFER_INSTALL_PATH} )
+endif()
+
+if( SIXTRL_COMMON_BUFFER_CXX_HEADERS )
+    install( FILES ${SIXTRL_COMMON_BUFFER_HEADERS}
+             DESTINATION ${SIXTRACKLIB_COMMON_BUFFER_INSTALL_PATH} )
+endif()
 
 #end: sixtracklib/common/buffer/CMakeLists.txt
 

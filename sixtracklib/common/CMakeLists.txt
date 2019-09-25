@@ -3,6 +3,9 @@
 
 message( STATUS "---- processing sixtracklib/common/CMakeLists.txt" )
 
+set( SIXTRL_COMMON_INSTALL_PATH
+     "${CMAKE_INSTALL_PREFIX}/include/sixtracklib/common" )
+
 set(  SIXTRACKL_LINK_LIBRARIES
     ${SIXTRACKL_LINK_LIBRARIES}  PARENT_SCOPE )
 
@@ -55,21 +58,13 @@ set(  SIXTRACKLIB_CXX_HEADERS
 # install :
 
 if( SIXTRACKLIB_C99_HEADERS )
-
-    set( SIXTRACKLIB_COMMON_C99_INSTALL_PATH
-         include/sixtracklib/common )
-
     install( FILES ${SIXTRACKLIB_C99_HEADERS}
-             DESTINATION ${SIXTRACKLIB_COMMON_C99_INSTALL_PATH} )
+             DESTINATION ${SIXTRL_COMMON_INSTALL_PATH} )
 endif()
 
 if( SIXTRACKLIB_CXX_HEADERS )
-
-    set( SIXTRACKLIB_COMMON_CXX_INSTALL_PATH
-         include/sixtracklib/common )
-
     install( FILES ${SIXTRACKLIB_CXX_HEADERS}
-             DESTINATION ${SIXTRACKLIB_COMMON_CXX_INSTALL_PATH} )
+             DESTINATION ${SIXTRL_COMMON_INSTALL_PATH} )
 endif()
 
 #end sixtracklib/common/CMakeLists.txt
