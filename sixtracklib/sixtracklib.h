@@ -21,6 +21,7 @@
 #include "sixtracklib/common/buffer/buffer_object.h"
 #include "sixtracklib/common/buffer/buffer_garbage.h"
 #include "sixtracklib/common/buffer/buffer_generic.h"
+#include "sixtracklib/common/buffer/buffer_toc.h"
 #include "sixtracklib/common/be_beamfields/be_beamfields.h"
 #include "sixtracklib/common/be_beamfields/track.h"
 #include "sixtracklib/common/be_beamfields/faddeeva_cern.h"

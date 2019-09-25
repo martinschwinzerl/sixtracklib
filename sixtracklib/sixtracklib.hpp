@@ -8,6 +8,7 @@
 #include "sixtracklib/common/definitions.h"
 
 #include "sixtracklib/common/buffer.hpp"
+#include "sixtracklib/common/buffer/buffer_toc.hpp"
 #include "sixtracklib/common/be_drift/be_drift.hpp"
 #include "sixtracklib/common/be_monitor/be_monitor.hpp"
 #include "sixtracklib/common/be_limit/be_limit_rect.hpp"
