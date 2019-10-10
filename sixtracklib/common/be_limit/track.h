@@ -17,6 +17,10 @@ extern "C" {
 struct NS(LimitRect);
 struct NS(LimitEllipse);
 
+SIXTRL_STATIC SIXTRL_FN NS(track_status_t) NS(Track_particle_limit_global)(
+    SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT p,
+    NS(particle_num_elements_t) const idx );
+
 SIXTRL_STATIC SIXTRL_FN NS(track_status_t) NS(Track_particle_limit_rect)(
     SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT particles,
     NS(particle_num_elements_t) const particle_idx, SIXTRL_BE_ARGPTR_DEC
@@ -40,6 +44,42 @@ SIXTRL_STATIC SIXTRL_FN NS(track_status_t) NS(Track_particle_limit_ellipse)(
 extern "C" {
 #endif /* C++, host */
 
+SIXTRL_INLINE NS(track_status_t) NS(Track_particle_limit_global)(
+    SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT p,
+    NS(particle_num_elements_t) const idx )
+{
+    typedef NS(particle_real_t)  real_t;
+    typedef NS(particle_index_t) index_t;
+
+    SIXTRL_STATIC_VAR real_t const ZERO = ( real_t )0;
+
+    #if defined( SIXTRL_APERTURE_X_LIMIT ) && defined( SIXTRL_APERTURE_Y_LIMIT )
+
+    SIXTRL_STATIC_VAR real_t const X_LIMIT = ( real_t )SIXTRL_APERTURE_X_LIMIT;
+    SIXTRL_STATIC_VAR real_t const Y_LIMIT = ( real_t )SIXTRL_APERTURE_Y_LIMIT;
+
+    #else /* SIXTRL_APERTURE_X_LIMIT && SIXTRL_APERTURE_Y_LIMIT  */
+
+    SIXTRL_STATIC_VAR real_t const X_LIMIT = ( real_t )1.0;
+    SIXTRL_STATIC_VAR real_t const Y_LIMIT = ( real_t )1.0;
+
+    #endif /* SIXTRL_APERTURE_X_LIMIT && SIXTRL_APERTURE_Y_LIMIT  */
+
+    real_t const x = NS(Particles_get_x_value)( p, idx );
+    real_t const y = NS(Particles_get_y_value)( p, idx );
+
+    real_t const sign_x = ( real_t )( ( ZERO < x ) - ( real_t )( x < ZERO ) );
+    real_t const sign_y = ( real_t )( ( ZERO < y ) - ( real_t )( y < ZERO ) );
+
+    index_t const new_state = ( index_t )(
+        ( ( sign_x * x ) < X_LIMIT ) & ( ( sign_y * y ) < Y_LIMIT ) );
+
+    SIXTRL_ASSERT( NS(Particles_is_not_lost_value)( p, idx ) );
+    NS(Particles_set_state_value)( p, idx, new_state );
+
+    return SIXTRL_TRACK_SUCCESS;
+}
+
 SIXTRL_INLINE NS(track_status_t) NS(Track_particle_limit_rect)(
     SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT particles,
     NS(particle_num_elements_t) const particle_idx,
@@ -51,14 +91,51 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_limit_rect)(
     real_t const x = NS(Particles_get_x_value)( particles, particle_idx );
     real_t const y = NS(Particles_get_y_value)( particles, particle_idx );
 
+    /*
+    if( ( NS(Particles_get_at_element_id_value)( particles, particle_idx ) == 2261 ) &&
+        ( NS(Particles_get_at_turn_value)( particles, particle_idx ) == 1375 ) &&
+        ( particle_idx == 7 ) )
+    {
+        printf( "x     = %+20.12f\r\ny     = %+20.12f\r\n", x, y );
+        printf( "state =  %20ld\r\n",
+                NS(Particles_get_state_value)( particles, particle_idx ) );
+
+        printf( "min_x = %+20.12f\r\nmax_x = %+20.12f\r\n"
+                "min_y = %+20.12f\r\nmax_y = %+20.12f\r\n",
+                NS(LimitRect_get_min_x)( limit ),
+                NS(LimitRect_get_max_x)( limit ),
+                NS(LimitRect_get_min_y)( limit ),
+                NS(LimitRect_get_max_x)( limit ) );
+    }
+    */
+
     index_t const new_state = ( index_t )(
         ( x >= NS(LimitRect_get_min_x)( limit ) ) &&
         ( x <= NS(LimitRect_get_max_x)( limit ) ) &&
         ( y >= NS(LimitRect_get_min_y)( limit ) ) &&
         ( y <= NS(LimitRect_get_max_y)( limit ) ) );
 
+    /*
+    if( ( NS(Particles_get_at_element_id_value)( particles, particle_idx ) == 2261 ) &&
+        ( NS(Particles_get_at_turn_value)( particles, particle_idx ) == 1375 ) &&
+        ( particle_idx == 7 ) )
+    {
+        printf( "new_state = %20ld\r\n", new_state );
+    }
+    */
+
     NS(Particles_update_state_value_if_not_already_lost)(
         particles, particle_idx, new_state );
+
+    /*
+    if( ( NS(Particles_get_at_element_id_value)( particles, particle_idx ) == 2261 ) &&
+        ( NS(Particles_get_at_turn_value)( particles, particle_idx ) == 1375 ) &&
+        ( particle_idx == 7 ) )
+    {
+        printf( "updated state =  %20ld\r\n",
+                NS(Particles_get_state_value)( particles, particle_idx ) );
+    }
+    */
 
     return SIXTRL_TRACK_SUCCESS;
 }
@@ -76,7 +153,7 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_limit_ellipse)(
 
     temp *= temp; /* temp = x² */
     temp *= NS(LimitEllipse_get_y_half_axis_squ)( limit ); /* temp = x² * b² */
-    
+
     y_squ *= y_squ; /* y_squ = y² */
     y_squ *= NS(LimitEllipse_get_x_half_axis_squ)( limit ); /*y_squ = y² * a²*/
 
