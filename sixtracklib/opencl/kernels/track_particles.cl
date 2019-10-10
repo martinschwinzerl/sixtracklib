@@ -15,36 +15,22 @@
     #include "sixtracklib/common/track.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-__kernel void NS(Track_particles_line_opencl)(
+__kernel void NS(Track_particles_until_turn_opencl)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     SIXTRL_UINT64_T const particle_set_index,
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT belem_buffer,
-    SIXTRL_UINT64_T const line_begin_idx, SIXTRL_UINT64_T const line_end_idx,
-    SIXTRL_UINT64_T const finish_turn );
-
-__kernel void NS(Track_particles_single_turn_opencl)(
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT particles_buffer,
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char const*
-        SIXTRL_RESTRICT belem_buffer, SIXTRL_INT64_T const increment_turn );
-
-__kernel void NS(Track_particles_until_turn_opencl)(
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT particles_buffer,
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char const*
-        SIXTRL_RESTRICT belem_buffer, SIXTRL_INT64_T const turn );
+    SIXTRL_INT64_T const until_turn,
+    SIXTRL_UINT64_T const slot_size );
 
 __kernel void NS(Track_particles_elem_by_elem_opencl)(
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char*
-        SIXTRL_RESTRICT particles_buffer,
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char const*
-        SIXTRL_RESTRICT belem_buffer,
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char*
-        SIXTRL_RESTRICT elem_by_elem_buffer,
-    SIXTRL_ELEM_BY_ELEM_CONFIG_ARGPTR_DEC NS(ElemByElemConfig)*
-        SIXTRL_RESTRICT elem_by_elem_config,
+    SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT particles_buffer,
+    SIXTRL_UINT64_T const particle_set_index,
+    SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT belem_buffer,
+    SIXTRL_ELEM_BY_ELEM_CONFIG_ARGPTR_DEC NS(ElemByElemConfig)* elem_elem_conf,
     SIXTRL_INT64_T const until_turn,
-    SIXTRL_UINT64_T const out_buffer_index_offset );
+    SIXTRL_UINT64_T const out_buffer_index_offset,
+    SIXTRL_UINT64_T const slot_size );
 
-/* ========================================================================= */
 
 __kernel void NS(Track_particles_line_opencl)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
@@ -52,7 +38,8 @@ __kernel void NS(Track_particles_line_opencl)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT belem_buffer,
     SIXTRL_UINT64_T const line_begin_idx,
     SIXTRL_UINT64_T const line_end_idx,
-    SIXTRL_UINT64_T const finish_turn_value )
+    SIXTRL_UINT64_T const finish_turn_value,
+    SIXTRL_UINT64_T const slot_size )
 {
     typedef NS(buffer_size_t)           buf_size_t;
     typedef NS(particle_num_elements_t) num_element_t;
@@ -60,8 +47,7 @@ __kernel void NS(Track_particles_line_opencl)(
     typedef SIXTRL_BUFFER_OBJ_ARGPTR_DEC  NS(Object) const*  obj_iter_t;
     typedef SIXTRL_BUFFER_DATAPTR_DEC     NS(Particles)*     particles_t;
 
-    buf_size_t const slot_size = ( buf_size_t )8u;
-    num_element_t particle_id  = ( num_element_t )get_global_id( 0 );
+    num_element_t idx = ( num_element_t )get_global_id( 0 );
     num_element_t const stride = ( num_element_t )get_global_size( 0 );
 
     obj_iter_t line_begin = NS(ManagedBuffer_get_const_objects_index_begin)(
@@ -69,12 +55,13 @@ __kernel void NS(Track_particles_line_opencl)(
 
     obj_iter_t line_end = line_begin;
 
-    bool const fin = ( bool )( finish_turn_value > 0u);
+    bool const finish_turn = ( bool )( finish_turn_value > 0u);
 
     particles_t p = NS(Particles_managed_buffer_get_particles)(
         pbuffer, particle_set_index, slot_size );
 
-    num_element_t const num_particles = NS(Particles_get_num_of_particles)( p );
+    num_element_t const num_particles =
+        NS(Particles_get_num_of_particles)( p );
 
     SIXTRL_ASSERT( line_begin_idx <= line_end_idx );
     SIXTRL_ASSERT( line_end_idx <= NS(ManagedBuffer_get_num_objects)(

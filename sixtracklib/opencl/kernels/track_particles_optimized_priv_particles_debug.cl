@@ -602,6 +602,8 @@ __kernel void NS(Track_particles_elem_by_elem_opt_pp_debug_opencl)(
         num_particles = ( in_particles != SIXTRL_NULLPTR )
             ? in_particles->num_particles : ( num_element_t )0u;
 
+        idx = ( num_element_t )get_global_id( 0 );
+
         SIXTRL_ASSERT( elem_by_elem_it != SIXTRL_NULLPTR );
 
         SIXTRL_ASSERT( NS(ManagedBuffer_get_num_objects)(
@@ -630,67 +632,50 @@ __kernel void NS(Track_particles_elem_by_elem_opt_pp_debug_opencl)(
                NS(ElemByElemConfig_get_num_particles_to_store)(
                    elem_by_elem_config ) ) );
 
+        success = ( NS(opencl_success_flag_t) )0u;
+
         for( ; idx < num_particles ; idx += stride )
         {
-            index_t start_elem_id = ( index_t )0u;
-            index_t particle_id   = ( index_t )0u;
-            index_t turn          = ( index_t )0u;
-
-            success = NS(Particles_copy_from_generic_addr_data)(
-                &particles, 0, in_particles, idx );
-
-            start_elem_id = NS(Particles_get_at_element_id_value)(
-                &particles, 0 );
-
-            particle_id = NS(Particles_get_particle_id_value)(
-                &particles, 0 );
-
-            turn = NS(Particles_get_at_turn_value)( &particles, 0 );
-
-            while( ( success == ZERO_FLAG ) && ( turn < until_turn ) )
+            if( success == 0 )
             {
-                obj_const_iter_t be_it = be_begin;
-                index_t at_elem_id = start_elem_id;
-
-                while( ( success == ZERO_FLAG ) && ( be_it != be_end ) )
-                {
-                    num_element_t const store_idx =
-                        NS(ElemByElemConfig_get_particles_store_index_details)(
-                            elem_by_elem_config,
-                                particle_id, at_elem_id++, turn );
-
-                    success = NS(Particles_copy_to_generic_addr_data)(
-                        elem_by_elem_particles, store_idx, &particles, 0 );
-
-                    if( success == ZERO_FLAG )
-                    {
-                        success = NS(Track_particle_beam_element_obj)(
-                            &particles, 0, be_it++ );
-                    }
-                }
-
-                if( success == ZERO_FLAG )
-                {
-                    SIXTRL_ASSERT( NS(Particles_is_not_lost_value)(
-                        &particles, 0 ) );
-
-                    NS(Track_particle_increment_at_turn)(
-                        &particles, 0, start_elem_id );
-
-                    turn = NS(Particles_get_at_turn_value)( &particles, 0 );
-                }
+                success = NS(Particles_copy_from_generic_addr_data)(
+                    &particles, 0, in_particles, idx );
             }
 
-            if( success != ZERO_FLAG )
+            if( success == 0 )
             {
-                SIXTRL_ASSERT( NS(Particles_is_not_lost_value)(
-                    &particles, 0 ) );
+                success = NS(Track_particle_element_by_element_until_turn_objs)(
+                    &particles, 0, elem_by_elem_config, be_begin, be_end,
+                        until_turn );
+            }
 
+            if( success == 0 )
+            {
                 success = NS(Particles_copy_to_generic_addr_data)(
                     in_particles, idx, &particles, 0 );
             }
+        }
 
-            if( success != ZERO_FLAG ) break;
+        idx = ( num_element_t )get_global_id( 0 );
+
+        for( ; idx < num_particles ; idx += stride )
+        {
+            if( success == 0 )
+            {
+                success = NS(Particles_copy_from_generic_addr_data)(
+                    &particles, 0, in_particles, idx );
+            }
+
+            printf(
+                "idx = %2d, x = %+12f, y = %+12f, particle_id = %2d, "
+                "at_element_id = %6d, at_turn = %2d, state = %2d\r\n",
+                ( int )idx,
+                NS(Particles_get_x_value)( &particles, 0 ),
+                NS(Particles_get_y_value)( &particles, 0 ),
+                ( int )NS(Particles_get_particle_id_value)( &particles, 0 ),
+                ( int )NS(Particles_get_at_element_id_value)( &particles, 0 ),
+                ( int )NS(Particles_get_at_turn_value)( &particles, 0 ),
+                ( int )NS(Particles_get_state_value)( &particles, 0 ) );
         }
     }
     else if( NS(ManagedBuffer_needs_remapping)( particles_buffer, slot_size) )
