@@ -13,6 +13,8 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/control/definitions.h"
+    #include "sixtracklib/common/control/debug_register.h"
     #include "sixtracklib/common/context/compute_arch.h"
     #include "sixtracklib/opencl/cl.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
@@ -44,6 +46,8 @@ namespace SIXTRL_CXX_NAMESPACE
         using size_type         = ::NS(context_size_t);
         using platform_id_t     = ::NS(comp_node_id_num_t);
         using device_id_t       = ::NS(comp_node_id_num_t);
+        using status_flag_t     = ::NS(arch_debugging_t);
+        using status_t          = ::NS(arch_status_t);
 
         using kernel_id_t       = int64_t;
         using program_id_t      = int64_t;
@@ -291,9 +295,18 @@ namespace SIXTRL_CXX_NAMESPACE
             kernel_id_t const kernel_id,
             size_type const min_num_work_items ) const SIXTRL_NOEXCEPT;
 
-        bool runKernel( kernel_id_t const kernel_id, size_type min_num_work_items );
-        bool runKernel( kernel_id_t const kernel_id,
-                        size_type min_num_work_items, size_type work_group_size );
+        bool runKernel(
+            kernel_id_t const kernel_id, size_type min_num_work_items );
+
+        bool runKernel(
+            kernel_id_t const kernel_id, size_type min_num_work_items,
+            size_type work_group_size );
+
+        status_t runKernelWithStatusFlag(
+            kernel_id_t const kernel_id, size_type min_num_work_items,
+            status_flag_t const
+            size_type const status_arg_id,
+
 
         double lastExecTime( kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT;
         double minExecTime(  kernel_id_t const kernel_id ) const SIXTRL_NOEXCEPT;
@@ -328,9 +341,18 @@ namespace SIXTRL_CXX_NAMESPACE
         cl::Buffer const& internalSuccessFlagBuffer() const SIXTRL_NOEXCEPT;
         cl::Buffer& internalSuccessFlagBuffer() SIXTRL_NOEXCEPT;
 
-        bool debugMode() const  SIXTRL_NOEXCEPT;
-        void enableDebugMode()  SIXTRL_NOEXCEPT;
-        void disableDebugMode() SIXTRL_NOEXCEPT;
+        bool debug_mode() const SIXTRL_NOEXCEPT;
+        void enable_debug_mode() SIXTRL_NOEXCEPT;
+        void disable_debug_mode() SIXTRL_NOEXCEPT;
+
+        std::string const& default_program_path_prefix() const SIXTRL_NOEXCEPT;
+        char const* ptr_default_program_path_prefix() const SIXTRL_NOEXCEPT;
+
+        void set_default_program_path_prefix(
+            std::string const& SIXTRL_RESTRICT_REF path_prefix );
+
+        void set_default_program_path_prefix(
+            char const* SIXTRL_RESTRICT path_prefix );
 
         protected:
 
@@ -597,12 +619,13 @@ namespace SIXTRL_CXX_NAMESPACE
         std::vector< program_data_t >   m_program_data;
         std::vector< kernel_data_t  >   m_kernel_data;
 
+        std::string                     m_default_program_path_prefix;
         std::string                     m_default_compile_options;
         std::string                     m_config_str;
 
         cl::Context                     m_cl_context;
         cl::CommandQueue                m_cl_queue;
-        cl::Buffer                      m_cl_success_flag;
+        cl::Buffer                      m_cl_status_flag_buffer;
 
         program_id_t                    m_remap_program_id;
         kernel_id_t                     m_remap_kernel_id;

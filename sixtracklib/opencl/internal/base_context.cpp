@@ -20,12 +20,21 @@
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/generated/path.h"
 #include "sixtracklib/common/context/compute_arch.h"
+#include "sixtracklib/common/control/definitions.h"
+#include "sixtracklib/common/control/debug_register.h"
 
 #include "sixtracklib/opencl/cl.h"
 #include "sixtracklib/opencl/argument.h"
 
+namespace st = SIXTRL_CXX_NAMESPACE;
+
 namespace SIXTRL_CXX_NAMESPACE
 {
+    namespace
+    {
+        using _this_t = st::clContextBase;
+    }
+
     ClContextBase::kernel_arg_type_t const ClContextBase::ARG_TYPE_NONE =
         ClContextBase::kernel_arg_type_t{ 0x00000000 };
 
@@ -48,19 +57,18 @@ namespace SIXTRL_CXX_NAMESPACE
         m_available_devices(),
         m_program_data(),
         m_kernel_data(),
+        m_default_program_path_prefix( ::NS(PATH_TO_BASE_DIR) ),
         m_default_compile_options(),
         m_config_str(),
         m_cl_context(),
         m_cl_queue(),
-        m_cl_success_flag(),
+        m_cl_status_flag_buffer(),
         m_remap_program_id( ClContextBase::program_id_t{ -1 } ),
         m_remap_kernel_id( ClContextBase::kernel_id_t{ -1 } ),
         m_selected_node_index( int64_t{ -1 } ),
         m_default_kernel_arg( uint64_t{ 0 } ),
         m_debug_mode( false )
     {
-        using _this_t = ClContextBase;
-
         _this_t::UpdateAvailableNodes(
             this->m_available_nodes_id, this->m_available_nodes_info,
             this->m_available_devices );
@@ -76,6 +84,8 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             this->doParseConfigStringBaseImpl( this->configStr() );
         }
+
+        this->m_default_program_path_prefix += "sixtracklib/opencl/kernels/";
     }
 
     ClContextBase::ClContextBase(
@@ -89,19 +99,18 @@ namespace SIXTRL_CXX_NAMESPACE
         m_available_devices(),
         m_program_data(),
         m_kernel_data(),
+        m_default_program_path_prefix( ::NS(PATH_TO_BASE_DIR) ),
         m_default_compile_options(),
         m_config_str(),
         m_cl_context(),
         m_cl_queue(),
-        m_cl_success_flag(),
+        m_cl_status_flag_buffer(),
         m_remap_program_id( ClContextBase::program_id_t{ -1 } ),
         m_remap_kernel_id( ClContextBase::kernel_id_t{ -1 } ),
         m_selected_node_index( int64_t{ -1 } ),
         m_default_kernel_arg( uint64_t{ 0 } ),
         m_debug_mode( false )
     {
-        using _this_t = ClContextBase;
-
         _this_t::UpdateAvailableNodes(
             this->m_available_nodes_id, this->m_available_nodes_info,
             this->m_available_devices );
@@ -126,6 +135,8 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             this->doInitDefaultKernels();
         }
+
+        this->m_default_program_path_prefix += "sixtracklib/opencl/kernels/";
     }
 
     ClContextBase::ClContextBase(
@@ -139,19 +150,18 @@ namespace SIXTRL_CXX_NAMESPACE
         m_available_devices(),
         m_program_data(),
         m_kernel_data(),
+        m_default_program_path_prefix( ::NS(PATH_TO_BASE_DIR) ),
         m_default_compile_options(),
         m_config_str(),
         m_cl_context(),
         m_cl_queue(),
-        m_cl_success_flag(),
+        m_cl_status_flag_buffer(),
         m_remap_program_id( ClContextBase::program_id_t{ -1 } ),
         m_remap_kernel_id( ClContextBase::kernel_id_t{ -1 } ),
         m_selected_node_index( int64_t{ -1 } ),
         m_default_kernel_arg( uint64_t{ 0 } ),
         m_debug_mode( false )
     {
-        using _this_t = ClContextBase;
-
         _this_t::UpdateAvailableNodes(
             this->m_available_nodes_id, this->m_available_nodes_info,
             this->m_available_devices );
@@ -180,6 +190,8 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             this->doInitDefaultKernels();
         }
+
+        this->m_default_program_path_prefix += "sixtracklib/opencl/kernels/";
     }
 
     ClContextBase::ClContextBase(
@@ -193,19 +205,18 @@ namespace SIXTRL_CXX_NAMESPACE
         m_available_devices(),
         m_program_data(),
         m_kernel_data(),
+        m_default_program_path_prefix( ::NS(PATH_TO_BASE_DIR) ),
         m_default_compile_options(),
         m_config_str(),
         m_cl_context(),
         m_cl_queue(),
-        m_cl_success_flag(),
+        m_cl_status_flag_buffer(),
         m_remap_program_id( ClContextBase::program_id_t{ -1 } ),
         m_remap_kernel_id( ClContextBase::kernel_id_t{ -1 } ),
         m_selected_node_index( int64_t{ -1 } ),
         m_default_kernel_arg( uint64_t{ 0 } ),
         m_debug_mode( false )
     {
-        using _this_t = ClContextBase;
-
         _this_t::UpdateAvailableNodes(
             this->m_available_nodes_id, this->m_available_nodes_info,
             this->m_available_devices );
@@ -233,6 +244,8 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             this->doInitDefaultKernels();
         }
+
+        this->m_default_program_path_prefix += "sixtracklib/opencl/kernels/";
     }
 
     ClContextBase::ClContextBase(
@@ -247,19 +260,18 @@ namespace SIXTRL_CXX_NAMESPACE
         m_available_devices(),
         m_program_data(),
         m_kernel_data(),
+        m_default_program_path_prefix( ::NS(PATH_TO_BASE_DIR) ),
         m_default_compile_options(),
         m_config_str(),
         m_cl_context(),
         m_cl_queue(),
-        m_cl_success_flag(),
+        m_cl_status_flag_buffer(),
         m_remap_program_id( ClContextBase::program_id_t{ -1 } ),
         m_remap_kernel_id( ClContextBase::kernel_id_t{ -1 } ),
         m_selected_node_index( int64_t{ -1 } ),
         m_default_kernel_arg( uint64_t{ 0 } ),
         m_debug_mode( false )
     {
-        using _this_t = ClContextBase;
-
         _this_t::UpdateAvailableNodes(
             this->m_available_nodes_id, this->m_available_nodes_info,
             this->m_available_devices );
@@ -287,6 +299,8 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             this->doInitDefaultKernels();
         }
+
+        this->m_default_program_path_prefix += "sixtracklib/opencl/kernels/";
     }
 
     ClContextBase::~ClContextBase() SIXTRL_NOEXCEPT
@@ -302,14 +316,15 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     }
 
-    cl::Buffer const& ClContextBase::internalSuccessFlagBuffer() const SIXTRL_NOEXCEPT
+    cl::Buffer const&
+    ClContextBase::internalSuccessFlagBuffer() const SIXTRL_NOEXCEPT
     {
-        return this->m_cl_success_flag;
+        return this->m_cl_status_flag_buffer;
     }
 
     cl::Buffer& ClContextBase::internalSuccessFlagBuffer() SIXTRL_NOEXCEPT
     {
-        return this->m_cl_success_flag;
+        return this->m_cl_status_flag_buffer;
     }
 
     ClContextBase::size_type
@@ -392,7 +407,8 @@ namespace SIXTRL_CXX_NAMESPACE
                  this->findAvailableNodesIndex( platform_index, device_index ) );
     }
 
-    bool ClContextBase::isNodeIdAvailable( char const* node_id_str ) const SIXTRL_NOEXCEPT
+    bool ClContextBase::isNodeIdAvailable(
+        char const* node_id_str ) const SIXTRL_NOEXCEPT
     {
         return ( this->numAvailableNodes() >
                  this->findAvailableNodesIndex( node_id_str ) );
@@ -662,13 +678,15 @@ namespace SIXTRL_CXX_NAMESPACE
             cl::CommandQueue queue( context, device,
                                     CL_QUEUE_PROFILING_ENABLE );
 
-            this->m_cl_success_flag = cl::Buffer(
-                context, CL_MEM_READ_WRITE, sizeof( int32_t ), nullptr );
+            this->m_cl_status_flag_buffer = cl::Buffer(
+                context, CL_MEM_READ_WRITE,
+                    sizeof( _this_t::status_flag_t ), nullptr );
 
-            int32_t init_success_flag = int32_t{ 0 };
+            _this_t::status_flag_t init_success_flag =
+                st::ARCH_DEBUGGING_REGISTER_EMPTY;
 
             cl_int cl_ret = queue.enqueueWriteBuffer(
-                this->m_cl_success_flag, true, size_type{ 0 },
+                this->m_cl_status_flag_buffer, true, _this_t::size_type{ 0 },
                 sizeof( init_success_flag ), &init_success_flag );
 
             success = ( cl_ret == CL_SUCCESS );
@@ -1657,14 +1675,14 @@ namespace SIXTRL_CXX_NAMESPACE
         return &this->m_cl_context;
     }
 
-    bool ClContextBase::debugMode() const  SIXTRL_NOEXCEPT
+    bool ClContextBase::debug_mode() const  SIXTRL_NOEXCEPT
     {
         return this->m_debug_mode;
     }
 
-    void ClContextBase::enableDebugMode()  SIXTRL_NOEXCEPT
+    void ClContextBase::enable_debug_mode()  SIXTRL_NOEXCEPT
     {
-        if( ( !this->debugMode() ) && ( !this->hasSelectedNode() ) )
+        if( ( !this->debug_mode() ) && ( !this->hasSelectedNode() ) )
         {
             this->m_debug_mode = true;
             this->clear();
@@ -1674,9 +1692,9 @@ namespace SIXTRL_CXX_NAMESPACE
         return;
     }
 
-    void ClContextBase::disableDebugMode() SIXTRL_NOEXCEPT
+    void ClContextBase::disable_debug_mode() SIXTRL_NOEXCEPT
     {
-        if( ( this->debugMode() ) && ( !this->hasSelectedNode() ) )
+        if( ( this->debug_mode() ) && ( !this->hasSelectedNode() ) )
         {
             this->m_debug_mode = false;
             this->clear();
@@ -1686,6 +1704,39 @@ namespace SIXTRL_CXX_NAMESPACE
         return;
     }
 
+    std::string const&
+    ClContextBase::default_program_path_prefix() const SIXTRL_NOEXCEPT
+    {
+        return this->m_default_program_path_prefix;
+    }
+
+    char const*
+    ClContextBase::ptr_default_program_path_prefix() const SIXTRL_NOEXCEPT
+    {
+        return this->m_default_program_path_prefix.c_str();
+    }
+
+    void ClContextBase::set_default_program_path_prefix(
+        std::string const& SIXTRL_RESTRICT_REF path_prefix )
+    {
+        this->m_default_program_path_prefix = path_prefix;
+    }
+
+    void ClContextBase::set_default_program_path_prefix(
+        char const* SIXTRL_RESTRICT path_prefix )
+    {
+        if( ( path_prefix != nullptr ) &&
+            ( std::strlen( path_prefix ) > std::size_t{ 0 } ) )
+        {
+            this->m_default_program_path_prefix = path_prefix;
+        }
+        else
+        {
+            this->m_default_program_path_prefix.clear();
+        }
+    }
+
+    /* --------------------------------------------------------------------- */
 
     ClContextBase::kernel_data_list_t const&
     ClContextBase::kernelData() const SIXTRL_NOEXCEPT
@@ -1783,6 +1834,8 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->numAvailableNodes();
     }
 
+
+
     void ClContextBase::doParseConfigString(
         const char *const SIXTRL_RESTRICT config_str )
     {
@@ -1815,11 +1868,11 @@ namespace SIXTRL_CXX_NAMESPACE
         this->m_cl_kernels.clear();
         this->m_kernel_data.clear();
 
-        this->m_cl_queue            = dummy_queue;
-        this->m_cl_context          = dummy_context;
-        this->m_cl_success_flag     = dummy_success_flag;
-        this->m_selected_node_index = int64_t{ -1 };
-        this->m_remap_kernel_id     = kernel_id_t{ -1 };
+        this->m_cl_queue              = dummy_queue;
+        this->m_cl_context            = dummy_context;
+        this->m_cl_status_flag_buffer = dummy_success_flag;
+        this->m_selected_node_index   = int64_t{ -1 };
+        this->m_remap_kernel_id       = kernel_id_t{ -1 };
 
         return;
     }
@@ -1833,8 +1886,8 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         bool success = false;
 
-        std::string path_to_remap_kernel_program( NS(PATH_TO_BASE_DIR) );
-        path_to_remap_kernel_program += "sixtracklib/opencl/kernels/";
+        std::string path_to_remap_kernel_program(
+            this->m_default_program_path_prefix );
 
         if( !this->debugMode() )
         {
