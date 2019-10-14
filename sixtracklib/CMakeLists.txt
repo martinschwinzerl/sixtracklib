@@ -22,7 +22,8 @@ set( SIXTRACKL_LIBRARY_MODULES "" CACHE INTERNAL "" FORCE )
 set( SIXTRACKLIB_C99_INSTALL_PREFIX
      "${CMAKE_INSTALL_PREFIX}/include/sixtracklib" )
 
-set( SIXTRACKLIB_CXX_INSTALL_PREFIX ${SIXTRACKLIB_C99_INSTALL_PREFIX} )
+set( SIXTRACKLIB_CXX_INSTALL_PREFIX
+     "${CMAKE_INSTALL_PREFIX}/include/sixtracklib" )
 
 # ------------------------------------------------------------------------------
 
