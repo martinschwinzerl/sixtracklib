@@ -22,8 +22,8 @@ target_include_directories( sixtrack_common_output PRIVATE
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> $<INSTALL_INTERFACE:include> )
 
 set_target_properties( sixtrack_common_output PROPERTIES
-    LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON C_STANDARD 99
-    PROPERTIES C_STANDARD_REQUIRED ON )
+    LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON
+    C_STANDARD 99 C_STANDARD_REQUIRED ON )
 
 target_compile_options( sixtrack_common_output PRIVATE
     ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS} )
