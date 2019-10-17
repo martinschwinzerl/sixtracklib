@@ -8,6 +8,8 @@
     #include "sixtracklib/common/track/definitions.h"
     #include "sixtracklib/common/internal/buffer_main_defines.h"
     #include "sixtracklib/common/internal/beam_elements_defines.h"
+    #include "sixtracklib/common/internal/elem_by_elem_config_defines.h"
+    #include "sixtracklib/common/buffer/buffer_object.h"
     #include "sixtracklib/common/buffer/buffer_type.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -33,6 +35,13 @@ NS(Track_particle_beam_element_obj_dispatcher_aperture_check)(
     SIXTRL_BUFFER_OBJ_ARGPTR_DEC struct NS(Object) const*
         SIXTRL_RESTRICT be_info,
     bool const perform_global_aperture_check );
+
+SIXTRL_STATIC SIXTRL_FN NS(track_status_t)
+NS(Track_particle_beam_element_obj)(
+    SIXTRL_PARTICLE_ARGPTR_DEC struct NS(Particles)* SIXTRL_RESTRICT particles,
+    NS(particle_num_elements_t) const particle_index,
+    SIXTRL_BUFFER_ARGPTR_DEC const struct NS(Object)
+        *const SIXTRL_RESTRICT be_obj );
 
 /* ------------------------------------------------------------------------- */
 
@@ -81,10 +90,11 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t) NS(Track_particle_until_turn)(
         SIXTRL_RESTRICT beam_elements_buffer,
     NS(particle_index_t) const until_turn );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t) NS(Track_all_particles_until_turn)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t)
+NS(Track_all_particles_until_turn)(
     SIXTRL_PARTICLE_ARGPTR_DEC struct NS(Particles)* SIXTRL_RESTRICT particles,
-    SIXTRL_BUFFER_ARGPTR_DEC const struct NS(Buffer) *const
-        SIXTRL_RESTRICT beam_elements_buffer,
+    SIXTRL_BUFFER_ARGPTR_DEC const struct
+        NS(Buffer) *const SIXTRL_RESTRICT be_buffer,
     NS(particle_index_t) const until_turn );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t)
@@ -391,6 +401,29 @@ NS(Track_particle_beam_element_obj_dispatcher_aperture_check)(
     return ret;
 }
 
+SIXTRL_INLINE NS(track_status_t) NS(Track_particle_beam_element_obj)(
+    SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT particles,
+    NS(particle_num_elements_t) const particle_index,
+    SIXTRL_BUFFER_ARGPTR_DEC const NS(Object) *const SIXTRL_RESTRICT be_obj )
+{
+    bool const was_not_lost = NS(Particles_is_not_lost_value)(
+        particles, particle_index );
+
+    NS(track_status_t) const status = ( was_not_lost )
+        ? NS(Track_particle_beam_element_obj_dispatcher)(
+            particles, particle_index, be_obj )
+        : SIXTRL_TRACK_SUCCESS;
+
+    if( ( was_not_lost ) && ( status == SIXTRL_TRACK_SUCCESS ) &&
+        ( NS(Particles_is_not_lost_value)( particles, particle_index ) ) )
+    {
+        NS(Particles_increment_at_element_id_value)(
+            particles, particle_index );
+    }
+
+    return status;
+}
+
 SIXTRL_INLINE NS(track_status_t) NS(Track_particle_until_turn_objs)(
     SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT p,
     NS(particle_num_elements_t) const idx,
@@ -559,7 +592,7 @@ NS(Track_particle_element_by_element_until_turn_objs)(
 
 SIXTRL_INLINE NS(track_status_t) NS(Track_particle_line_objs)(
     SIXTRL_PARTICLE_ARGPTR_DEC struct NS(Particles)* SIXTRL_RESTRICT particles,
-    NS(particle_num_elements_t) const particle_idx,
+    NS(particle_num_elements_t) const index,
     SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(Object) const* SIXTRL_RESTRICT line_it,
     SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(Object) const* SIXTRL_RESTRICT line_end,
     bool const finish_turn )
@@ -569,7 +602,7 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_line_objs)(
 
     SIXTRL_ASSERT( line_it != SIXTRL_NULLPTR );
     SIXTRL_ASSERT( particles != SIXTRL_NULLPTR );
-    SIXTRL_ASSERT( ( ( uintptr_t )be_it ) <= ( ( uintptr_t )line_end ) );
+    SIXTRL_ASSERT( ( ( uintptr_t )line_it ) <= ( ( uintptr_t )line_end ) );
     SIXTRL_ASSERT( NS(Particles_get_num_of_particles)( particles ) > index );
     SIXTRL_ASSERT( NS(Particles_is_not_lost_value)( particles, index ) );
 
@@ -583,18 +616,18 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_line_objs)(
 
         if( continue_tracking )
         {
-            NS(Track_particle_increment_at_element)( particles, index );
+            NS(Particles_increment_at_element_id_value)( particles, index );
             ++line_it;
             continue_tracking = ( line_it != line_end );
         }
     }
 
     if( ( finish_turn ) && ( success == SIXTRL_TRACK_SUCCESS ) &&
-        ( NS(Particles_is_not_lost_value)( particles, particle_idx ) ) )
+        ( NS(Particles_is_not_lost_value)( particles, index ) ) )
     {
-        NS(Particles_set_at_element_id_value)( particles, particle_idx, 0 );
-        NS(Particles_increment_at_turn_value)( particles, particle_idx );
-        NS(Particles_set_s_value)( particles, particle_idx, 0.0 );
+        NS(Particles_set_at_element_id_value)( particles, index, 0 );
+        NS(Particles_increment_at_turn_value)( particles, index );
+        NS(Particles_set_s_value)( particles, index, 0.0 );
     }
 
     return success;
