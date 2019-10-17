@@ -32,7 +32,7 @@ add_subdirectory( be_limit       )
 add_subdirectory( be_dipedge     )
 add_subdirectory( output         )
 add_subdirectory( particles      )
-# add_subdirectory( track          )
+add_subdirectory( track          )
 
 set(  SIXTRACKLIB_C99_HEADERS ${SIXTRACKLIB_C99_HEADERS}
       beam_elements.h buffer.h constants.h controller.h definitions.h
