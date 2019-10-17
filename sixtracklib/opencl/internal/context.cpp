@@ -452,7 +452,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         bool success = false;
 
-        using _this_t::size_type      = _this_t::size_type;
+        using size_type   = _this_t::size_type;
         using kernel_id_t = _this_t::kernel_id_t;
 
         ::NS(Buffer)* output_buffer = arg.ptrCObjectBuffer();
@@ -623,7 +623,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         bool success = true;
 
-        using _this_t::size_type = _this_t::size_type;
+        using size_type = _this_t::size_type;
         _this_t::kernel_id_t kernel_id = _this_t::kernel_id_t{ -1 };
 
         if( this->has_track_until_kernel() )
@@ -790,9 +790,8 @@ namespace SIXTRL_CXX_NAMESPACE
         _this_t::num_turns_t const until_turn,
         _this_t::kernel_id_t const kernel_id )
     {
+        using size_type = _this_t::size_type;
         _this_t::track_status_t status = st::TRACK_STATUS_GENERAL_FAILURE;
-
-        using _this_t::size_type = _this_t::size_type;
 
         if( ( this->hasSelectedNode() ) && ( kernel_id >= kernel_id_t{ 0 } ) &&
             ( static_cast< _this_t::size_type >( kernel_id ) <
@@ -832,6 +831,7 @@ namespace SIXTRL_CXX_NAMESPACE
         _this_t::num_turns_t const until_turn,
         _this_t::kernel_id_t const kernel_id )
     {
+        using size_type = _this_t::size_type;
         _this_t::track_status_t status = st::TRACK_STATUS_GENERAL_FAILURE;
 
         SIXTRL_ASSERT( this->hasSelectedNode() );
@@ -907,7 +907,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-    bool ClContext::hasLineTrackingKernel() const SIXTRL_NOEXCEPT
+    bool ClContext::has_track_line_kernel() const SIXTRL_NOEXCEPT
     {
         return ( ( this->hasSelectedNode() ) &&
             ( this->m_track_line_kernel_id >= kernel_id_t{ 0 } ) &&
@@ -916,13 +916,13 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     _this_t::kernel_id_t
-    ClContext::lineTrackingKernelId() const SIXTRL_NOEXCEPT
+    ClContext::track_line_kernel_id() const SIXTRL_NOEXCEPT
     {
         return ( this->has_track_until_kernel() )
             ? this->m_track_line_kernel_id : _this_t::kernel_id_t{ -1 };
     }
 
-    bool ClContext::setTrackLineKernelId(
+    bool ClContext::set_track_line_kernel_id(
         _this_t::kernel_id_t const kernel_id )
     {
         bool success = false;
@@ -948,38 +948,43 @@ namespace SIXTRL_CXX_NAMESPACE
         return success;
     }
 
-    int ClContext::trackLine(
+    int ClContext::track_line(
         _this_t::size_type const line_begin_idx,
         _this_t::size_type const line_end_idx, bool const finish_turn )
     {
-        return this->trackLine( line_begin_idx, line_end_idx,
+        return this->track_line( line_begin_idx, line_end_idx,
             finish_turn, this->m_track_line_kernel_id );
     }
 
-    int ClContext::trackLine(
-        _this_t::size_type const line_begin_idx, size_type line_end_idx,
-        bool const finish_turn, kernel_id_t const kernel_id )
+    int ClContext::track_line(
+        _this_t::size_type const line_begin_idx,
+        _this_t::size_type line_end_idx,
+        bool const finish_turn,
+        _this_t::kernel_id_t const kernel_id )
     {
-        int status = int{ -1 };
-        using _this_t::size_type = ClContextBase::size_type;
+        using size_t = _this_t::size_type;
+        _this_t::track_status_t status = st::TRACK_STATUS_GENERAL_FAILURE;
 
-        if( ( this->hasSelectedNode() ) && ( kernel_id >= kernel_id_t{ 0 } ) &&
+        if( ( this->hasSelectedNode() ) &&
+            ( kernel_id >= _this_t::kernel_id_t{ 0 } ) &&
             ( static_cast< _this_t::size_type >( kernel_id ) <=
                 this->numAvailableKernels() ) )
         {
-            SIXTRL_ASSERT( this->m_particle_set_indices.size() == size_t{1} );
-            SIXTRL_ASSERT( this->m_particle_set_num_particles.size() ==
-                           this->m_particle_set_indices.size() );
-            SIXTRL_ASSERT( this->m_particle_set_index_begins.size() ==
-                           this->m_particle_set_indices.size() );
-
-            uint64_t pset_idx = this->m_particle_set_indices[ size_t{ 0 } ];
-
-            _this_t::size_type const num_particles =
-                this->m_particle_set_num_particles[ pset_idx ];
+            SIXTRL_ASSERT( !this->m_particle_set_indices.empty() );
+            SIXTRL_ASSERT(  this->m_particle_set_indices.size() ==
+                            this->m_particle_set_num_particles.size() );
+            SIXTRL_ASSERT(  this->m_particle_set_index_begins.size() ==
+                            this->m_particle_set_indices.size() );
 
             uint64_t const finish_turn_value = ( finish_turn )
                 ? uint64_t{ 1 } : uint64_t{ 0 };
+
+            size_t const num_kernel_args = this->kernelNumArgs( kernel_id );
+
+            if( num_kernel_args >= size_t{ 0 } )
+            {
+
+
 
             this->assignKernelArgumentValue( kernel_id, 1u, pset_idx );
             this->assignKernelArgumentValue( kernel_id, 3u, line_begin_idx );
@@ -1016,7 +1021,7 @@ namespace SIXTRL_CXX_NAMESPACE
         bool const finish_turn, _this_t::kernel_id_t const kernel_id )
     {
         int success = -1;
-        using _this_t::size_type = ClContextBase::size_type;
+        using size_type = ClContextBase::size_type;
 
         SIXTRL_ASSERT( this->hasSelectedNode() );
         SIXTRL_ASSERT( ( kernel_id >= kernel_id_t{ 0 } ) &&
@@ -1138,7 +1143,7 @@ namespace SIXTRL_CXX_NAMESPACE
     int ClContext::trackSingleTurn(
         _this_t::kernel_id_t const track_kernel_id )
     {
-        using _this_t::size_type = ClContextBase::size_type;
+        using size_type = ClContextBase::size_type;
 
         SIXTRL_ASSERT( this->m_particle_set_indices.size() == size_t{ 1 } );
         SIXTRL_ASSERT( this->m_particle_set_num_particles.size() ==
@@ -1171,7 +1176,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         int success = -1;
 
-        using _this_t::size_type = ClContextBase::size_type;
+        using size_type = ClContextBase::size_type;
 
         SIXTRL_ASSERT( this->hasSelectedNode() );
         SIXTRL_ASSERT( ( kernel_id >= kernel_id_t{ 0 } ) &&
@@ -1301,7 +1306,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         if( this->hasElementByElementTrackingKernel() )
         {
-            using _this_t::size_type = ClContextBase::size_type;
+            using size_type = ClContextBase::size_type;
 
             SIXTRL_ASSERT( this->m_particle_set_indices.size() == size_t{1} );
             SIXTRL_ASSERT( this->m_particle_set_num_particles.size() ==
@@ -1349,7 +1354,7 @@ namespace SIXTRL_CXX_NAMESPACE
         int success = -1;
 
         using index_t = ::NS(particle_index_t);
-        using _this_t::size_type  = ClContextBase::size_type;
+        using size_type  = ClContextBase::size_type;
 
         SIXTRL_ASSERT( this->hasSelectedNode() );
         SIXTRL_ASSERT( ( kernel_id >= kernel_id_t{ 0 } ) &&
@@ -1792,7 +1797,7 @@ namespace SIXTRL_CXX_NAMESPACE
     void ClContext::doResetParticleSetIndices(
         _this_t::size_type const num_particles )
     {
-        using _this_t::size_type = _this_t::size_type;
+        using size_type = _this_t::size_type;
 
         this->m_particle_set_indices.clear();
         this->m_particle_set_indices.push_back( size_t{ 0 } );
