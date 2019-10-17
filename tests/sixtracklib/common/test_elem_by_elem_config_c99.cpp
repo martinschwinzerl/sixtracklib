@@ -1,3 +1,5 @@
+#include "sixtracklib/common/output/elem_by_elem_config.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -18,10 +20,7 @@
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/buffer.h"
 #include "sixtracklib/common/be_drift/be_drift.h"
-#include "sixtracklib/common/output/elem_by_elem_config.h"
 #include "sixtracklib/common/output/output_buffer.h"
-#include "sixtracklib/common/track.h"
-
 
 TEST( C99_CommonElemByElemConfigTests, MinimalExampleInit )
 {
