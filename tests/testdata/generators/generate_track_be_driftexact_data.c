@@ -98,6 +98,11 @@ int main()
         NS(Object) const* be_begin = obj_begin + 1u;
         NS(Object) const* be_end   = be_begin + NUM_BEAM_ELEMENTS;
 
+        NS(particle_num_elements_t) const npart =
+        NS(Particles_get_num_of_particles)( cmp_particles );
+
+        NS(particle_num_elements_t) ii = ( NS(particle_num_elements_t) )0u;
+
         ( void )obj_end;
 
         SIXTRL_ASSERT( obj_begin != SIXTRL_NULLPTR );
@@ -123,8 +128,11 @@ int main()
         SIXTRL_ASSERT( NS(Object_get_begin_addr)( be_end ) ==
                        ( uintptr_t )cmp_particles );
 
-        success = NS(Track_all_particles_beam_elements_obj)(
-            cmp_particles, be_begin, be_end );
+        for( ; ii < npart ; ++ii )
+        {
+            success |= NS(Track_particle_until_turn_objs)(
+                cmp_particles, ii, be_begin, be_end, 1u );
+        }
     }
 
     if( success == 0 )
@@ -150,7 +158,6 @@ int main()
     }
 
     NS(Buffer_delete)( buffer );
-
     SIXTRL_ASSERT( success == 0 );
 
     return success;
