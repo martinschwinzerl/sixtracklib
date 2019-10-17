@@ -59,7 +59,7 @@
 #include "sixtracklib/common/particles.h"
 #include "sixtracklib/common/track_job.h"
 #include "sixtracklib/common/track_job_cpu.h"
-#include "sixtracklib/common/track.h"
+#include "sixtracklib/common/track/track.h"
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
