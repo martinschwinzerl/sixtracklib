@@ -191,19 +191,19 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    _this_t::track_status_t TrackJobBase::track(
+    _this_t::track_status_t TrackJobBase::track_until(
         _this_t::size_type const until_turn )
     {
         return this->doTrackUntilTurn( until_turn );
     }
 
-    _this_t::track_status_t TrackJobBase::trackElemByElem(
+    _this_t::track_status_t TrackJobBase::track_elem_by_elem(
         _this_t::size_type const until_turn )
     {
         return this->doTrackElemByElem( until_turn );
     }
 
-    _this_t::track_status_t TrackJobBase::trackLine(
+    _this_t::track_status_t TrackJobBase::track_line(
         _this_t::size_type const beam_elements_begin_index,
         _this_t::size_type const beam_elements_end_index,
         bool const finish_turn )

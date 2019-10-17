@@ -415,8 +415,8 @@ void NS(TrackJob_delete)( ::NS(TrackJobBase)* SIXTRL_RESTRICT job )
     ::NS(buffer_size_t) const until_turn )
 {
     return ( job != nullptr )
-        ? job->track( until_turn )
-        : ::NS(track_status_t){ -1 };
+        ? job->track_until( until_turn )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 ::NS(track_status_t) NS(TrackJob_track_elem_by_elem)(
@@ -424,20 +424,18 @@ void NS(TrackJob_delete)( ::NS(TrackJobBase)* SIXTRL_RESTRICT job )
     ::NS(buffer_size_t) const until_turn )
 {
     return ( job != nullptr )
-        ? job->trackElemByElem( until_turn )
-        : ::NS(track_status_t){ -1 };
+        ? job->track_elem_by_elem( until_turn )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 ::NS(track_status_t) NS(TrackJob_track_line)(
     ::NS(TrackJobBase)* SIXTRL_RESTRICT job,
-    ::NS(buffer_size_t) const beam_elem_begin_index,
-    ::NS(buffer_size_t) const beam_elem_end_index,
-    bool const finish_turn )
+    ::NS(buffer_size_t) const line_begin_index,
+    ::NS(buffer_size_t) const line_end_index, bool const finish_turn )
 {
     return ( job != nullptr )
-        ? job->trackLine( beam_elem_begin_index, beam_elem_end_index,
-                          finish_turn )
-        : ::NS(track_status_t){ -1 };
+        ? job->track_line( line_begin_index, line_end_index, finish_turn )
+        : st::ARCH_STATUS_GENERAL_FAILURE;
 }
 
 /* ------------------------------------------------------------------------- */

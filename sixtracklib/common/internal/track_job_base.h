@@ -109,13 +109,13 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN track_status_t track(
+        SIXTRL_HOST_FN track_status_t track_until(
             size_type const until_turn );
 
-        SIXTRL_HOST_FN track_status_t trackElemByElem(
+        SIXTRL_HOST_FN track_status_t track_elem_by_elem(
             size_type const until_turn_elem_by_elem );
 
-        SIXTRL_HOST_FN track_status_t trackLine(
+        SIXTRL_HOST_FN track_status_t track_line(
             size_type const beam_elements_begin_index,
             size_type const beam_elements_end_index,
             bool const finish_turn = false );
