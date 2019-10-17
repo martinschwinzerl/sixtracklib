@@ -1494,9 +1494,9 @@ SIXTRL_INLINE void NS(Particles_init_from_generic_addr)(
     SIXTRL_BUFFER_DATAPTR_DEC const NS(ParticlesGenericAddr) *const
         SIXTRL_RESTRICT paddr )
 {
-    typedef NS(particle_real_ptr_t)         ptr_real_t;
-    typedef NS(particle_index_ptr_t)        ptr_idx_t;
-    typedef NS(st_particle_num_elements_t)  nelem_t;
+    typedef NS(particle_real_ptr_t)     ptr_real_t;
+    typedef NS(particle_index_ptr_t)    ptr_idx_t;
+    typedef NS(particle_num_elements_t) nelem_t;
 
     if( ( paddr != SIXTRL_NULLPTR ) && ( p != SIXTRL_NULLPTR ) )
     {
