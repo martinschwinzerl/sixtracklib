@@ -22,7 +22,8 @@ set( SIXTRACKL_LIBRARY_MODULES "" CACHE INTERNAL "" FORCE )
 set( SIXTRACKLIB_C99_INSTALL_PREFIX
      "${CMAKE_INSTALL_PREFIX}/include/sixtracklib" )
 
-set( SIXTRACKLIB_CXX_INSTALL_PREFIX ${SIXTRACKLIB_C99_INSTALL_PREFIX} )
+set( SIXTRACKLIB_CXX_INSTALL_PREFIX
+     "${CMAKE_INSTALL_PREFIX}/include/sixtracklib" )
 
 # ------------------------------------------------------------------------------
 
@@ -97,7 +98,7 @@ target_compile_options( sixtrack PRIVATE
 
 if( SIXTRACKL_ENABLE_PYTHON )
 
-    set( DEST_PATH "${CMAKE_SOURCE_DIR}/python/pysixtracklib" )
+    set( DEST_PATH "${CMAKE_SOURCE_DIR}/python/sixtracklib" )
 
     if( EXISTS ${DEST_PATH} )
 

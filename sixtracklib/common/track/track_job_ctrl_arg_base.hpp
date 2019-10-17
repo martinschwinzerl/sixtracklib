@@ -152,6 +152,9 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN virtual status_t doChangeVariantFlags(
             variant_t const new_variant_flags ) override;
 
+        SIXTRL_HOST_FN virtual push_flag_t doPush(
+            push_flag_t const flags ) override;
+
         SIXTRL_HOST_FN virtual status_t doSetDebugRegister(
             debug_register_t const debug_register ) override;
 

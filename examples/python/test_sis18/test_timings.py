@@ -1,13 +1,14 @@
 from cpymad.madx import Madx
-import pysixtracklib as pyst
+import sixtracklib as pystlib
+import pysixtrack
 
 import time
 from scipy.constants import e, m_p, c
 
 import numpy as np
 
-p0c = 6 * 1e9 # in eV
-Etot = np.sqrt(p0c**2 + (m_p/e)**2 * c**4) * 1e-9 # in GeV
+p0c = 6 * 1e9  # in eV
+Etot = np.sqrt(p0c**2 + (m_p / e)**2 * c**4) * 1e-9  # in GeV
 
 mad = Madx()
 mad.options.echo = False
@@ -26,14 +27,18 @@ mad.twiss()
 sis18 = mad.sequence.FODO
 
 nturns = 1
-elements = pyst.Elements.from_mad(sis18)
+ps_line, _ = pysixtrack.Line.from_madx_sequence(sis18)
+elements = pystlib.Elements()
+elements.append_line(ps_line)
+
 
 def prepare(npart=int(1e6), p0c=p0c, elements=elements, device='cpu'):
-    particles = pyst.Particles.from_ref(npart, p0c=p0c)
+    particles = pystlib.Particles.from_ref(npart, p0c=p0c)
     particles.x += np.linspace(0, 1e-6, npart)
 
-    job = pyst.TrackJob(elements, particles, device=device)
+    job = pystlib.TrackJob(elements, particles, device=device)
     return job
+
 
 class Timer(object):
     def __init__(self):
@@ -48,12 +53,13 @@ class Timer(object):
         self.interval = self.t1 - self.t0
         return False
 
+
 def timeit(device='cpu:', nturns=nturns, repeat=10):
     res = 0
     for i in range(repeat):
         job = prepare(device=device)
         with Timer() as t:
-            job.track((i + 1) * nturns)
+            job.track_until((i + 1) * nturns)
         res = (res * i + t.interval) / (i + 1)
 
     print ('The job took {:.3f} ms for {} turns (mean of {} loops).'.format(

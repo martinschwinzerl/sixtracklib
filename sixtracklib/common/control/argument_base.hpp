@@ -86,6 +86,16 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN status_t receive( void* SIXTRL_RESTRICT arg_begin,
             size_type const arg_capacity );
 
+        SIXTRL_HOST_FN status_t updateRegion(
+            size_type const offset, size_type const length,
+            void const* SIXTRL_RESTRICT_REF new_value );
+
+        SIXTRL_HOST_FN status_t updateRegions(
+            size_type const num_regions_to_update,
+            size_type const* SIXTRL_RESTRICT offsets,
+            size_type const* SIXTRL_RESTRICT lengths,
+            void const* SIXTRL_RESTRICT const* new_values );
+
         SIXTRL_HOST_FN status_t remap();
 
         SIXTRL_HOST_FN bool usesCObjectsCxxBuffer() const SIXTRL_NOEXCEPT;
@@ -139,6 +149,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN virtual bool doReserveArgumentBuffer(
             size_type const required_buffer_size );
+
+        SIXTRL_HOST_FN virtual status_t doUpdateRegions(
+            size_type const num_regions_to_update,
+            size_type const* SIXTRL_RESTRICT offsets,
+            size_type const* SIXTRL_RESTRICT lengths,
+            void const* SIXTRL_RESTRICT const* SIXTRL_RESTRICT new_values );
 
         /* ----------------------------------------------------------------- */
 
@@ -219,6 +235,25 @@ typedef void NS(ArgumentBase);
 
 namespace SIXTRL_CXX_NAMESPACE
 {
+    SIXTRL_INLINE ArgumentBase::status_t ArgumentBase::updateRegion(
+        ArgumentBase::size_type const offset,
+        ArgumentBase::size_type const size,
+        void const* SIXTRL_RESTRICT new_value )
+    {
+        return this->doUpdateRegions( ArgumentBase::size_type{ 1 },
+            &offset, &size, &new_value );
+    }
+
+    SIXTRL_INLINE ArgumentBase::status_t ArgumentBase::updateRegions(
+        ArgumentBase::size_type const num_regions_to_update,
+        ArgumentBase::size_type const* SIXTRL_RESTRICT offsets,
+        ArgumentBase::size_type const* SIXTRL_RESTRICT sizes,
+        void const* SIXTRL_RESTRICT const* SIXTRL_RESTRICT new_values )
+    {
+        return this->doUpdateRegions(
+            num_regions_to_update, offsets, sizes, new_values );
+    }
+
     template< class Derived > Derived const* ArgumentBase::asDerivedArgument(
         ArgumentBase::arch_id_t const required_arch_id,
         bool requires_exact_match ) const SIXTRL_NOEXCEPT
