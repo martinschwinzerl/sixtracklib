@@ -10,6 +10,8 @@
 *egg-info
 track.obs*.p*
 .cache
+*.kdev4
 
 Settings.cmake
 build*
+.kdev4/*
