@@ -2,9 +2,9 @@
 #define SIXTRACKLIB_CUDA_CONTROL_KERNEL_CONFIG_C99_H__
 
 #if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/cuda/control/kernel_config.hpp"
     #include "sixtracklib/cuda/definitions.h"
     #include "sixtracklib/cuda/controller.hpp"
-    #include "sixtracklib/cuda/control/kernel_config.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )

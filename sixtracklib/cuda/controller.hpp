@@ -18,7 +18,6 @@
     #include "sixtracklib/common/control/node_controller_base.h"
     #include "sixtracklib/cuda/definitions.h"
     #include "sixtracklib/cuda/control/node_info.h"
-    #include "sixtracklib/cuda/control/kernel_config.h"
     #include "sixtracklib/common/buffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -29,8 +28,8 @@
     #include "sixtracklib/common/control/node_store.hpp"
     #include "sixtracklib/common/control/kernel_config_key.hpp"
     #include "sixtracklib/common/control/kernel_config_store.hpp"
-    #include "sixtracklib/cuda/control/node_info.hpp"
     #include "sixtracklib/cuda/control/kernel_config.hpp"
+    #include "sixtracklib/cuda/control/node_info.hpp"
     #include "sixtracklib/cuda/control/device_selector.hpp"
     #include "sixtracklib/common/buffer.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */

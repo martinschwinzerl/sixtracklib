@@ -12,14 +12,12 @@
 
 #endif /* C++, Host */
 
-
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/control/kernel_config_base.h"
     #include "sixtracklib/cuda/definitions.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
-
 
 #if defined( __cplusplus   ) && !defined( _GPUCODE ) && \
    !defined( __CUDA_ARCH__ ) && !defined( __CUDACC__ )
@@ -242,6 +240,7 @@ namespace SIXTRL_CXX_NAMESPACE
         size_type m_max_block_size_limit;
     };
 }
+
 #endif /* C++, Host */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -262,7 +261,6 @@ typedef void NS(CudaKernelConfig);
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
 #endif /* C++ */
-
 
 /* ************************************************************************* */
 /* ******  Implementation of inline and template member functions    ******* */
