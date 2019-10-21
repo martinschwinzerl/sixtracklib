@@ -332,14 +332,14 @@ if( GTEST_FOUND )
     # --------------------------------------------------------------------------
     # test_node_controller_base_common_cxx:
 
-#     add_executable( test_node_controller_base_common_cxx
-#         test_node_controller_base_cxx.cpp )
+    add_executable( test_node_controller_base_common_cxx
+        test_node_controller_base_cxx.cpp )
 
-#     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-#         test_node_controller_base_common_cxx )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+        test_node_controller_base_common_cxx )
 
-#     add_test( CXX_CommonNodeControllerBaseTests
-#         test_node_controller_base_common_cxx )
+    add_test( CXX_CommonNodeControllerBaseTests
+        test_node_controller_base_common_cxx )
 
     # *************************************************************************
     # Set all properties:
