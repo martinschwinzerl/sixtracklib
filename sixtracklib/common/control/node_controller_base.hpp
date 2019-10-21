@@ -103,6 +103,7 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN NodeSetSingle const* ptrConstNodeSetBase() const;
         SIXTRL_HOST_FN NodeSetSingle const& constNodeSetBase() const;
 
+        SIXTRL_HOST_FN node_set_id_t nodeSetId() const;
         SIXTRL_HOST_FN size_type numNodes() const;
         SIXTRL_HOST_FN node_index_t minNodeIndex() const;
         SIXTRL_HOST_FN node_index_t maxNodeIndex() const;
@@ -120,6 +121,9 @@ namespace SIXTRL_CXX_NAMESPACE
         /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
         SIXTRL_HOST_FN bool hasNodeSet( node_lock_t const&
+            SIXTRL_RESTRICT_REF node_lock ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN node_set_id_t nodeSetId(
             SIXTRL_RESTRICT_REF node_lock ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN size_type numNodes( node_lock_t const&
@@ -285,6 +289,14 @@ namespace SIXTRL_CXX_NAMESPACE
             node_lock_t const& SIXTRL_RESTRICT_REF lock );
 
         SIXTRL_HOST_FN NodeStore& nodeStore(
+            node_lock_t const& SIXTRL_RESTRICT_REF lock );
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SIXTRL_HOST_FN NodeSetBase* ptrNodeSetBase(
+            node_lock_t const& SIXTRL_RESTRICT_REF lock ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN NodeSetBase& nodeSetBase(
             node_lock_t const& SIXTRL_RESTRICT_REF lock );
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -515,6 +527,22 @@ namespace SIXTRL_CXX_NAMESPACE
             *this->m_ptr_node_store->lockable() );
 
         return this->numNodes( lock );
+    }
+
+    SIXTRL_INLINE NodeControllerBase::node_set_id_t
+    NodeControllerBase::nodeSetId() const
+    {
+        namespace  st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::NodeControllerBase;
+
+        if( ( this->m_ptr_node_store == nullptr ) ||
+            ( this->m_ptr_node_store->lockable() == nullptr ) )
+                return _this_t::ILLEGAL_NODE_SET_ID;
+
+        _this_t::node_lock_t const lock(
+            *this->m_ptr_node_store->lockable() );
+
+        return this->nodeSetId( lock );
     }
 
     SIXTRL_INLINE NodeControllerBase::node_index_t

@@ -49,6 +49,42 @@ namespace SIXTRL_CXX_NAMESPACE
         return num_nodes;
     }
 
+    _this_t::node_set_id_t NodeControllerBase::nodeSetId( _this_t::node_lock_t const&
+        SIXTRL_RESTRICT_REF node_lock ) const SIXTRL_NOEXCEPT
+    {
+        _this_t::node_set_id_t const node_set_id = (
+            ( this->nodeCheckLock( node_lock ) ) )
+                ? this->m_node_set_id : _this_t::ILLEGAL_NODE_SET_ID;
+
+        SIXTRL_ASSERT( ( node_set_id == _this_t::ILLEGAL_NODE_SET_ID ) ||
+            ( ( this->m_ptr_node_set != nullptr ) &&
+              ( this->m_ptr_node_set == this->m_ptr_node_store->ptrNodeSetBase(
+                  node_lock, this->m_node_set_id ) ) ) );
+
+        return node_set_id;
+    }
+
+    _this_t::node_set_base_t* NodeControllerBase::ptrNodeSetBase(
+        _this_t::node_lock_t const& SIXTRL_RESTRICT_REF node_lock ) SIXTRL_NOEXCEPT
+    {
+        return ( ( this->m_ptr_node_store != nullptr ) &&
+                 ( this->m_ptr_node_store->checkLock( node_lock ) ) )
+            ? this->m_ptr_node_set : nullptr;
+    }
+
+    _this_t::node_set_base_t& NodeControllerBase::nodeSetBase(
+        _this_t::node_lock_t const& SIXTRL_RESTRICT_REF node_lock )
+    {
+        if( ( this->m_ptr_node_store == nullptr ) ||
+            ( this->m_ptr_node_store->checkLock( node_lock ) ) ||
+            ( this->m_ptr_node_set == nullptr ) )
+        {
+            throw std::runtime_error( "unable to retrieve node set" );
+        }
+
+        return *this->m_ptr_node_set;
+    }
+
     _this_t::node_index_t NodeControllerBase::minNodeIndex( _this_t::node_lock_t
         const& SIXTRL_RESTRICT_REF node_lock ) const SIXTRL_NOEXCEPT
     {
