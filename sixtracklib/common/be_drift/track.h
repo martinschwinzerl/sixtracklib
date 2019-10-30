@@ -56,11 +56,10 @@ SIXTRL_INLINE int NS(Track_particle_drift)(
     real_t const dzeta  = NS(Particles_get_rvv_value)( p, ii ) -
                           ( ( real_t )1 + ( xp*xp + yp*yp ) / ( real_t )2 );
 
-    NS(Particles_add_to_x_value)( p, ii, xp * length );
-    NS(Particles_add_to_y_value)( p, ii, yp * length );
-
     SIXTRL_ASSERT( NS(Particles_get_beta0_value)( p, ii ) > ( real_t )0 );
 
+    NS(Particles_add_to_x_value)( p, ii, xp * length );
+    NS(Particles_add_to_y_value)( p, ii, yp * length );
     NS(Particles_add_to_s_value)( p, ii, length );
     NS(Particles_add_to_zeta_value)( p, ii, length * dzeta );
 
@@ -79,10 +78,8 @@ SIXTRL_INLINE int NS(Track_particle_drift_exact)(
     real_t const length = NS(DriftExact_get_length)( drift );
     real_t const px     = NS(Particles_get_px_value)( p, ii );
     real_t const py     = NS(Particles_get_py_value)( p, ii );
-
     real_t const opd    = NS(Particles_get_delta_value)( p, ii ) + ( real_t )1;
     real_t const lpzi   = length / sqrt( opd * opd - ( px * px + py * py ) );
-
     real_t const dzeta  = NS(Particles_get_rvv_value)( p, ii ) * length
                         - opd * lpzi;
 
@@ -93,7 +90,7 @@ SIXTRL_INLINE int NS(Track_particle_drift_exact)(
     SIXTRL_ASSERT( ( opd * opd ) >   ( px * px + py * py ) );
     SIXTRL_ASSERT( sqrt( opd * opd - ( px * px + py * py ) ) > ( real_t )0 );
 
-    NS(Particles_add_to_s_value)(    p, ii, length );
+    NS(Particles_add_to_s_value)( p, ii, length );
     NS(Particles_add_to_zeta_value)( p, ii, dzeta );
 
     return SIXTRL_TRACK_SUCCESS;

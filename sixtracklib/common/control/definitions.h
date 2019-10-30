@@ -10,12 +10,14 @@
 extern "C" {
 #endif /* C++, Host */
 
+typedef SIXTRL_UINT32_T             NS(arch_program_id_t);
 typedef SIXTRL_UINT32_T             NS(arch_kernel_id_t);
 typedef SIXTRL_UINT64_T             NS(arch_variant_flags_t);
 
 typedef NS(arch_status_t)           NS(ctrl_status_t);
 typedef NS(arch_size_t)             NS(ctrl_size_t);
 typedef NS(arch_kernel_id_t)        NS(ctrl_kernel_id_t);
+typedef NS(arch_program_id_t)       NS(ctrl_program_id_t);
 
 typedef NS(arch_variant_flags_t)    NS(kernel_variant_t);
 typedef SIXTRL_UINT32_T             NS(kernel_purpose_t);
@@ -141,6 +143,9 @@ SIXTRL_STATIC_VAR NS(arch_variant_flags_t) const
 SIXTRL_STATIC_VAR NS(arch_variant_flags_t) const
     NS(ARCH_VARIANT_DEBUG) = ( NS(arch_variant_flags_t) )0x8000000000000000;
 
+SIXTRL_STATIC_VAR NS(arch_program_id_t) const
+    NS(ARCH_ILLEGAL_PROGRAM_ID) = ( NS(arch_program_id_t) )0xFFFFFFFF;
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 SIXTRL_STATIC_VAR NS(kernel_purpose_t) const
@@ -208,6 +213,7 @@ SIXTRL_STATIC_VAR NS(node_id_str_fmt_t) const NS(NODE_ID_STR_FORMAT_ARCHSTR) =
 
 SIXTRL_STATIC_VAR NS(node_id_str_fmt_t) const NS(NODE_ID_STR_FORMAT_DEFAULT) =
     ( NS(node_id_str_fmt_t) )SIXTRL_NODE_ID_STR_FORMAT_DEFAULT;
+
 
 SIXTRL_STATIC_VAR NS(node_id_str_fmt_t) const NS(NODE_ID_STR_FORMAT_ILLEGAL) =
     ( NS(node_id_str_fmt_t) )SIXTRL_NODE_ID_STR_FORMAT_ILLEGAL;
@@ -288,17 +294,16 @@ namespace SIXTRL_CXX_NAMESPACE
     typedef ::NS(ctrl_status_t)          ctrl_status_t;
     typedef ::NS(ctrl_size_t)            ctrl_size_t;
     typedef ::NS(ctrl_kernel_id_t)       ctrl_kernel_id_t;
+    typedef ::NS(ctrl_program_id_t)      ctrl_program_id_t;
+
     typedef ::NS(kernel_variant_t)       kernel_variant_t;
     typedef ::NS(kernel_purpose_t)       kernel_purpose_t;
     typedef ::NS(kernel_argument_set_t)  kernel_argument_set_t;
     typedef ::NS(kernel_set_id_t)        kernel_set_id_t;
     typedef ::NS(kernel_op_flags_t)      kernel_op_flags_t;
 
-    typedef ::NS(arch_status_t)          arch_status_t;
-    typedef ::NS(arch_id_t)              arch_id_t;
-    typedef ::NS(arch_size_t)            arch_size_t;
-    typedef ::NS(arch_debugging_t)       arch_debugging_t;
     typedef ::NS(arch_kernel_id_t)       arch_kernel_id_t;
+    typedef ::NS(arch_program_id_t)      arch_program_id_t;
     typedef ::NS(arch_variant_flags_t)   arch_variant_flags_t;
 
     typedef ::NS(node_platform_id_t)     node_platform_id_t;
@@ -403,6 +408,9 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST kernel_purpose_t
         KERNEL_CONFIG_PURPOSE_MIN_USERDEFINED_ID =
             static_cast< kernel_purpose_t >( 1024 );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_program_id_t
+        ARCH_ILLEGAL_PROGRAM_ID = static_cast< arch_program_id_t >( 0xFFFFFFFF );
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 

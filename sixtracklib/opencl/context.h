@@ -19,8 +19,9 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/control/definitions.h"
-    #include "sixtracklib/common/particles/definitions.h"
-    #include "sixtracklib/common/track/definitions.h"
+    #include "sixtracklib/common/control/debug_register.h"
+    #include "sixtracklib/common/output/elem_by_elem_config.h"
+    #include "sixtracklib/common/output/output_buffer.h"
     #include "sixtracklib/common/buffer.h"
     #include "sixtracklib/common/particles.h"
 
@@ -31,21 +32,36 @@
 
 #if defined( __cplusplus )
 
+#if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/buffer.hpp"
+    #include "sixtracklib/common/particles.hpp"
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
+
 namespace SIXTRL_CXX_NAMESPACE
 {
     class ClContext : public ClContextBase
     {
         private:
 
-        using _base_context_t   = ClContextBase;
+        using _base_context_t   = SIXTRL_CXX_NAMESPACE::ClContextBase;
 
         public:
 
-        using  program_id_t     = _base_context_t::program_id_t;
-        using  kernel_id_t      = _base_context_t::kernel_id_t;
-        using  cl_buffer_t      = cl::Buffer;
-        using  num_turns_t      = ::NS(particle_index_t);
-        using  track_status_t   = SIXTRL_CXX_NAMESPACE::track_status_t;
+        using  buffer_t              = SIXTRL_CXX_NAMESPACE::Buffer;
+        using  c_buffer_t            = buffer_t::c_api_t;
+        using  particles_t           = SIXTRL_CXX_NAMESPACE::Particles;
+        using  c_particles_t         = particles_t::c_api_t;
+        using  particle_index_t      = particles_t::index_t;
+        using  track_status_t        = SIXTRL_CXX_NAMESPACE::track_status_t;
+        using  elem_by_elem_config_t = ::NS(ElemByElemConfig);
+        using  num_turns_t           = ::NS(particle_index_t);
+
+        static constexpr size_type MIN_NUM_TRACK_UNTIL_ARGS   = size_type{ 5 };
+        static constexpr size_type MIN_NUM_TRACK_LINE_ARGS    = size_type{ 7 };
+        static constexpr size_type MIN_NUM_TRACK_ELEM_ARGS    = size_type{ 6 };
+        static constexpr size_type MIN_NUM_ASSIGN_BE_MON_ARGS = size_type{ 5 };
+        static constexpr size_type MIN_NUM_CLEAR_BE_MON_ARGS  = size_type{ 2 };
+        static constexpr size_type MIN_NUM_ASSIGN_ELEM_ARGS   = size_type{ 4 };
 
         explicit ClContext(
             const char *const SIXTRL_RESTRICT config_str = nullptr );
@@ -73,156 +89,108 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ================================================================= */
 
-        bool set_particle_buffer_arg( ClArgument& SIXTRL_RESTRICT_REF arg );
-        bool set_particle_set_index_arg( size_type const particle_set_index );
-        bool set_beam_elements_buffer_arg( ClArgument& SIXTRL_RESTRICT_REF arg );
-        bool set_output_buffer_arg( ClArgument& SIXTRL_RESTRICT_REF arg );
-        bool set_particle_addr_buffer_arg( ClArgument& SIXTRL_RESTRICT_REF arg );
+        status_t assign_particles_arg(
+            ClArgument& SIXTRL_RESTRICT_REF particles_arg );
 
-        bool set_elem_by_elem_config_arg(
-            cl_buffer_t& SIXTRL_RESTRICT_REF config );
+        status_t assign_particle_set_arg(
+            size_type const particle_set_index,
+            size_type const num_particles_in_set );
 
-        bool set_be_monitors_out_index_offset_arg(
-            size_type const out_index_offset );
+        status_t assign_beam_elements_arg(
+            ClArgument& SIXTRL_RESTRICT_REF beam_elements_arg );
 
-        bool set_elem_by_elem_out_index_offset_arg(
-            size_type const out_index_offset );
+        status_t assign_output_buffer_arg(
+            ClArgument& SIXTRL_RESTRICT_REF output_buffer_arg );
 
-        bool set_cbuffer_slot_size_arg( size_type const slot_size );
+        status_t assign_elem_by_elem_config_arg(
+            cl_buffer_t& SIXTRL_RESTRICT_REF elem_by_elem_config_arg );
 
         bool set_status_flag_buffer_arg(
             cl_buffer_t& SIXTRL_RESTRICT_REF cl_status_flag_buffer );
 
-        /* ================================================================= */
-
         bool has_track_until_kernel() const SIXTRL_NOEXCEPT;
         kernel_id_t track_until_kernel_id() const SIXTRL_NOEXCEPT;
-        bool set_track_until_kernel_id( kernel_id_t const kernel_id );
+        status_t set_track_until_kernel_id( kernel_id_t const kernel_id );
 
-        track_status_t track_until(
-            num_turns_t const until_turn );
+        track_status_t track_until( num_turns_t const until_turn );
 
-        track_status_t track_until(
-            num_turns_t const until_turn, kernel_id_t const track_kernel_id );
+        track_status_t track_until( num_turns_t const until_turn,
+            size_type const pset_index, size_type const nparticles_in_set,
+            bool const restore_pset_index = true );
 
         track_status_t track_until(
             ClArgument& particles_arg, size_type const particle_set_index,
             ClArgument& beam_elements_arg,
             num_turns_t const until_turn, kernel_id_t const track_kernel_id );
 
-        /* ----------------------------------------------------------------- */
+        bool has_track_line_kernel() const SIXTRL_NOEXCEPT;
+        kernel_id_t track_line_kernel_id() const SIXTRL_NOEXCEPT;
+        status_t set_track_line_kernel_id( kernel_id_t const kernel_id );
+
+        track_status_t track_line( size_type const line_begin_idx,
+                       size_type const line_end_idx, bool const finish_turn );
+
+        track_status_t track_line( size_type const line_begin_idx,
+            size_type const line_end_idx, bool const finish_turn,
+            size_type const pset_index, size_type const nparticles_in_set,
+            bool const restore_pset_index = true );
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
         bool has_track_elem_by_elem_kernel() const SIXTRL_NOEXCEPT;
         kernel_id_t track_elem_by_elem_kernel_id() const SIXTRL_NOEXCEPT;
-        bool set_track_elem_by_elem_kernel_id( kernel_id_t const kernel_id );
+        status_t set_track_elem_by_elem_kernel_id( kernel_id_t const kernel_id );
 
-        int track_elem_by_elem(
-            size_type until_turn,
-            size_type out_index_offset = size_type{ 0 } );
+        track_status_t track_elem_by_elem( size_type until_turn );
 
-        int track_elem_by_elem(
-            size_type until_turn, size_type out_index_offset,
+        track_status_t track_elem_by_elem( size_type until_turn,
+            size_type const pset_index, size_type const nparticles_in_set,
+            bool const restore_pset_index = true );
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        bool has_assign_beam_monitor_output_kernel() const SIXTRL_NOEXCEPT;
+
+        kernel_id_t assign_beam_monitor_output_kernel_id() const SIXTRL_NOEXCEPT;
+        status_t set_assign_beam_monitor_output_kernel_id(
             kernel_id_t const kernel_id );
 
-        int track_elem_by_elem(
-            ClArgument& SIXTRL_RESTRICT_REF particles_arg,
-            ClArgument& SIXTRL_RESTRICT_REF beam_elements_arg,
-            ClArgument& SIXTRL_RESTRICT_REF elem_by_elem_buffer,
-            size_type until_turn, size_type out_index_offset,
-            kernel_id_t const kernel_id );
-
-        /* ----------------------------------------------------------------- */
-
-        bool has_track_line_kernel() const SIXTRL_NOEXCEPT;
-        kernel_id_t track_line_kernel_id() const SIXTRL_NOEXCEPT;
-        bool set_track_line_kernel_id( kernel_id_t const kernel_id );
-
-        int track_line( size_type const line_begin_idx,
-                        size_type const line_end_idx,
-                        bool const finish_turn = false );
-
-        int track_line( size_type const line_begin_idx,
-                        size_type const line_end_idx,
-                        bool const finish_turn,
-                        kernel_id_t const kernel_id );
-
-        int track_line( ClArgument& SIXTRL_RESTRICT_REF particles_arg,
-                        size_type const particle_set_index,
-                        ClArgument& SIXTRL_RESTRICT_REF beam_elements_arg,
-                        size_type const line_begin_idx,
-                        size_type const line_end_idx, bool const finish_turn,
-                        kernel_id_t const track_kernel_id );
-
-        /* ----------------------------------------------------------------- */
+        status_t assign_beam_monitor_output(
+            particle_index_t const min_turn_id,
+            size_type const out_buffer_index_offset );
 
         bool has_assign_be_monitors_output_kernel() const SIXTRL_NOEXCEPT;
         kernel_id_t assign_be_monitors_output_kernel_id() const SIXTRL_NOEXCEPT;
         bool set_assign_be_monitors_output_kernel_id(
             kernel_id_t const kernel_id );
 
-        int assign_be_monitors_output_kernel(
-            ClArgument& SIXTRL_RESTRICT_REF beam_elements_arg,
-            ClArgument& SIXTRL_RESTRICT_REF out_buffer_arg,
-            size_type const min_turn_id = size_type{ 0 },
-            size_type const out_index_offset = size_type{ 0 } );
-
-        int assign_be_monitors_output_kernel(
-            ClArgument& SIXTRL_RESTRICT_REF beam_elements_arg,
-            ClArgument& SIXTRL_RESTRICT_REF out_buffer_arg,
-            size_type const min_turn_id, size_type const out_index_offset,
-            kernel_id_t const kernel_id );
-
-        /* ----------------------------------------------------------------- */
-
-        bool has_clear_be_monitors_output_kernel() const SIXTRL_NOEXCEPT;
-        kernel_id_t clear_be_monitors_output_kernel_id() const SIXTRL_NOEXCEPT;
-        bool set_clear_be_monitors_output_kernel_id(
-            kernel_id_t const kernel_id );
-
-        int clear_be_monitors_output(
-            ClArgument& SIXTRL_RESTRICT_REF beam_elements_arg );
-
-        int clear_be_monitors_output(
-            ClArgument& SIXTRL_RESTRICT_REF beam_elements_arg,
-            kernel_id_t const kernel_id );
-
-        /* ----------------------------------------------------------------- */
-
         bool has_assign_elem_by_elem_output_kernel() const SIXTRL_NOEXCEPT;
         kernel_id_t assign_elem_by_elem_output_kernel_id() const SIXTRL_NOEXCEPT;
-        bool set_assign_elem_by_elem_output_kernel_id(
+        status_t set_assign_elem_by_elem_output_kernel_id(
             kernel_id_t const kernel_id );
 
-        int assign_elem_by_elem_output(
-            ClArgument& SIXTRL_RESTRICT_REF beam_elements_arg,
-            ClArgument& SIXTRL_RESTRICT_REF out_buffer_arg,
-            size_type const out_index_offset = size_type{ 0 } );
+        status_t assign_elem_by_elem_output(
+            size_type const out_buffer_index_offset );
 
-        int assign_elem_by_elem_output(
-            ClArgument& SIXTRL_RESTRICT_REF beam_elements_arg,
-            ClArgument& SIXTRL_RESTRICT_REF out_buffer_arg,
-            size_type const out_index_offset, kernel_id_t const kernel_id );
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        bool has_clear_beam_monitor_output_kernel() const SIXTRL_NOEXCEPT;
+        kernel_id_t clear_beam_monitor_output_kernel_id() const SIXTRL_NOEXCEPT;
+        status_t set_clear_beam_monitor_output_kernel_id(
+            kernel_id_t const kernel_id );
+
+        status_t clear_beam_monitor_output();
 
         /* ----------------------------------------------------------------- */
 
-        bool has_fetch_particle_addr_kernel() const SIXTRL_NOEXCEPT;
-        kernel_id_t fetch_particle_addr_kernel_id() const SIXTRL_NOEXCEPT;
-        bool set_fetch_particle_addr_kernel_id( kernel_id_t const kernel_id );
+        size_type selected_particle_set() const SIXTRL_NOEXCEPT;
+        size_type num_particles_in_selected_set() const SIXTRL_NOEXCEPT;
 
-        int fetch_particle_addr(
-            ClArgument& SIXTRL_RESTRICT_REF particles_buffer_arg,
-            ClArgument& SIXTRL_RESTRICT_REF paddresses_buffer_arg );
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        int fetch_particle_addr(
-            ClArgument& SIXTRL_RESTRICT_REF particles_buffer_arg,
-            ClArgument& SIXTRL_RESTRICT_REF paddresses_buffer_arg,
-            kernel_id_t const kernel_id );
-
-        /* ================================================================= */
-
-        bool use_optimized_tracking_by_default() const SIXTRL_NOEXCEPT;
-        void enable_optimized_tracking_by_default();
-        void disable_optimized_tracking_by_default();
+        bool use_optimized_tracking() const SIXTRL_NOEXCEPT;
+        void enable_optimized_tracking();
+        void disable_optimized_tracking();
 
         /* ----------------------------------------------------------------- */
 
@@ -230,40 +198,62 @@ namespace SIXTRL_CXX_NAMESPACE
         void enable_beam_beam_tracking();
         void disable_beam_beam_tracking();
 
+        /* ----------------------------------------------------------------- */
+
+        std::unique_ptr< SIXTRL_CXX_NAMESPACE::ClContext::cl_buffer_t >
+        create_elem_by_elem_config_arg();
+
+        void delete_elem_by_elem_config_arg(
+            std::unique_ptr< SIXTRL_CXX_NAMESPACE::ClContext::cl_buffer_t >&& );
+
+        status_t init_elem_by_elem_config_arg(
+            cl_buffer_t& SIXTRL_RESTRICT_REF elem_by_elem_config_arg,
+            elem_by_elem_config_t& SIXTRL_RESTRICT_REF elem_by_elem_config,
+            const ::NS(Buffer) *const SIXTRL_RESTRICT particles_buffer,
+            size_type const num_particle_sets,
+            size_type const* SIXTRL_RESTRICT pset_indices_begin,
+            const ::NS(Buffer) *const SIXTRL_RESTRICT beam_elements_buffer,
+            size_type const until_turn_elem_by_elem,
+            particle_index_t const start_elem_id = particle_index_t{ 0 } );
+
+        status_t collect_elem_by_elem_config_arg(
+            cl_buffer_t& SIXTRL_RESTRICT_REF elem_by_elem_config_arg,
+            elem_by_elem_config_t& SIXTRL_RESTRICT_REF elem_by_elem_config );
+
+        status_t push_elem_by_elem_config_arg(
+            cl_buffer_t& SIXTRL_RESTRICT_REF elem_by_elem_config_arg,
+            elem_by_elem_config_t const& SIXTRL_RESTRICT_REF
+                elem_by_elem_config );
+
         protected:
 
-        virtual void doClear() override;
-        virtual bool doInitDefaultPrograms() override;
-        virtual bool doInitDefaultKernels()  override;
-        virtual bool doSelectNode( size_type const node_index ) override;
+        bool doSelectNode( size_type node_index ) override;
+        bool doInitDefaultPrograms() override;
+        bool doInitDefaultKernels()  override;
 
-        template< typename Iter >
-        bool doUpdateParticleSetIndices(
-            Iter pset_indices_begin, Iter pset_indices_end,
-            const ::NS(Buffer) *const SIXTRL_RESTRICT particles_buffer );
+        status_t doAssignStatusFlagsArg(
+            cl::Buffer& SIXTRL_RESTRICT_REF status_flags_arg ) override;
 
-        void doResetParticleSetIndices(
-            size_type const num_particles = size_type{ 0 } );
+        status_t doAssignSlotSizeArg( size_type const slot_size ) override;
 
         private:
-
-        bool doSelectNodePrivImpl( size_type const node_index );
-        void doClearPrivImpl();
 
         bool doInitDefaultProgramsPrivImpl();
         bool doInitDefaultKernelsPrivImpl();
 
-        cl::Buffer   m_elem_by_elem_config_buffer;
+        status_t doAssignStatusFlagsArgPrivImpl(
+            cl::Buffer& SIXTRL_RESTRICT_REF status_flags_arg );
 
-        std::vector< size_type > m_particle_set_indices;
-        std::vector< size_type > m_particle_set_num_particles;
-        std::vector< size_type > m_particle_set_index_begins;
-        size_type m_total_num_particles;
-        size_type m_total_num_particles_in_sets;
+        status_t doAssignSlotSizeArgPrivImpl(
+            size_type const slot_size );
+
+        size_type    m_num_particles_in_pset;
+        size_type    m_pset_index;
 
         program_id_t m_track_until_turn_program_id;
         program_id_t m_track_elem_by_elem_program_id;
         program_id_t m_track_line_program_id;
+        program_id_t m_assign_elem_by_elem_out_buffer_program_id;
         program_id_t m_assign_be_mon_out_buffer_program_id;
         program_id_t m_clear_be_mon_program_id;
         program_id_t m_assign_elem_by_elem_out_buffer_program_id;
@@ -272,10 +262,9 @@ namespace SIXTRL_CXX_NAMESPACE
         kernel_id_t  m_track_until_turn_kernel_id;
         kernel_id_t  m_track_elem_by_elem_kernel_id;
         kernel_id_t  m_track_line_kernel_id;
+        kernel_id_t  m_assign_elem_by_elem_out_buffer_kernel_id;
         kernel_id_t  m_assign_be_mon_out_buffer_kernel_id;
         kernel_id_t  m_clear_be_mon_kernel_id;
-        kernel_id_t  m_assign_elem_by_elem_out_buffer_kernel_id;
-        kernel_id_t  m_fetch_particle_addr_kernel_id;
 
         bool         m_use_optimized_tracking;
         bool         m_enable_beam_beam;
@@ -406,8 +395,8 @@ namespace SIXTRL_CXX_NAMESPACE
 extern "C" {
 #endif /* !defined( _GPUCODE ) */
 
-typedef SIXTRL_CXX_NAMESPACE::ClContext              NS(ClContext);
-typedef SIXTRL_CXX_NAMESPACE::ClContext::num_turns_t NS(context_num_turns_t);
+typedef SIXTRL_CXX_NAMESPACE::ClContext  NS(ClContext);
+typedef int64_t                          NS(context_num_turns_t);
 
 #if !defined( _GPUCODE )
 }
@@ -437,227 +426,191 @@ SIXTRL_EXTERN SIXTRL_HOST_FN void NS(ClContext_clear)(
 
 /* ========================================================================= */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(ClContext_has_tracking_kernel)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_assign_particles_arg)( NS(ClContext)* SIXTRL_RESTRICT ctx,
+    NS(ClArgument)* SIXTRL_RESTRICT particles_arg );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_assign_particle_set_arg)(  NS(ClContext)* SIXTRL_RESTRICT ctx,
+    NS(buffer_size_t) const particle_set_index,
+    NS(buffer_size_t) const num_particles_in_selected_set );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_assign_beam_elements_arg)( NS(ClContext)* SIXTRL_RESTRICT ctx,
+    NS(ClArgument)* SIXTRL_RESTRICT beam_elem_arg );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_assign_output_buffer_arg)( NS(ClContext)* SIXTRL_RESTRICT ctx,
+    NS(ClArgument)* SIXTRL_RESTRICT_REF out_buffer_arg );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_assign_elem_by_elem_config_arg)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx, cl_mem elem_by_elem_config_arg  );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_assign_slot_size_arg)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx, NS(buffer_size_t) const slot_size );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_assign_status_flags_arg)( NS(ClContext)* SIXTRL_RESTRICT ctx,
+    cl_mem status_flags_arg );
+
+/* ========================================================================= */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(ClContext_has_track_until_kernel)(
     const NS(ClContext) *const SIXTRL_RESTRICT ctx );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(ClContext_get_tracking_kernel_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_kernel_id_t)
+NS(ClContext_track_until_kernel_id)(
     const NS(ClContext) *const SIXTRL_RESTRICT ctx );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(ClContext_set_tracking_kernel_id)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, int const kernel_id );
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_set_track_until_kernel_id)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx, NS(arch_kernel_id_t) const kernel_id );
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(ClContext_continue_tracking)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, NS(context_num_turns_t) const turn );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_continue_tracking_with_kernel_id)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, int const track_kernel_id,
-    NS(context_num_turns_t) const turn );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(ClContext_track)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t) NS(ClContext_track_until)(
     NS(ClContext)* SIXTRL_RESTRICT ctx,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_particles_arg,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_beam_elements_arg,
-    NS(context_num_turns_t) const turn );
+    NS(context_num_turns_t) const until_turn );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(ClContext_track_with_kernel_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t)
+NS(ClContext_track_until_for_particle_set)(
     NS(ClContext)* SIXTRL_RESTRICT ctx,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_particles_arg,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_beam_elements_arg,
-    NS(context_num_turns_t) const turn, int const tracking_kernel_id );
+    NS(context_num_turns_t) const until_turn,
+    NS(buffer_size_t) const particle_set_index,
+    NS(buffer_size_t) const num_particles_in_set,
+    bool const restore_particle_set_index );
 
 /* ------------------------------------------------------------------------- */
 
-
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(ClContext_has_line_tracking_kernel)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(ClContext_has_track_line_kernel)(
     const NS(ClContext) *const SIXTRL_RESTRICT ctx );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(ClContext_get_line_tracking_kernel_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_kernel_id_t)
+NS(ClContext_track_line_kernel_id)(
     const NS(ClContext) *const SIXTRL_RESTRICT ctx );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(ClContext_set_line_tracking_kernel_id)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, int const kernel_id );
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_set_track_line_kernel_id)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx, NS(arch_kernel_id_t) const kernel_id );
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_continue_line_tracking)( NS(ClContext)* SIXTRL_RESTRICT ctx,
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t) NS(ClContext_track_line)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx,
     NS(buffer_size_t) const line_begin_idx,
     NS(buffer_size_t) const line_end_idx, bool const finish_turn );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_continue_line_tracking_with_kernel_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t)
+NS(ClContext_track_line_for_particle_set)(
     NS(ClContext)* SIXTRL_RESTRICT ctx,
-    NS(buffer_size_t) const line_begin_idx,
-    NS(buffer_size_t) const line_end_idx,
-    bool const finish_turn, int const line_tracking_kernel_id );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(ClContext_track_line)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_particles_arg,
-    NS(buffer_size_t) const particle_set_index,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_beam_elements_arg,
-    NS(buffer_size_t) const line_begin_idx,
-    NS(buffer_size_t) const line_end_idx, bool const finish_turn );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(ClContext_track_line_with_kernel_id)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_particles_arg,
-    NS(buffer_size_t) const particle_set_index,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_beam_elements_arg,
     NS(buffer_size_t) const line_begin_idx,
     NS(buffer_size_t) const line_end_idx, bool const finish_turn,
-    int const line_tracking_kernel_id );
+    NS(buffer_size_t) const particle_set_index,
+    NS(buffer_size_t) const num_particles_in_set,
+    bool const restore_particle_set_index );
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool
-NS(ClContext_has_element_by_element_tracking_kernel)(
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(ClContext_has_track_elem_by_elem_kernel)(
     const NS(ClContext) *const SIXTRL_RESTRICT ctx );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_get_element_by_element_tracking_kernel_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_kernel_id_t)
+NS(ClContext_track_elem_by_elem_kernel_id)(
     const NS(ClContext) *const SIXTRL_RESTRICT ctx );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool
-NS(ClContext_set_element_by_element_tracking_kernel_id)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, int const tracking_kernel_id );
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_continue_tracking_element_by_element)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, NS(buffer_size_t) const until_turn,
-    NS(buffer_size_t) const out_particle_block_offset );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_continue_tracking_element_by_element_with_kernel_id)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, NS(buffer_size_t) const until_turn,
-    NS(buffer_size_t) const out_particle_block_offset,
-    int const kernel_id );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(ClContext_track_element_by_element)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_set_track_elem_by_elem_kernel_id)(
     NS(ClContext)* SIXTRL_RESTRICT ctx,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_particles_arg,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_beam_elements_arg,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_elem_by_elem_buffer_arg,
-    NS(buffer_size_t) const until_turn,
-    NS(buffer_size_t) const out_particle_block_offset );
+    NS(arch_kernel_id_t) const tracking_kernel_id );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_track_element_by_element_with_kernel_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t)
+NS(ClContext_track_elem_by_elem)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx, NS(buffer_size_t) const until_turn );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t)
+NS(ClContext_track_elem_by_elem_for_particle_set)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx, NS(buffer_size_t) const until_turn,
+    NS(buffer_size_t) const particle_set_index,
+    NS(buffer_size_t) const num_particles_in_set,
+    bool const restore_particle_set_index );
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool
+NS(ClContext_has_assign_beam_monitor_output_kernel)(
+    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_kernel_id_t)
+NS(ClContext_assign_beam_monitor_output_kernel_id)(
+    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_set_assign_beam_monitor_output_kernel_id)(
     NS(ClContext)* SIXTRL_RESTRICT ctx,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_particles_arg,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_beam_elements_arg,
-    NS(ClArgument)* SIXTRL_RESTRICT ptr_elem_by_elem_buffer_arg,
-    NS(buffer_size_t) const until_turn,
-    NS(buffer_size_t) const out_particle_block_offset,
-    int const tracking_kernel_id );
+    NS(arch_kernel_id_t) const kernel_id );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_assign_beam_monitor_output)(
+    NS(ClContext)*  SIXTRL_RESTRICT ctx,
+    NS(particle_index_t) const min_turn_id,
+    NS(buffer_size_t) const out_buffer_index_offset );
 
 /* ------------------------------------------------------------------------- */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN bool
-NS(ClContext_has_assign_beam_monitor_out_buffer_kernel)(
-    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_get_assign_beam_monitor_out_buffer_kernel_id)(
-    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN bool
-NS(ClContext_set_assign_beam_monitor_out_buffer_kernel_id)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, int const assign_kernel_id );
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int NS(ClContext_assign_beam_monitor_out_buffer)(
-    NS(ClContext)*  SIXTRL_RESTRICT ctx,
-    NS(ClArgument)* SIXTRL_RESTRICT beam_elements_arg,
-    NS(ClArgument)* SIXTRL_RESTRICT out_buffer,
-    NS(buffer_size_t) const min_turn_id,
-    NS(buffer_size_t) const out_particle_block_offset );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_assign_beam_monitor_out_buffer_with_kernel_id)(
-    NS(ClContext)*  SIXTRL_RESTRICT ctx,
-    NS(ClArgument)* SIXTRL_RESTRICT beam_elements_arg,
-    NS(ClArgument)* SIXTRL_RESTRICT out_buffer,
-    NS(buffer_size_t) const min_turn_id,
-    NS(buffer_size_t) const out_particle_block_offset,
-    int const assign_kernel_id );
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN bool
-NS(ClContext_has_clear_beam_monitor_out_assignment_kernel)(
-    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_get_clear_beam_monitor_out_assignment_kernel_id)(
-    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN bool
-NS(ClContext_set_clear_beam_monitor_out_assignment_kernel_id)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, int const kernel_id );
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_clear_beam_monitor_out_assignment)(
-    NS(ClContext)*  SIXTRL_RESTRICT context,
-    NS(ClArgument)* SIXTRL_RESTRICT beam_elements_arg );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_clear_beam_monitor_out_assignment_with_kernel)(
-    NS(ClContext)*  SIXTRL_RESTRICT context,
-    NS(ClArgument)* SIXTRL_RESTRICT beam_elements_arg, int const kernel_id );
-
-/* ------------------------------------------------------------------------- */
-
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool
 NS(ClContext_has_assign_elem_by_elem_output_kernel)(
     const NS(ClContext) *const SIXTRL_RESTRICT ctx );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_get_assign_elem_by_elem_output_kernel_id)(
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_kernel_id_t)
+NS(ClContext_assign_elem_by_elem_output_kernel_id)(
     const NS(ClContext) *const SIXTRL_RESTRICT ctx );
 
-SIXTRL_EXTERN SIXTRL_HOST_FN bool
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
 NS(ClContext_set_assign_elem_by_elem_output_kernel_id)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx, int const kernel_id );
+    NS(ClContext)* SIXTRL_RESTRICT ctx,
+    NS(arch_kernel_id_t) const kernel_id );
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_assign_elem_by_elem_output_kernel)(
-    NS(ClContext)*  SIXTRL_RESTRICT context,
-    NS(ClArgument)* SIXTRL_RESTRICT beam_elements_arg,
-    NS(ClArgument)* SIXTRL_RESTRICT output_buffer_arg,
-
-SIXTRL_EXTERN SIXTRL_HOST_FN int
-NS(ClContext_clear_beam_monitor_out_assignment_with_kernel)(
-    NS(ClContext)*  SIXTRL_RESTRICT context,
-    NS(ClArgument)* SIXTRL_RESTRICT beam_elements_arg, int const kernel_id );
-
-/* ------------------------------------------------------------------------- */
-
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_assign_elem_by_elem_output)(
+    NS(ClContext)*  SIXTRL_RESTRICT ctx,
+    NS(buffer_size_t) const out_buffer_index_offset );
 
 /* ------------------------------------------------------------------------- */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN bool
-NS(ClContext_uses_optimized_tracking_by_default)(
+NS(ClContext_has_clear_beam_monitor_output_kernel)(
+    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_kernel_id_t)
+NS(ClContext_clear_beam_monitor_output_kernel_id)(
+    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_set_clear_beam_monitor_output_kernel_id)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx, NS(arch_kernel_id_t) const kernel_id );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(arch_status_t)
+NS(ClContext_clear_beam_monitor_output)( NS(ClContext)*  SIXTRL_RESTRICT ctx );
+
+/* ========================================================================= */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(buffer_size_t)
+NS(ClContext_selected_particle_set)(
+    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
+
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(buffer_size_t)
+NS(ClContext_num_particles_in_selected_set)(
+    const NS(ClContext) *const SIXTRL_RESTRICT ctx );
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(ClContext_uses_optimized_tracking)(
     const NS(ClContext) *const SIXTRL_RESTRICT ctx );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void
-NS(ClContext_enable_optimized_tracking_by_default)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx );
+NS(ClContext_enable_optimized_tracking)( NS(ClContext)* SIXTRL_RESTRICT ctx );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void
-NS(ClContext_disable_optimized_tracking_by_default)(
-    NS(ClContext)* SIXTRL_RESTRICT ctx );
+NS(ClContext_disable_optimized_tracking)( NS(ClContext)* SIXTRL_RESTRICT ctx );
 
 /* ------------------------------------------------------------------------- */
 
@@ -669,6 +622,35 @@ SIXTRL_EXTERN SIXTRL_HOST_FN void NS(ClContext_enable_beam_beam_tracking)(
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(ClContext_disable_beam_beam_tracking)(
     NS(ClContext)* SIXTRL_RESTRICT ctx );
+
+/* ------------------------------------------------------------------------- */
+
+cl_mem NS(ClContext_create_elem_by_elem_config_arg)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx );
+
+void NS(ClContext_delete_elem_by_elem_config_arg)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx, cl_mem elem_by_elem_config_arg );
+
+NS(arch_status_t) NS(ClContext_init_elem_by_elem_config_arg)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx,
+    cl_mem elem_by_elem_config_arg,
+    NS(ElemByElemConfig)* SIXTRL_RESTRICT elem_by_elem_config,
+    const NS(Buffer) *const SIXTRL_RESTRICT particles_buffer,
+    NS(buffer_size_t) const num_particle_sets,
+    NS(buffer_size_t) const* SIXTRL_RESTRICT pset_indices_begin,
+    const NS(Buffer) *const SIXTRL_RESTRICT beam_elements_buffer,
+    NS(buffer_size_t) const until_turn_elem_by_elem,
+    NS(particle_index_t) const start_elem_id );
+
+NS(arch_status_t) NS(ClContext_collect_elem_by_elem_config_arg)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx,
+    cl_mem elem_by_elem_config_arg,
+    NS(ElemByElemConfig)* SIXTRL_RESTRICT elem_by_elem_config );
+
+NS(arch_status_t) NS(ClContext_push_elem_by_elem_config_arg)(
+    NS(ClContext)* SIXTRL_RESTRICT ctx,
+    cl_mem elem_by_elem_config_arg,
+    const NS(ElemByElemConfig) *const SIXTRL_RESTRICT elem_by_elem_config );
 
 
 #if !defined( _GPUCODE ) && defined( __cplusplus )

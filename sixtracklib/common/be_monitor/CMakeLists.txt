@@ -10,14 +10,14 @@ set( SIXTRACKLIB_COMMON_BE_MONITOR_CXX_HEADERS be_monitor.hpp )
 
 add_library( sixtrack_common_be_monitor OBJECT
     ${SIXTRACKLIB_COMMON_BE_MONITOR_C99_HEADERS}
-    ${SIXTRACKLIB_COMMON_BE_MONITOR_C99_SOURCES} )
+    ${SIXTRACKLIB_COMMON_BE_MONITOR_C99_SOURCES}
+    ${SIXTRACKLIB_COMMON_BE_MONITOR_CXX_HEADERS} )
 
 target_include_directories( sixtrack_common_be_monitor PRIVATE
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> $<INSTALL_INTERFACE:include> )
 
-set_target_properties( sixtrack_common_be_monitor PROPERTIES
-    LINKER_LANGUAGE C C_STANDARD 99 C_STANDARD_REQUIRED ON
-    POSITION_INDEPENDENT_CODE ON )
+set_target_properties( sixtrack_common_be_monitor PROPERTIES LINKER_LANGUAGE C
+    POSITION_INDEPENDENT_CODE ON C_STANDARD 99 C_STANDARD_REQUIRED ON )
 
 target_compile_options( sixtrack_common_be_monitor PRIVATE
     ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS} )

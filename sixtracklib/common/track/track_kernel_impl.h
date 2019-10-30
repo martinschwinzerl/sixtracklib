@@ -10,8 +10,8 @@
     #include "sixtracklib/common/internal/particles_defines.h"
     #include "sixtracklib/common/particles.h"
     #include "sixtracklib/common/output/elem_by_elem_config.h"
-    #include "sixtracklib/common/track.h"
     #include "sixtracklib/common/track/definitions.h"
+    #include "sixtracklib/common/track/track.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -64,27 +64,27 @@ NS(Track_particles_elem_by_elem_until_turn_debug_kernel_impl)(
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_STATIC SIXTRL_FN NS(st_track_status_t)
-NS(Track_particles_line_kernel_impl)(
+SIXTRL_STATIC SIXTRL_FN NS(track_status_t) NS(Track_particles_line_kernel_impl)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const particle_set_index,
     NS(particle_num_elements_t) particle_idx,
     NS(particle_num_elements_t) const particle_idx_stride,
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT belem_buffer,
+    SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT belem_buffer,
     NS(buffer_size_t) const belem_begin_id,
     NS(buffer_size_t) const belem_end_id,
     bool const finish_turn, NS(buffer_size_t) const slot_size );
 
-SIXTRL_STATIC SIXTRL_FN NS(st_track_status_t)
+SIXTRL_STATIC SIXTRL_FN NS(track_status_t)
 NS(Track_particles_line_debug_kernel_impl)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const particle_set_index,
     NS(particle_num_elements_t) particle_idx,
     NS(particle_num_elements_t) const particle_idx_stride,
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT belem_buffer,
+    SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT belem_buffer,
     NS(buffer_size_t) const belem_begin_id,
     NS(buffer_size_t) const belem_end_id,
-    bool const finish_turn, NS(buffer_size_t) const slot_size );
+    bool const finish_turn, NS(buffer_size_t) const slot_size,
+    SIXTRL_ARGPTR_DEC NS(arch_debugging_t)* SIXTRL_RESTRICT ptr_status_flags );
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
@@ -95,7 +95,7 @@ NS(Track_particles_line_debug_kernel_impl)(
 /* ************************************************************************* */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
-{
+extern "C" {
 #endif /* C++, Host */
 
 SIXTRL_INLINE NS(track_status_t)
@@ -111,15 +111,15 @@ NS(Track_particles_until_turn_kernel_impl)(
     typedef SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(Object) const*  be_iter_t;
 
     ptr_particles_t p = NS(Particles_managed_buffer_get_particles)(
-        pbuffer_begin, particle_set_index, slot_size );
+        pbuffer, particle_set_index, slot_size );
 
     nelements_t const num_particles = NS(Particles_get_num_of_particles)( p );
 
-    be_iter_t belem_begin = NS(ManagedBuffer_get_objects_index_begin)(
-        be_buffer_begin, slot_size );
+    be_iter_t belem_begin = NS(ManagedBuffer_get_const_objects_index_begin)(
+        belem_buffer, slot_size );
 
-    be_iter_t belem_end = NS(ManagedBuffer_get_objects_index_end)(
-        be_buffer_begin, slot_size );
+    be_iter_t belem_end = NS(ManagedBuffer_get_const_objects_index_end)(
+        belem_buffer, slot_size );
 
     NS(track_status_t) status = SIXTRL_TRACK_SUCCESS;
 
@@ -158,7 +158,7 @@ NS(Track_particles_until_turn_debug_kernel_impl)(
     typedef SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* ptr_particles_t;
     typedef SIXTRL_BUFFER_OBJ_ARGPTR_DEC  NS(Object) const* be_iter_t;
 
-    NS(track_status_t)  status = SIXTRL_TRACK_GENERAL_FAILURE;
+    NS(track_status_t)  status = SIXTRL_TRACK_STATUS_GENERAL_FAILURE;
     NS(arch_debugging_t) flags = SIXTRL_ARCH_DEBUGGING_MIN_FLAG;
 
     NS(arch_debugging_t) const PARTICLE_IDX_ILLEGAL_FLAG        = flags;
@@ -175,7 +175,7 @@ NS(Track_particles_until_turn_debug_kernel_impl)(
 
     if( ( pbuffer != SIXTRL_NULLPTR ) && ( belem_buffer != SIXTRL_NULLPTR ) &&
         ( slot_size > ( SIXTRL_UINT64_T )0u ) &&
-        ( pidx >= NS(nelements_t)0u ) && ( stride > (  nelements_t )0u ) )
+        ( pidx >= ( nelements_t )0u ) && ( stride > (  nelements_t )0u ) )
     {
         ptr_particles_t p = NS(Particles_managed_buffer_get_particles)(
             pbuffer, particle_set_index, slot_size );
@@ -183,10 +183,10 @@ NS(Track_particles_until_turn_debug_kernel_impl)(
         nelements_t const num_particles =
             NS(Particles_get_num_of_particles)( p );
 
-        be_iter_t belem_begin = NS(ManagedBuffer_get_objects_index_begin)(
+        be_iter_t belem_begin = NS(ManagedBuffer_get_const_objects_index_begin)(
             belem_buffer, slot_size );
 
-        be_iter_t belem_end = NS(ManagedBuffer_get_objects_index_end)(
+        be_iter_t belem_end = NS(ManagedBuffer_get_const_objects_index_end)(
             belem_buffer, slot_size );
 
         if( ( !NS(ManagedBuffer_needs_remapping)( pbuffer, slot_size ) ) &&
@@ -229,8 +229,8 @@ NS(Track_particles_until_turn_debug_kernel_impl)(
         if( pbuffer == SIXTRL_NULLPTR )      flags |= PBUFFER_NULL_FLAG;
         if( belem_buffer == SIXTRL_NULLPTR ) flags |= BELEM_BUFFER_NULL_FLAG;
         if( slot_size == 0u )                flags |= SLOT_SIZE_ILLEGAL_FLAG;
-        if( pidx < NS(nelements_t)0u )       flags |= PARTICLE_IDX_ILLEGAL_FLAG;
-        if( stride <= NS(nelements_t)0u )    flags |= PARTICLE_IDX_ILLEGAL_FLAG;
+        if( pidx < ( nelements_t )0u )       flags |= PARTICLE_IDX_ILLEGAL_FLAG;
+        if( stride <= ( nelements_t )0u )    flags |= PARTICLE_IDX_ILLEGAL_FLAG;
     }
 
     if( status != SIXTRL_TRACK_SUCCESS )
@@ -263,15 +263,15 @@ NS(Track_particles_elem_by_elem_until_turn_kernel_impl)(
     typedef SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(Object) const*  be_iter_t;
 
     ptr_particles_t p = NS(Particles_managed_buffer_get_particles)(
-        pbuffer_begin, particle_set_index, slot_size );
+        pbuffer, particle_set_index, slot_size );
 
     nelements_t const num_particles = NS(Particles_get_num_of_particles)( p );
 
-    be_iter_t belem_begin = NS(ManagedBuffer_get_objects_index_begin)(
-        be_buffer_begin, slot_size );
+    be_iter_t belem_begin = NS(ManagedBuffer_get_const_objects_index_begin)(
+        belem_buffer, slot_size );
 
-    be_iter_t belem_end = NS(ManagedBuffer_get_objects_index_end)(
-        be_buffer_begin, slot_size );
+    be_iter_t belem_end = NS(ManagedBuffer_get_const_objects_index_end)(
+        belem_buffer, slot_size );
 
     NS(track_status_t) status = SIXTRL_TRACK_SUCCESS;
 
@@ -313,7 +313,7 @@ NS(Track_particles_elem_by_elem_until_turn_debug_kernel_impl)(
     typedef SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* ptr_particles_t;
     typedef SIXTRL_BUFFER_OBJ_ARGPTR_DEC  NS(Object) const* be_iter_t;
 
-    NS(track_status_t)  status = SIXTRL_TRACK_GENERAL_FAILURE;
+    NS(track_status_t)  status = SIXTRL_TRACK_STATUS_GENERAL_FAILURE;
     NS(arch_debugging_t) flags = SIXTRL_ARCH_DEBUGGING_MIN_FLAG;
 
     NS(arch_debugging_t) const PARTICLE_IDX_ILLEGAL_FLAG        = flags;
@@ -340,10 +340,10 @@ NS(Track_particles_elem_by_elem_until_turn_debug_kernel_impl)(
         nelements_t const num_particles =
             NS(Particles_get_num_of_particles)( p );
 
-        be_iter_t belem_begin = NS(ManagedBuffer_get_objects_index_begin)(
+        be_iter_t belem_begin = NS(ManagedBuffer_get_const_objects_index_begin)(
             belem_buffer, slot_size );
 
-        be_iter_t belem_end = NS(ManagedBuffer_get_objects_index_end)(
+        be_iter_t belem_end = NS(ManagedBuffer_get_const_objects_index_end)(
             belem_buffer, slot_size );
 
         if( ( !NS(ManagedBuffer_needs_remapping)( pbuffer, slot_size ) ) &&
@@ -387,8 +387,8 @@ NS(Track_particles_elem_by_elem_until_turn_debug_kernel_impl)(
         if( pbuffer == SIXTRL_NULLPTR )      flags |= PBUFFER_NULL_FLAG;
         if( belem_buffer == SIXTRL_NULLPTR ) flags |= BELEM_BUFFER_NULL_FLAG;
         if( slot_size == 0u )                flags |= SLOT_SIZE_ILLEGAL_FLAG;
-        if( pidx < NS(nelements_t)0u )       flags |= PARTICLE_IDX_ILLEGAL_FLAG;
-        if( stride <= NS(nelements_t)0u )    flags |= PARTICLE_IDX_ILLEGAL_FLAG;
+        if( pidx < ( nelements_t )0u )       flags |= PARTICLE_IDX_ILLEGAL_FLAG;
+        if( stride <= ( nelements_t )0u )    flags |= PARTICLE_IDX_ILLEGAL_FLAG;
 
         if( elem_by_elem_config == SIXTRL_NULLPTR )
                 flags |= ELEM_BY_ELEM_CONFIG_ILLEGAL_FLAG;
@@ -409,11 +409,11 @@ NS(Track_particles_elem_by_elem_until_turn_debug_kernel_impl)(
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_INLINE NS(st_track_status_t) NS(Track_particles_line_kernel_impl)(
+SIXTRL_INLINE NS(track_status_t) NS(Track_particles_line_kernel_impl)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const particle_set_index,
     NS(particle_num_elements_t) pidx, NS(particle_num_elements_t) const stride,
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT belem_buffer,
+    SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT belem_buffer,
     NS(buffer_size_t) const belem_begin_id,
     NS(buffer_size_t) const belem_end_id,
     bool const finish_turn, NS(buffer_size_t) const slot_size )
@@ -427,7 +427,7 @@ SIXTRL_INLINE NS(st_track_status_t) NS(Track_particles_line_kernel_impl)(
 
     nelements_t const num_particles = NS(Particles_get_num_of_particles)( p );
 
-    be_iter_t belem_begin = NS(ManagedBuffer_get_objects_index_begin)(
+    be_iter_t belem_begin = NS(ManagedBuffer_get_const_objects_index_begin)(
         belem_buffer, slot_size );
 
     be_iter_t belem_end = belem_begin;
@@ -460,11 +460,11 @@ SIXTRL_INLINE NS(st_track_status_t) NS(Track_particles_line_kernel_impl)(
     return status;
 }
 
-SIXTRL_INLINE NS(st_track_status_t) NS(Track_particles_line_debug_kernel_impl)(
+SIXTRL_INLINE NS(track_status_t) NS(Track_particles_line_debug_kernel_impl)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const particle_set_index,
     NS(particle_num_elements_t) pidx, NS(particle_num_elements_t) const stride,
-    SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT belem_buffer,
+    SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT belem_buffer,
     NS(buffer_size_t) const belem_begin_id, NS(buffer_size_t) const belem_end_id,
     bool const finish_turn, NS(buffer_size_t) const slot_size,
     SIXTRL_ARGPTR_DEC NS(arch_debugging_t)* SIXTRL_RESTRICT ptr_status_flags )
@@ -473,7 +473,7 @@ SIXTRL_INLINE NS(st_track_status_t) NS(Track_particles_line_debug_kernel_impl)(
     typedef SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* ptr_particles_t;
     typedef SIXTRL_BUFFER_OBJ_ARGPTR_DEC  NS(Object) const* be_iter_t;
 
-    NS(track_status_t)  status = SIXTRL_TRACK_GENERAL_FAILURE;
+    NS(track_status_t)  status = SIXTRL_TRACK_STATUS_GENERAL_FAILURE;
     NS(arch_debugging_t) flags = SIXTRL_ARCH_DEBUGGING_MIN_FLAG;
 
     NS(arch_debugging_t) const PARTICLE_IDX_ILLEGAL_FLAG        = flags;
@@ -497,7 +497,7 @@ SIXTRL_INLINE NS(st_track_status_t) NS(Track_particles_line_debug_kernel_impl)(
         nelements_t const num_particles =
             NS(Particles_get_num_of_particles)( p );
 
-        be_iter_t belem_begin = NS(ManagedBuffer_get_objects_index_begin)(
+        be_iter_t belem_begin = NS(ManagedBuffer_get_const_objects_index_begin)(
             belem_buffer, slot_size );
 
         be_iter_t belem_end = belem_begin;
@@ -545,8 +545,8 @@ SIXTRL_INLINE NS(st_track_status_t) NS(Track_particles_line_debug_kernel_impl)(
         if( pbuffer == SIXTRL_NULLPTR )      flags |= PBUFFER_NULL_FLAG;
         if( belem_buffer == SIXTRL_NULLPTR ) flags |= BELEM_BUFFER_NULL_FLAG;
         if( slot_size == 0u )                flags |= SLOT_SIZE_ILLEGAL_FLAG;
-        if( pidx < NS(nelements_t)0u )       flags |= PARTICLE_IDX_ILLEGAL_FLAG;
-        if( stride <= NS(nelements_t)0u )    flags |= PARTICLE_IDX_ILLEGAL_FLAG;
+        if( pidx < ( nelements_t )0u )       flags |= PARTICLE_IDX_ILLEGAL_FLAG;
+        if( stride <= ( nelements_t )0u )    flags |= PARTICLE_IDX_ILLEGAL_FLAG;
     }
 
     if( status != SIXTRL_TRACK_SUCCESS )

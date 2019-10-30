@@ -14,11 +14,12 @@
 
 int main()
 {
-    typedef NS(Buffer)              buffer_t;
-    typedef NS(buffer_size_t)       buf_size_t;
-    typedef NS(Drift)               drift_t;
-    typedef unsigned long long      prng_seed_t;
-    typedef NS(drift_real_t)        real_t;
+    typedef NS(Buffer)                  buffer_t;
+    typedef NS(buffer_size_t)           buf_size_t;
+    typedef NS(Drift)                   drift_t;
+    typedef unsigned long long          prng_seed_t;
+    typedef NS(drift_real_t)            real_t;
+    typedef NS(particle_num_elements_t) nelem_t;
 
     int success = 0;
 
@@ -98,10 +99,10 @@ int main()
         NS(Object) const* be_begin = obj_begin + 1u;
         NS(Object) const* be_end   = be_begin + NUM_BEAM_ELEMENTS;
 
-        NS(particle_num_elements_t) const npart =
+        nelem_t const npart =
             NS(Particles_get_num_of_particles)( cmp_particles );
 
-        NS(particle_num_elements_t) ii = ( NS(particle_num_elements_t) )0u;
+        nelem_t ii = ( nelem_t)0u;
 
         ( void )obj_end;
 
@@ -130,14 +131,15 @@ int main()
 
         success = NS(TRACK_SUCCESS);
 
-        for( ; ii < npart ; ++ii )
+        for( ; ii < npart; ++ii )
         {
-            success |= NS(Track_particle_until_turn_objs)(
-                cmp_particles, ii, be_begin, be_end, 1u );
+            success |= NS(Track_particle_until_turn_objs)( cmp_particles, ii,
+                be_begin, be_end, NS(Particles_get_at_turn_value)(
+                    cmp_particles, ii ) + 1u );
         }
     }
 
-    if( success == 0 )
+    if( success == NS(TRACK_SUCCESS) )
     {
         FILE* fp = fopen( NS(PATH_TO_TEST_TRACKING_BE_DRIFT_DATA), "wb" );
 
