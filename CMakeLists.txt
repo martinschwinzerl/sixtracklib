@@ -136,6 +136,11 @@ include( SetupOpenMP )
 include( SetupOpenCL )
 
 # ------------------------------------------------------------------------------
+# LLVM:
+
+include( SetupLLVM )
+
+# ------------------------------------------------------------------------------
 # Cuda:
 
 if( SIXTRACKL_ENABLE_CUDA )
@@ -147,6 +152,11 @@ if( SIXTRACKL_ENABLE_CUDA )
 endif()
 
 include( SetupCuda )
+
+# ------------------------------------------------------------------------------
+# tomlc99 library
+
+include( SetupTomlC99 )
 
 # ------------------------------------------------------------------------------
 # Namespace handling:
@@ -166,12 +176,13 @@ endif()
 # ==============================================================================
 # sixtracklib: C/C++ library ; sixtracklib python bindings
 
+add_subdirectory( external )
 add_subdirectory( sixtracklib )
 
 # ------------------------------------------------------------------------------
 # Add tools
 
-if( SIXTRACKL_BUILD_TOOLS )
+if( SIXTRACKL_BUILD_TOOLS OR SIXTRACKL_BUILD_CODEGENERATORS )
     add_subdirectory( tools )
 endif()
 

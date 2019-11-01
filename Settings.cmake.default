@@ -28,6 +28,7 @@ option( SIXTRACKL_ENABLE_PYTHON            "Enable Python bindings"       ON  )
 # ---- Program logistic options:
 
 option( SIXTRACKL_BUILD_TOOLS            "Build sixtracklib tools"        OFF )
+option( SIXTRACKL_BUILD_CODEGENERATORS   "Build code generators"          OFF )
 option( SIXTRACKL_BUILD_EXAMPLES         "Build sixtracklib examples"     OFF )
 option( SIXTRACKL_ENABLE_PROGRAMM_TESTS  "Enable programmatic unit-tests" OFF )
 option( SIXTRACKL_ENABLE_BENCHMARK_TESTS "Enable benchmark tests"         OFF )
