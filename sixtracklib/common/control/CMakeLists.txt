@@ -83,19 +83,11 @@ target_include_directories( sixtrack_common_control_cxx PRIVATE
     $<INSTALL_INTERFACE:include> )
 
 set_target_properties( sixtrack_common_control_cxx
-                       PROPERTIES LINKER_LANGUAGE C )
-
-set_target_properties( sixtrack_common_control_cxx
-                       PROPERTIES POSITION_INDEPENDENT_CODE ON )
-
-set_target_properties( sixtrack_common_control_cxx
-                       PROPERTIES CXX_STANDARD 11 )
-
-set_target_properties( sixtrack_common_control_cxx
-                       PROPERTIES CXX_STANDARD_REQUIRED ON )
+    PROPERTIES LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON
+    CXX_STANDARD 11 CXX_STANDARD_REQUIRED ON )
 
 target_compile_options( sixtrack_common_control_cxx
-    PRIVATE -Wall -Werror -pedantic -ansi ${SIXTRACKLIB_CPU_FLAGS} )
+    PRIVATE ${SIXTRACKLIB_CXX_FLAGS} ${SIXTRACKLIB_CPU_FLAGS} )
 
 # ------------------------------------------------------------------------------
 # pass on sixtrack_common_internal as a module for sixtracklib:
