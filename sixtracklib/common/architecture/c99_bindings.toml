@@ -1,0 +1,28 @@
+[global]
+    module = [ "sixtracklib", "common", "architecture" ]
+    namespace = "sixtrack"
+    map_functions = [ { regex = true, in = "ptr_([a-zA-Z0-9\\_]+)_cstr", out = "\\1_str" } ]
+    #depends_on = [ "", ]
+
+# -----------------------------------------------------------------------------
+# arch_data.hpp
+
+[[cxx_to_c99_bindings.ArchData]]
+    input = "arch_data.hpp"
+    map_types = [ { in = "init_flags_t", out = "NS(arch_init_flags_t)" },
+                  { in = "status_t",     out = "NS(arch_status_t)" } ]
+
+# -----------------------------------------------------------------------------
+# architecture.hpp
+
+[[cxx_to_c99_bindings.Architecture]]
+    input = "architecture.hpp"
+    exclude_types = [ "ptr_arch_data_base_t" ]
+    exclude_functions = [ "add_architectures" ]
+
+    map_types = [ { in = "arch_data_base_t", out = "NS(ArchData)" },
+                  { in = "size_type", out = "NS(arch_size_t)" },
+                  { in = "status_t", out = "NS(arch_status_t)" },
+                  { in = "init_flags_t", out = "NS(arch_init_flags_t)" }, ]
+    map_functions = [ { in = "has_arch", args = [ "char const*" ], out = "has_arch_by_str" },
+                      { in = "has_arch", args = [ "arch_id_t" ], out = "has_arch" }, ]
