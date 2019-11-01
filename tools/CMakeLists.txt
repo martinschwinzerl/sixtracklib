@@ -3,6 +3,10 @@
 
 message( STATUS "---- processing tools/CMakeLists.txt" )
 
+if( SIXTRACKL_BUILD_CODEGENERATORS )
+    add_subdirectory( codegenerators )
+endif()
+
 set( TOOLS_C99_TARGETS )
 set( TOOLS_CXX_TARGETS )
 
