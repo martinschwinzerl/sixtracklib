@@ -31,55 +31,55 @@ NS(Drift);
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_FN SIXTRL_STATIC NS(buffer_size_t) NS(Drift_get_num_dataptrs)(
+SIXTRL_STATIC SIXTRL_FN NS(buffer_size_t) NS(Drift_get_num_dataptrs)(
     SIXTRL_BE_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT drift );
 
-SIXTRL_FN SIXTRL_STATIC NS(buffer_size_t) NS(Drift_get_num_slots)(
+SIXTRL_STATIC SIXTRL_FN NS(buffer_size_t) NS(Drift_get_num_slots)(
     SIXTRL_BE_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT drift,
     NS(buffer_size_t) const slot_size );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_preset)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_preset)(
     SIXTRL_BE_ARGPTR_DEC NS(Drift)* SIXTRL_RESTRICT drift );
 
-SIXTRL_FN SIXTRL_STATIC NS(drift_real_t) NS(Drift_get_length)(
+SIXTRL_STATIC SIXTRL_FN NS(drift_real_t) NS(Drift_get_length)(
     SIXTRL_BE_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT drift );
 
-SIXTRL_FN SIXTRL_STATIC void NS(Drift_set_length)(
+SIXTRL_STATIC SIXTRL_FN void NS(Drift_set_length)(
     SIXTRL_BE_ARGPTR_DEC NS(Drift)* SIXTRL_RESTRICT drift,
     NS(drift_real_t) const length );
 
-SIXTRL_FN SIXTRL_STATIC void NS(Drift_clear)(
+SIXTRL_STATIC SIXTRL_FN void NS(Drift_clear)(
     SIXTRL_BE_ARGPTR_DEC NS(Drift)* SIXTRL_RESTRICT drift );
 
-SIXTRL_FN SIXTRL_STATIC int NS(Drift_copy)(
+SIXTRL_STATIC SIXTRL_FN int NS(Drift_copy)(
     SIXTRL_BE_ARGPTR_DEC NS(Drift)* SIXTRL_RESTRICT destination,
     SIXTRL_BE_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT source );
 
-SIXTRL_FN SIXTRL_STATIC int NS(Drift_compare_values)(
+SIXTRL_STATIC SIXTRL_FN int NS(Drift_compare_values)(
     SIXTRL_BE_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT lhs,
     SIXTRL_BE_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT rhs );
 
-SIXTRL_FN SIXTRL_STATIC int NS(Drift_compare_values_with_treshold)(
+SIXTRL_STATIC SIXTRL_FN int NS(Drift_compare_values_with_treshold)(
     SIXTRL_BE_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT lhs,
     SIXTRL_BE_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT rhs,
     NS(drift_real_t) const treshold );
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(Drift) const*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(Drift) const*
 NS(BufferIndex_get_const_drift)(
     SIXTRL_BUFFER_OBJ_ARGPTR_DEC const NS(Object) *const index_obj );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(Drift)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(Drift)*
 NS(BufferIndex_get_drift)( SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(Object)* index_obj );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(Drift) const*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(Drift) const*
 NS(BeamElements_managed_buffer_get_const_drift)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const be_index,
     NS(buffer_size_t) const slot_size );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(Drift)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(Drift)*
 NS(BeamElements_managed_buffer_get_drift)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const be_index, NS(buffer_size_t) const slot_size );
@@ -96,16 +96,16 @@ NS(BeamElements_buffer_get_drift)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
     NS(buffer_size_t) const be_index );
 
-SIXTRL_FN SIXTRL_STATIC bool NS(Drift_can_be_added)(
+SIXTRL_STATIC SIXTRL_FN bool NS(Drift_can_be_added)(
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const SIXTRL_RESTRICT buffer,
     SIXTRL_BUFFER_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT ptr_requ_objects,
     SIXTRL_BUFFER_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT ptr_requ_slots,
     SIXTRL_BUFFER_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT ptr_requ_dataptrs );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(Drift)* NS(Drift_new)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(Drift)* NS(Drift_new)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(Drift)* NS(Drift_add)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(Drift)* NS(Drift_add)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
     NS(drift_real_t) const length );
 
@@ -126,56 +126,56 @@ NS(DriftExact);
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_FN SIXTRL_STATIC NS(buffer_size_t) NS(DriftExact_get_num_dataptrs)(
+SIXTRL_STATIC SIXTRL_FN NS(buffer_size_t) NS(DriftExact_get_num_dataptrs)(
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT drift );
 
-SIXTRL_FN SIXTRL_STATIC NS(buffer_size_t) NS(DriftExact_get_num_slots)(
+SIXTRL_STATIC SIXTRL_FN NS(buffer_size_t) NS(DriftExact_get_num_slots)(
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT drift,
     NS(buffer_size_t) const slot_size );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BE_ARGPTR_DEC NS(DriftExact)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(DriftExact)*
 NS(DriftExact_preset)( SIXTRL_BE_ARGPTR_DEC
     NS(DriftExact)* SIXTRL_RESTRICT drift );
 
-SIXTRL_FN SIXTRL_STATIC NS(drift_real_t) NS(DriftExact_get_length)(
+SIXTRL_STATIC SIXTRL_FN NS(drift_real_t) NS(DriftExact_get_length)(
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT drift );
 
-SIXTRL_FN SIXTRL_STATIC void NS(DriftExact_set_length)(
+SIXTRL_STATIC SIXTRL_FN void NS(DriftExact_set_length)(
     SIXTRL_BE_ARGPTR_DEC NS(DriftExact)* SIXTRL_RESTRICT drift,
     NS(drift_real_t) const length );
 
-SIXTRL_FN SIXTRL_STATIC void NS(DriftExact_clear)(
+SIXTRL_STATIC SIXTRL_FN void NS(DriftExact_clear)(
     SIXTRL_BE_ARGPTR_DEC NS(DriftExact)* SIXTRL_RESTRICT drift );
 
-SIXTRL_FN SIXTRL_STATIC int NS(DriftExact_copy)(
+SIXTRL_STATIC SIXTRL_FN int NS(DriftExact_copy)(
     SIXTRL_BE_ARGPTR_DEC NS(DriftExact)* SIXTRL_RESTRICT destination,
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT source );
 
-SIXTRL_FN SIXTRL_STATIC int NS(DriftExact_compare_values)(
+SIXTRL_STATIC SIXTRL_FN int NS(DriftExact_compare_values)(
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT lhs,
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT rhs );
 
-SIXTRL_FN SIXTRL_STATIC int NS(DriftExact_compare_values_with_treshold)(
+SIXTRL_STATIC SIXTRL_FN int NS(DriftExact_compare_values_with_treshold)(
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT lhs,
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT rhs,
     NS(drift_real_t) const treshold );
 
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact) const*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact) const*
 NS(BufferIndex_get_const_drift_exact)(
     SIXTRL_BUFFER_OBJ_ARGPTR_DEC const NS(Object) *const index_obj );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
 NS(BufferIndex_get_drift_exact)(
     SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(Object)* index_obj );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact) const*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact) const*
 NS(BeamElements_managed_buffer_get_const_drift_exact)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const be_index,
     NS(buffer_size_t) const slot_size );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
 NS(BeamElements_managed_buffer_get_drift_exact)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const be_index,
@@ -193,21 +193,21 @@ NS(BeamElements_buffer_get_drift_exact)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
     NS(buffer_size_t) const be_index );
 
-SIXTRL_FN SIXTRL_STATIC bool NS(DriftExact_can_be_added)(
+SIXTRL_STATIC SIXTRL_FN bool NS(DriftExact_can_be_added)(
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const SIXTRL_RESTRICT buffer,
     SIXTRL_BUFFER_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT requ_objects,
     SIXTRL_BUFFER_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT requ_slots,
     SIXTRL_BUFFER_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT requ_dataptrs );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
 NS(DriftExact_new)( SIXTRL_BUFFER_ARGPTR_DEC
     NS(Buffer)* SIXTRL_RESTRICT buffer );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
 NS(DriftExact_add)( SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)*
     SIXTRL_RESTRICT buffer, NS(drift_real_t) const length );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(DriftExact)*
 NS(DriftExact_add_copy)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT drift );
