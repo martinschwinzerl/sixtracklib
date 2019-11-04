@@ -2,7 +2,7 @@
 
 set( SIXTRACKLIB_COMMON_OUTPUT_C99_HEADERS
      elem_by_elem_config.h elem_by_elem_output_buffer.h
-     elem_by_elem_kernel_impl.h output_buffer.h
+     elem_by_elem_kernel_impl.h output_buffer.h output_addr_asignment.h
 )
 
 set( SIXTRACKLIB_COMMON_OUTPUT_C99_SOURCES
