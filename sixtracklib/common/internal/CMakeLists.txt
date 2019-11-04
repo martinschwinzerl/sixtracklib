@@ -2,6 +2,7 @@ set( SIXTRL_COMMON_INTERNAL_C99_SOURCES )
 set( SIXTRL_COMMON_INTERNAL_C99_HEADERS
     beam_elements_defines.h
     beam_elements_undef.h
+    binary_array_object.h
     buffer_garbage_defines.h
     buffer_garbage_undef.h
     buffer_main_defines.h

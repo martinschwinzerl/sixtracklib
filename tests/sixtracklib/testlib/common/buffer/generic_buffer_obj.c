@@ -1,3 +1,5 @@
+#include "sixtracklib/testlib/common/buffer/generic_buffer_obj.h"
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -5,17 +7,11 @@
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/internal/buffer_main_defines.h"
 
-#include "sixtracklib/testlib/common/generic_buffer_obj.h"
 #include "sixtracklib/testlib/common/random.h"
 
 #if !defined( _GPUCODE )
 
-extern SIXTRL_HOST_FN void NS(GenericObj_init_random)(
-    SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)* obj );
-
-
-SIXTRL_HOST_FN void NS(GenericObj_init_random)(
-    SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)* obj )
+void NS(GenericObj_init_random)( SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)* obj )
 {
     typedef SIXTRL_UINT8_T    u8_t;
     typedef SIXTRL_INT32_T   i32_t;
@@ -82,4 +78,4 @@ SIXTRL_HOST_FN void NS(GenericObj_init_random)(
 
 #endif /* !defined( _GPUCODE ) */
 
-/* end: tests/sixtracklib/testlib/common/generic_buffer_obj.c */
+/* end: tests/sixtracklib/testlib/common/buffer/generic_buffer_obj.c */

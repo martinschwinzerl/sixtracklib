@@ -5,10 +5,11 @@
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/generated/modules.h"
 
-#include "sixtracklib/testlib/common/generic_buffer_obj.h"
 #include "sixtracklib/testlib/common/gpu_kernel.h"
 #include "sixtracklib/testlib/common/random.h"
 #include "sixtracklib/testlib/common/time.h"
+#include "sixtracklib/testlib/common/compare.h"
+
 #include "sixtracklib/testlib/common/particles/particles.h"
 #include "sixtracklib/testlib/common/particles/particles_addr.h"
 
@@ -19,7 +20,10 @@
 #include "sixtracklib/testlib/common/track/track_particles_cpu.h"
 #include "sixtracklib/testlib/common/track/track_particles_ctrl_arg.h"
 
-#include "sixtracklib/testlib/common/buffer.h"
+#include "sixtracklib/testlib/common/buffer/buffer.h"
+#include "sixtracklib/testlib/common/buffer/generic_buffer_obj.h"
+#include "sixtracklib/testlib/common/buffer/binary_array_object.h"
+
 #include "sixtracklib/testlib/common/beam_elements/beam_elements.h"
 #include "sixtracklib/testlib/common/path.h"
 #include "sixtracklib/testlib/testdata/track_testdata.h"
@@ -45,3 +49,4 @@
 #endif /* SIXTRACKLIB_TESTS_SIXTRACKLIB_TESTLIB_H__ */
 
 /* end: tests/sixtracklib/testlib.h */
+

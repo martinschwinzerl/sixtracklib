@@ -49,4 +49,4 @@ SIXTRL_EXTERN SIXTRL_HOST_FN void NS(Buffer_object_print_out)(
 
 #endif /* SIXTRACKLIB_TESTLIB_COMMON_BUFFER_H__ */
 
-/* end: tests/sixtracklib/testlib/common/buffer.h */
+/* end: tests/sixtracklib/testlib/common/buffer/buffer.h */

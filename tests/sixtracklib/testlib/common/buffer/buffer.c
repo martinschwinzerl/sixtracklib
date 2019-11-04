@@ -1,5 +1,5 @@
 #if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/testlib/common/buffer.h"
+    #include "sixtracklib/testlib/common/buffer/buffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
@@ -13,6 +13,7 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/testlib/common/particles/particles.h"
     #include "sixtracklib/testlib/common/beam_elements/beam_elements.h"
+    #include "sixtracklib/testlib/common/buffer/binary_array_object.h"
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/internal/objects_type_id.h"
     #include "sixtracklib/common/buffer.h"
@@ -114,10 +115,143 @@ int NS(Buffer_object_typeid_to_string)(
                 break;
             }
 
+            case NS(OBJECT_TYPE_LIMIT_ELLIPSE):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "LimitRect", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_LIMIT_ELLIPSE):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "LimitEllipse", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_SPACE_CHARGE_COASTING):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "SpaceChargeCoasting", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_SPACE_CHARGE_BUNCHED):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "SpaceChargeBunched", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_DIPEDGE):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "DipEdge", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_PARTICLES_ADDR):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "ParticlesAddr", max_len - pref_len );
+                break;
+            }
+
             case NS(OBJECT_TYPE_LINE):
             {
                 strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
-                strncat( type_str, "Line", max_len - pref_len );
+                strncat( type_str, "BeamMonitor", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_BINARY_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "BinaryArray", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_REAL_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "RealArray", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_FLOAT32_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "FloatArray", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_UINT64_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "Uint64Array", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_INT64_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "Int64Array", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_UINT32_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "Uint32Array", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_INT32_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "Int32Array", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_UINT16_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "Uint16Array", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_INT16_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "Int16Array", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_UINT8_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "Uint8Array", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_INT8_ARRAY):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "Int8Array", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_CSTRING):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "CString", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_BINARY_VECTOR):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "BinaryVector", max_len - pref_len );
                 break;
             }
 
@@ -125,6 +259,20 @@ int NS(Buffer_object_typeid_to_string)(
             {
                 strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
                 strncat( type_str, "ElemByElemConfig", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_OUT_ADDR_ASSIGN_ITEM):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "OutAddrAssignmentItem", max_len - pref_len );
+                break;
+            }
+
+            case NS(OBJECT_TYPE_BINARY_PATCH_ITEM):
+            {
+                strncpy( type_str, SIXTRL_C99_NAMESPACE_PREFIX_STR, len );
+                strncat( type_str, "BinaryPatchItem", max_len - pref_len );
                 break;
             }
 
@@ -230,6 +378,10 @@ void NS(Buffer_object_print)( SIXTRL_ARGPTR_DEC FILE* fp,
                 config->is_rolling,
                 ( void* )( uintptr_t )config->out_store_addr );
         }
+        else if( NS(BinaryArray_value_size)( type_id ) > ( NS(buffer_size_t) )0u )
+        {
+            NS(BinaryArray_print)( fp, obj );
+        }
         else
         {
             NS(BeamElement_print)( fp, obj );
@@ -247,4 +399,4 @@ void NS(Buffer_object_print_out)(
 }
 
 
-/* end: tests/sixtracklib/testlib/common/buffer.c */
+/* end: tests/sixtracklib/testlib/common/buffer/buffer.c */

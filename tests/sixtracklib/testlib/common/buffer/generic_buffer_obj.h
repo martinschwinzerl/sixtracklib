@@ -38,47 +38,47 @@ typedef struct NS(GenericObj)
 }
 NS(GenericObj);
 
-SIXTRL_FN SIXTRL_STATIC int NS(GenericObj_compare_values)(
+SIXTRL_STATIC SIXTRL_FN int NS(GenericObj_compare_values)(
     SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj) const* SIXTRL_RESTRICT lhs,
     SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj) const* SIXTRL_RESTRICT rhs );
 
-SIXTRL_FN SIXTRL_STATIC int NS(GenericObj_compare_values_with_treshold)(
+SIXTRL_STATIC SIXTRL_FN int NS(GenericObj_compare_values_with_treshold)(
     SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj) const* SIXTRL_RESTRICT lhs,
     SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj) const* SIXTRL_RESTRICT rhs,
     SIXTRL_REAL_T const treshold );
 
 #if !defined( _GPUCODE )
 
-SIXTRL_FN SIXTRL_STATIC NS(buffer_size_t)
+SIXTRL_STATIC SIXTRL_FN NS(buffer_size_t)
 NS(GenericObj_predict_required_num_dataptrs)(
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const SIXTRL_RESTRICT buffer,
     NS(buffer_size_t) const num_d_values,
     NS(buffer_size_t) const num_e_values );
 
-SIXTRL_FN SIXTRL_STATIC NS(buffer_size_t)
+SIXTRL_STATIC SIXTRL_FN NS(buffer_size_t)
 NS(GenericObj_predict_required_num_slots)(
     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const SIXTRL_RESTRICT buffer,
     NS(buffer_size_t) const num_d_values,
     NS(buffer_size_t) const num_e_values );
 
-SIXTRL_FN SIXTRL_STATIC NS(buffer_size_t)
+SIXTRL_STATIC SIXTRL_FN NS(buffer_size_t)
 NS(GenericObj_predict_required_num_dataptrs_on_managed_buffer)(
     NS(buffer_size_t) const num_d_values,
     NS(buffer_size_t) const num_e_values, NS(buffer_size_t) const slot_size );
 
-SIXTRL_FN SIXTRL_STATIC NS(buffer_size_t)
+SIXTRL_STATIC SIXTRL_FN NS(buffer_size_t)
 NS(GenericObj_predict_required_num_slots_on_managed_buffer)(
     NS(buffer_size_t) const num_d_values,
     NS(buffer_size_t) const num_e_values, NS(buffer_size_t) const slot_size );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)*
     NS(GenericObj_new)(
     SIXTRL_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
     NS(object_type_id_t) const type_id,
     NS(buffer_size_t) const num_d_values,
     NS(buffer_size_t) const num_e_values );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)*
     NS(GenericObj_add)(
     SIXTRL_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
     NS(object_type_id_t) const type_id,
@@ -89,14 +89,14 @@ SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)*
     SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_UINT8_T* SIXTRL_RESTRICT d_values,
     SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*  SIXTRL_RESTRICT e_values );
 
-SIXTRL_FN SIXTRL_STATIC SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)*
     NS(GenericObj_add_copy)(
         SIXTRL_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
         SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj) const* original );
 
 #if !defined( _GPUCODE )
 
-SIXTRL_HOST_FN void NS(GenericObj_init_random)(
+SIXTRL_EXTERN SIXTRL_HOST_FN void NS(GenericObj_init_random)(
     SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)* obj );
 
 #endif /* !defined( _GPUCODE ) */
@@ -209,7 +209,9 @@ SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC NS(GenericObj)* NS(GenericObj_new)(
             offsetof( NS(GenericObj), e )
         };
 
-        buf_size_t const sizes[]  = { sizeof( SIXTRL_UINT8_T ), sizeof( SIXTRL_REAL_T ) };
+        buf_size_t const sizes[]  = {
+            sizeof( SIXTRL_UINT8_T ), sizeof( SIXTRL_REAL_T ) };
+
         buf_size_t const counts[] = { num_d_values, num_e_values };
 
         NS(GenericObj) temp;
@@ -614,4 +616,4 @@ SIXTRL_INLINE int NS(GenericObj_compare_values_with_treshold)(
 
 #endif /* SIXTRACKLIB_TESTS_TESTLIB_GENERIC_BUFFER_H__ */
 
-/* end: tests/sixtracklib/testlib/common/generic_buffer_obj.h */
+/* end: tests/sixtracklib/testlib/common/buffer/generic_buffer_obj.h */
