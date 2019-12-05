@@ -4,6 +4,7 @@
 set( SIXTRL_COMMON_TRACK_C99_HEADERS
      definitions.h
      track.h
+     track_config.h
      track_kernel_impl.h
      track_kernel_opt_impl.h
      track_job_base.h
@@ -35,6 +36,7 @@ target_compile_options( sixtrack_common_track PRIVATE
 # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 
 set( SIXTRL_COMMON_TRACK_CXX_HEADERS
+     track_config.hpp
      track_job_base.hpp
      track_job_ctrl_arg_base.hpp
      track_job_nodectrl_arg_base.hpp
@@ -42,6 +44,7 @@ set( SIXTRL_COMMON_TRACK_CXX_HEADERS
 )
 
 set( SIXTRL_COMMON_TRACK_CXX_SOURCES
+     track_config_c99.cpp
      track_job_base.cpp
      track_job_base_c99.cpp
      track_job_ctrl_arg_base.cpp

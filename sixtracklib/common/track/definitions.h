@@ -9,6 +9,36 @@
 
 /* ------------------------------------------------------------------------- */
 
+ #if !defined( SIXTRL_TRACK_MAP_ENABLED )
+    #define SIXTRL_TRACK_MAP_ENABLED 3
+ #endif /* !defined( SIXTRL_TRACK_MAP_ENABLED ) */
+
+  #if !defined( SIXTRL_TRACK_MAP_CONDITIONAL )
+    #define SIXTRL_TRACK_MAP_CONDITIONAL 2
+ #endif /* !defined( SIXTRL_TRACK_MAP_CONDITIONAL ) */
+
+ #if !defined( SIXTRL_TRACK_MAP_DISABLED_SKIP )
+    #define SIXTRL_TRACK_MAP_DISABLED_SKIP 1
+ #endif /* !defined( SIXTRL_TRACK_MAP_DISABLED_SKIP ) */
+
+ #if !defined( SIXTRL_TRACK_MAP_DISABLED_ERROR )
+    #define SIXTRL_TRACK_MAP_DISABLED_ERROR 0
+ #endif /* !defined( SIXTRL_TRACK_MAP_DISABLED_ERROR ) */
+
+
+ #if !defined( SIXTRL_GLOBAL_LIMIT_RECT_CHECK_ALWAYS )
+    #define SIXTRL_GLOBAL_LIMIT_RECT_CHECK_ALWAYS 2
+#endif /* !defined( SIXTRL_GLOBAL_APERTURE_CHECK_ALWAYS ) */
+
+#if !defined( SIXTRL_GLOBAL_LIMIT_RECT_CHECK_CONDITIONAL )
+    #define SIXTRL_GLOBAL_LIMIT_RECT_CHECK_CONDITIONAL 1
+#endif /* !defined( SIXTRL_GLOBAL_LIMIT_RECT_CHECK_CONDITIONAL ) */
+
+#if !defined( SIXTRL_GLOBAL_LIMIT_RECT_CHECK_NEVER )
+    #define SIXTRL_GLOBAL_LIMIT_RECT_CHECK_NEVER 0
+#endif /* !defined( SIXTRL_GLOBAL_LIMIT_RECT_CHECK_NEVER ) */
+
+
 #if !defined( SIXTRL_TRACK_SUCCESS )
     #define SIXTRL_TRACK_SUCCESS 0
 #endif /* !defined( SIXTRL_TRACK_SUCCESS ) */
@@ -22,6 +52,7 @@ extern "C" {
 #endif /* defined( __cplusplus ) && ( !defined( _GPUCODE ) */
 
 typedef SIXTRL_INT32_T              NS(track_status_t);
+typedef SIXTRL_UINT64_T             NS(track_conf_feature_t);
 
 #if !defined( _GPUCODE )
 typedef SIXTRL_UINT16_T             NS(track_job_io_flag_t);
@@ -31,6 +62,33 @@ typedef NS(buffer_size_t)           NS(track_job_size_t);
 typedef SIXTRL_INT64_T              NS(track_job_type_t);
 typedef NS(track_job_io_flag_t)     NS(track_job_collect_flag_t);
 typedef NS(track_job_io_flag_t)     NS(track_job_push_flag_t);
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_STATIC_VAR NS(track_conf_feature_t) const NS(TRACK_MAP_ENABLED) =
+    ( NS(track_conf_feature_t) )SIXTRL_TRACK_MAP_ENABLED;
+
+SIXTRL_STATIC_VAR NS(track_conf_feature_t) const NS(TRACK_MAP_CONDITIONAL) =
+    ( NS(track_conf_feature_t) )SIXTRL_TRACK_MAP_CONDITIONAL;
+
+SIXTRL_STATIC_VAR NS(track_conf_feature_t) const NS(TRACK_MAP_DISABLED_SKIP) =
+    ( NS(track_conf_feature_t) )SIXTRL_TRACK_MAP_DISABLED_SKIP;
+
+SIXTRL_STATIC_VAR NS(track_conf_feature_t) const NS(TRACK_MAP_DISABLED_ERROR) =
+    ( NS(track_conf_feature_t) )SIXTRL_TRACK_MAP_DISABLED_ERROR;
+
+
+SIXTRL_STATIC_VAR NS(track_conf_feature_t) const
+     NS(GLOBAL_LIMIT_RECT_CHECK_ALWAYS) =
+         ( NS(track_conf_feature_t) )SIXTRL_GLOBAL_LIMIT_RECT_CHECK_ALWAYS;
+
+SIXTRL_STATIC_VAR NS(track_conf_feature_t) const
+     NS(GLOBAL_LIMIT_RECT_CHECK_CONDITIONAL) =
+         ( NS(track_conf_feature_t) )SIXTRL_GLOBAL_LIMIT_RECT_CHECK_CONDITIONAL;
+
+SIXTRL_STATIC_VAR NS(track_conf_feature_t) const
+     NS(GLOBAL_LIMIT_RECT_CHECK_NEVER) =
+         ( NS(track_conf_feature_t) )SIXTRL_GLOBAL_LIMIT_RECT_CHECK_NEVER;
 
 /* ------------------------------------------------------------------------- */
 
@@ -136,6 +194,42 @@ namespace SIXTRL_CXX_NAMESPACE
 
     typedef ::NS(track_job_size_t)          track_job_size_t;
     typedef ::NS(track_job_type_t)          track_job_type_t;
+
+    typedef ::NS(track_conf_feature_t)      track_conf_feature_t;
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST track_conf_feature_t
+        TRACK_MAP_ENABLED = static_cast< track_conf_feature_t >(
+            SIXTRL_TRACK_MAP_ENABLED );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST track_conf_feature_t
+        TRACK_MAP_CONDITIONAL = static_cast< track_conf_feature_t >(
+            SIXTRL_TRACK_MAP_CONDITIONAL );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST track_conf_feature_t
+        TRACK_MAP_DISABLED_SKIP = static_cast< track_conf_feature_t >(
+            SIXTRL_TRACK_MAP_DISABLED_SKIP );
+
+    SIXTRL_STATIC_VAR track_conf_feature_t const
+        NS(TRACK_MAP_DISABLED_ERROR) = static_cast< track_conf_feature_t >(
+            SIXTRL_TRACK_MAP_DISABLED_ERROR );
+
+
+    SIXTRL_STATIC_VAR track_conf_feature_t const
+         GLOBAL_LIMIT_RECT_CHECK_ALWAYS = static_cast< track_conf_feature_t >(
+         SIXTRL_GLOBAL_LIMIT_RECT_CHECK_ALWAYS );
+
+    SIXTRL_STATIC_VAR track_conf_feature_t const
+        GLOBAL_LIMIT_RECT_CHECK_CONDITIONAL =
+            static_cast< track_conf_feature_t >(
+                 SIXTRL_GLOBAL_LIMIT_RECT_CHECK_CONDITIONAL );
+
+    SIXTRL_STATIC_VAR track_conf_feature_t const
+        GLOBAL_LIMIT_RECT_CHECK_NEVER = static_cast< track_conf_feature_t >(
+         SIXTRL_GLOBAL_LIMIT_RECT_CHECK_NEVER );
+
+    /* --------------------------------------------------------------------- */
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST track_job_io_flag_t
         TRACK_JOB_IO_NONE = static_cast< track_job_io_flag_t >( 0 );
