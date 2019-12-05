@@ -11,6 +11,7 @@
 
 cmake_minimum_required( VERSION 3.8 FATAL_ERROR )
 project( sixtracklib LANGUAGES C CXX )
+set( SIXTRACKL_VERSION_STR "0.1.0" )
 
 message( STATUS "---- Project sixtracklib" )
 message( STATUS "---- Inside main CMakeLists.txt" )
@@ -62,15 +63,22 @@ elseif( EXISTS ${PATH_TO_DEFAULT_SETTINGS_FILE} )
 
 endif()
 
-if( NOT STATUS_INCLUDE_LOCAL_SETTINGS_FILE AND
-    NOT STATUS_INCLUDE_DEFAULT_SETTINGS_FILE )
+# ------------------------------------------------------------------------------
+# place all contributed cmake modules and snipplets into the cmake subdirectory
+# of the project's root folder:
 
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
+message( STATUS "---- cmake_module_path: ${CMAKE_MODULE_PATH}" )
+
+if( EXISTS ${PATH_TO_LOCAL_SETTINGS_FILE} OR
+    EXISTS ${PATH_TO_DEFAULT_SETTINGS_FILE} )
+
+    include( SetupSettingsCacheProperties )
+
+else()
     message( WARNING "---- -> No settings file (i.e. neither Settings.cmake nor"
              " Settings.cmake.default) included" )
-
 endif()
-
-set( SIXTRACKL_VERSION_STR "0.1.0" )
 
 # ==============================================================================
 # handle dependencies and external libraries/toolkits:
@@ -92,13 +100,6 @@ set( SIXTRACKLIB_TESTDATA_DIR
 set( SIXTRACKLIB_CPU_FLAGS )
 set( SIXTRACKLIB_C99_FLAGS )
 set( SIXTRACKLIB_CXX_FLAGS )
-
-# ------------------------------------------------------------------------------
-# place all contributed cmake modules and snipplets into the cmake subdirectory
-# of the project's root folder:
-
-set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
-message( STATUS "---- cmake_module_path: ${CMAKE_MODULE_PATH}" )
 
 # ------------------------------------------------------------------------------
 # Setup language bindings - we have to be first to pull in python (if needed)
