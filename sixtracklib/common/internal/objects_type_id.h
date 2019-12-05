@@ -35,7 +35,8 @@ typedef enum NS(object_type_values_e)
     NS(OBJECT_TYPE_BINARY_PATCH_ITEM)     =        514,
     NS(OBJECT_TYPE_LINE)                  =       1024,
     NS(OBJECT_TYPE_ELEM_BY_ELEM_CONF)     =       1025,
-    NS(OBJECT_TYPE_NODE_ID)               =       1026,
+    NS(OBJECT_TYPE_TRACK_CONFIG)          =       1026,
+    NS(OBJECT_TYPE_NODE_ID)               =       1027,
     NS(OBJECT_TYPE_BINARY_ARRAY)          =       8192,
     NS(OBJECT_TYPE_REAL_ARRAY)            =       8193,
     NS(OBJECT_TYPE_FLOAT32_ARRAY)         =       8194,
@@ -52,7 +53,8 @@ typedef enum NS(object_type_values_e)
     NS(OBJECT_TYPE_MIN_USERDEFINED)       =      32768,
     NS(OBJECT_TYPE_TRICUB)                =      32768,
     NS(OBJECT_TYPE_TRICUB_DATA)           =      32769,
-    NS(OBJECT_TYPE_1D_INTERPOL_DATA)      =      32770,
+    NS(OBJECT_TYPE_INTERPOL_1D_LINEAR)    =      32770,
+    NS(OBJECT_TYPE_INTERPOL_1D_CUBIC)     =      32771,
     NS(OBJECT_TYPE_MAX_USERDEFINED)       =      65535,
     NS(OBJECT_TYPE_LAST_AVAILABLE)        =      65535,
     NS(OBJECT_TYPE_INVALID)               = 0x7fffffff
@@ -172,6 +174,10 @@ namespace SIXTRL_CXX_NAMESPACE
             NS(OBJECT_TYPE_ELEM_BY_ELEM_CONF) );
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST object_type_id_t
+        OBJECT_TYPE_TRACK_CONFIG = static_cast< object_type_id_t >(
+            NS(OBJECT_TYPE_TRACK_CONFIG) );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST object_type_id_t
         OBJECT_TYPE_BINARY_ARRAY = static_cast< object_type_id_t >(
             NS(OBJECT_TYPE_BINARY_ARRAY ) );
 
@@ -232,8 +238,12 @@ namespace SIXTRL_CXX_NAMESPACE
             NS(OBJECT_TYPE_TRICUB_DATA) );
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST object_type_id_t
-        OBJECT_TYPE_1D_INTERPOL_DATA = static_cast< object_type_id_t >(
-            NS(OBJECT_TYPE_1D_INTERPOL_DATA) );
+        OBJECT_TYPE_INTERPOL_1D_LINEAR = static_cast< object_type_id_t >(
+            NS(OBJECT_TYPE_INTERPOL_1D_LINEAR) );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST object_type_id_t
+        OBJECT_TYPE_INTERPOL_1D_CUBIC = static_cast< object_type_id_t >(
+            NS(OBJECT_TYPE_INTERPOL_1D_CUBIC) );
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST object_type_id_t
         OBJECT_TYPE_MAX_USERDEFINED = static_cast< object_type_id_t >(
