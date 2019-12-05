@@ -157,7 +157,7 @@ SIXTRL_BUFFER_DATAPTR_DEC NS(TriCubData)* NS(TriCubData_new)(
 {
     typedef NS(buffer_size_t) buf_size_t;
     SIXTRL_BUFFER_DATAPTR_DEC NS(TriCubData)* ptr_tricub_data = SIXTRL_NULLPTR;
-    NS(arch_size_t) status = SIXTRL_ARCH_STATUS_GENERAL_FAILURE;
+    NS(arch_status_t) status = SIXTRL_ARCH_STATUS_GENERAL_FAILURE;
 
     NS(TriCubData) tricub_data;
     buf_size_t const num_dataptrs = NS(TriCubData_num_dataptrs)( &tricub_data );
