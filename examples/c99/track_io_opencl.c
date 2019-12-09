@@ -214,7 +214,16 @@ int main( int argc, char* argv[] )
 
         if( path_output_particles != SIXTRL_NULLPTR )
         {
-            strcpy( path_output_particles, argv[ 8 ] );
+            path_output_particles = ( char* )malloc(
+                sizeof( char ) * ( output_path_len + 1u ) );
+
+            if( path_output_particles != SIXTRL_NULLPTR )
+            {
+                memset(  path_output_particles, ( int )'\0',
+                         output_path_len );
+
+                strcpy( path_output_particles, argv[ 8 ] );
+            }
         }
     }
 
