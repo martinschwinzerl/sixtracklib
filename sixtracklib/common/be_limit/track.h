@@ -16,6 +16,7 @@ extern "C" {
 
 struct NS(LimitRect);
 struct NS(LimitEllipse);
+struct NS(LimitZeta);
 
 SIXTRL_STATIC SIXTRL_FN NS(track_status_t) NS(Track_particle_limit_global)(
     SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT p,
@@ -31,6 +32,11 @@ SIXTRL_STATIC SIXTRL_FN NS(track_status_t) NS(Track_particle_limit_ellipse)(
     NS(particle_num_elements_t) const particle_idx, SIXTRL_BE_ARGPTR_DEC
     const struct NS(LimitEllipse) *const SIXTRL_RESTRICT limit );
 
+SIXTRL_STATIC SIXTRL_FN NS(track_status_t) NS(Track_particle_limit_zeta)(
+    SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT particles,
+    NS(particle_num_elements_t) const particle_idx, SIXTRL_BE_ARGPTR_DEC
+    const struct NS(LimitZeta) *const SIXTRL_RESTRICT limit );
+
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
 #endif /* C++, host */
@@ -38,6 +44,7 @@ SIXTRL_STATIC SIXTRL_FN NS(track_status_t) NS(Track_particle_limit_ellipse)(
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/be_limit/be_limit_rect.h"
     #include "sixtracklib/common/be_limit/be_limit_ellipse.h"
+    #include "sixtracklib/common/be_limit/be_limit_zeta.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -125,6 +132,27 @@ SIXTRL_INLINE NS(track_status_t) NS(Track_particle_limit_ellipse)(
     NS(Particles_update_state_value_if_not_already_lost)( particles,
         particle_idx, ( NS(particle_index_t) )( temp <=
             NS(LimitEllipse_get_half_axes_product_squ)( limit ) ) );
+
+    return SIXTRL_TRACK_SUCCESS;
+}
+
+SIXTRL_INLINE NS(track_status_t) NS(Track_particle_limit_zeta)(
+    SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT particles,
+    NS(particle_num_elements_t) const particle_idx,
+    SIXTRL_BE_ARGPTR_DEC const struct NS(LimitZeta) *const
+        SIXTRL_RESTRICT limit )
+{
+    typedef NS(particle_real_t)  real_t;
+    typedef NS(particle_index_t) index_t;
+
+    real_t const zeta = NS(Particles_get_zeta_value)( particles, particle_idx );
+
+    index_t const new_state = ( index_t )(
+        ( zeta >= NS(LimitZeta_min_zeta)( limit ) ) &&
+        ( zeta <= NS(LimitZeta_max_zeta)( limit ) ) );
+
+    NS(Particles_update_state_value_if_not_already_lost)(
+        particles, particle_idx, new_state );
 
     return SIXTRL_TRACK_SUCCESS;
 }
