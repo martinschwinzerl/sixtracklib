@@ -48,6 +48,7 @@ set( SIXTRL_COMMON_CONTROL_CXX_HEADERS
      node_id.hpp
      node_info.hpp
      kernel_config_base.hpp
+     kernel_variant_flags.hpp
      controller_base.hpp
      node_controller_base.hpp
      argument_base.hpp
