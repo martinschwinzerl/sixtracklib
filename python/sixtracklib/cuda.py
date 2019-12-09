@@ -126,7 +126,7 @@ if SIXTRACKLIB_MODULES.get('cuda', False):
         st_Cuda_get_available_node_id_strs_detailed, \
         st_NodeId_p, st_NullNodeId, st_NodeId_get_platform_id, \
         st_NodeId_get_device_id, st_NodeId_has_node_index, \
-        st_NodeId_get_node_index, st_NODE_ID_STR_FORMAT_ARCHSTR
+        st_NodeId_get_node_index
 
     class CudaController(NodeControllerBase):
         @staticmethod
