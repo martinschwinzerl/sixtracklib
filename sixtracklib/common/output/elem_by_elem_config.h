@@ -109,6 +109,16 @@ NS(ElemByElemConfig_get_max_turn)(
     SIXTRL_ELEM_BY_ELEM_CONFIG_ARGPTR_DEC const
         NS(ElemByElemConfig) *const SIXTRL_RESTRICT config );
 
+SIXTRL_STATIC SIXTRL_FN NS(particle_index_t)
+NS(ElemByElemConfig_get_until_turn_elem_by_elem)(
+    SIXTRL_ELEM_BY_ELEM_CONFIG_ARGPTR_DEC const
+        NS(ElemByElemConfig) *const SIXTRL_RESTRICT config );
+
+SIXTRL_STATIC SIXTRL_FN NS(buffer_size_t)
+NS(ElemByElemConfig_get_num_turns_elem_by_elem)(
+    SIXTRL_ELEM_BY_ELEM_CONFIG_ARGPTR_DEC const
+        NS(ElemByElemConfig) *const SIXTRL_RESTRICT config );
+
 SIXTRL_STATIC SIXTRL_FN bool
 NS(ElemByElemConfig_is_rolling)(
     SIXTRL_ELEM_BY_ELEM_CONFIG_ARGPTR_DEC const
@@ -634,6 +644,26 @@ NS(ElemByElemConfig_get_max_turn)(
 {
     SIXTRL_ASSERT( config != SIXTRL_NULLPTR );
     return config->max_turn;
+}
+
+SIXTRL_INLINE NS(particle_index_t)
+NS(ElemByElemConfig_get_until_turn_elem_by_elem)(
+    SIXTRL_ELEM_BY_ELEM_CONFIG_ARGPTR_DEC const
+        NS(ElemByElemConfig) *const SIXTRL_RESTRICT config )
+{
+    return ( config != SIXTRL_NULLPTR )
+        ? config->max_turn + ( NS(particle_index_t) )1u
+        : ( NS(particle_index_t) )0u;
+}
+
+SIXTRL_INLINE NS(buffer_size_t) NS(ElemByElemConfig_get_num_turns_elem_by_elem)(
+    SIXTRL_ELEM_BY_ELEM_CONFIG_ARGPTR_DEC const
+        NS(ElemByElemConfig) *const SIXTRL_RESTRICT config )
+{
+    return ( ( config != SIXTRL_NULLPTR ) &&
+             ( config->max_turn >= config->min_turn ) )
+        ? ( NS(buffer_size_t) )( 1 + config->max_turn - config->min_turn )
+        : ( NS(buffer_size_t) )0u;
 }
 
 SIXTRL_STATIC SIXTRL_FN bool NS(ElemByElemConfig_is_rolling)(
