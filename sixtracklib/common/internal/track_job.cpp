@@ -1350,6 +1350,26 @@ NS(Buffer) const* NS(TrackJob_get_const_output_buffer)(
 
 /* ------------------------------------------------------------------------- */
 
+bool NS(TrackJob_has_config_buffer)(
+    const ::NS(TrackJobBase) *const SIXTRL_RESTRICT job )
+{
+    return ( ( job != nullptr ) && ( job->has_config_buffer() ) );
+}
+
+::NS(Buffer) const* NS(TrackJob_const_config_buffer)(
+    const ::NS(TrackJobBase) *const SIXTRL_RESTRICT job )
+{
+    return ( job != nullptr ) ? job->config_buffer() : nullptr;
+}
+
+::NS(Buffer)* NS(TrackJob_config_buffer)(
+    ::NS(TrackJobBase)* SIXTRL_RESTRICT job )
+{
+    return ( job != nullptr ) ? job->config_buffer() : nullptr;
+}
+
+/* ------------------------------------------------------------------------- */
+
 bool NS(TrackJob_has_beam_monitors)(
     const NS(TrackJobBase) *const SIXTRL_RESTRICT job )
 {

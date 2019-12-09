@@ -436,6 +436,17 @@ NS(TrackJob_get_const_output_buffer)(
 
 /* ------------------------------------------------------------------------- */
 
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(TrackJob_has_config_buffer)(
+    const NS(TrackJobBase) *const SIXTRL_RESTRICT job );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(Buffer) const* NS(TrackJob_const_config_buffer)(
+    const NS(TrackJobBase) *const SIXTRL_RESTRICT job );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(Buffer)* NS(TrackJob_config_buffer)(
+    NS(TrackJobBase)* SIXTRL_RESTRICT job );
+
+/* ------------------------------------------------------------------------- */
+
 SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(TrackJob_can_fetch_particles_addr)(
     const NS(TrackJobBase) *const SIXTRL_RESTRICT job );
 

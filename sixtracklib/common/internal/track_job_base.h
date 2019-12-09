@@ -29,10 +29,12 @@
 
     #include "sixtracklib/common/buffer.h"
     #include "sixtracklib/common/buffer/assign_address_item.hpp"
+    #include "sixtracklib/common/buffer/buffer_toc.hpp"
     #include "sixtracklib/common/particles.h"
     #include "sixtracklib/common/particles/particles_addr.h"
     #include "sixtracklib/common/output/output_buffer.h"
     #include "sixtracklib/common/output/elem_by_elem_config.h"
+    #include "sixtracklib/common/track/track_config.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -66,14 +68,15 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* ********************************************************************* */
 
-    class TrackJobBufferStore
+    class TrackJobBufferStoreBaseBase
     {
         public:
 
-        using buffer_t    = SIXTRL_CXX_NAMESPACE::Buffer;
-        using c_buffer_t  = ::NS(Buffer);
-        using size_type   = buffer_t::size_type;
-        using flags_t     = buffer_t::flags_t;
+        using buffer_t     = SIXTRL_CXX_NAMESPACE::Buffer;
+        using c_buffer_t   = buffer_t::c_api_t;
+        using size_type    = buffer_t::size_type;
+        using flags_t      = buffer_t::flags_t;
+        using buffer_toc_t = SIXTRL_CXX_NAMESPACE::BufferToc;
 
         static size_type constexpr DEFAULT_BUFFER_CAPACITY =
             buffer_t::DEFAULT_BUFFER_CAPACITY;
@@ -81,35 +84,38 @@ namespace SIXTRL_CXX_NAMESPACE
         static flags_t constexpr DEFAULT_DATASTORE_FLAGS =
             buffer_t::DEFAULT_DATASTORE_FLAGS;
 
-        SIXTRL_HOST_FN explicit TrackJobBufferStore(
+        SIXTRL_HOST_FN explicit TrackJobBufferStoreBase(
             size_type const buffer_capacity = DEFAULT_BUFFER_CAPACITY,
             flags_t const buffer_flags = DEFAULT_DATASTORE_FLAGS );
 
-        SIXTRL_HOST_FN explicit TrackJobBufferStore(
+        SIXTRL_HOST_FN explicit TrackJobBufferStoreBase(
             buffer_t* SIXTRL_RESTRICT cxx_buffer,
             bool const take_ownership = false );
 
-        SIXTRL_HOST_FN explicit TrackJobBufferStore(
+        SIXTRL_HOST_FN explicit TrackJobBufferStoreBase(
             c_buffer_t* SIXTRL_RESTRICT c99_buffer,
             bool const take_ownership = false,
             bool const delete_ptr_after_move = true );
 
-        SIXTRL_HOST_FN explicit TrackJobBufferStore(
+        SIXTRL_HOST_FN explicit TrackJobBufferStoreBase(
             std::unique_ptr< buffer_t >&& stored_ptr_buffer );
 
-        SIXTRL_HOST_FN explicit TrackJobBufferStore( buffer_t&& cxx_buffer );
+        SIXTRL_HOST_FN explicit TrackJobBufferStoreBase(
+            buffer_t&& cxx_buffer );
 
-        SIXTRL_HOST_FN TrackJobBufferStore( TrackJobBufferStore const& other );
-        SIXTRL_HOST_FN TrackJobBufferStore(
-            TrackJobBufferStore&& other ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN TrackJobBufferStoreBase(
+            TrackJobBufferStoreBase const& other );
 
-        SIXTRL_HOST_FN TrackJobBufferStore& operator=(
-            TrackJobBufferStore const& rhs );
+        SIXTRL_HOST_FN TrackJobBufferStoreBase(
+            TrackJobBufferStoreBase&& other ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN TrackJobBufferStore& operator=(
-            TrackJobBufferStore&& other ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN TrackJobBufferStoreBase& operator=(
+            TrackJobBufferStoreBase const& rhs );
 
-        SIXTRL_HOST_FN ~TrackJobBufferStore() = default;
+        SIXTRL_HOST_FN TrackJobBufferStoreBase& operator=(
+            TrackJobBufferStoreBase&& other ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN ~TrackJobBufferStoreBase() = default;
 
         SIXTRL_HOST_FN bool active() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN bool owns_buffer() const SIXTRL_NOEXCEPT;
@@ -140,10 +146,17 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN void reset( buffer_t&& cxx_buffer );
 
+        SIXTRL_HOST_FN buffer_toc_t const&
+            table_of_contents() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN buffer_toc_t const*
+            ptr_table_of_contents() const SIXTRL_NOEXCEPT;
+
         private:
 
-        buffer_t*   m_ptr_cxx_buffer;
-        c_buffer_t* m_ptr_c99_buffer;
+        buffer_toc_t                m_buffer_toc;
+        buffer_t*                   m_ptr_cxx_buffer;
+        c_buffer_t*                 m_ptr_c99_buffer;
         std::unique_ptr< buffer_t > m_own_buffer;
     };
 
@@ -151,13 +164,14 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         public:
 
-        using buffer_t               = Buffer;
-        using c_buffer_t             = ::NS(Buffer);
+        using buffer_t               = SIXTRL_CXX_NAMESPACE::Buffer;
+        using buffer_toc_t           = SIXTRL_CXX_NAMESPACE::BufferToc;
+        using c_buffer_t             = buffer_t::c_api_t;
         using elem_by_elem_config_t  = ::NS(ElemByElemConfig);
         using elem_by_elem_order_t   = ::NS(elem_by_elem_order_t);
         using particle_index_t       = ::NS(particle_index_t);
         using size_type              = SIXTRL_CXX_NAMESPACE::track_job_size_t;
-        using type_t                 = SIXTRL_CXX_NAMESPACE::track_job_type_t;
+        using arch_id_t              = SIXTRL_CXX_NAMESPACE::arch_id_t;
         using track_status_t         = SIXTRL_CXX_NAMESPACE::track_status_t;
         using status_t               = SIXTRL_CXX_NAMESPACE::arch_status_t;
         using assign_item_t          = SIXTRL_CXX_NAMESPACE::AssignAddressItem;
@@ -169,10 +183,22 @@ namespace SIXTRL_CXX_NAMESPACE
         using collect_flag_t = SIXTRL_CXX_NAMESPACE::track_job_collect_flag_t;
         using push_flag_t    = SIXTRL_CXX_NAMESPACE::track_job_push_flag_t;
 
+        using config_id_t            = uint32_t;
+        using track_kernel_config_t  = ::NS(TrackConfig);
+
         /* ----------------------------------------------------------------- */
 
         static constexpr size_type ILLEGAL_BUFFER_ID =
-                    SIXTRL_CXX_NAMESPACE::ARCH_ILLEGAL_BUFFER_ID;
+            SIXTRL_CXX_NAMESPACE::ARCH_ILLEGAL_BUFFER_ID;
+
+        static constexpr config_id_t ILLEGAL_CONFIG_ID =
+            config_id_t{ 0xffffffff };
+
+        static constexpr size_type ILLEGAL_OUTPUT_BUFFER_OFFSET =
+            size_type{ 0xffffffffffffffff };
+
+        static constexpr particle_index_t ILLEGAL_UNTIL_TURN =
+            particle_index_t{ -9223372036854775808 };
 
         /* ----------------------------------------------------------------- */
 
@@ -198,44 +224,44 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void collect();
         SIXTRL_HOST_FN void collect( collect_flag_t const flags );
 
-        SIXTRL_HOST_FN void collectParticles();
-        SIXTRL_HOST_FN void collectBeamElements();
-        SIXTRL_HOST_FN void collectOutput();
+        SIXTRL_HOST_FN void collect_particles();
+        SIXTRL_HOST_FN void collect_beam_elements();
+        SIXTRL_HOST_FN void collect_output();
 
-        SIXTRL_HOST_FN void enableCollectParticles()  SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN void disableCollectParticles() SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN bool isCollectingParticles() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void enable_collect_particles()  SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void disable_collect_patricles() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool is_collecting_particles() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void enableCollectBeamElements()  SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN void disableCollectBeamElements() SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN bool isCollectingBeamElements() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void enable_collect_beam_elements()  SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void disable_collect_beam_elements() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool is_collecting_beam_elements() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void enableCollectOutput()  SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN void disableCollectOutput() SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN bool isCollectingOutput() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void enable_collect_output()  SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void disable_collect_output() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool is_collecting_output() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN collect_flag_t collectFlags() const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN void setCollectFlags(
+        SIXTRL_HOST_FN collect_flag_t collect_flags() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void set_collect_flags(
             collect_flag_t const flag ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool requiresCollecting() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool requires_collecting() const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN void push( push_flag_t const flags );
-        SIXTRL_HOST_FN void pushParticles();
-        SIXTRL_HOST_FN void pushBeamElements();
-        SIXTRL_HOST_FN void pushOutput();
+        SIXTRL_HOST_FN void push_particles();
+        SIXTRL_HOST_FN void push_beam_elements();
+        SIXTRL_HOST_FN void push_output();
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN track_status_t track(
+        SIXTRL_HOST_FN track_status_t track_until(
             size_type const until_turn );
 
-        SIXTRL_HOST_FN track_status_t trackElemByElem(
+        SIXTRL_HOST_FN track_status_t track_elem_by_elem(
             size_type const until_turn_elem_by_elem );
 
-        SIXTRL_HOST_FN track_status_t trackLine(
+        SIXTRL_HOST_FN track_status_t track_line(
             size_type const beam_elements_begin_index,
             size_type const beam_elements_end_index,
             bool const finish_turn = false );
@@ -298,85 +324,106 @@ namespace SIXTRL_CXX_NAMESPACE
             c_buffer_t* SIXTRL_RESTRICT ptr_output_buffer = nullptr,
             size_type const until_turn_elem_by_elem = size_type{ 0 } );
 
-        SIXTRL_HOST_FN bool selectParticleSet(
+        SIXTRL_HOST_FN bool select_particle_set(
             size_type const particle_set_index );
 
-        SIXTRL_HOST_FN bool assignOutputBuffer(
+        SIXTRL_HOST_FN bool assign_output_buffer(
             buffer_t& SIXTRL_RESTRICT_REF output_buffer );
 
-        SIXTRL_HOST_FN bool assignOutputBuffer(
+        SIXTRL_HOST_FN bool assign_output_buffer(
             c_buffer_t* SIXTRL_RESTRICT ptr_output_buffer );
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN track_job_type_t type()          const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN std::string const& typeStr()     const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN char const* ptrTypeStr()         const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN arch_id_t arch_id()              const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN std::string const& arch_str()    const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN char const* arch_cstr()          const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool hasDeviceIdStr()            const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN std::string const& deviceIdStr() const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN char const* ptrDeviceIdStr()     const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool has_node_id_str()           const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN std::string const& node_id_str() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN char const* node_id_cstr()       const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool hasConfigStr()              const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN std::string const& configStr()   const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN char const* ptrConfigStr()       const SIXTRL_NOEXCEPT;
-
-        /* ----------------------------------------------------------------- */
-
-        SIXTRL_HOST_FN size_type numParticleSets() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type const*
-        particleSetIndicesBegin() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type const*
-        particleSetIndicesEnd() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type particleSetIndex( size_type const n ) const;
-
-        SIXTRL_HOST_FN size_type const*
-        numParticlesInSetsBegin() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type const*
-        numParticlesInSetsEnd() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type numParticlesInSet( size_type const n ) const;
-        SIXTRL_HOST_FN size_type totalNumParticlesInSets() const;
+        SIXTRL_HOST_FN bool has_config_str()            const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN std::string const& config_str()  const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN char const* config_cstr()        const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN particle_index_t minParticleId() const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN particle_index_t maxParticleId() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type num_particle_sets() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN particle_index_t minElementId()  const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN particle_index_t maxElementId()  const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type const*
+        particle_set_indices_begin() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type const*
+        particle_set_indices_end() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type particle_set_index( size_type const n ) const;
+
+        SIXTRL_HOST_FN size_type const*
+        num_particles_in_sets_begin() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type const*
+        num_particles_in_sets_end() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type
+        num_particles_in_set( size_type const n ) const;
+
+        SIXTRL_HOST_FN size_type
+        total_num_particles_in_sets() const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN particle_index_t min_particle_id() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN particle_index_t max_particle_id() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN particle_index_t min_element_id()  const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN particle_index_t max_element_id()  const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN particle_index_t
-        minInitialTurnId() const SIXTRL_NOEXCEPT;
+        min_initial_turn_id() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN particle_index_t
-        maxInitialTurnId() const SIXTRL_NOEXCEPT;
+        max_initial_turn_id() const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN buffer_t* ptrParticlesBuffer() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_t& particles_cxx_buffer();
+        SIXTRL_HOST_FN buffer_t const& particles_cxx_buffer() const;
+
+        SIXTRL_HOST_FN buffer_t* ptr_particles_cxx_buffer() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_t const*
+            ptr_particles_cxx_buffer() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN c_buffer_t* particles_buffer() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN c_buffer_t const*
+            particles_buffer() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN buffer_toc_t const&
+        particles_buffer_toc() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN buffer_toc_t const*
+        ptr_particles_buffer_toc() const SIXTRL_NOEXCEPT;
+
+        /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
+        SIXTRL_HOST_FN buffer_t& beam_elements_cxx_buffer();
+        SIXTRL_HOST_FN buffer_t const& beam_elements_cxx_buffer() const;
+
+        SIXTRL_HOST_FN buffer_t*
+            ptr_beam_elements_cxx_buffer() SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN buffer_t const*
-        ptrParticlesBuffer() const SIXTRL_NOEXCEPT;
+            ptr_beam_elements_cxx_buffer() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN c_buffer_t* ptrCParticlesBuffer() SIXTRL_NOEXCEPT;
-
+        SIXTRL_HOST_FN c_buffer_t* beam_elements_buffer() SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN c_buffer_t const*
-        ptrCParticlesBuffer() const SIXTRL_NOEXCEPT;
+            beam_elements_buffer() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN buffer_t* ptrBeamElementsBuffer() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_toc_t const&
+        beam_elements_buffer_toc() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN buffer_t const*
-        ptrBeamElementsBuffer() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN c_buffer_t* ptrCBeamElementsBuffer() SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN c_buffer_t const*
-        ptrCBeamElementsBuffer() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_toc_t const*
+        ptr_beam_elements_buffer_toc() const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
@@ -571,87 +618,145 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ---------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN bool hasOutputBuffer()      const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN bool ownsOutputBuffer()     const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN bool hasElemByElemOutput()  const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN bool hasBeamMonitorOutput() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool has_output_buffer()       const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool owns_output_buffer()      const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type
-        beamMonitorsOutputBufferOffset() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN c_buffer_t* output_buffer() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN c_buffer_t const* output_buffer() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type
-        elemByElemOutputBufferOffset() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_t* ptr_output_cxx_buffer() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_t* ptr_output_cxx_buffer() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN particle_index_t
-        untilTurnElemByElem() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_t const& output_cxx_buffer() const;
+        SIXTRL_HOST_FN buffer_t& output_cxx_buffer();
 
-        SIXTRL_HOST_FN size_type numElemByElemTurns() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_toc_t const&
+            output_buffer_toc() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN buffer_t* ptrOutputBuffer() SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN buffer_t* ptrOutputBuffer() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN c_buffer_t* ptrCOutputBuffer() SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN c_buffer_t const*
-        ptrCOutputBuffer() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_toc_t const*
+            ptr_output_buffer_toc() const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN bool hasBeamMonitors()      const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN size_type numBeamMonitors() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool has_config_buffer() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool has_config_entry(
+            config_id_t const entry_idx ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN size_type const*
-        beamMonitorIndicesBegin() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type const*
-        beamMonitorIndicesEnd() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN size_type beamMonitorIndex( size_type const n ) const;
-
-        /* ----------------------------------------------------------------- */
-
-        SIXTRL_HOST_FN bool hasElemByElemConfig() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN c_buffer_t const*
-        ptrElemByElemConfigCBuffer() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_HOST_FN c_buffer_t*
-        ptrElemByElemConfigCBuffer() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN c_buffer_t const* config_buffer() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN c_buffer_t* config_buffer() SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN buffer_t const*
-        ptrElemByElemConfigBuffer() const SIXTRL_NOEXCEPT;
+            ptr_config_cxx_buffer() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN buffer_t* ptrElemByElemConfigBuffer() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_t* ptr_config_cxx_buffer() SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN elem_by_elem_config_t const*
-        ptrElemByElemConfig() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_t const& config_cxx_buffer() const;
+        SIXTRL_HOST_FN buffer_t& config_cxx_buffer();
 
-        SIXTRL_HOST_FN elem_by_elem_config_t*
-        ptrElemByElemConfig() SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_toc_t const&
+            config_buffer_toc() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool elemByElemRolling() const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN bool defaultElemByElemRolling() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN buffer_toc_t const*
+            ptr_config_buffer_toc() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void setDefaultElemByElemRolling(
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN bool has_beam_monitors()       const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool has_beam_monitor_output() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type num_beam_monitors()  const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type const*
+            beam_monitor_indices_begin() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type const*
+            beam_monitor_indices_end() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type const*
+            beam_monitor_output_offsets_begin() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type const*
+            beam_monitor_output_offsets_end() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type beam_monitor_index(
+            size_type const idx ) const;
+
+        SIXTRL_HOST_FN size_type min_beam_monitor_output_offset() const;
+        SIXTRL_HOST_FN size_type max_beam_monitor_output_offset() const;
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN bool has_elem_by_elem_configs() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool has_elem_by_elem_output() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type
+            num_elem_by_elem_configs() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN config_id_t const*
+            elem_by_elem_config_ids_begin() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN config_id_t const*
+            elem_by_elem_config_ids_end() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type const*
+            elem_by_elem_output_offsets_begin() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type const*
+            elem_by_elem_output_offsets_end() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN config_id_t elem_by_elem_config_id(
+            size_type const idx ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN elem_by_elem_config_t const* elem_by_elem_config_by_id(
+            config_id_t const elem_by_elem_conf_id ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN elem_by_elem_config_t* elem_by_elem_config_by_id(
+            config_id_t const elem_by_elem_conf_id ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN particle_index_t until_turn_elem_by_elem_by_id(
+            config_id_t const elem_by_elem_conf_id ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type num_elem_by_elem_turns_by_id(
+            config_id_t const elem_by_elem_conf_id ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type elem_by_elem_output_offset_by_id(
+            config_id_t const elem_by_elem_conf_id ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN bool
+            default_is_elem_by_elem_config_rolling() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN void set_default_elem_by_elem_rolling(
             bool is_rolling ) SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN elem_by_elem_order_t
-        elemByElemOrder() const SIXTRL_NOEXCEPT;
+            default_elem_by_elem_config_order() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN elem_by_elem_order_t
-        defaultElemByElemOrder() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void set_default_elem_by_elem_config_order(
+            elem_by_elem_order_t const elem_by_elem_order ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void setDefaultElemByElemOrder(
-            elem_by_elem_order_t const order ) SIXTRL_NOEXCEPT;
+        /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
-        /* ---------------------------------------------------------------- */
+        SIXTRL_HOST_FN elem_by_elem_config_t const*
+            elem_by_elem_config() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN elem_by_elem_config_t*
+            elem_by_elem_config() SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type
+            elem_by_elem_output_offset() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN particle_index_t
+            until_turn_elem_by_elem() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN size_type num_elem_by_elem_turns() const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN bool debugMode() const SIXTRL_NOEXCEPT;
 
         protected:
 
         using ptr_buffer_t   = std::unique_ptr< buffer_t >;
-        using buffer_store_t = TrackJobBufferStore;
+        using buffer_store_t = TrackJobBufferStoreBase;
 
         /* ----------------------------------------------------------------- */
 
@@ -667,7 +772,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN TrackJobBase(
             const char *const SIXTRL_RESTRICT type_str,
-            track_job_type_t const type_id );
+            arch_id_t const type_id );
 
         SIXTRL_HOST_FN TrackJobBase( TrackJobBase const& other );
         SIXTRL_HOST_FN TrackJobBase( TrackJobBase&& other ) SIXTRL_NOEXCEPT;
@@ -684,6 +789,8 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN virtual void doPush( push_flag_t const flags );
 
         /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN virtual status_t doPrepareConfigStructures();
 
         SIXTRL_HOST_FN virtual bool doPrepareParticlesStructures(
             c_buffer_t* SIXTRL_RESTRICT ptr_particles_buffer );
@@ -836,9 +943,6 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void doUpdateStoredOutputBuffer(
             ptr_buffer_t&& ptr_output_buffer ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void doUpdateStoredElemByElemConfig(
-            ptr_buffer_t&& ptr_config ) SIXTRL_NOEXCEPT;
-
         SIXTRL_HOST_FN void doUpdateStoredParticlesAddrBuffer(
             ptr_buffer_t&& ptr_particles_addr_buffer ) SIXTRL_NOEXCEPT;
 
@@ -876,19 +980,32 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void doParseConfigStrBaseImpl(
             const char *const SIXTRL_RESTRICT config_str );
 
-        std::string                     m_type_str;
-        std::string                     m_device_id_str;
-        std::string                     m_config_str;
+        SIXTRL_HOST_FN status_t doPrepareConfigStructuresBaseImpl();
+
+        SIXTRL_HOST_FN void doUpdateStoredConfigBuffer(
+            ptr_buffer_t&& ptr_config_buffer ) SIXTRL_NOEXCEPT;
 
         assing_item_map_t               m_assign_address_items;
+        buffer_toc_t                    m_particle_buffer_toc;
+        buffer_toc_t                    m_beam_elements_buffer_toc;
+        buffer_toc_t                    m_output_buffer_toc;
+        buffer_toc_t                    m_config_buffer_toc;
+
+        std::string                     m_arch_str;
+        std::string                     m_node_id_str;
+        std::string                     m_config_str;
+
         std::vector< size_type >        m_particle_set_indices;
         std::vector< size_type >        m_num_particles_in_sets;
-        std::vector< size_type >        m_beam_monitor_indices;
+
         std::vector< buffer_store_t >   m_stored_buffers;
         assign_item_keys_list_t         m_assign_item_keys;
 
+        std::vector< size_type >        m_beam_monitor_output_offsets;
+        std::vector< size_type >        m_elem_by_elem_output_offsets;
+
         ptr_buffer_t                    m_my_output_buffer;
-        ptr_buffer_t                    m_elem_by_elem_buffer;
+        ptr_buffer_t                    m_my_config_buffer;
         ptr_buffer_t                    m_particles_addr_buffer;
 
         buffer_t*   SIXTRL_RESTRICT     m_ptr_particles_buffer;
@@ -899,12 +1016,10 @@ namespace SIXTRL_CXX_NAMESPACE
         c_buffer_t* SIXTRL_RESTRICT     m_ptr_c_beam_elem_buffer;
         c_buffer_t* SIXTRL_RESTRICT     m_ptr_c_output_buffer;
 
-        size_type                       m_be_mon_output_buffer_offset;
-        size_type                       m_elem_by_elem_output_offset;
         size_type                       m_total_num_particles_in_sets;
         size_type                       m_num_stored_buffers;
 
-        type_t                          m_type_id;
+        type_t                          m_arch_id;
         elem_by_elem_order_t            m_default_elem_by_elem_order;
 
         particle_index_t                m_min_particle_id;
@@ -915,13 +1030,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
         particle_index_t                m_min_initial_turn_id;
         particle_index_t                m_max_initial_turn_id;
-        particle_index_t                m_until_turn_elem_by_elem;
 
         collect_flag_t                  m_collect_flags;
         bool                            m_requires_collect;
         bool                            m_default_elem_by_elem_rolling;
-        bool                            m_has_beam_monitor_output;
-        bool                            m_has_elem_by_elem_output;
         bool                            m_debug_mode;
     };
 }
@@ -984,7 +1096,7 @@ namespace SIXTRL_CXX_NAMESPACE
             this->doSetPtrParticleBuffer( &particles_buffer );
             this->doSetPtrBeamElementsBuffer( &beam_elements_buffer );
 
-            if( ( ptr_out != nullptr ) && ( this->hasOutputBuffer() ) )
+            if( ( ptr_out != nullptr ) && ( this->has_output_buffer() ) )
             {
                 this->doSetPtrOutputBuffer( ptr_output_buffer );
             }
