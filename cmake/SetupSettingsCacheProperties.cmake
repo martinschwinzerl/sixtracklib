@@ -4,26 +4,27 @@ if(  NOT SETUP_CACHE_PROPERTIES_FINISHED )
     # ==========================================================================
     # SixTrackLib Features :
 
-    set_property( CACHE SIXTRACKL_ENABLE_BEAM_FIELDS_4D_MAP
+    set_property( CACHE SIXTRACKL_TRACK_BEAM_BEAM_4D_MAP
         PROPERTY HELPSTRING "Enable tracking beam-beam-4D map" )
 
-    set_property( CACHE SIXTRACKL_ENABLE_BEAM_FIELDS_6D_MAP
+    set_property( CACHE SIXTRACKL_TRACK_BEAM_BEAM_6D_MAP
         PROPERTY HELPSTRING "Enable tracking beam-beam-6D map" )
 
-    set_property( CACHE SIXTRACKL_ENABLE_SC_BUNCHED_MAP
-        PROPERTY HELPSTRING "Enable tracking bunched  space-charge maps" )
-
-    set_property( CACHE SIXTRACKL_ENABLE_SC_COASTING_MAP
+    set_property( CACHE SIXTRACKL_TRACK_SPACE_CHARGE_COASTING_MAP
         PROPERTY HELPSTRING "Enable tracking coasting space-charge maps" )
 
-    set_property( CACHE SIXTRACKL_ENABLE_TRICUB_MAP
+    set_property( CACHE SIXTRACKL_TRACK_SPACE_CHARGE_BUNCHED_MAP
+        PROPERTY HELPSTRING "Enable tracking bunched  space-charge maps" )
+
+    set_property( CACHE SIXTRACKL_TRACK_TRICUB_MAP
         PROPERTY HELPSTRING "Enable tracking be_tricub maps" )
 
-    set_property( CACHE SIXTRACKL_ENABLE_BEAM_FIELDS_4D_MAP
-                        SIXTRACKL_ENABLE_BEAM_FIELDS_6D_MAP
-                        SIXTRACKL_ENABLE_SC_COASTING_MAP
-                        SIXTRACKL_ENABLE_SC_BUNCHED_MAP
-                        SIXTRACKL_ENABLE_TRICUB_MAP
+
+    set_property( CACHE SIXTRACKL_TRACK_BEAM_BEAM_4D_MAP
+                        SIXTRACKL_TRACK_BEAM_BEAM_6D_MAP
+                        SIXTRACKL_TRACK_SPACE_CHARGE_COASTING_MAP
+                        SIXTRACKL_TRACK_SPACE_CHARGE_BUNCHED_MAP
+                        SIXTRACKL_TRACK_TRICUB_MAP
         PROPERTY STRINGS enabled skip disabled runtime_check )
 
     # ==========================================================================
