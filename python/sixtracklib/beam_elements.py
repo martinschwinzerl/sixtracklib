@@ -94,27 +94,15 @@ class Multipole(CObject):
         self.bal[order * 2 + 1] = value / factorial(order, exact=True)
 
 class RFMultipole(CObject):
-    _typeid = 256 # This is subject to change
-    order = CField(0, 'int64', default=0, const=True, alignment=8)
-    voltage = CField(1, 'real', default=0.0, alignment=8 )
-    frequency = CField(2, 'real', default=0.0, alignment=8 )
-    lag = CField(3, 'real', default=0.0, alignment=8 )
-    bal = CField(4, 'real', pointer=True, length='2*order+2',
-                    default=0.0, alignment=8 )
-    p = CField(5, 'real', pointer=True, length='2*order+2',
-               default=0.0, alignment=8 )
-
-
-class RFMultipole(CObject):
     _typeid = 128
     order = CField(0, 'int64', default=0, const=True, alignment=8)
     voltage = CField(1, 'real', default=0.0, alignment=8)
     frequency = CField(2, 'real', default=0.0, alignment=8)
     lag = CField(3, 'real', default=0.0, alignment=8)
-    knl = CField(4, 'real', pointer=True, length='order+1', alignment=8)
-    ksl = CField(5, 'real', pointer=True, length='order+1', alignment=8)
-    pn = CField(6, 'real', pointer=True, length='order+1', alignment=8),
-    ps = CField(7, 'real', pointer=True, length='order+1', alignment=8),
+    bal = CField(4, 'real', pointer=True, length='2*order+2',
+            default=0.0, alignment=8)
+    p = CField(5, 'real', pointer=True, length='2*order+2',
+            default=0.0, alignment=8)
 
 
 class Cavity(CObject):
