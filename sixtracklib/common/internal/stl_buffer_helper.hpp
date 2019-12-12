@@ -146,6 +146,11 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_RESTRICT_REF map, Key const& SIXTRL_RESTRICT_REF key,
                 T const& SIXTRL_RESTRICT_REF value );
 
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    SIXTRL_STATIC SIXTRL_HOST_FN std::size_t Map_ordered_vec_total_num_values(
+        std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc > const&
+            SIXTRL_RESTRICT_REF map ) SIXTRL_NOEXCEPT;
+
     /* --------------------------------------------------------------------- */
 
     template< typename Key, typename Value, class Hash,
@@ -262,6 +267,12 @@ namespace SIXTRL_CXX_NAMESPACE
             KeyEqual, Alloc > const& SIXTRL_RESTRICT_REF map,
         Key const& SIXTRL_RESTRICT_REF key,
         T const& SIXTRL_RESTRICT_REF value );
+
+    template< typename Key, typename T, class Hash,
+              class KeyEqual, class Alloc, class VecAlloc >
+    SIXTRL_STATIC SIXTRL_HOST_FN std::size_t Map_ordered_vec_total_num_values(
+        std::unordered_map< Key, std::vector< T, VecAlloc >, Hash,
+            KeyEqual, Alloc > const& SIXTRL_RESTRICT_REF map ) SIXTRL_NOEXCEPT;
 }
 
 #endif /* SIXTRACKLIB_COMMON_INTERNAL_STL_BUFFER_HELPER_CXX_HPP__ */
@@ -612,6 +623,20 @@ namespace SIXTRL_CXX_NAMESPACE
         return nullptr;
     }
 
+    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc >
+    SIXTRL_STATIC SIXTRL_HOST_FN std::size_t Map_ordered_vec_total_num_values(
+        std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc > const&
+            SIXTRL_RESTRICT_REF map ) SIXTRL_NOEXCEPT
+    {
+        using pair_t = std::pair< Key, std::vector< T, VecAlloc > >;
+
+        return std::accumulate( map.begin(), map.end(), std::size_t{ 0 },
+            []( std::size_t const sum_so_far, pair_t const& op ) -> std::size_t
+            {
+                return sum_so_far + op.second.size();
+            } );
+    }
+
     /* --------------------------------------------------------------------- */
 
     template< typename Key, typename Value, class Hash,
@@ -911,6 +936,21 @@ namespace SIXTRL_CXX_NAMESPACE
         }
 
         return nullptr;
+    }
+
+    template< typename Key, typename T, class Hash,
+              class KeyEqual, class Alloc, class VecAlloc >
+    SIXTRL_STATIC SIXTRL_HOST_FN std::size_t Map_ordered_vec_total_num_values(
+        std::unordered_map< Key, std::vector< T, VecAlloc >, Hash,
+            KeyEqual, Alloc > const& SIXTRL_RESTRICT_REF map ) SIXTRL_NOEXCEPT
+    {
+        using pair_t = std::pair< Key, std::vector< T, VecAlloc > >;
+
+        return std::accumulate( map.begin(), map.end(), std::size_t{ 0 },
+            []( std::size_t const sum_so_far, pair_t const& op ) -> std::size_t
+            {
+                return sum_so_far + op.second.size();
+            } );
     }
 }
 
