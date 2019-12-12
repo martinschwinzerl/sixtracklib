@@ -21,6 +21,8 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/buffer/definitions.h"
+    #include "sixtracklib/common/particles/definitions.h"
     #include "sixtracklib/common/track/definitions.h"
 
     #if defined( __cplusplus )
@@ -29,9 +31,11 @@
 
     #include "sixtracklib/common/buffer.h"
     #include "sixtracklib/common/buffer/assign_address_item.hpp"
+    #include "sixtracklib/common/buffer/buffer_store.hpp"
     #include "sixtracklib/common/buffer/buffer_toc.hpp"
     #include "sixtracklib/common/particles.h"
     #include "sixtracklib/common/particles/particles_addr.h"
+    #include "sixtracklib/common/particles/particle_set_state.h"
     #include "sixtracklib/common/output/output_buffer.h"
     #include "sixtracklib/common/output/elem_by_elem_config.h"
     #include "sixtracklib/common/track/track_config.h"
@@ -68,7 +72,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* ********************************************************************* */
 
-    class TrackJobBufferStoreBaseBase
+    class TrackJobBufferStoreBase
     {
         public:
 
@@ -77,6 +81,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using size_type    = buffer_t::size_type;
         using flags_t      = buffer_t::flags_t;
         using buffer_toc_t = SIXTRL_CXX_NAMESPACE::BufferToc;
+        using store_buffer_toc_t = std::unique_ptr< buffer_toc_t >;
 
         static size_type constexpr DEFAULT_BUFFER_CAPACITY =
             buffer_t::DEFAULT_BUFFER_CAPACITY;
@@ -146,18 +151,22 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN void reset( buffer_t&& cxx_buffer );
 
-        SIXTRL_HOST_FN buffer_toc_t const&
-            table_of_contents() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool has_buffer_toc() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN buffer_toc_t const& table_of_contents() const;
 
         SIXTRL_HOST_FN buffer_toc_t const*
             ptr_table_of_contents() const SIXTRL_NOEXCEPT;
 
+        SIXTRL_HOST_FN status_t replace_table_of_contents(
+            store_buffer_toc_t&& table_of_contents_to_store );
+
         private:
 
-        buffer_toc_t                m_buffer_toc;
         buffer_t*                   m_ptr_cxx_buffer;
         c_buffer_t*                 m_ptr_c99_buffer;
         std::unique_ptr< buffer_t > m_own_buffer;
+        store_buffer_toc_t          m_stored_buffer_toc;
     };
 
     class TrackJobBase
@@ -179,6 +188,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using output_buffer_flag_t   = ::NS(output_buffer_flag_t);
         using object_type_id_t       = ::NS(object_type_id_t);
         using particles_addr_t       = ::NS(ParticlesAddr);
+        using particle_set_state_t   = ::NS(ParticleSetState);
 
         using collect_flag_t = SIXTRL_CXX_NAMESPACE::track_job_collect_flag_t;
         using push_flag_t    = SIXTRL_CXX_NAMESPACE::track_job_push_flag_t;
@@ -755,8 +765,16 @@ namespace SIXTRL_CXX_NAMESPACE
 
         protected:
 
-        using ptr_buffer_t   = std::unique_ptr< buffer_t >;
-        using buffer_store_t = TrackJobBufferStoreBase;
+        using base_buffer_store_t = SIXTRL_CXX_NAMESPACE::BufferStoreBase;
+        using ptr_buffer_t        = std::unique_ptr< buffer_t >;
+        using ptr_buffer_store_t  = std::unique_ptr< base_buffer_store_t >;
+        using ptr_buffer_toc_t    = std::unique_ptr< buffer_toc_t >;
+
+        using out_offset_buffer_toc_t =
+            SIXTRL_CXX_NAMESPACE::OutputOffsetBufferToc;
+
+        using particle_sets_buffer_toc_t =
+            SIXTRL_CXX_NAMESPACE::ParticleSetsBufferToc;
 
         /* ----------------------------------------------------------------- */
 
@@ -985,56 +1003,38 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void doUpdateStoredConfigBuffer(
             ptr_buffer_t&& ptr_config_buffer ) SIXTRL_NOEXCEPT;
 
-        assing_item_map_t               m_assign_address_items;
-        buffer_toc_t                    m_particle_buffer_toc;
-        buffer_toc_t                    m_beam_elements_buffer_toc;
-        buffer_toc_t                    m_output_buffer_toc;
-        buffer_toc_t                    m_config_buffer_toc;
+        particle_set_state_t              m_initial_particle_set_state;
+        particle_set_state_t              m_particle_set_state;
 
-        std::string                     m_arch_str;
-        std::string                     m_node_id_str;
-        std::string                     m_config_str;
+        assing_item_map_t                 m_assign_address_items;
+        assign_item_keys_list_t           m_assign_item_keys;
 
-        std::vector< size_type >        m_particle_set_indices;
-        std::vector< size_type >        m_num_particles_in_sets;
+        std::vector< ptr_buffer_store_t > m_stored_buffers;
+        std::vector< ptr_buffer_toc_t >   m_stored_buffer_tocs;
+        std::vector< size_type >          m_selected_pset_indices;
 
-        std::vector< buffer_store_t >   m_stored_buffers;
-        assign_item_keys_list_t         m_assign_item_keys;
+        std::string                       m_arch_str;
+        std::string                       m_node_id_str;
+        std::string                       m_config_str;
 
-        std::vector< size_type >        m_beam_monitor_output_offsets;
-        std::vector< size_type >        m_elem_by_elem_output_offsets;
+        size_type                         m_beam_elements_buffer_id;
+        size_type                         m_particle_sets_buffer_id;
+        size_type                         m_output_buffer_id;
+        size_type                         m_config_buffer_id;
+        size_type                         m_assign_address_items_buffer_id;
+        size_type                         m_particle_sets_addr_buffer_id;
+        size_type                         m_particle_sets_state_buffer_id;
+        size_type                         m_particle_sets_statistics_buffer_id;
 
-        ptr_buffer_t                    m_my_output_buffer;
-        ptr_buffer_t                    m_my_config_buffer;
-        ptr_buffer_t                    m_particles_addr_buffer;
+        size_type                         m_total_num_particles_in_sets;
+        size_type                         m_num_stored_buffers;
 
-        buffer_t*   SIXTRL_RESTRICT     m_ptr_particles_buffer;
-        buffer_t*   SIXTRL_RESTRICT     m_ptr_beam_elem_buffer;
-        buffer_t*   SIXTRL_RESTRICT     m_ptr_output_buffer;
+        type_t                            m_arch_id;
+        elem_by_elem_order_t              m_default_elem_by_elem_order;
 
-        c_buffer_t* SIXTRL_RESTRICT     m_ptr_c_particles_buffer;
-        c_buffer_t* SIXTRL_RESTRICT     m_ptr_c_beam_elem_buffer;
-        c_buffer_t* SIXTRL_RESTRICT     m_ptr_c_output_buffer;
-
-        size_type                       m_total_num_particles_in_sets;
-        size_type                       m_num_stored_buffers;
-
-        type_t                          m_arch_id;
-        elem_by_elem_order_t            m_default_elem_by_elem_order;
-
-        particle_index_t                m_min_particle_id;
-        particle_index_t                m_max_particle_id;
-
-        particle_index_t                m_min_element_id;
-        particle_index_t                m_max_element_id;
-
-        particle_index_t                m_min_initial_turn_id;
-        particle_index_t                m_max_initial_turn_id;
-
-        collect_flag_t                  m_collect_flags;
-        bool                            m_requires_collect;
-        bool                            m_default_elem_by_elem_rolling;
-        bool                            m_debug_mode;
+        collect_flag_t                    m_collect_flags;
+        bool                              m_requires_collect;
+        bool                              m_default_elem_by_elem_rolling;
     };
 }
 
