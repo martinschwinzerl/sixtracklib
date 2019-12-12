@@ -1,17 +1,14 @@
 set( SIXTRL_COMMON_BUFFER_CXX_HEADERS
-     assign_address_item.hpp
-     buffer_toc.hpp )
+     assign_address_item.hpp buffer_toc.hpp buffer_store.hpp )
 
 set( SIXTRL_COMMON_BUFFER_CXX_SOURCES
-     buffer_toc.cpp
-     buffer_toc_c99.cpp )
+     buffer_toc.cpp buffer_toc_c99.cpp buffer_store.cpp buffer_store_c99.cpp )
 
 add_library( sixtrack_common_buffer_cxx OBJECT
     ${SIXTRL_COMMON_BUFFER_CXX_HEADERS} ${SIXTRL_COMMON_BUFFER_CXX_SOURCES} )
 
 target_include_directories( sixtrack_common_buffer PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:include> )
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> $<INSTALL_INTERFACE:include> )
 
 set_target_properties( sixtrack_common_buffer_cxx PROPERTIES LINKER_LANGUAGE C
     POSITION_INDEPENDENT_CODE ON CXX_STANDARD 11 CXX_STANDARD_REQUIRED ON )
@@ -53,8 +50,7 @@ add_library( sixtrack_common_buffer OBJECT
     ${SIXTRL_COMMON_BUFFER_HEADERS} ${SIXTRL_COMMON_BUFFER_SOURCES} )
 
 target_include_directories( sixtrack_common_buffer PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
-    $<INSTALL_INTERFACE:include> )
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> $<INSTALL_INTERFACE:include> )
 
 set_target_properties( sixtrack_common_buffer PROPERTIES LINKER_LANGUAGE C
     POSITION_INDEPENDENT_CODE ON C_STANDARD 99 C_STANDARD_REQUIRED ON )
