@@ -72,6 +72,34 @@ if( GTEST_FOUND )
     add_test( CXX_Common_Buffer_BufferStringObjectTests
               test_buffer_string_object_common_cxx )
 
+    # ==========================================================================
+    # test_buffer_toc_common_c99:
+
+    add_executable( test_buffer_toc_common_c99 test_buffer_toc_c99.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_buffer_toc_common_c99 )
+    add_test( C99_Common_Buffer_BufferTocTests test_buffer_toc_common_c99 )
+
+    # -------------------------------------------------------------------------
+    # test_buffer_toc_common_cxx:
+
+    add_executable( test_buffer_toc_common_cxx test_buffer_toc_cxx.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_buffer_toc_common_cxx )
+    add_test( CXX_Common_Buffer_BufferTocTests test_buffer_toc_common_cxx )
+
+    # ==========================================================================
+    # test_buffer_store_common_c99:
+
+    add_executable( test_buffer_store_common_c99 test_buffer_toc_c99.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_buffer_store_common_c99 )
+    add_test( C99_Common_Buffer_BufferStoreTests test_buffer_store_common_c99 )
+
+    # -------------------------------------------------------------------------
+    # test_buffer_store_common_cxx:
+
+    add_executable( test_buffer_store_common_cxx test_buffer_toc_cxx.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_buffer_store_common_cxx )
+    add_test( CXX_Common_Buffer_BufferStoreTests test_buffer_store_common_cxx )
+
     # *************************************************************************
     # Set all properties:
 
