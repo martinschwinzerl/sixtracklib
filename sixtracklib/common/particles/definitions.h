@@ -10,6 +10,11 @@
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/internal/particles_defines.h"
     #include "sixtracklib/common/buffer/buffer_type.h"
+
+    #if !defined( __cplusplus )
+        #include "sixtracklib/common/internal/obj_store_traits.hpp"
+    #endif /* !defined( __cplusplus ) */
+
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE ) && !defined( __CUDA_ARCH__ )
@@ -86,6 +91,34 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST ::NS(buffer_size_t)
         PARTICLES_NUM_DATAPTRS = static_cast< ::NS(buffer_size_t) >(
             ::NS(PARTICLES_NUM_DATAPTRS) );
+
+    /* --------------------------------------------------------------------- */
+
+    template< class ParticleData >
+    struct ParticleTraits
+    {
+        typedef ::NS(buffer_size_t)     size_type;
+
+        typedef ::NS(particle_real_t)   real_t;
+        typedef real_t                  real_ret_t;
+        typedef real_t const            real_arg_t;
+
+        typedef ::NS(particle_index_t)  index_t;
+        typedef index_t                 index_ret_t;
+        typedef index_t const           index_arg_t;
+
+        static SIXTRL_FN constexpr size_type RealAlignment() SIXTRL_NOEXCEPT
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            return st::TypeStoreTraits< real_t >::StorageAlign();
+        }
+
+        static SIXTRL_FN constexpr size_type IndexAlignment() SIXTRL_NOEXCEPT
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            return st::TypeStoreTraits< index_t >::StorageAlign();
+        }
+    };
 }
 
 #endif /* C++, Host  */
