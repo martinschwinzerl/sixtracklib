@@ -34,7 +34,8 @@ typedef enum NS(object_type_values_e)
     NS(OBJECT_TYPE_ELEM_BY_ELEM_CONF)     =      65534,
     NS(OBJECT_TYPE_NODE_ID)               =      65535,
     NS(OBJECT_TYPE_LAST_AVAILABLE)        =      65535,
-    NS(OBJECT_TYPE_INVALID)               = 0x7fffffff
+    NS(OBJECT_TYPE_INVALID)               = 0x7fffffff,
+    NS(OBJECT_TYPE_ILLEGAL)               = 0x7fffffff
 }
 NS(object_type_values_t);
 
