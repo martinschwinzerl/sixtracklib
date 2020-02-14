@@ -34,7 +34,15 @@ set( SIXTRL_COMMON_INTERNAL_C99_HEADERS
 
 # ------------------------------------------------------------------------------
 
-set( SIXTRL_COMMON_INTERNAL_CXX_HEADERS track_job_base.h )
+set( SIXTRL_COMMON_INTERNAL_CXX_HEADERS
+     obj_type_id_traits.hpp
+     obj_c_api_traits.hpp
+     obj_data_type_traits.hpp
+     obj_base_class.hpp
+     stl_buffer_helper.hpp
+     track_job_base.h
+     type_store_traits.hpp
+)
 
 set( SIXTRL_COMMON_INTERNAL_CXX_SOURCES
      track_job_base.cpp track_job.cpp track_job_cpu.cpp )
