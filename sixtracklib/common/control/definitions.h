@@ -217,6 +217,9 @@ SIXTRL_STATIC_VAR NS(node_index_t) const NS(NODE_UNDEFINED_INDEX) =
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
+#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
+
+#if defined( __cplusplus )
 
 namespace SIXTRL_CXX_NAMESPACE
 {
@@ -334,7 +337,7 @@ namespace SIXTRL_CXX_NAMESPACE
         NODE_UNDEFINED_INDEX = static_cast< node_index_t >( 0xFFFFFFFF );
 }
 
-#endif /* C++, Host */
+#endif /* C++ */
 
 #endif /* SIXTRACKLIB_COMMON_CONTROL_DEFINITIONS_H__ */
 
