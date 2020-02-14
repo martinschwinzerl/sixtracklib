@@ -20,6 +20,10 @@ add_subdirectory( buffer         )
 add_subdirectory( control        )
 add_subdirectory( context        )
 add_subdirectory( internal       )
+add_subdirectory( cobjects       )
+
+add_subdirectory( beam_elements  )
+
 add_subdirectory( be_beamfields  )
 add_subdirectory( be_drift       )
 add_subdirectory( be_cavity      )
@@ -33,6 +37,8 @@ add_subdirectory( be_dipedge     )
 add_subdirectory( output         )
 add_subdirectory( particles      )
 add_subdirectory( track          )
+
+
 
 set(  SIXTRACKLIB_C99_HEADERS ${SIXTRACKLIB_C99_HEADERS}
       beam_elements.h buffer.h constants.h controller.h definitions.h
