@@ -96,29 +96,32 @@ SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_from_cbuffer)(
 
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
 
-// SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(Drift_can_be_added)(
-//     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const
-//         SIXTRL_RESTRICT buffer );
-//
-// SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(Drift_can_be_added_detailed)(
-//     SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const
-//         SIXTRL_RESTRICT buffer,
-//     SIXTRL_ARGPTR_DEC NS(cobj_size_t)* SIXTRL_RESTRICT ptr_requ_objects,
-//     SIXTRL_ARGPTR_DEC NS(cobj_size_t)* SIXTRL_RESTRICT ptr_requ_slots,
-//     SIXTRL_ARGPTR_DEC NS(cobj_size_t)* SIXTRL_RESTRICT
-//         ptr_requ_dataptrs );
-//
-// SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC NS(Drift)*
-// NS(Drift_new)( SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer );
-//
-// SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC NS(Drift)*
-// NS(Drift_add)( SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
-//     NS(be_real_t) const length );
-//
-// SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC NS(Drift)*
-// NS(Drift_add_copy)(
-//     SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
-//     SIXTRL_BUFFER_OBJ_DATAPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT orig);
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(Drift_can_add_copy)(
+    SIXTRL_BUFFER_ARGPTR_DEC const NS(CBufferView) *const
+        SIXTRL_RESTRICT buffer,
+    SIXTRL_BUFFER_ARGPTR_DEC const NS(Drift) *const
+        SIXTRL_RESTRICT orig ) SIXTRL_NOEXCEPT;
+
+SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(Drift_can_add_copy_detailed)(
+    SIXTRL_BUFFER_ARGPTR_DEC const NS(CBufferView) *const SIXTRL_RESTRICT buf,
+    SIXTRL_BUFFER_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT orig,
+    SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t)*
+        SIXTRL_RESTRICT ptr_requ_buffer_size,
+    SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t)* SIXTRL_RESTRICT ptr_requ_slots,
+    SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t)* SIXTRL_RESTRICT ptr_requ_objects,
+    SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t)* SIXTRL_RESTRICT ptr_requ_ptrs
+) SIXTRL_NOEXCEPT;
+
+SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_new)(
+    SIXTRL_BUFFER_ARGPTR_DEC NS(CBufferView)* SIXTRL_RESTRICT buffer );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_add)(
+    SIXTRL_BUFFER_ARGPTR_DEC NS(CBufferView)* SIXTRL_RESTRICT buffer,
+    NS(be_real_t) const length );
+
+SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_add_copy)(
+    SIXTRL_BUFFER_ARGPTR_DEC NS(CBufferView)* SIXTRL_RESTRICT buffer,
+    SIXTRL_BUFFER_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT orig );
 
 #endif /* _GPUCODE */
 
@@ -158,7 +161,7 @@ NS(Drift_const_from_cobj_index)( SIXTRL_BUFFER_OBJ_ARGPTR_DEC const
             index_obj, NS(Drift_type_id)(), sizeof( NS(Drift) ), slot_size );
 }
 
-SIXTRL_INLINE NS(Drift)* NS(Drift_from_cobj_index)(
+SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_from_cobj_index)(
     SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)*
         SIXTRL_RESTRICT index_obj,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
@@ -168,8 +171,8 @@ SIXTRL_INLINE NS(Drift)* NS(Drift_from_cobj_index)(
             index_obj, NS(Drift_type_id)(), sizeof( NS(Drift) ), slot_size );
 }
 
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(Drift) const
-* NS(Drift_const_from_flat_cbuffer)(
+SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(Drift) const*
+NS(Drift_const_from_flat_cbuffer)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT buffer,
     NS(cobj_size_t) const pos_in_buffer,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT

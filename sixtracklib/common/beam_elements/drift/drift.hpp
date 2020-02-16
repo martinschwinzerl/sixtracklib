@@ -32,46 +32,23 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    template< class ObjData, store_backend_t StoreT >
-    SIXTRL_INLINE SIXTRL_FN void Drift_set_length(
-        TDriftImpl< ObjData, StoreT >* SIXTRL_RESTRICT drift,
-        typename TDriftImpl< ObjData, StoreT >::real_arg_t length
-    ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( drift != SIXTRL_NULLPTR );
-        drift->length = length;
-    }
-
-    template< class ObjData, store_backend_t StoreT >
-    SIXTRL_INLINE SIXTRL_FN void Drift_set_length(
-        TDriftImpl< ObjData, StoreT >& SIXTRL_RESTRICT_REF drift,
-        typename TDriftImpl< ObjData, StoreT >::real_arg_t length
-    ) SIXTRL_NOEXCEPT
-    {
-        drift.length = length;
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    template< class ObjData, store_backend_t StoreT >
-    SIXTRL_INLINE SIXTRL_FN
-    typename TDriftImpl< ObjData, StoreT >::real_const_existing_t Drift_length(
-        const TDriftImpl< ObjData, StoreT > *const SIXTRL_RESTRICT drift
-    ) SIXTRL_NOEXCEPT
+    template< class E, store_backend_t St >
+    SIXTRL_INLINE SIXTRL_FN typename TDriftImpl< E, St >::real_const_existing_t
+    Drift_length( SIXTRL_BE_ARGPTR_DEC const TDriftImpl< E, St > *const
+            SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT
     {
         SIXTRL_ASSERT( drift != SIXTRL_NULLPTR );
         return drift->length;
     }
 
-    template< class ObjData, store_backend_t StoreT >
-    SIXTRL_INLINE SIXTRL_FN
-    typename TDriftImpl< ObjData, StoreT >::real_const_existing_t
-    Drift_length( TDriftImpl< ObjData, StoreT > const&
-        SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT
+    template< class E, store_backend_t St >
+    SIXTRL_INLINE SIXTRL_FN void Drift_set_length(
+        SIXTRL_BE_ARGPTR_DEC TDriftImpl< E, St >* SIXTRL_RESTRICT drift,
+        typename TDriftImpl< E, St >::real_arg_t length ) SIXTRL_NOEXCEPT
     {
-        return drift.length;
+        SIXTRL_ASSERT( drift != SIXTRL_NULLPTR );
+        drift->length = length;
     }
-
 }
 
 #if !defined( SIXTRL_NO_INCLUDES )
