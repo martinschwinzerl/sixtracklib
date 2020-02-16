@@ -12,7 +12,6 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
-    #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/cobjects/definitions.h"
     #include "sixtracklib/common/cobjects/element_pointers.hpp"
     #include "sixtracklib/common/cobjects/helper_functions.hpp"
@@ -35,7 +34,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 /* ptr */ = nullptr ) SIXTRL_NOEXCEPT
         {
             namespace st = SIXTRL_CXX_NAMESPACE;
-            st::arch_status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+            st::cobj_status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
 
             if( ( st::CObjElem_consistent_minmax_ptrs< E >() ) &&
                 ( st::CObjElem_definitely_has_no_ptrs< E >() ) )

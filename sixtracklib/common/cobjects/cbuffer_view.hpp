@@ -432,7 +432,7 @@ struct NS(CBufferView);
 namespace SIXTRL_CXX_NAMESPACE
 {
     template< class T >
-    SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC T*
+    SIXTRL_INLINE SIXTRL_BUFFER_OBJ_DATAPTR_DEC T*
     CBufferView_add_copy_of_object_detail(
         SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT view,
         SIXTRL_BUFFER_ARGPTR_DEC const T *const SIXTRL_RESTRICT ptr_elem,
