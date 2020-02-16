@@ -35,6 +35,7 @@ set( SIXTRL_COMMON_INTERNAL_C99_HEADERS
 # ------------------------------------------------------------------------------
 
 set( SIXTRL_COMMON_INTERNAL_CXX_HEADERS
+     math_factorial.h
      obj_type_id_traits.hpp
      obj_c_api_traits.hpp
      obj_data_type_traits.hpp
