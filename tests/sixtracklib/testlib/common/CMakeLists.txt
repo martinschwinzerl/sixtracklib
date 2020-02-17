@@ -15,6 +15,7 @@ add_subdirectory( beam_elements )
 add_subdirectory( particles )
 add_subdirectory( track )
 add_subdirectory( output )
+add_subdirectory( cobjects )
 
 # ------------------------------------------------------------------------------
 
