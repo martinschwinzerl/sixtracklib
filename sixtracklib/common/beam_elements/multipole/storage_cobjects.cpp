@@ -33,7 +33,19 @@ namespace
 
     static_assert( st::CObjElem_allow_direct_storage< _c_mp_t >(),
         "Multipoles are supposed to be suitable for direct storage" );
+
+    /* --------------------------------------------------------------------- */
 }
+
+namespace SIXTRL_CXX_NAMESPACE
+{
+    constexpr _size_t CObjElemNumPointers< _c_mp_t, void >::min_num_ptrs;
+    constexpr _size_t CObjElemNumPointers< _c_mp_t, void >::max_num_ptrs;
+
+    constexpr _size_t CObjElemFieldOffsets< _c_mp_t >::offsets[];
+    constexpr _size_t CObjElemFieldSizes< _c_mp_t >::sizes[];
+}
+
 
 ::NS(cobj_type_id_t) NS(Multipole_type_id_ext)( void ) SIXTRL_NOEXCEPT
 {

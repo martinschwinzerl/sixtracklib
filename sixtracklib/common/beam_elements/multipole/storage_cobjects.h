@@ -51,12 +51,6 @@ namespace SIXTRL_CXX_NAMESPACE
         static constexpr cobj_size_t max_num_ptrs = cobj_size_t{ 1 };
     };
 
-    constexpr cobj_size_t CObjElemNumPointers<
-        ::NS(Multipole), void >::min_num_ptrs;
-
-    constexpr cobj_size_t CObjElemNumPointers<
-        ::NS(Multipole), void >::max_num_ptrs;
-
     /* pointer offsets */
 
     template<> struct CObjElemFieldOffsets< ::NS(Multipole) >
@@ -67,16 +61,12 @@ namespace SIXTRL_CXX_NAMESPACE
         };
     };
 
-    constexpr cobj_size_t CObjElemFieldOffsets< ::NS(Multipole) >::offsets[];
-
     /* pointer element sizes */
 
     template<> struct CObjElemFieldSizes< ::NS(Multipole) >
     {
         static constexpr cobj_size_t sizes[ 1 ] = { sizeof( be_real_t ) };
     };
-
-    constexpr cobj_size_t CObjElemFieldSizes< ::NS(Multipole) >::sizes[];
 
     /* pointer element counts */
 
