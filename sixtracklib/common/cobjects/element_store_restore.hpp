@@ -190,7 +190,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 &counts[ 0 ], MAX_NUM_PTRS, ptr_elem ) ==
                     st::COBJECTS_STATUS_SUCCESS )
         {
-            slot_based_size = ::NS(CObjFlatBuffer_predict_required_num_slots)(
+            slot_based_size = ::NS(CObjFlatBuffer_predict_required_num_bytes)(
                 sizeof( E ), MAX_NUM_PTRS,
                     st::CObjElem_field_sizes_ptr_constexpr_begin< E >(),
                         &counts[ 0 ], slot_size );
@@ -227,7 +227,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ( st::CObjElem_field_counts< E >( &counts[ 0 ], MAX_NUM_PTRS,
                 ptr_elem ) == st::COBJECTS_STATUS_SUCCESS ) )
         {
-            slot_based_size = ::NS(CObjFlatBuffer_predict_required_num_slots)(
+            slot_based_size = ::NS(CObjFlatBuffer_predict_required_num_bytes)(
                 sizeof( E ), num_ptrs, &sizes[ 0 ], &counts[ 0 ], slot_size );
         }
 
@@ -267,7 +267,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ( st::CObjElem_field_counts< E >( counts.data(), counts.size(),
                 ptr_elem ) == st::COBJECTS_STATUS_SUCCESS ) )
         {
-            slot_based_size = ::NS(CObjFlatBuffer_predict_required_num_slots)(
+            slot_based_size = ::NS(CObjFlatBuffer_predict_required_num_bytes)(
                 sizeof( E ), num_ptrs, sizes.data(), counts.data(), slot_size);
         }
 
