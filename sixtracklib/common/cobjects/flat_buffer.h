@@ -4033,8 +4033,9 @@ NS(_CObjFlatBuffer_add_copy_of_object_ptrs_part)(
         /* The object handle would have been added to at the end of the
          * current slots data section -> use this address as the minimum
          * address which a pointer can have */
-        _addr_t const obj_handle_addr = NS(CObjFlatBuffer_section_end_addr)(
-            buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
+        _addr_t const obj_handle_addr =
+            NS(CObjFlatBuffer_section_data_end_addr)( buffer,
+                SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
         /* NOTE: At the moment, we enforce that the targets of the pointers
          *       have to be located in the object handle itself; this is
