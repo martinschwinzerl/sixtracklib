@@ -2375,15 +2375,14 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
         if( ( status == SIXTRL_COBJECTS_STATUS_SUCCESS ) &&
             ( num_pointers > ( _size_t )0u ) )
         {
-            _size_t const requ_num_slots =
-                NS(CObjFlatBuffer_predict_required_num_slots)(
+            _size_t const requ_storage_size =
+                NS(CObjFlatBuffer_predict_required_num_bytes)(
                     obj_size, num_pointers, sizes, counts, slot_size );
 
-            _size_t const requ_storage_size = requ_num_slots * slot_size;
             _size_t ii = ( _size_t )0u;
 
-            SIXTRL_ASSERT(   requ_storage_size >= storage_obj_size );
-            SIXTRL_ASSERT( ( requ_storage_size % slot_size ) == ( _size_t )0u);
+            SIXTRL_ASSERT( requ_storage_size >= storage_obj_size );
+            SIXTRL_ASSERT( requ_storage_size % slot_size == ( _size_t )0u );
             SIXTRL_ASSERT( requ_storage_size >=
                 NS(CObjIndex_size)( index_obj ) );
             SIXTRL_ASSERT( save_ptrs != SIXTRL_NULLPTR );
@@ -2543,15 +2542,14 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
         if( ( status == SIXTRL_COBJECTS_STATUS_SUCCESS ) &&
             ( num_pointers > ( _size_t )0u ) )
         {
-            _size_t const requ_num_slots =
-                NS(CObjFlatBuffer_predict_required_num_slots)(
+            _size_t const requ_storage_size =
+                NS(CObjFlatBuffer_predict_required_num_bytes)(
                     obj_size, num_pointers, sizes, counts, slot_size );
 
-            _size_t const requ_storage_size = requ_num_slots * slot_size;
             _size_t ii = ( _size_t )0u;
 
-            SIXTRL_ASSERT(   requ_storage_size >= storage_obj_size );
-            SIXTRL_ASSERT( ( requ_storage_size % slot_size ) == ( _size_t )0u);
+            SIXTRL_ASSERT( requ_storage_size >= storage_obj_size );
+            SIXTRL_ASSERT( requ_storage_size % slot_size == ( _size_t )0u );
             SIXTRL_ASSERT( requ_storage_size >=
                 NS(CObjIndex_size)( index_obj ) );
             SIXTRL_ASSERT( save_ptrs != SIXTRL_NULLPTR );
@@ -2609,11 +2607,11 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_predict_required_num_bytes)(
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
     typedef NS(cobj_size_t) _size_t;
-    _size_t requ_num_slots = ( _size_t )0u;
+    _size_t requ_num_bytes = ( _size_t )0u;
 
     if( ( slot_size > ( _size_t )0u ) && ( obj_handle_size > ( _size_t )0u ) )
     {
-        _size_t requ_num_bytes = NS(CObjFlatBuffer_slot_based_size)(
+        requ_num_bytes = NS(CObjFlatBuffer_slot_based_size)(
             obj_handle_size, slot_size );
 
         SIXTRL_ASSERT( requ_num_bytes > ( _size_t )0u );
