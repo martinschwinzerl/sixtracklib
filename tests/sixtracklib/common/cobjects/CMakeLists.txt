@@ -15,8 +15,39 @@ if( GTEST_FOUND )
     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
          test_cbuffer_view_add_objects_cxx )
 
-    add_test( C99_Common_CObjects_CBufferViewAddObjectsTests
+    add_test( CXX_Common_CObjects_CBufferView_AddObjectsTests
               test_cbuffer_view_add_objects_cxx )
+
+    # ==========================================================================
+    # test_cbuffer_view_load_objects_cxx:
+
+    add_executable( test_cbuffer_view_load_objects_cxx
+                    test_cbuffer_view_load_objects.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+         test_cbuffer_view_load_objects_cxx )
+
+    add_test( CXX_Common_CObjects_CBufferView_LoadObjectsTests
+              test_cbuffer_view_load_objects_cxx )
+
+    set_tests_properties( CXX_Common_CObjects_CBufferView_LoadObjectsTests
+        PROPERTIES DEPENDS CXX_Common_CObjects_CBufferView_AddObjectsTests )
+
+
+    # ==========================================================================
+    # test_cbuffer_view_load_objects_cxx:
+
+    add_executable( test_cbuffer_view_store_objects_cxx
+                    test_cbuffer_view_store_objects.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+         test_cbuffer_view_store_objects_cxx )
+
+    add_test( CXX_Common_CObjects_CBufferView_StoreObjectsTests
+              test_cbuffer_view_store_objects_cxx )
+
+    set_tests_properties( CXX_Common_CObjects_CBufferView_StoreObjectsTests
+        PROPERTIES DEPENDS CXX_Common_CObjects_CBufferView_AddObjectsTests )
 
     # *************************************************************************
     # Set all properties:
