@@ -52,26 +52,13 @@ namespace SIXTRL_CXX_NAMESPACE
      * We provide some infrastructore to safely mark those ObjClass classes
      * that can work in such a context */
 
-    template< class ObjData, typename _Enabled = void >
-    struct ObjDataCApiTypeTraits;
-
     /* By default, we do not assume a proper C-API mapping. Having void as
      * a C-API pointer is actually rather convenient */
 
     template< class ObjData >
-    struct ObjDataCApiTypeTraits< ObjData, typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::ObjData_is_not_c_api_type< ObjData >() >::type >
+    struct ObjDataCApiTypeTraits
     {
         typedef void c_api_t;
-    };
-
-    /* In case ObjData itself is a C-API type, we can default to itself */
-
-    template< class ObjData >
-    struct ObjDataCApiTypeTraits< ObjData, typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::ObjData_is_c_api_type< ObjData >() >::type >
-    {
-        typedef ObjData c_api_t;
     };
 
     /* --------------------------------------------------------------------- */
@@ -85,13 +72,25 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     template< class E >
-    static SIXTRL_FN constexpr SIXTRL_CXX_NAMESPACE::arch_size_t
-    ObjData_sizeof_c_api_type() SIXTRL_NOEXCEPT
+    static SIXTRL_FN constexpr typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::ObjData_is_c_api_type<
+            typename ObjDataCApiTypeTraits< E >::c_api_t >(),
+        SIXTRL_CXX_NAMESPACE::arch_size_t >::type
+    ObjData_sizeof_c_api_type(
+        const E *const /* ptr */ = nullptr ) SIXTRL_NOEXCEPT
     {
-        return ( SIXTRL_CXX_NAMESPACE::ObjData_is_c_api_type< typename
-                    ObjDataCApiTypeTraits< E >::c_api_t >() )
-            ? ( sizeof( typename ObjDataCApiTypeTraits< E >::c_api_t ) )
-            : ( SIXTRL_CXX_NAMESPACE::arch_size_t{ 0 } );
+        return sizeof( typename ObjDataCApiTypeTraits< E >::c_api_t );
+    }
+
+    template< class E >
+    static SIXTRL_FN constexpr typename std::enable_if<
+       !SIXTRL_CXX_NAMESPACE::ObjData_is_c_api_type<
+            typename ObjDataCApiTypeTraits< E >::c_api_t >(),
+        SIXTRL_CXX_NAMESPACE::arch_size_t >::type
+    ObjData_sizeof_c_api_type(
+        const E *const /* ptr */ = nullptr ) SIXTRL_NOEXCEPT
+    {
+        return SIXTRL_CXX_NAMESPACE::arch_size_t{ 0 };
     }
 
     template< class E >
@@ -136,10 +135,8 @@ namespace SIXTRL_CXX_NAMESPACE
     template< class ObjData > static SIXTRL_FN constexpr bool
     ObjData_can_bitcast_to_c_api() SIXTRL_NOEXCEPT
     {
-        return ( ( std::is_trivially_copyable< ObjData >::value ) &&
-            ( SIXTRL_CXX_NAMESPACE::ObjData_has_c_api_type< ObjData >() ) &&
-            ( sizeof( ObjData ) == sizeof( typename ObjDataCApiTypeTraits<
-                ObjData >::c_api_t ) ) );
+        return SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type<
+            ObjData >();
     }
 
     /* --------------------------------------------------------------------- */
@@ -152,82 +149,55 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class ObjData >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::ObjData_can_bitcast_to_c_api< ObjData >(),
-        typename ObjDataCApiTypeTraits< ObjData >::c_api_t const* >::type
-    ObjData_bitcast_to_const_c_api( const ObjData *const
-        SIXTRL_RESTRICT ptr_obj ) SIXTRL_NOEXCEPT
-    {
-        namespace st = SIXTRL_CXX_NAMESPACE;
-        typedef typename st::ObjDataCApiTypeTraits< ObjData >::c_api_t
-                _c_api_t;
-
-        return static_cast< _c_api_t const* >(
-            reinterpret_cast< uintptr_t >( ptr_obj ) );
-    }
-
-    template< class ObjData >
-    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        !SIXTRL_CXX_NAMESPACE::ObjData_can_bitcast_to_c_api< ObjData >(),
+        !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< ObjData >(),
         void const* >::type ObjData_bitcast_to_const_c_api( const ObjData
             *const SIXTRL_RESTRICT /* ptr_obj */ ) SIXTRL_NOEXCEPT
     {
-        namespace st = SIXTRL_CXX_NAMESPACE;
-
-        static_assert( !std::is_void<
-            typename st::ObjDataCApiTypeTraits< ObjData >::c_api_t >::value,
-            "Can not bit-cast to c-api: no C-Api type defined" );
-
-        static_assert( st::ObjData_is_c_api_type<
-            typename st::ObjDataCApiTypeTraits< ObjData >::c_api_t >(),
-            "Can not bit-cast to c-api: defined C-Api is not admissible" );
-
-        static_assert( st::ObjData_can_bitcast_to_c_api<
-            typename st::ObjDataCApiTypeTraits< ObjData >::c_api_t >(),
-            "Can not bit-cast to c-api: operation not defind/admissible" );
-
         return nullptr;
     }
 
     template< class ObjData >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::ObjData_can_bitcast_to_c_api< ObjData >(),
+        !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< ObjData >(),
+        ObjData const* >::type ObjData_bitcast_from_const_c_api(
+            void const* SIXTRL_RESTRICT /* ptr_c_api_obj */ ) SIXTRL_NOEXCEPT
+    {
+        return nullptr;
+    }
+
+
+    template< class ObjData >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< ObjData >(),
+        typename ObjDataCApiTypeTraits< ObjData >::c_api_t const* >::type
+    ObjData_bitcast_to_const_c_api(
+        const ObjData *const SIXTRL_RESTRICT ptr_obj ) SIXTRL_NOEXCEPT
+    {
+        typedef typename ObjDataCApiTypeTraits< ObjData >::c_api_t const*
+                _ptr_c_api_t;
+
+        return reinterpret_cast< _ptr_c_api_t >( reinterpret_cast< uintptr_t
+            >( ptr_obj ) );
+    }
+
+    template< class ObjData >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< ObjData >(),
         ObjData const* >::type ObjData_bitcast_from_const_c_api(
             typename ObjDataCApiTypeTraits< ObjData >::c_api_t const*
                 SIXTRL_RESTRICT ptr_c_api_obj ) SIXTRL_NOEXCEPT
     {
-        return static_cast< ObjData const* >(
-            reinterpret_cast< uintptr_t >( ptr_c_api_obj ) );
-    }
+        typedef ObjData const* _ptr_cxx_api_t;
 
-    template< class ObjData >
-    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        !SIXTRL_CXX_NAMESPACE::ObjData_can_bitcast_to_c_api< ObjData >(),
-        void const* >::type ObjData_bitcast_from_const_c_api(
-            typename ObjDataCApiTypeTraits< ObjData >::c_api_t const*
-                SIXTRL_RESTRICT /* ptr_c_api_obj */ ) SIXTRL_NOEXCEPT
-    {
-        namespace st = SIXTRL_CXX_NAMESPACE;
-
-        static_assert( !std::is_void<
-            typename st::ObjDataCApiTypeTraits< ObjData >::c_api_t >::value,
-            "Can not bit-cast to c-api: no C-Api type defined" );
-
-        static_assert( st::ObjData_is_c_api_type<
-            typename st::ObjDataCApiTypeTraits< ObjData >::c_api_t >(),
-            "Can not bit-cast to c-api: defined C-Api is not admissible" );
-
-        static_assert( st::ObjData_can_bitcast_to_c_api<
-            typename st::ObjDataCApiTypeTraits< ObjData >::c_api_t >(),
-            "Can not bit-cast to c-api: operation not defind/admissible" );
-
-        return nullptr;
+        return reinterpret_cast< _ptr_cxx_api_t >( reinterpret_cast< uintptr_t
+            >( ptr_c_api_obj ) );
     }
 
     /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
     template< class ObjData >
-    static SIXTRL_INLINE SIXTRL_FN typename ObjDataCApiTypeTraits<
-        ObjData >::c_api_t const*
+    static SIXTRL_INLINE SIXTRL_FN
+        typename ObjDataCApiTypeTraits< ObjData >::c_api_t*
     ObjData_bitcast_to_c_api( ObjData* SIXTRL_RESTRICT ptr ) SIXTRL_NOEXCEPT
     {
         namespace st = SIXTRL_CXX_NAMESPACE;
@@ -244,8 +214,8 @@ namespace SIXTRL_CXX_NAMESPACE
         ObjData >::c_api_t* SIXTRL_RESTRICT ptr ) SIXTRL_NOEXCEPT
     {
         namespace st = SIXTRL_CXX_NAMESPACE;
-        return const_cast< ObjData* >( st::ObjData_bitcast_from_const_c_api<
-            ObjData >( ptr ) );
+        return const_cast< ObjData* >(
+            st::ObjData_bitcast_from_const_c_api< ObjData >( ptr ) );
     }
 }
 
