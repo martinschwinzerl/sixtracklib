@@ -110,7 +110,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_FN cxx_api_t* as_ptr_data() SIXTRL_NOEXCEPT
         {
-            return static_cast< cxx_api_t const* >( this );
+            return static_cast< cxx_api_t* >( this );
         }
 
         SIXTRL_FN cxx_api_t const* as_ptr_data() const SIXTRL_NOEXCEPT
@@ -154,13 +154,15 @@ namespace SIXTRL_CXX_NAMESPACE
         static SIXTRL_FN constexpr
         bool is_convertible_to_c_api() SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ObjData_has_c_api_type< ObjData >();
+            return SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type<
+                ObjData >();
         }
 
         static SIXTRL_FN constexpr
         bool is_not_convertible_to_c_api() SIXTRL_NOEXCEPT
         {
-            return !SIXTRL_CXX_NAMESPACE::ObjData_has_c_api_type< ObjData >();
+            return !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type<
+                ObjData >();
         }
 
         SIXTRL_INLINE SIXTRL_FN c_api_t const*
