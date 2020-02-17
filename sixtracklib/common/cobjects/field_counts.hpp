@@ -72,6 +72,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
         SIXTRL_CXX_NAMESPACE::CObjElem_definitely_has_no_ptrs< E >(),
         cobj_status_t >
     CObjElem_field_counts(
@@ -89,7 +90,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_definitely_has_no_ptrs< E >(),
+         SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+        !SIXTRL_CXX_NAMESPACE::CObjElem_definitely_has_no_ptrs< E >() &&
+        ( SIXTRL_CXX_NAMESPACE::CObjElem_has_const_num_ptrs< E >() ||
+          SIXTRL_CXX_NAMESPACE::CObjElem_allows_var_num_ptrs< E >() ),
         cobj_status_t >::type
     CObjElem_field_counts(
         SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT counts_begin,
