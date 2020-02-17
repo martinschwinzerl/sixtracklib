@@ -2,14 +2,8 @@
 #define SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_C99_H__
 
 #if !defined( SIXTRL_NO_INCLUDES )
-    #if defined( __cplusplus )
-        #include <cmath>
-    #endif /* defined( __cplusplus ) */
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
-
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/beam_elements/multipole/definitions.h"
+    #include "sixtracklib/common/internal/obj_c_api_traits.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( __GPUCODE ) && defined( __cplusplus )
@@ -89,9 +83,13 @@ NS(be_real_t)* NS(Multipole_bal)( SIXTRL_BE_ARGPTR_DEC NS(Multipole)*
 #endif /* !defined( __GPUCODE ) && defined( __cplusplus ) */
 
 #if defined( __cplusplus )
-
 namespace SIXTRL_CXX_NAMESPACE
 {
+    template<> struct ObjDataCApiTypeTraits< ::NS(Multipole) >
+    {
+        typedef ::NS(Multipole) c_api_t;
+    };
+
     template<> struct MultipoleTraits< ::NS(Multipole) >
     {
         typedef ::NS(be_real_t)     real_t;

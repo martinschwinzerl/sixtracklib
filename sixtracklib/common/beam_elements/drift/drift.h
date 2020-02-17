@@ -3,6 +3,7 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/beam_elements/drift/definitions.h"
+    #include "sixtracklib/common/internal/obj_c_api_traits.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( __GPUCODE ) && defined( __cplusplus )
@@ -25,6 +26,16 @@ SIXTRL_STATIC SIXTRL_FN void NS(Drift_set_length)(
 #if !defined( __GPUCODE ) && defined( __cplusplus )
 }
 #endif /* !defined( __GPUCODE ) && defined( __cplusplus ) */
+
+#if defined( __cplusplus )
+namespace SIXTRL_CXX_NAMESPACE
+{
+    template<> struct ObjDataCApiTypeTraits< ::NS(Drift) >
+    {
+        typedef ::NS(Drift) c_api_t;
+    };
+}
+#endif /* C++ */
 
 /* ------------------------------------------------------------------------- */
 
