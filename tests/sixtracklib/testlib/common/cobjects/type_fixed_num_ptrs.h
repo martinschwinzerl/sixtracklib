@@ -27,11 +27,131 @@ typedef struct NS(TypeFixedNumPtrs)
 {
     SIXTRL_REAL_T       a               SIXTRL_ALIGN( 8 );
     SIXTRL_UINT64_T     num_b_values    SIXTRL_ALIGN( 8 );
-    NS(cobj_address_t)  b_values        SIXTRL_ALIGN( 8 );
+    NS(cobj_address_t)  b_values_addr   SIXTRL_ALIGN( 8 );
     SIXTRL_UINT64_T     num_c_values    SIXTRL_ALIGN( 8 );
-    NS(cobj_address_t)  c_values        SIXTRL_ALIGN( 8 );
+    NS(cobj_address_t)  c_values_addr   SIXTRL_ALIGN( 8 );
 }
 NS(TypeFixedNumPtrs);
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)*
+NS(TypeFixedNumPtrs_preset)( SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)*
+    SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(TypeFixedNumPtrs_a)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_UINT64_T NS(TypeFixedNumPtrs_num_b_values)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_UINT64_T NS(TypeFixedNumPtrs_num_c_values)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(cobj_address_t) NS(TypeFixedNumPtrs_b_values_addr)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(cobj_address_t) NS(TypeFixedNumPtrs_c_values_addr)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_STATIC SIXTRL_FN void NS(TypeFixedNumPtrs_set_a)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    SIXTRL_REAL_T const a ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN void NS(TypeFixedNumPtrs_set_num_b_values)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    SIXTRL_UINT64_T const num_b_values ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN void NS(TypeFixedNumPtrs_set_num_c_values)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    SIXTRL_UINT64_T const num_c_values ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN void NS(TypeFixedNumPtrs_set_b_values_addr)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    NS(cobj_address_t) const b_values_addr ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN void NS(TypeFixedNumPtrs_set_c_values_addr)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    NS(cobj_address_t) const c_values_addr ) SIXTRL_NOEXCEPT;
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_b_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_b_values_end)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_b_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_b_values_end)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_c_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_c_values_end)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_c_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_c_values_end)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(TypeFixedNumPtrs_b_value)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj, SIXTRL_UINT64_T const ii ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(TypeFixedNumPtrs_c_value)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj, SIXTRL_UINT64_T const ii ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN void NS(TypeFixedNumPtrs_set_b_value)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)*SIXTRL_RESTRICT obj,
+    SIXTRL_UINT64_T const ii, SIXTRL_REAL_T const b_value ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN void NS(TypeFixedNumPtrs_set_c_value)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    SIXTRL_UINT64_T const ii, SIXTRL_REAL_T const c_value ) SIXTRL_NOEXCEPT;
+
+/*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_c_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_c_values_end)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_c_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_c_values_end)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
+
+/* ------------------------------------------------------------------------- */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
@@ -60,7 +180,7 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     };
 
-    template<> struct CObjElemNumPointers< ::NS(TypeFixedNumPtrs) >
+    template<> struct CObjElemNumPointers< ::NS(TypeFixedNumPtrs), void >
     {
         static constexpr cobj_size_t min_num_ptrs = cobj_size_t{ 2 };
         static constexpr cobj_size_t max_num_ptrs = cobj_size_t{ 2 };
@@ -70,8 +190,8 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         static constexpr cobj_size_t offsets[] =
         {
-            offsetof( ::NS(TypeFixedNumPtrs), b_values ),
-            offsetof( ::NS(TypeFixedNumPtrs), c_values )
+            offsetof( ::NS(TypeFixedNumPtrs), b_values_addr ),
+            offsetof( ::NS(TypeFixedNumPtrs), c_values_addr )
         };
     };
 
@@ -113,5 +233,244 @@ namespace SIXTRL_CXX_NAMESPACE
 }
 
 #endif /* __cplusplus */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+extern "C" {
+#endif /* C++, Host */
+
+SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)*
+NS(TypeFixedNumPtrs_preset)( SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)*
+    SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    if( obj != SIXTRL_NULLPTR )
+    {
+        NS(TypeFixedNumPtrs_set_a)( obj, ( SIXTRL_REAL_T )0.0 );
+        NS(TypeFixedNumPtrs_set_num_b_values)( obj, ( SIXTRL_UINT64_T )0 );
+        NS(TypeFixedNumPtrs_set_b_values_addr)( obj, ( NS(cobj_address_t) )0 );
+        NS(TypeFixedNumPtrs_set_num_c_values)( obj, ( SIXTRL_UINT64_T )0 );
+        NS(TypeFixedNumPtrs_set_c_values_addr)( obj, ( NS(cobj_address_t) )0 );
+    }
+
+    return obj;
+}
+
+SIXTRL_INLINE SIXTRL_REAL_T NS(TypeFixedNumPtrs_a)( SIXTRL_BUFFER_DATAPTR_DEC
+    const NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_ASSERT( obj != SIXTRL_NULLPTR );
+    return obj->a;
+}
+
+SIXTRL_INLINE SIXTRL_UINT64_T NS(TypeFixedNumPtrs_num_b_values)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_ASSERT( obj != SIXTRL_NULLPTR );
+    return obj->num_b_values;
+}
+
+SIXTRL_INLINE SIXTRL_UINT64_T NS(TypeFixedNumPtrs_num_c_values)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_ASSERT( obj != SIXTRL_NULLPTR );
+    return obj->num_c_values;
+}
+
+SIXTRL_INLINE NS(cobj_address_t) NS(TypeFixedNumPtrs_b_values_addr)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_ASSERT( obj != SIXTRL_NULLPTR );
+    return obj->b_values_addr;
+}
+
+SIXTRL_INLINE NS(cobj_address_t) NS(TypeFixedNumPtrs_c_values_addr)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_ASSERT( obj != SIXTRL_NULLPTR );
+    return obj->c_values_addr;
+}
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_INLINE void NS(TypeFixedNumPtrs_set_a)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    SIXTRL_REAL_T const a ) SIXTRL_NOEXCEPT
+{
+    if( obj != SIXTRL_NULLPTR ) obj->a = a;
+}
+
+SIXTRL_INLINE void NS(TypeFixedNumPtrs_set_num_b_values)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    SIXTRL_UINT64_T const num_b_values ) SIXTRL_NOEXCEPT
+{
+    if( obj != SIXTRL_NULLPTR ) obj->num_b_values = num_b_values;
+}
+
+SIXTRL_INLINE void NS(TypeFixedNumPtrs_set_num_c_values)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    SIXTRL_UINT64_T const num_c_values ) SIXTRL_NOEXCEPT
+{
+    if( obj != SIXTRL_NULLPTR ) obj->num_c_values = num_c_values;
+}
+
+SIXTRL_INLINE void NS(TypeFixedNumPtrs_set_b_values_addr)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    NS(cobj_address_t) const b_values_addr ) SIXTRL_NOEXCEPT
+{
+    if( obj != SIXTRL_NULLPTR ) obj->b_values_addr = b_values_addr;
+}
+
+SIXTRL_INLINE void NS(TypeFixedNumPtrs_set_c_values_addr)(
+    SIXTRL_BUFFER_DATAPTR_DEC NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    NS(cobj_address_t) const c_values_addr ) SIXTRL_NOEXCEPT
+{
+    if( obj != SIXTRL_NULLPTR ) obj->c_values_addr = c_values_addr;
+}
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_b_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_ASSERT( obj != SIXTRL_NULLPTR );
+    return ( SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* )( uintptr_t
+        )NS(TypeFixedNumPtrs_b_values_addr)( obj );
+}
+
+SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_b_values_end)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* ptr_end =
+        NS(TypeFixedNumPtrs_const_b_values_begin)( obj );
+
+    if( ptr_end != SIXTRL_NULLPTR )
+    {
+        ptr_end = ptr_end +  NS(TypeFixedNumPtrs_num_b_values)( obj );
+    }
+
+    return ptr_end;
+}
+
+SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_b_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    return ( SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+        )NS(TypeFixedNumPtrs_const_b_values_begin)( obj );
+}
+
+SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_b_values_end)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    return ( SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+        )NS(TypeFixedNumPtrs_const_b_values_end)( obj );
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_c_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_ASSERT( obj != SIXTRL_NULLPTR );
+    return ( SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* )( uintptr_t
+        )NS(TypeFixedNumPtrs_c_values_addr)( obj );
+}
+
+SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const*
+NS(TypeFixedNumPtrs_const_c_values_end)( SIXTRL_BUFFER_DATAPTR_DEC const
+    NS(TypeFixedNumPtrs) *const SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* ptr_end =
+        NS(TypeFixedNumPtrs_const_c_values_begin)( obj );
+
+    if( ptr_end != SIXTRL_NULLPTR )
+    {
+        ptr_end = ptr_end +  NS(TypeFixedNumPtrs_num_c_values)( obj );
+    }
+
+    return ptr_end;
+}
+
+SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_c_values_begin)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    return ( SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+        )NS(TypeFixedNumPtrs_const_c_values_begin)( obj );
+}
+
+SIXTRL_INLINE SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+NS(TypeFixedNumPtrs_c_values_end)( SIXTRL_BUFFER_DATAPTR_DEC
+    NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT
+{
+    return ( SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T*
+        )NS(TypeFixedNumPtrs_const_c_values_end)( obj );
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_INLINE SIXTRL_REAL_T NS(TypeFixedNumPtrs_b_value)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj, SIXTRL_UINT64_T const ii ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* ptr_begin =
+        NS(TypeFixedNumPtrs_const_b_values_begin)( obj );
+
+    return ( ( ptr_begin != SIXTRL_NULLPTR ) &&
+             ( NS(TypeFixedNumPtrs_num_b_values)( obj ) > ii ) )
+        ? ptr_begin[ ii ] : ( SIXTRL_REAL_T )0.0;
+}
+
+SIXTRL_INLINE SIXTRL_REAL_T NS(TypeFixedNumPtrs_c_value)(
+    SIXTRL_BUFFER_DATAPTR_DEC const NS(TypeFixedNumPtrs) *const
+        SIXTRL_RESTRICT obj, SIXTRL_UINT64_T const ii ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* ptr_begin =
+        NS(TypeFixedNumPtrs_const_c_values_begin)( obj );
+
+    return ( ( ptr_begin != SIXTRL_NULLPTR ) &&
+             ( NS(TypeFixedNumPtrs_num_c_values)( obj ) > ii ) )
+        ? ptr_begin[ ii ] : ( SIXTRL_REAL_T )0.0;
+}
+
+SIXTRL_INLINE void NS(TypeFixedNumPtrs_set_b_value)( SIXTRL_BUFFER_DATAPTR_DEC
+        NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    SIXTRL_UINT64_T const ii, SIXTRL_REAL_T const b_value ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T* ptr_begin =
+        NS(TypeFixedNumPtrs_b_values_begin)( obj );
+
+    if( ( ptr_begin != SIXTRL_NULLPTR ) &&
+        ( NS(TypeFixedNumPtrs_num_b_values)( obj ) > ii ) )
+    {
+        ptr_begin[ ii ] = b_value;
+    }
+}
+
+SIXTRL_INLINE void NS(TypeFixedNumPtrs_set_c_value)( SIXTRL_BUFFER_DATAPTR_DEC
+        NS(TypeFixedNumPtrs)* SIXTRL_RESTRICT obj,
+    SIXTRL_UINT64_T const ii, SIXTRL_REAL_T const c_value ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T* ptr_begin =
+        NS(TypeFixedNumPtrs_c_values_begin)( obj );
+
+    if( ( ptr_begin != SIXTRL_NULLPTR ) &&
+        ( NS(TypeFixedNumPtrs_num_c_values)( obj ) > ii ) )
+    {
+        ptr_begin[ ii ] = c_value;
+    }
+}
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+}
+#endif /* C++, Host */
+
 #endif /* SIXTRACKLIB_TESTLIB_COMMON_COBJECTS_TYPE_FIXED_NUM_PTRS_H__ */
 

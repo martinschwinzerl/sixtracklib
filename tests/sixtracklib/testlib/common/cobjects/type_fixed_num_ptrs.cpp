@@ -1,4 +1,6 @@
 #if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/cobjects/definitions.h"
     #include "sixtracklib/testlib/common/cobjects/type_fixed_num_ptrs.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -8,13 +10,14 @@ namespace SIXTRL_CXX_NAMESPACE
     namespace
     {
         namespace st = SIXTRL_CXX_NAMESPACE;
-        typename ::NS(TypeFixedNumPtrs) _type_t;
-        typename st::cobj_size_t _size_t;
+        typedef ::NS(TypeFixedNumPtrs)  _type_t;
+        typedef st::cobj_size_t         _size_t;
     }
 
-    constexpr _size_t st::CObjElemNumDataptrs< _type_t >::min_num_dataptrs;
-    constexpr _size_t st::CObjElemNumDataptrs< _type_t >::max_num_dataptrs;
-    constexpr _size_t st::CObjElemFieldOffsets< _type_t >::offsets[];
-    constexpr _size_t st::CObjElemFieldSizes< _type_t >::sizes[];
+    constexpr _size_t CObjElemNumPointers< _type_t, void >::min_num_ptrs;
+    constexpr _size_t CObjElemNumPointers< _type_t, void >::max_num_ptrs;
+
+    constexpr _size_t CObjElemFieldOffsets< _type_t >::offsets[];
+    constexpr _size_t CObjElemFieldSizes< _type_t >::sizes[];
 }
 #endif /* defined( __cplusplus ) */
