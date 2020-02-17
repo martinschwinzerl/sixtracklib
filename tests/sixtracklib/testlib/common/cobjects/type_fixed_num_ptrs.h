@@ -180,6 +180,12 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     };
 
+    template<>
+    struct ObjDataCApiTypeTraits< ::NS(TypeFixedNumPtrs) >
+    {
+        typedef ::NS(TypeFixedNumPtrs) c_api_t;
+    };
+
     template<> struct CObjElemNumPointers< ::NS(TypeFixedNumPtrs), void >
     {
         static constexpr cobj_size_t min_num_ptrs = cobj_size_t{ 2 };
