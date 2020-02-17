@@ -493,6 +493,14 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
 /* ************************************************************************* */
 
 SIXTRL_STATIC SIXTRL_FN NS(cobj_size_t)
+NS(CObjFlatBuffer_predict_required_num_bytes)(
+    NS(cobj_size_t) const obj_handle_size,
+    NS(cobj_size_t) const num_pointers,
+    SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT sizes,
+    SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT counts,
+    NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(cobj_size_t)
 NS(CObjFlatBuffer_predict_required_num_slots)(
     NS(cobj_size_t) const obj_handle_size,
     NS(cobj_size_t) const num_pointers,
@@ -2593,7 +2601,7 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
 /* ******                  Change Layout / Reserve                   ******* */
 /* ************************************************************************* */
 
-SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_predict_required_num_slots)(
+SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_predict_required_num_bytes)(
     NS(cobj_size_t) const obj_handle_size,
     NS(cobj_size_t) const num_pointers,
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT sizes,
@@ -2621,6 +2629,28 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_predict_required_num_slots)(
                     counts[ ii ] * sizes[ ii ], slot_size );
             }
         }
+
+        SIXTRL_ASSERT( requ_num_bytes % slot_size == ( _size_t )0u );
+    }
+
+    return requ_num_bytes;
+}
+
+SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_predict_required_num_slots)(
+    NS(cobj_size_t) const obj_handle_size,
+    NS(cobj_size_t) const num_pointers,
+    SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT sizes,
+    SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT counts,
+    NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
+{
+    typedef NS(cobj_size_t) _size_t;
+    _size_t requ_num_slots = ( _size_t )0u;
+
+    if( slot_size > ( _size_t )0u )
+    {
+        _size_t const requ_num_bytes =
+            NS(CObjFlatBuffer_predict_required_num_bytes)( obj_handle_size,
+                num_pointers, sizes, counts, slot_size );
 
         requ_num_slots = requ_num_bytes / slot_size;
 
