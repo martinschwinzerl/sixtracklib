@@ -102,8 +102,6 @@ namespace SIXTRL_CXX_NAMESPACE
         return (
         SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
        !SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >() &&
-        SIXTRL_CXX_NAMESPACE::CObjElem_has_field_offsets_begin_end_ptr< E >() &&
-        SIXTRL_CXX_NAMESPACE::CObjElem_has_field_sizes_begin_end_ptr< E >() &&
         SIXTRL_CXX_NAMESPACE::CObjElem_few_enough_ptrs_for_static_array< E >()
         );
     }
@@ -159,7 +157,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         cobj_size_t >::type CObjElem_required_num_bytes(
         cobj_size_t const slot_size =
             SIXTRL_CXX_NAMESPACE::CBUFFER_DEFAULT_SLOT_SIZE,
@@ -169,9 +168,12 @@ namespace SIXTRL_CXX_NAMESPACE
         return ::NS(CObjFlatBuffer_slot_based_size)( sizeof( E ), slot_size );
     }
 
+    /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         cobj_size_t >::type CObjElem_required_num_bytes(
         cobj_size_t const slot_size =
             SIXTRL_CXX_NAMESPACE::CBUFFER_DEFAULT_SLOT_SIZE,
@@ -192,16 +194,19 @@ namespace SIXTRL_CXX_NAMESPACE
         {
             slot_based_size = ::NS(CObjFlatBuffer_predict_required_num_bytes)(
                 sizeof( E ), MAX_NUM_PTRS,
-                    st::CObjElem_field_sizes_ptr_constexpr_begin< E >(),
-                        &counts[ 0 ], slot_size );
+                    &CObjElemFieldSizes< E >::sizes[ 0 ], &counts[ 0 ],
+                        slot_size );
         }
 
         return slot_based_size;
     }
 
+    /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >() ,
         cobj_size_t >::type CObjElem_required_num_bytes(
         cobj_size_t const slot_size =
             SIXTRL_CXX_NAMESPACE::CBUFFER_DEFAULT_SLOT_SIZE,
@@ -224,8 +229,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         if( ( st::CObjElem_field_sizes< E >( &sizes[ 0 ], MAX_NUM_PTRS,
                 ptr_elem ) == st::COBJECTS_STATUS_SUCCESS ) &&
-            ( st::CObjElem_field_counts< E >( &counts[ 0 ], MAX_NUM_PTRS,
-                ptr_elem ) == st::COBJECTS_STATUS_SUCCESS ) )
+            ( CObjElemFieldCounts< E >::init_field_counts( &counts[ 0 ],
+                MAX_NUM_PTRS, ptr_elem ) == st::COBJECTS_STATUS_SUCCESS ) )
         {
             slot_based_size = ::NS(CObjFlatBuffer_predict_required_num_bytes)(
                 sizeof( E ), num_ptrs, &sizes[ 0 ], &counts[ 0 ], slot_size );
@@ -234,9 +239,12 @@ namespace SIXTRL_CXX_NAMESPACE
         return slot_based_size;
     }
 
+    /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >() ,
         cobj_size_t >::type CObjElem_required_num_bytes(
         cobj_size_t const slot_size =
             SIXTRL_CXX_NAMESPACE::CBUFFER_DEFAULT_SLOT_SIZE,
@@ -279,6 +287,22 @@ namespace SIXTRL_CXX_NAMESPACE
         #endif /* _GPUCODE */
 
         return slot_based_size;
+    }
+
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        cobj_size_t >::type
+    CObjElem_required_num_bytes( cobj_size_t const slot_size =
+            SIXTRL_CXX_NAMESPACE::CBUFFER_DEFAULT_SLOT_SIZE,
+        SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT
+            ptr_elem = nullptr ) SIXTRL_NOEXCEPT
+    {
+        return SIXTRL_CXX_NAMESPACE::CObjElem_required_num_bytes<
+            typename ObjDataCApiTypeTraits< E >::c_api_t >( slot_size,
+                ObjData_bitcast_to_const_c_api< E >( ptr_elem ) );
     }
 
     template< class Derived >
@@ -479,7 +503,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         cobj_status_t >::type
     CObjElem_load_from_flat_cbuffer_to_argptr(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
@@ -499,7 +524,32 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        cobj_status_t >::type
+    CObjElem_load_from_flat_cbuffer_to_argptr(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
+        NS(cobj_size_t) const pos_in_buffer,
+        NS(cobj_size_t) const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT ptr_obj_to_update
+    ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        typedef typename ObjDataCApiTypeTraits< E >::c_api_t c_api_t;
+
+        return ::NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
+            buffer, pos_in_buffer, slot_size, st::CObjElem_type_id< c_api_t >(),
+                st::ObjData_bitcast_to_c_api< E >( ptr_obj_to_update ),
+                    sizeof( c_api_t ), st::cobj_size_t{ 0 }, nullptr, nullptr,
+                        nullptr, nullptr );
+    }
+
+    /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         cobj_status_t >::type
     CObjElem_load_from_flat_cbuffer_to_argptr(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
@@ -513,20 +563,55 @@ namespace SIXTRL_CXX_NAMESPACE
 
         st::cobj_status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
 
-        _size_t constexpr MAX_NUM_PTRS = st::CObjElem_max_num_ptrs< E >();
-        _size_t counts[ MAX_NUM_PTRS ];
-        _size_t save_ptrs[ MAX_NUM_PTRS ];
+        SIXTRL_BUFFER_OBJ_DATAPTR_DEC E const* src =
+            st::CObjElem_const_from_cobj_index< E >(
+                ::NS(CObjFlatBuffer_const_index)(
+                    buffer, pos_in_buffer, slot_size ), slot_size );
 
-        if( st::CObjElem_field_counts< E >( &counts[ 0 ], MAX_NUM_PTRS,
-                ptr_obj_to_update ) == st::COBJECTS_STATUS_SUCCESS )
+        if( src == ptr_obj_to_update ) return st::COBJECTS_STATUS_SUCCESS;
+
+        _size_t constexpr MAX_NUM_PTRS = st::CObjElem_max_num_ptrs< E >();
+        _size_t dest_counts[ MAX_NUM_PTRS ];
+        _size_t const num_pointers = st::CObjElem_num_ptrs< E >( src );
+
+        if( ( src != nullptr ) && ( num_pointers ==
+                st::CObjElem_num_ptrs< E >( ptr_obj_to_update) ) )
         {
+            status = st::CObjElemFieldCounts< E >::init_field_counts(
+                &dest_counts[ 0 ], MAX_NUM_PTRS, ptr_obj_to_update );
+        }
+
+        if( status == st::COBJECTS_STATUS_SUCCESS )
+        {
+            _size_t src_counts[ MAX_NUM_PTRS ];
+
+            status = st::CObjElemFieldCounts< E >::init_field_counts(
+                &src_counts[ 0 ], MAX_NUM_PTRS, src );
+
+            if( status == st::COBJECTS_STATUS_SUCCESS )
+            {
+                for( _size_t ii = _size_t{ 0 } ; ii < num_pointers ; ++ii )
+                {
+                    if( dest_counts[ ii ] != src_counts[ ii ] )
+                    {
+                        status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if( status == st::COBJECTS_STATUS_SUCCESS )
+        {
+            _size_t save_ptrs[ MAX_NUM_PTRS ];
+
             status =
             ::NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
                 buffer, pos_in_buffer, slot_size, st::CObjElem_type_id< E >(),
                     ptr_obj_to_update, sizeof( E ), MAX_NUM_PTRS,
-                        st::CObjElem_field_offsets_ptr_constexpr_begin< E >(),
-                        st::CObjElem_field_sizes_ptr_constexpr_begin< E >(),
-                        &counts[ 0 ], &save_ptrs[ 0 ] );
+                        &CObjElemFieldOffsets< E >::offsets[ 0 ],
+                        &CObjElemFieldSizes< E >::sizes[ 0 ],
+                        &dest_counts[ 0 ], &save_ptrs[ 0 ] );
         }
 
         return status;
@@ -534,7 +619,30 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        cobj_status_t >::type
+    CObjElem_load_from_flat_cbuffer_to_argptr(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
+        NS(cobj_size_t) const pos_in_buffer,
+        NS(cobj_size_t) const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT ptr_obj_to_update
+    ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        typedef typename ObjDataCApiTypeTraits< E >::c_api_t c_api_t;
+
+        return st::CObjElem_load_from_flat_cbuffer_to_argptr< c_api_t >(
+            buffer, pos_in_buffer, slot_size,
+                st::ObjData_bitcast_to_c_api< E >( ptr_obj_to_update ) );
+    }
+
+    /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         cobj_status_t >::type
     CObjElem_load_from_flat_cbuffer_to_argptr(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
@@ -564,9 +672,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_ASSERT( num_pointers <= MAX_NUM_PTRS );
 
-        _size_t target_offsets[ MAX_NUM_PTRS ];
-        _size_t target_counts[ MAX_NUM_PTRS ];
-        _size_t target_sizes[ MAX_NUM_PTRS ];
+        _size_t dest_offsets[ MAX_NUM_PTRS ];
+        _size_t dest_counts[ MAX_NUM_PTRS ];
+        _size_t dest_sizes[ MAX_NUM_PTRS ];
 
         if( ( src != nullptr ) &&
             ( num_pointers == st::CObjElem_num_ptrs< E >( src ) ) )
@@ -578,26 +686,27 @@ namespace SIXTRL_CXX_NAMESPACE
             _size_t src_counts[ MAX_NUM_PTRS ];
             _size_t src_sizes[ MAX_NUM_PTRS ];
 
-            if( ( st::CObjElem_field_offsets< E >( &target_offsets[ 0 ],
+            if( ( st::CObjElem_field_offsets< E >( &dest_offsets[ 0 ],
                     MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_sizes< E >( &target_sizes[ 0 ],
+                ( st::CObjElem_field_sizes< E >( &dest_sizes[ 0 ],
                     MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_counts< E >( &target_counts[ 0 ],
-                    MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
+                ( CObjElemFieldCounts< E >::init_field_counts(
+                    &dest_counts[ 0 ], MAX_NUM_PTRS, target ) ==
+                        st::COBJECTS_STATUS_SUCCESS ) &&
                 ( st::CObjElem_field_offsets< E >( &src_offsets[ 0 ],
                     MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
                 ( st::CObjElem_field_sizes< E >( &src_sizes[ 0 ],
                     MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_counts< E >( &src_counts[ 0 ],
+                ( CObjElemFieldCounts< E >::init_field_counts( &src_counts[ 0],
                     MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) )
             {
                 status = st::COBJECTS_STATUS_SUCCESS;
 
                 for( _size_t ii = _size_t{ 0 } ; ii < num_pointers ; ++ii )
                 {
-                    if( ( src_offsets[ ii ] != target_offsets[ ii ] ) ||
-                        ( src_sizes[ ii ]   != target_sizes[ ii ]   ) ||
-                        ( src_counts[ ii ]  != target_counts[ ii ]  ) )
+                    if( ( src_offsets[ ii ] != dest_offsets[ ii ] ) ||
+                        ( src_sizes[ ii ]   != dest_sizes[ ii ]   ) ||
+                        ( src_counts[ ii ]  != dest_counts[ ii ]  ) )
                     {
                         status = st::COBJECTS_STATUS_GENERAL_FAILURE;
                         break;
@@ -614,8 +723,8 @@ namespace SIXTRL_CXX_NAMESPACE
             ::NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
                 buffer, pos_in_buffer, slot_size, st::CObjElem_type_id< E >(),
                     ptr_obj_to_update, sizeof( E ), num_pointers,
-                        &target_offsets[ 0 ], &target_sizes[ 0 ],
-                            &target_counts[ 0 ], &save_ptrs[ 0 ] );
+                        &dest_offsets[ 0 ], &dest_sizes[ 0 ],
+                            &dest_counts[ 0 ], &save_ptrs[ 0 ] );
         }
 
         return status;
@@ -623,7 +732,30 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        cobj_status_t >::type
+    CObjElem_load_from_flat_cbuffer_to_argptr(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
+        NS(cobj_size_t) const pos_in_buffer,
+        NS(cobj_size_t) const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT ptr_obj_to_update
+    ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        typedef typename ObjDataCApiTypeTraits< E >::c_api_t c_api_t;
+
+        return st::CObjElem_load_from_flat_cbuffer_to_argptr< c_api_t >(
+            buffer, pos_in_buffer, slot_size, st::ObjData_bitcast_to_c_api<
+                E >( ptr_obj_to_update ) );
+    }
+
+    /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >() ,
         cobj_status_t >::type
     CObjElem_load_from_flat_cbuffer_to_argptr(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
@@ -652,9 +784,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_ASSERT( num_pointers <= MAX_NUM_PTRS );
 
-        std::vector< _size_t > target_offsets( MAX_NUM_PTRS );
-        std::vector< _size_t > target_counts( MAX_NUM_PTRS );
-        std::vector< _size_t > target_sizes( MAX_NUM_PTRS );
+        std::vector< _size_t > dest_offsets( MAX_NUM_PTRS );
+        std::vector< _size_t > dest_counts( MAX_NUM_PTRS );
+        std::vector< _size_t > dest_sizes( MAX_NUM_PTRS );
 
         if( ( src != nullptr ) &&
             ( num_pointers == st::CObjElem_num_ptrs< E >( src ) ) )
@@ -665,27 +797,29 @@ namespace SIXTRL_CXX_NAMESPACE
 
             SIXTRL_BUFFER_ARGPTR_DEC E* target = ptr_obj_to_update;
 
-            if( ( st::CObjElem_field_offsets< E >( target_offsets.data(),
+            if( ( st::CObjElem_field_offsets< E >( dest_offsets.data(),
                     MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_sizes< E >( target_sizes.data(),
+                ( st::CObjElem_field_sizes< E >( dest_sizes.data(),
                     MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_counts< E >( target_counts.data(),
-                    MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
+                ( CObjElemFieldCounts< E >::init_field_counts(
+                    dest_counts.data(), MAX_NUM_PTRS, target ) ==
+                        st::COBJECTS_STATUS_SUCCESS ) &&
                 ( st::CObjElem_field_offsets< E >( src_offsets.data(),
                     MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
                 ( st::CObjElem_field_sizes< E >( src_sizes.data(),
                     MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_counts< E >( src_counts.data(),
-                    MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) )
+                ( CObjElemFieldCounts< E >::init_field_counts(
+                    src_counts.data(), MAX_NUM_PTRS, target ) ==
+                        st::COBJECTS_STATUS_SUCCESS ) )
             {
-                if( ( std::equal( target_offsets.data(),
-                                  target_offsets.data() + num_pointers,
+                if( ( std::equal( dest_offsets.data(),
+                                  dest_offsets.data() + num_pointers,
                                   src_offsets.data() ) ) &&
-                    ( std::equal( target_sizes.data(),
-                                  target_sizes.data() + num_pointers,
+                    ( std::equal( dest_sizes.data(),
+                                  dest_sizes.data() + num_pointers,
                                   src_sizes.data() ) ) &&
-                    ( std::equal( target_counts.data(),
-                                  target_counts.data() + num_pointers,
+                    ( std::equal( dest_counts.data(),
+                                  dest_counts.data() + num_pointers,
                                   src_counts.data() ) ) )
                 {
                     status = st::COBJECTS_STATUS_SUCCESS;
@@ -701,8 +835,8 @@ namespace SIXTRL_CXX_NAMESPACE
             ::NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
                 buffer, pos_in_buffer, slot_size, st::CObjElem_type_id< E >(),
                     ptr_obj_to_update, sizeof( E ), num_pointers,
-                        target_offsets.data(), target_sizes.data(),
-                            target_counts.data(), save_ptrs.data() );
+                        dest_offsets.data(), dest_sizes.data(),
+                            dest_counts.data(), save_ptrs.data() );
         }
 
         #else /* _GPUCODE */
@@ -716,6 +850,26 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return status;
     }
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        cobj_status_t >::type
+    CObjElem_load_from_flat_cbuffer_to_argptr(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
+        NS(cobj_size_t) const pos_in_buffer, NS(cobj_size_t) const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT ptr_obj_to_update )
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        typedef typename ObjDataCApiTypeTraits< E >::c_api_t c_api_t;
+
+        return st::CObjElem_load_from_flat_cbuffer_to_argptr< c_api_t >(
+            buffer, pos_in_buffer, slot_size, st::ObjData_bitcast_to_c_api<
+                E >( ptr_obj_to_update ) );
+    }
+
+    /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
     template< class Derived >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
@@ -779,7 +933,28 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        cobj_status_t >::type
+    CObjElem_store_to_flat_cbuffer_from_argptr(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
+        NS(cobj_size_t) const pos_in_buffer, NS(cobj_size_t) const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT ptr_to_source
+    ) SIXTRL_NOEXCEPT
+    {
+        return SIXTRL_CXX_NAMESPACE::CObjElem_store_to_flat_cbuffer_from_argptr<
+            typename ObjDataCApiTypeTraits< E >::c_api_t >( buffer,
+                pos_in_buffer, slot_size,
+                    SIXTRL_CXX_NAMESPACE::ObjData_bitcast_to_const_c_api< E >(
+                        ptr_to_source ) );
+    }
+
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         cobj_status_t >::type
     CObjElem_store_to_flat_cbuffer_from_argptr(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
@@ -794,19 +969,53 @@ namespace SIXTRL_CXX_NAMESPACE
         cobj_status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
 
         _size_t constexpr MAX_NUM_PTRS = st::CObjElem_max_num_ptrs< E >();
-        _size_t counts[ MAX_NUM_PTRS ];
-        _size_t save_ptrs[ MAX_NUM_PTRS ];
+        _size_t dest_counts[ MAX_NUM_PTRS ];
 
-        if( st::CObjElem_field_counts< E >( &counts[ 0 ], MAX_NUM_PTRS,
-                ptr_to_source ) == st::COBJECTS_STATUS_SUCCESS )
+        SIXTRL_BUFFER_OBJ_DATAPTR_DEC E* dest =
+            st::CObjElem_from_cobj_index< E >( ::NS(CObjFlatBuffer_index)(
+                buffer, pos_in_buffer, slot_size ), slot_size );
+
+        if( dest == ptr_to_source ) return st::COBJECTS_STATUS_SUCCESS;
+
+        _size_t const num_ptrs = st::CObjElem_num_ptrs< E >( dest );
+
+        if( ( dest != nullptr ) && ( ptr_to_source != nullptr ) &&
+            ( st::CObjElem_num_ptrs< E >( ptr_to_source ) == num_ptrs ) )
         {
+            status = st::CObjElemFieldCounts< E >::init_field_counts(
+                &dest_counts[ 0 ], MAX_NUM_PTRS, dest );
+
+            if( status == st::COBJECTS_STATUS_SUCCESS )
+            {
+                _size_t src_counts[ MAX_NUM_PTRS ];
+
+                if( st::CObjElemFieldCounts< E >::init_field_counts(
+                    &src_counts[ 0 ], MAX_NUM_PTRS, ptr_to_source ) ==
+                        st::COBJECTS_STATUS_SUCCESS )
+                {
+                    for( _size_t ii = _size_t{ 0 } ; ii < num_ptrs ; ++ii )
+                    {
+                        if( dest_counts[ ii ] != src_counts[ ii ] )
+                        {
+                            status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        if( status == st::COBJECTS_STATUS_SUCCESS )
+        {
+            _size_t save_ptrs[ MAX_NUM_PTRS ];
+
             status =
             ::NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
                 buffer, pos_in_buffer, slot_size, st::CObjElem_type_id< E >(),
                 ptr_to_source, sizeof( E ), MAX_NUM_PTRS,
-                st::CObjElem_field_offsets_ptr_constexpr_begin< E >(),
-                st::CObjElem_field_sizes_ptr_constexpr_begin< E >(),
-                &counts[ 0 ], &save_ptrs[ 0 ] );
+                &CObjElemFieldOffsets< E >::offsets[ 0 ],
+                &CObjElemFieldSizes< E >::sizes[ 0 ], &dest_counts[ 0 ],
+                &save_ptrs[ 0 ] );
         }
 
         return status;
@@ -814,7 +1023,30 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        cobj_status_t >::type
+    CObjElem_store_to_flat_cbuffer_from_argptr(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
+        NS(cobj_size_t) const pos_in_buffer,
+        NS(cobj_size_t) const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT ptr_to_source
+    ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        typedef typename ObjDataCApiTypeTraits< E >::c_api_t c_api_t;
+
+        return st::CObjElem_store_to_flat_cbuffer_from_argptr< c_api_t >(
+            buffer, pos_in_buffer, slot_size,
+                st::ObjData_bitcast_to_const_c_api< E >( ptr_to_source ) );
+    }
+
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >() ,
         cobj_status_t >::type
     CObjElem_store_to_flat_cbuffer_from_argptr(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
@@ -832,48 +1064,46 @@ namespace SIXTRL_CXX_NAMESPACE
         static_assert( MAX_NUM_PTRS > _size_t{ 0 },
             "Expected to have dataptrs here" );
 
-        SIXTRL_BUFFER_OBJ_DATAPTR_DEC E* target =
+        SIXTRL_BUFFER_OBJ_DATAPTR_DEC E* dest =
             st::CObjElem_from_cobj_index< E >( ::NS(CObjFlatBuffer_index)(
                 buffer, pos_in_buffer, slot_size ), slot_size );
 
-        _size_t const num_pointers = st::CObjElem_num_ptrs<
-            E >( ptr_to_source );
-
+        _size_t const num_pointers = st::CObjElem_num_ptrs< E >( dest );
         SIXTRL_ASSERT( num_pointers <= MAX_NUM_PTRS );
 
-        _size_t src_offsets[ MAX_NUM_PTRS ];
-        _size_t src_counts[ MAX_NUM_PTRS ];
-        _size_t src_sizes[ MAX_NUM_PTRS ];
+        _size_t dest_counts[ MAX_NUM_PTRS ];
+            _size_t dest_sizes[ MAX_NUM_PTRS ];
+            _size_t dest_offsets[ MAX_NUM_PTRS ];
 
-        if( ( target != nullptr ) &&
-            ( num_pointers == st::CObjElem_num_ptrs< E >( target ) ) )
+        if( ( dest != nullptr ) && ( ptr_to_source != nullptr ) &&
+            ( num_pointers == st::CObjElem_num_ptrs< E >( dest ) ) )
         {
-            _size_t target_offsets[ MAX_NUM_PTRS ];
-            _size_t target_counts[ MAX_NUM_PTRS ];
-            _size_t target_sizes[ MAX_NUM_PTRS ];
+            _size_t src_offsets[ MAX_NUM_PTRS ];
+            _size_t src_counts[ MAX_NUM_PTRS ];
+            _size_t src_sizes[ MAX_NUM_PTRS ];
 
             SIXTRL_BUFFER_ARGPTR_DEC const E *const src = ptr_to_source;
 
-            if( ( st::CObjElem_field_offsets< E >( &target_offsets[ 0 ],
-                    MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_sizes< E >( &target_sizes[ 0 ],
-                    MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_counts< E >( &target_counts[ 0 ],
-                    MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
+            if( ( st::CObjElem_field_offsets< E >( &dest_offsets[ 0 ],
+                    MAX_NUM_PTRS, dest ) == st::COBJECTS_STATUS_SUCCESS ) &&
+                ( st::CObjElem_field_sizes< E >( &dest_sizes[ 0 ],
+                    MAX_NUM_PTRS, dest ) == st::COBJECTS_STATUS_SUCCESS ) &&
+                ( CObjElemFieldCounts< E >::init_field_counts( &dest_counts[ 0 ],
+                    MAX_NUM_PTRS, dest ) == st::COBJECTS_STATUS_SUCCESS ) &&
                 ( st::CObjElem_field_offsets< E >( &src_offsets[ 0 ],
-                    MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
+                    MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
                 ( st::CObjElem_field_sizes< E >( &src_sizes[ 0 ],
-                    MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_counts< E >( &src_counts[ 0 ],
-                    MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) )
+                    MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
+                ( CObjElemFieldCounts< E >::init_field_counts( &src_counts[ 0 ],
+                    MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) )
             {
                 status = st::COBJECTS_STATUS_SUCCESS;
 
                 for( _size_t ii = _size_t{ 0 } ; ii < num_pointers ; ++ii )
                 {
-                    if( ( src_offsets[ ii ] != target_offsets[ ii ] ) ||
-                        ( src_sizes[ ii ]   != target_sizes[ ii ]   ) ||
-                        ( src_counts[ ii ]  != target_counts[ ii ]  ) )
+                    if( ( src_offsets[ ii ] != dest_offsets[ ii ] ) ||
+                        ( src_sizes[ ii ]   != dest_sizes[ ii ]   ) ||
+                        ( src_counts[ ii ]  != dest_counts[ ii ]  ) )
                     {
                         status = st::COBJECTS_STATUS_GENERAL_FAILURE;
                         break;
@@ -889,8 +1119,9 @@ namespace SIXTRL_CXX_NAMESPACE
             status =
             ::NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
                 buffer, pos_in_buffer, slot_size, st::CObjElem_type_id< E >(),
-                    ptr_to_source, sizeof( E ), num_pointers, &src_offsets[ 0 ],
-                        &src_sizes[ 0 ], &src_counts[ 0 ], &save_ptrs[ 0 ] );
+                    ptr_to_source, sizeof( E ), num_pointers,
+                        &dest_offsets[ 0 ], &dest_sizes[ 0 ], &dest_counts[ 0 ]
+                            , &save_ptrs[ 0 ] );
         }
 
         return status;
@@ -898,9 +1129,31 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         cobj_status_t >::type
-    CObjElem_load_from_flat_cbuffer_to_argptr(
+    CObjElem_store_to_flat_cbuffer_from_argptr(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
+        NS(cobj_size_t) const pos_in_buffer,
+        NS(cobj_size_t) const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT ptr_to_source
+    ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        return st::CObjElem_store_to_flat_cbuffer_from_argptr< typename
+            ObjDataCApiTypeTraits< E >::c_api_t >( buffer, pos_in_buffer,
+                slot_size, st::ObjData_bitcast_to_const_c_api< E >(
+                    ptr_to_source ) );
+    }
+
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        cobj_status_t >::type
+    CObjElem_store_to_flat_cbuffer_from_argptr(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
         NS(cobj_size_t) const pos_in_buffer, NS(cobj_size_t) const slot_size,
         SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT ptr_to_source )
@@ -916,48 +1169,53 @@ namespace SIXTRL_CXX_NAMESPACE
         static_assert( MAX_NUM_PTRS > _size_t{ 0 },
             "Expected to have dataptrs here" );
 
-        SIXTRL_BUFFER_OBJ_DATAPTR_DEC E* target =
+        SIXTRL_BUFFER_OBJ_DATAPTR_DEC E* dest =
             st::CObjElem_from_cobj_index< E >( ::NS(CObjFlatBuffer_const_index)(
                 buffer, pos_in_buffer, slot_size ), slot_size );
 
-        _size_t const num_ptrs = st::CObjElem_num_ptrs< E >( ptr_to_source );
+        if( ( dest == ptr_to_source ) && ( ptr_to_source != nullptr ) )
+        {
+            return st::COBJECTS_STATUS_SUCCESS;
+        }
+
+        _size_t const num_ptrs = st::CObjElem_num_ptrs< E >( dest );
 
         SIXTRL_ASSERT( num_ptrs <= MAX_NUM_PTRS );
 
-        std::vector< _size_t > src_offsets( MAX_NUM_PTRS );
-        std::vector< _size_t > src_counts( MAX_NUM_PTRS );
-        std::vector< _size_t > src_sizes( MAX_NUM_PTRS );
+        std::vector< _size_t > dest_offsets( MAX_NUM_PTRS );
+        std::vector< _size_t > dest_counts( MAX_NUM_PTRS );
+        std::vector< _size_t > dest_sizes( MAX_NUM_PTRS );
 
-        if( ( target != nullptr ) &&
-            ( num_ptrs == st::CObjElem_num_ptrs< E >( target ) ) )
+        if( ( dest != nullptr ) && ( ptr_to_source != nullptr ) &&
+            ( num_ptrs == st::CObjElem_num_ptrs< E >( dest ) ) )
         {
-            std::vector< _size_t > target_offsets( MAX_NUM_PTRS );
-            std::vector< _size_t > target_counts( MAX_NUM_PTRS );
-            std::vector< _size_t > target_sizes( MAX_NUM_PTRS );
+            std::vector< _size_t > src_offsets( MAX_NUM_PTRS );
+            std::vector< _size_t > src_counts( MAX_NUM_PTRS );
+            std::vector< _size_t > src_sizes( MAX_NUM_PTRS );
 
             SIXTRL_BUFFER_ARGPTR_DEC const E *const src = ptr_to_source;
 
-            if( ( st::CObjElem_field_offsets< E >( target_offsets.data(),
-                    MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_sizes< E >( target_sizes.data(),
-                    MAX_NUM_PTRS, target ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_counts< E >( target_counts.data(),
-                    MAX_NUM_PTRS, target ) ==
+            if( ( st::CObjElem_field_offsets< E >( dest_offsets.data(),
+                    MAX_NUM_PTRS, dest ) == st::COBJECTS_STATUS_SUCCESS ) &&
+                ( st::CObjElem_field_sizes< E >( dest_sizes.data(),
+                    MAX_NUM_PTRS, dest ) == st::COBJECTS_STATUS_SUCCESS ) &&
+                ( CObjElemFieldCounts< E >::init_field_counts(
+                    dest_counts.data(), MAX_NUM_PTRS, dest ) ==
                         st::COBJECTS_STATUS_SUCCESS ) &&
                 ( st::CObjElem_field_offsets< E >( src_offsets.data(),
                     MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
                 ( st::CObjElem_field_sizes< E >( src_sizes.data(),
                     MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) &&
-                ( st::CObjElem_field_counts< E >( src_counts.data(),
-                    MAX_NUM_PTRS, src ) == st::COBJECTS_STATUS_SUCCESS ) )
+                ( CObjElemFieldCounts< E >::init_field_counts(
+                    src_counts.data(), MAX_NUM_PTRS, src ) ==
+                        st::COBJECTS_STATUS_SUCCESS ) )
             {
-                if( ( std::equal( target_offsets.data(),
-                        target_offsets.data() + num_ptrs,
-                        src_offsets.data() ) ) &&
-                    ( std::equal( target_sizes.data(),
-                        target_sizes.data() + num_ptrs, src_sizes.data() ) ) &&
-                    ( std::equal( target_counts.data(),
-                        target_counts.data() + num_ptrs, src_counts.data() ) ))
+                if( ( std::equal( dest_offsets.data(),
+                        dest_offsets.data() + num_ptrs, src_offsets.data() ))&&
+                    ( std::equal( dest_sizes.data(),
+                        dest_sizes.data() + num_ptrs, src_sizes.data() ) ) &&
+                    ( std::equal( dest_counts.data(),
+                        dest_counts.data() + num_ptrs, src_counts.data() ) ))
                 {
                     status = st::COBJECTS_STATUS_SUCCESS;
                 }
@@ -971,8 +1229,9 @@ namespace SIXTRL_CXX_NAMESPACE
             status =
             ::NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
                 buffer, pos_in_buffer, slot_size, st::CObjElem_type_id< E >(),
-                    ptr_to_source, sizeof( E ), num_ptrs, src_offsets.data(),
-                        src_sizes.data(), src_counts.data(), save_ptrs.data());
+                    ptr_to_source, sizeof( E ), num_ptrs, dest_offsets.data(),
+                        dest_sizes.data(), dest_counts.data(),
+                            save_ptrs.data() );
         }
 
         #else /* _GPUCODE */
@@ -986,6 +1245,25 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return status;
     }
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        cobj_status_t >::type
+    CObjElem_store_to_flat_cbuffer_from_argptr(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
+        NS(cobj_size_t) const pos_in_buffer, NS(cobj_size_t) const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT ptr_to_source )
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        return st::CObjElem_store_to_flat_cbuffer_from_argptr< typename
+            ObjDataCApiTypeTraits< E >::c_api_t >( buffer, pos_in_buffer,
+                slot_size, st::ObjData_bitcast_to_const_c_api< E >(
+                    ptr_to_source ) );
+    }
+
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
 
     template< class Derived >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
@@ -1005,7 +1283,6 @@ namespace SIXTRL_CXX_NAMESPACE
         return SIXTRL_CXX_NAMESPACE::CObjElem_load_from_flat_cbuffer_to_argptr<
             E >( buffer, pos_in_buffer, slot_size, _ptr );
     }
-
 
     template< class E >
     static SIXTRL_FN constexpr typename std::enable_if<
@@ -1027,7 +1304,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         bool >::type
     CObjElem_can_add_copy_of_object(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
@@ -1047,7 +1325,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         bool >::type
     CObjElem_can_add_copy_of_object(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
@@ -1069,15 +1348,15 @@ namespace SIXTRL_CXX_NAMESPACE
             ( st::CObjElemFieldCounts< E >::init_field_counts( &counts[ 0 ],
                 MAX_NUM_PTRS, ptr_elem ) == st::COBJECTS_STATUS_SUCCESS ) &&
             ( ::NS(CObjFlatBuffer_can_add_copy_of_object)( buffer, slot_size,
-                sizeof( E ), MAX_NUM_PTRS,
-                    st::CObjElem_field_sizes_ptr_constexpr_begin< E >(),
+                sizeof( E ), MAX_NUM_PTRS, &CObjElemFieldSizes< E >::sizes[ 0],
                     &counts[ 0 ], requ_buffer_size, requ_num_slots,
                         requ_num_objs, requ_num_ptrs ) ) );
     }
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         bool >::type
     CObjElem_can_add_copy_of_object(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
@@ -1114,7 +1393,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >(), bool >::type
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        bool >::type
     CObjElem_can_add_copy_of_object(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
         cobj_size_t const slot_size,
@@ -1160,6 +1441,27 @@ namespace SIXTRL_CXX_NAMESPACE
         return false;
 
         #endif /* _GPUCODE */
+    }
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        bool >::type
+    CObjElem_can_add_copy_of_object(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
+        cobj_size_t const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT ptr_elem,
+        SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_buffer_size,
+        SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_num_slots,
+        SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_num_objs,
+        SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_num_ptrs )
+    {
+        return SIXTRL_CXX_NAMESPACE::CObjElem_can_add_copy_of_object<
+            typename ObjDataCApiTypeTraits< E >::c_api_t >( buffer, slot_size,
+                SIXTRL_CXX_NAMESPACE::ObjData_bitcast_to_const_c_api< E >(
+                    ptr_elem ), requ_buffer_size, requ_num_slots,
+                        requ_num_objs, requ_num_ptrs );
     }
 
     template< class Derived >
@@ -1211,7 +1513,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)* >::type
     CObjElem_add_copy_of_object_impl(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
@@ -1230,7 +1533,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case02_direct_fixed_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)* >::type
     CObjElem_add_copy_of_object_impl(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
@@ -1251,9 +1555,9 @@ namespace SIXTRL_CXX_NAMESPACE
             index_added_obj = ::NS(CObjFlatBuffer_add_copy_of_object)(
                 buffer, slot_size, elem, sizeof( E ),
                     st::CObjElem_type_id< E >(), MAX_NUM_PTRS,
-                    st::CObjElem_field_offsets_ptr_constexpr_begin< E >(),
-                        st::CObjElem_field_sizes_ptr_constexpr_begin< E >(),
-                            &counts[ 0 ], init_with_zeros );
+                        &CObjElemFieldOffsets< E >::offsets[ 0 ],
+                            &CObjElemFieldSizes< E >::sizes[ 0 ], &counts[ 0 ],
+                                init_with_zeros );
         }
 
         return index_added_obj;
@@ -1261,7 +1565,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case03_direct_few< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)* >::type
     CObjElem_add_copy_of_object_impl(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
@@ -1288,8 +1593,8 @@ namespace SIXTRL_CXX_NAMESPACE
                 elem ) == st::COBJECTS_STATUS_SUCCESS ) &&
             ( st::CObjElem_field_sizes< E >( &sizes[ 0 ], MAX_NUM_PTRS,
                 elem ) == st::COBJECTS_STATUS_SUCCESS ) &&
-            ( st::CObjElem_field_counts< E >( &counts[ 0 ], MAX_NUM_PTRS,
-                elem ) == st::COBJECTS_STATUS_SUCCESS ) )
+            ( CObjElemFieldCounts< E >::init_field_counts( &counts[ 0 ],
+                MAX_NUM_PTRS, elem ) == st::COBJECTS_STATUS_SUCCESS ) )
         {
             index_added_obj = ::NS(CObjFlatBuffer_add_copy_of_object)( buffer,
                 slot_size, elem, sizeof( E ), st::CObjElem_type_id< E >(),
@@ -1302,7 +1607,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)* >::type
     CObjElem_add_copy_of_object_impl(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
@@ -1331,8 +1637,8 @@ namespace SIXTRL_CXX_NAMESPACE
                 elem ) == st::COBJECTS_STATUS_SUCCESS ) &&
             ( st::CObjElem_field_sizes< E >( sizes.data(), MAX_NUM_PTRS,
                 elem ) == st::COBJECTS_STATUS_SUCCESS ) &&
-            ( st::CObjElem_field_counts< E >( counts.data(), MAX_NUM_PTRS,
-                elem ) == st::COBJECTS_STATUS_SUCCESS ) )
+            ( CObjElemFieldCounts< E >::init_field_counts( counts.data(),
+                MAX_NUM_PTRS, elem ) == st::COBJECTS_STATUS_SUCCESS ) )
         {
             index_added_obj = ::NS(CObjFlatBuffer_add_copy_of_object)( buffer,
                 slot_size, elem, sizeof( E ), st::CObjElem_type_id< E >(),
@@ -1349,6 +1655,23 @@ namespace SIXTRL_CXX_NAMESPACE
         #endif /* _GPUCODE */
 
         return index_added_obj;
+    }
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >()  &&
+        SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
+        SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)* >::type
+    CObjElem_add_copy_of_object_impl(
+        SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
+        cobj_size_t const slot_size,
+        SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT elem,
+        bool const init_with_zeros = false )
+    {
+        return SIXTRL_CXX_NAMESPACE::CObjElem_add_copy_of_object_impl<
+            typename ObjDataCApiTypeTraits< E >::c_api_t >( buffer, slot_size,
+                SIXTRL_CXX_NAMESPACE::ObjData_bitcast_to_const_c_api< E >(
+                    elem ), init_with_zeros );
     }
 
     template< class Derived >
