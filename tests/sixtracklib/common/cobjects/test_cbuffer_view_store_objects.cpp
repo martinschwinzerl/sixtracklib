@@ -39,22 +39,10 @@ TEST( CxxCommonCObjectsCBufferViewStoreObjectsTests, BasicUsageTypeNoPtrs )
 
     /* --------------------------------------------------------------------- */
 
-    _obj_t orig1;
+    _obj_t orig;
 
-    ASSERT_TRUE( orig1.is_convertible_to_c_api() );
-    ::NS(TypeNoPtrs_preset)( orig1.as_ptr_c_api() );
-    ::NS(TypeNoPtrs_set_a)(  orig1.as_ptr_c_api(), double{ 42.0 } );
-    ::NS(TypeNoPtrs_set_b)(  orig1.as_ptr_c_api(), int64_t{ -42 } );
-    ::NS(TypeNoPtrs_set_c)(  orig1.as_ptr_c_api(), 0, uint8_t{ 1 } );
-    ::NS(TypeNoPtrs_set_c)(  orig1.as_ptr_c_api(), 1, uint8_t{ 1 } );
-    ::NS(TypeNoPtrs_set_c)(  orig1.as_ptr_c_api(), 2, uint8_t{ 2 } );
-    ::NS(TypeNoPtrs_set_c)(  orig1.as_ptr_c_api(), 3, uint8_t{ 3 } );
-    ::NS(TypeNoPtrs_set_c)(  orig1.as_ptr_c_api(), 4, uint8_t{ 5 } );
-    ::NS(TypeNoPtrs_set_c)(  orig1.as_ptr_c_api(), 5, uint8_t{ 8 } );
-
-    _obj_t ext_var;
-    ASSERT_TRUE( ext_var.is_convertible_to_c_api() );
-    ::NS(TypeNoPtrs_preset)( ext_var.as_ptr_c_api() );
+    ASSERT_TRUE( orig.is_convertible_to_c_api() );
+    ::NS(TypeNoPtrs_preset)( orig.as_ptr_c_api() );
 
     _size_t required_buffer_size = _size_t{ 0 };
     _size_t requ_num_slots = _size_t{ 0 };
@@ -62,55 +50,80 @@ TEST( CxxCommonCObjectsCBufferViewStoreObjectsTests, BasicUsageTypeNoPtrs )
     _size_t requ_num_ptrs  = _size_t{ 0 };
 
     ASSERT_FALSE( view.can_add_copy_of_object< _obj_t >(
-        &orig1, &required_buffer_size, &requ_num_slots,
+        &orig, &required_buffer_size, &requ_num_slots,
             &requ_num_objs, &requ_num_ptrs ) );
 
     ASSERT_TRUE( required_buffer_size > view.size() );
     view.reallocate( requ_num_slots, requ_num_objs, requ_num_ptrs );
 
-    _obj_t* copy1 = st::CBufferView_add_copy_of_object_detail(
-        view, &orig1, &required_buffer_size, &requ_num_slots,
+    _obj_t* cpy_obj = st::CBufferView_add_copy_of_object_detail(
+        view, &orig, &required_buffer_size, &requ_num_slots,
             &requ_num_objs, &requ_num_ptrs );
 
-    ASSERT_TRUE( copy1 != nullptr );
-    ASSERT_TRUE( copy1 != &orig1  );
-    ASSERT_TRUE( copy1->as_ptr_data()  != orig1.as_ptr_data()  );
-    ASSERT_TRUE( copy1->as_ptr_c_api() != orig1.as_ptr_c_api() );
-    ASSERT_TRUE( copy1->a      == orig1.a );
-    ASSERT_TRUE( copy1->b      == orig1.b );
-    ASSERT_TRUE( copy1->c[ 0 ] == orig1.c[ 0 ] );
-    ASSERT_TRUE( copy1->c[ 1 ] == orig1.c[ 1 ] );
-    ASSERT_TRUE( copy1->c[ 2 ] == orig1.c[ 2 ] );
-    ASSERT_TRUE( copy1->c[ 3 ] == orig1.c[ 3 ] );
-    ASSERT_TRUE( copy1->c[ 4 ] == orig1.c[ 4 ] );
-    ASSERT_TRUE( copy1->c[ 5 ] == orig1.c[ 5 ] );
+    ASSERT_TRUE( cpy_obj != nullptr );
+    ASSERT_TRUE( cpy_obj != &orig  );
+    ASSERT_TRUE( cpy_obj->as_ptr_data()  != orig.as_ptr_data()  );
+    ASSERT_TRUE( cpy_obj->as_ptr_c_api() != orig.as_ptr_c_api() );
+    ASSERT_TRUE( cpy_obj->a      == orig.a );
+    ASSERT_TRUE( cpy_obj->b      == orig.b );
+    ASSERT_TRUE( cpy_obj->c[ 0 ] == orig.c[ 0 ] );
+    ASSERT_TRUE( cpy_obj->c[ 1 ] == orig.c[ 1 ] );
+    ASSERT_TRUE( cpy_obj->c[ 2 ] == orig.c[ 2 ] );
+    ASSERT_TRUE( cpy_obj->c[ 3 ] == orig.c[ 3 ] );
+    ASSERT_TRUE( cpy_obj->c[ 4 ] == orig.c[ 4 ] );
+    ASSERT_TRUE( cpy_obj->c[ 5 ] == orig.c[ 5 ] );
 
-    ASSERT_TRUE( &ext_var != copy1 );
-    ASSERT_TRUE(  ext_var.as_ptr_data()  != copy1->as_ptr_data()  );
-    ASSERT_TRUE(  ext_var.as_ptr_c_api() != copy1->as_ptr_c_api() );
-    ASSERT_TRUE(  ext_var.a      != copy1->a );
-    ASSERT_TRUE(  ext_var.b      != copy1->b );
-    ASSERT_TRUE(  ext_var.c[ 0 ] != copy1->c[ 0 ] );
-    ASSERT_TRUE(  ext_var.c[ 1 ] != copy1->c[ 1 ] );
-    ASSERT_TRUE(  ext_var.c[ 2 ] != copy1->c[ 2 ] );
-    ASSERT_TRUE(  ext_var.c[ 3 ] != copy1->c[ 3 ] );
-    ASSERT_TRUE(  ext_var.c[ 4 ] != copy1->c[ 4 ] );
-    ASSERT_TRUE(  ext_var.c[ 5 ] != copy1->c[ 5 ] );
+    _obj_t ext_var;
+    ASSERT_TRUE( ext_var.is_convertible_to_c_api() );
+    ::NS(TypeNoPtrs_preset)( ext_var.as_ptr_c_api() );
+    ::NS(TypeNoPtrs_set_a)(  ext_var.as_ptr_c_api(), double{ 42.0 } );
+    ::NS(TypeNoPtrs_set_b)(  ext_var.as_ptr_c_api(), int64_t{ -42 } );
+    ::NS(TypeNoPtrs_set_c)(  ext_var.as_ptr_c_api(), 0, uint8_t{ 1 } );
+    ::NS(TypeNoPtrs_set_c)(  ext_var.as_ptr_c_api(), 1, uint8_t{ 1 } );
+    ::NS(TypeNoPtrs_set_c)(  ext_var.as_ptr_c_api(), 2, uint8_t{ 2 } );
+    ::NS(TypeNoPtrs_set_c)(  ext_var.as_ptr_c_api(), 3, uint8_t{ 3 } );
+    ::NS(TypeNoPtrs_set_c)(  ext_var.as_ptr_c_api(), 4, uint8_t{ 5 } );
+    ::NS(TypeNoPtrs_set_c)(  ext_var.as_ptr_c_api(), 5, uint8_t{ 8 } );
 
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) ==
+    ASSERT_TRUE( &ext_var != cpy_obj );
+    ASSERT_TRUE(  ext_var.as_ptr_data()  != cpy_obj->as_ptr_data()  );
+    ASSERT_TRUE(  ext_var.as_ptr_c_api() != cpy_obj->as_ptr_c_api() );
+    ASSERT_TRUE(  ext_var.a      != cpy_obj->a );
+    ASSERT_TRUE(  ext_var.b      != cpy_obj->b );
+    ASSERT_TRUE(  ext_var.c[ 0 ] != cpy_obj->c[ 0 ] );
+    ASSERT_TRUE(  ext_var.c[ 1 ] != cpy_obj->c[ 1 ] );
+    ASSERT_TRUE(  ext_var.c[ 2 ] != cpy_obj->c[ 2 ] );
+    ASSERT_TRUE(  ext_var.c[ 3 ] != cpy_obj->c[ 3 ] );
+    ASSERT_TRUE(  ext_var.c[ 4 ] != cpy_obj->c[ 4 ] );
+    ASSERT_TRUE(  ext_var.c[ 5 ] != cpy_obj->c[ 5 ] );
+
+    ASSERT_TRUE( view.store_object< _obj_t >( 0, &ext_var ) ==
         st::COBJECTS_STATUS_SUCCESS );
 
-    ASSERT_TRUE( &ext_var != copy1 );
-    ASSERT_TRUE(  ext_var.as_ptr_data()  != copy1->as_ptr_data()  );
-    ASSERT_TRUE(  ext_var.as_ptr_c_api() != copy1->as_ptr_c_api() );
-    ASSERT_TRUE(  ext_var.a      == copy1->a );
-    ASSERT_TRUE(  ext_var.b      == copy1->b );
-    ASSERT_TRUE(  ext_var.c[ 0 ] == copy1->c[ 0 ] );
-    ASSERT_TRUE(  ext_var.c[ 1 ] == copy1->c[ 1 ] );
-    ASSERT_TRUE(  ext_var.c[ 2 ] == copy1->c[ 2 ] );
-    ASSERT_TRUE(  ext_var.c[ 3 ] == copy1->c[ 3 ] );
-    ASSERT_TRUE(  ext_var.c[ 4 ] == copy1->c[ 4 ] );
-    ASSERT_TRUE(  ext_var.c[ 5 ] == copy1->c[ 5 ] );
+    ASSERT_TRUE( &ext_var != cpy_obj );
+    ASSERT_TRUE(  ext_var.as_ptr_data()  != cpy_obj->as_ptr_data()  );
+    ASSERT_TRUE(  ext_var.as_ptr_c_api() != cpy_obj->as_ptr_c_api() );
+    ASSERT_TRUE(  ext_var.a      == cpy_obj->a );
+    ASSERT_TRUE(  ext_var.b      == cpy_obj->b );
+    ASSERT_TRUE(  ext_var.c[ 0 ] == cpy_obj->c[ 0 ] );
+    ASSERT_TRUE(  ext_var.c[ 1 ] == cpy_obj->c[ 1 ] );
+    ASSERT_TRUE(  ext_var.c[ 2 ] == cpy_obj->c[ 2 ] );
+    ASSERT_TRUE(  ext_var.c[ 3 ] == cpy_obj->c[ 3 ] );
+    ASSERT_TRUE(  ext_var.c[ 4 ] == cpy_obj->c[ 4 ] );
+    ASSERT_TRUE(  ext_var.c[ 5 ] == cpy_obj->c[ 5 ] );
+
+    ASSERT_TRUE( cpy_obj != nullptr );
+    ASSERT_TRUE( cpy_obj != &orig  );
+    ASSERT_TRUE( cpy_obj->as_ptr_data()  != orig.as_ptr_data()  );
+    ASSERT_TRUE( cpy_obj->as_ptr_c_api() != orig.as_ptr_c_api() );
+    ASSERT_TRUE( cpy_obj->a      != orig.a );
+    ASSERT_TRUE( cpy_obj->b      != orig.b );
+    ASSERT_TRUE( cpy_obj->c[ 0 ] != orig.c[ 0 ] );
+    ASSERT_TRUE( cpy_obj->c[ 1 ] != orig.c[ 1 ] );
+    ASSERT_TRUE( cpy_obj->c[ 2 ] != orig.c[ 2 ] );
+    ASSERT_TRUE( cpy_obj->c[ 3 ] != orig.c[ 3 ] );
+    ASSERT_TRUE( cpy_obj->c[ 4 ] != orig.c[ 4 ] );
+    ASSERT_TRUE( cpy_obj->c[ 5 ] != orig.c[ 5 ] );
 }
 
 
@@ -146,35 +159,13 @@ TEST( CxxCommonCObjectsCBufferViewStoreObjectsTests, BasicUsageTypeFixedNumPtrs 
 
     _prng_t prng( _seed_t{ 20200216 } );
 
-    std::vector< double > orig1_b_values( 100 );
-    std::vector< double > orig1_c_values( 255 );
+    constexpr _size_t NUM_B_VALUES = _size_t{ 100 };
+    constexpr _size_t NUM_C_VALUES = _size_t{ 255 };
 
-    _real_dist_t b_dist( double{ -2.0 }, double{  2.0 } );
-    _real_dist_t c_dist( double{  0.0 }, double{ 10.0 } );
-
-    auto b_value_generator = std::bind( b_dist, prng );
-    auto c_value_generator = std::bind( c_dist, prng );
-
-    std::generate( orig1_b_values.begin(), orig1_b_values.end(),
-                   b_value_generator );
-
-    std::generate( orig1_c_values.begin(), orig1_c_values.end(),
-                   c_value_generator );
-
-    _obj_t orig1;
-    ::NS(TypeFixedNumPtrs_preset)( &orig1 );
-    ::NS(TypeFixedNumPtrs_set_a)( &orig1, double{ 42.0 } );
-    ::NS(TypeFixedNumPtrs_set_num_b_values)( &orig1, orig1_b_values.size() );
-    ::NS(TypeFixedNumPtrs_set_num_c_values)( &orig1, orig1_c_values.size() );
-
-    ::NS(TypeFixedNumPtrs_set_b_values_addr)( &orig1,
-            reinterpret_cast< uintptr_t >( orig1_b_values.data() ) );
-
-    ::NS(TypeFixedNumPtrs_set_c_values_addr)( &orig1,
-            reinterpret_cast< uintptr_t >( orig1_c_values.data() ) );
-
-    _obj_t ext_var;
-    ::NS(TypeFixedNumPtrs_preset)( &ext_var );
+    _obj_t orig;
+    ::NS(TypeFixedNumPtrs_preset)( &orig );
+    ::NS(TypeFixedNumPtrs_set_num_b_values)( &orig, NUM_B_VALUES );
+    ::NS(TypeFixedNumPtrs_set_num_c_values)( &orig, NUM_C_VALUES );
 
     _size_t required_buffer_size = _size_t{ 0 };
     _size_t requ_num_slots = _size_t{ 0 };
@@ -182,178 +173,166 @@ TEST( CxxCommonCObjectsCBufferViewStoreObjectsTests, BasicUsageTypeFixedNumPtrs 
     _size_t requ_num_ptrs  = _size_t{ 0 };
 
     ASSERT_FALSE( view.can_add_copy_of_object< _obj_t >(
-        &orig1, &required_buffer_size, &requ_num_slots,
+        &orig, &required_buffer_size, &requ_num_slots,
             &requ_num_objs, &requ_num_ptrs ) );
 
     ASSERT_TRUE( required_buffer_size > view.size() );
     view.reallocate( requ_num_slots, requ_num_objs, requ_num_ptrs );
 
-    _obj_t* copy1 = st::CBufferView_add_copy_of_object_detail(
-        view, &orig1, &required_buffer_size, &requ_num_slots,
+    _obj_t* cpy_obj = st::CBufferView_add_copy_of_object_detail(
+        view, &orig, &required_buffer_size, &requ_num_slots,
             &requ_num_objs, &requ_num_ptrs );
 
-    ASSERT_TRUE( copy1 != nullptr );
-    ASSERT_TRUE( copy1 != &orig1  );
-    ASSERT_TRUE( copy1->a             == orig1.a );
-    ASSERT_TRUE( copy1->num_b_values  == orig1.num_b_values );
-    ASSERT_TRUE( copy1->num_c_values  == orig1.num_c_values );
-    ASSERT_TRUE( copy1->b_values_addr != 0u );
-    ASSERT_TRUE( copy1->b_values_addr != orig1.b_values_addr );
-    ASSERT_TRUE( copy1->c_values_addr != 0u );
-    ASSERT_TRUE( copy1->c_values_addr != orig1.c_values_addr );
+    ASSERT_TRUE( cpy_obj != nullptr );
+    ASSERT_TRUE( cpy_obj != &orig  );
+    ASSERT_TRUE( cpy_obj == view.get_object< _obj_t >( 0 ) );
+    ASSERT_TRUE( cpy_obj->a             == orig.a );
+    ASSERT_TRUE( cpy_obj->num_b_values  == orig.num_b_values );
+    ASSERT_TRUE( cpy_obj->num_b_values  == NUM_B_VALUES );
+    ASSERT_TRUE( cpy_obj->num_c_values  == orig.num_c_values );
+    ASSERT_TRUE( cpy_obj->num_c_values  == NUM_C_VALUES );
+    ASSERT_TRUE( cpy_obj->b_values_addr != 0u );
+    ASSERT_TRUE( cpy_obj->b_values_addr != orig.b_values_addr );
+    ASSERT_TRUE( cpy_obj->c_values_addr != 0u );
+    ASSERT_TRUE( cpy_obj->c_values_addr != orig.c_values_addr );
 
-    ASSERT_TRUE( orig1_b_values.size() == static_cast< std::size_t >(
-        std::distance(
-            ::NS(TypeFixedNumPtrs_const_b_values_begin)( &orig1 ),
-            ::NS(TypeFixedNumPtrs_const_b_values_end)( &orig1 ) ) ) );
+    uintptr_t const cpy_obj_b_addr = cpy_obj->b_values_addr;
+    uintptr_t const cpy_obj_c_addr = cpy_obj->c_values_addr;
 
-    ASSERT_TRUE( orig1_b_values.size() == static_cast< std::size_t >(
-        std::distance(
-            ::NS(TypeFixedNumPtrs_const_b_values_begin)( copy1 ),
-            ::NS(TypeFixedNumPtrs_const_b_values_end)( copy1 ) ) ) );
+    _obj_t ext_var;
+    ::NS(TypeFixedNumPtrs_preset)( &ext_var );
+    ::NS(TypeFixedNumPtrs_set_a)( &ext_var, double{ 42.0 } );
 
-    ASSERT_TRUE( std::equal(
-        ::NS(TypeFixedNumPtrs_const_b_values_begin)( &orig1 ),
-        ::NS(TypeFixedNumPtrs_const_b_values_end)( &orig1 ),
-        ::NS(TypeFixedNumPtrs_const_b_values_begin)( copy1 ) ) );
-
-    ASSERT_TRUE( orig1_c_values.size() == static_cast< std::size_t >(
-        std::distance(
-            ::NS(TypeFixedNumPtrs_const_c_values_begin)( &orig1 ),
-            ::NS(TypeFixedNumPtrs_const_c_values_end)( &orig1 ) ) ) );
-
-    ASSERT_TRUE( orig1_c_values.size() == static_cast< std::size_t >(
-        std::distance(
-            ::NS(TypeFixedNumPtrs_const_c_values_begin)( copy1 ),
-            ::NS(TypeFixedNumPtrs_const_c_values_end)( copy1 ) ) ) );
-
-    ASSERT_TRUE( std::equal(
-        ::NS(TypeFixedNumPtrs_const_c_values_begin)( &orig1 ),
-        ::NS(TypeFixedNumPtrs_const_c_values_end)( &orig1 ),
-        ::NS(TypeFixedNumPtrs_const_c_values_begin)( copy1 ) ) );
-
-    ASSERT_TRUE( &ext_var != copy1 );
+    ASSERT_TRUE( &ext_var != cpy_obj );
     ASSERT_TRUE(  ext_var.num_b_values  == 0u );
     ASSERT_TRUE(  ext_var.b_values_addr == 0u );
 
     ASSERT_TRUE(  ext_var.num_c_values  == 0u );
     ASSERT_TRUE(  ext_var.c_values_addr == 0u );
-    ASSERT_TRUE(  ext_var.a             != copy1->a );
+    ASSERT_TRUE(  ext_var.a             != cpy_obj->a );
 
-    /* Can't load because ext_var has no fields and no way to store the
-     * data from copy1 */
+    /* Can't store because ext_var has no fields and does not match the
+     * layout of cpy_obj */
 
-    static_assert( st::CObjElem_has_const_num_ptrs< _obj_t >(), "Has C-API ptrs" );
-
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) !=
+    ASSERT_TRUE( view.store_object< _obj_t >( 0, &ext_var ) !=
         st::COBJECTS_STATUS_SUCCESS );
 
-    ASSERT_TRUE( &ext_var   != copy1 );
-    ASSERT_TRUE(  ext_var.a != copy1->a );
+    ASSERT_TRUE( &ext_var   != cpy_obj );
+    ASSERT_TRUE(  ext_var.a != cpy_obj->a );
 
-    ASSERT_TRUE(  ext_var.num_b_values  == 0u );
-    ASSERT_TRUE(  ext_var.b_values_addr == 0u );
-    ASSERT_TRUE(  ext_var.num_c_values  == 0u );
-    ASSERT_TRUE(  ext_var.c_values_addr == 0u );
+    ASSERT_TRUE(  cpy_obj->num_b_values  == NUM_B_VALUES );
+    ASSERT_TRUE(  cpy_obj->num_c_values  == NUM_C_VALUES );
+    ASSERT_TRUE(  cpy_obj->b_values_addr == cpy_obj_b_addr );
+    ASSERT_TRUE(  cpy_obj->c_values_addr == cpy_obj_c_addr );
 
     /* Give ext_var values for num_b_values and num_c_values that match
      * but still no actual space to store the data -> load shouldn't work */
 
-    ::NS(TypeFixedNumPtrs_set_num_b_values)( &ext_var, copy1->num_b_values );
-    ::NS(TypeFixedNumPtrs_set_num_c_values)( &ext_var, copy1->num_c_values );
+    ::NS(TypeFixedNumPtrs_set_num_b_values)( &ext_var, NUM_B_VALUES );
+    ::NS(TypeFixedNumPtrs_set_num_c_values)( &ext_var, NUM_C_VALUES );
 
     ASSERT_TRUE(  ext_var.b_values_addr == 0u );
     ASSERT_TRUE(  ext_var.num_b_values  != 0u );
-    ASSERT_TRUE(  ext_var.num_b_values  ==
-                 ::NS(TypeFixedNumPtrs_num_b_values)( copy1 ) );
-
-
+    ASSERT_TRUE(  ext_var.num_b_values  == cpy_obj->num_b_values );
     ASSERT_TRUE(  ext_var.c_values_addr == 0u );
     ASSERT_TRUE(  ext_var.num_c_values  != 0u );
-    ASSERT_TRUE(  ext_var.num_c_values  ==
-                  ::NS(TypeFixedNumPtrs_num_c_values)( copy1 ) );
+    ASSERT_TRUE(  ext_var.num_c_values  == cpy_obj->num_c_values );
 
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) !=
+    ASSERT_TRUE( view.store_object< _obj_t >( 0, &ext_var ) !=
         st::COBJECTS_STATUS_SUCCESS );
-    ASSERT_TRUE( ext_var.a != copy1->a );
+
+    ASSERT_TRUE( ext_var.a  != cpy_obj->a );
+    ASSERT_TRUE( &ext_var   != cpy_obj );
+    ASSERT_TRUE(  ext_var.a != cpy_obj->a );
+
+    ASSERT_TRUE(  cpy_obj->num_b_values  == NUM_B_VALUES );
+    ASSERT_TRUE(  cpy_obj->num_c_values  == NUM_C_VALUES );
+    ASSERT_TRUE(  cpy_obj->b_values_addr == cpy_obj_b_addr );
+    ASSERT_TRUE(  cpy_obj->c_values_addr == cpy_obj_c_addr );
 
     /* Give ext_var a space for b-values and c-values but give it
      * actually too much space -> should not work */
 
-    std::vector< double > ext_var_b_values( 2u *
-        ::NS(TypeFixedNumPtrs_num_b_values)( copy1 ) );
+    std::vector< double > ext_b_values( 2u * NUM_B_VALUES );
+    std::vector< double > ext_c_values( 2u * NUM_C_VALUES );
 
-    std::vector< double > ext_var_c_values( 2u *
-        ::NS(TypeFixedNumPtrs_num_c_values)( copy1 ) );
+    _real_dist_t b_dist( double{ -2.0 }, double{  2.0 } );
+    _real_dist_t c_dist( double{  0.0 }, double{ 10.0 } );
 
-    ::NS(TypeFixedNumPtrs_set_num_b_values)(
-        &ext_var, ext_var_b_values.size() );
+    auto b_value_generator = std::bind( b_dist, prng );
+    auto c_value_generator = std::bind( c_dist, prng );
 
-    ::NS(TypeFixedNumPtrs_set_num_c_values)(
-        &ext_var, ext_var_c_values.size() );
+    std::generate( ext_b_values.begin(), ext_b_values.end(),
+                   b_value_generator );
+
+    std::generate( ext_c_values.begin(), ext_c_values.end(),
+                   c_value_generator );
+
+    ::NS(TypeFixedNumPtrs_set_num_b_values)( &ext_var, ext_b_values.size() );
+    ::NS(TypeFixedNumPtrs_set_num_c_values)( &ext_var, ext_c_values.size() );
 
     ::NS(TypeFixedNumPtrs_set_b_values_addr)( &ext_var,
-        reinterpret_cast< uintptr_t >( ext_var_b_values.data() ) );
+        reinterpret_cast< uintptr_t >( ext_b_values.data() ) );
 
     ::NS(TypeFixedNumPtrs_set_c_values_addr)( &ext_var,
-        reinterpret_cast< uintptr_t >( ext_var_c_values.data() ) );
+        reinterpret_cast< uintptr_t >( ext_c_values.data() ) );
 
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) !=
+    ASSERT_TRUE( view.store_object< _obj_t >( 0, &ext_var ) !=
         st::COBJECTS_STATUS_SUCCESS );
-    ASSERT_TRUE( ext_var.a != copy1->a );
+
+    ASSERT_TRUE(  cpy_obj->a != ext_var.a );
+    ASSERT_TRUE(  cpy_obj->num_b_values  == NUM_B_VALUES );
+    ASSERT_TRUE(  cpy_obj->num_c_values  == NUM_C_VALUES );
+    ASSERT_TRUE(  cpy_obj->b_values_addr == cpy_obj_b_addr );
+    ASSERT_TRUE(  cpy_obj->c_values_addr == cpy_obj_c_addr );
 
     /* Keep the actual field as it is but set the num_b_values and num_c_values
-     * parameters to match those of copy1 -> this should work now! */
+     * parameters to match those of cpy_obj -> this should work now! */
 
-    ::NS(TypeFixedNumPtrs_set_num_b_values)( &ext_var,
-        ::NS(TypeFixedNumPtrs_num_b_values)( copy1 ) );
+    ext_b_values.resize( NUM_B_VALUES );
+    ext_c_values.resize( NUM_C_VALUES );
 
-    ::NS(TypeFixedNumPtrs_set_num_c_values)( &ext_var,
-        ::NS(TypeFixedNumPtrs_num_c_values)( copy1 ) );
+    std::generate( ext_b_values.begin(), ext_b_values.end(),
+                   b_value_generator );
 
-    ASSERT_TRUE( ::NS(TypeFixedNumPtrs_const_b_values_begin)(
-                    copy1 ) != nullptr );
-    ASSERT_TRUE( ::NS(TypeFixedNumPtrs_const_b_values_begin)(
-                    &ext_var ) != nullptr );
+    std::generate( ext_c_values.begin(), ext_c_values.end(),
+                   c_value_generator );
 
-    ASSERT_TRUE( ::NS(TypeFixedNumPtrs_const_b_values_begin)( copy1 ) !=
-                 ::NS(TypeFixedNumPtrs_const_b_values_begin)( &ext_var ) );
+    ::NS(TypeFixedNumPtrs_set_num_b_values)( &ext_var, ext_b_values.size() );
+    ::NS(TypeFixedNumPtrs_set_num_c_values)( &ext_var, ext_c_values.size() );
 
-    ASSERT_TRUE( ::NS(TypeFixedNumPtrs_const_c_values_begin)(
-                    copy1 ) != nullptr );
+    ::NS(TypeFixedNumPtrs_set_b_values_addr)( &ext_var,
+        reinterpret_cast< uintptr_t >( ext_b_values.data() ) );
 
-    ASSERT_TRUE(  ::NS(TypeFixedNumPtrs_const_c_values_begin)(
-                    &ext_var ) != nullptr );
+    ::NS(TypeFixedNumPtrs_set_c_values_addr)( &ext_var,
+        reinterpret_cast< uintptr_t >( ext_c_values.data() ) );
 
-    ASSERT_TRUE( ::NS(TypeFixedNumPtrs_const_c_values_begin)( copy1 ) !=
-                 ::NS(TypeFixedNumPtrs_const_c_values_begin)( &ext_var ) );
+    ASSERT_TRUE( cpy_obj->num_b_values == ext_var.num_b_values );
+    ASSERT_TRUE( cpy_obj->num_c_values == ext_var.num_c_values );
 
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) ==
+    ASSERT_TRUE( view.store_object< _obj_t >( 0, &ext_var ) ==
         st::COBJECTS_STATUS_SUCCESS );
 
-    ASSERT_TRUE( &ext_var   != copy1 );
-    ASSERT_TRUE(  ext_var.a == copy1->a );
-
-    ASSERT_TRUE(  ::NS(TypeFixedNumPtrs_num_b_values)( &ext_var ) ==
-                  ::NS(TypeFixedNumPtrs_num_b_values)( copy1 ) );
-
-    ASSERT_TRUE(  ::NS(TypeFixedNumPtrs_num_c_values)( &ext_var ) ==
-                  ::NS(TypeFixedNumPtrs_num_c_values)( copy1 ) );
-
-    ASSERT_TRUE(  ::NS(TypeFixedNumPtrs_b_values_addr)( &ext_var ) ==
-                  reinterpret_cast< uintptr_t >( ext_var_b_values.data() ) );
-
-    ASSERT_TRUE(  ::NS(TypeFixedNumPtrs_c_values_addr)( &ext_var ) ==
-                  reinterpret_cast< uintptr_t >( ext_var_c_values.data() ) );
+    ASSERT_TRUE(  cpy_obj->a == ext_var.a );
+    ASSERT_TRUE(  cpy_obj->num_b_values  == NUM_B_VALUES );
+    ASSERT_TRUE(  cpy_obj->num_c_values  == NUM_C_VALUES );
+    ASSERT_TRUE(  cpy_obj->b_values_addr == cpy_obj_b_addr );
+    ASSERT_TRUE(  cpy_obj->c_values_addr == cpy_obj_c_addr );
+    ASSERT_TRUE(  ext_var.b_values_addr  != cpy_obj_b_addr );
+    ASSERT_TRUE(  ext_var.b_values_addr  ==
+                    reinterpret_cast< uintptr_t >( ext_b_values.data() ) );
+    ASSERT_TRUE(  ext_var.c_values_addr  != cpy_obj_c_addr );
+    ASSERT_TRUE(  ext_var.c_values_addr  ==
+                    reinterpret_cast< uintptr_t >( ext_c_values.data() ) );
 
     ASSERT_TRUE( std::equal(
-        ::NS(TypeFixedNumPtrs_const_b_values_begin)( &ext_var ),
-        ::NS(TypeFixedNumPtrs_const_b_values_end)( &ext_var ),
-        ::NS(TypeFixedNumPtrs_const_b_values_begin)( copy1 ) ) );
+        ::NS(TypeFixedNumPtrs_const_b_values_begin)( cpy_obj ),
+        ::NS(TypeFixedNumPtrs_const_b_values_end)( cpy_obj ),
+        ::NS(TypeFixedNumPtrs_const_b_values_begin)( &ext_var ) ) );
 
     ASSERT_TRUE( std::equal(
-        ::NS(TypeFixedNumPtrs_const_c_values_begin)( &ext_var ),
-        ::NS(TypeFixedNumPtrs_const_c_values_end)( &ext_var ),
-        ::NS(TypeFixedNumPtrs_const_c_values_begin)( copy1 ) ) );
+        ::NS(TypeFixedNumPtrs_const_c_values_begin)( cpy_obj ),
+        ::NS(TypeFixedNumPtrs_const_c_values_end)( cpy_obj ),
+        ::NS(TypeFixedNumPtrs_const_c_values_begin)( &ext_var ) ) );
 }
 
