@@ -914,7 +914,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case01_direct_no_ptrs< E >() &&
+       !SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >(),
         cobj_status_t >::type
     CObjElem_store_to_flat_cbuffer_from_argptr(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,
@@ -1276,12 +1277,13 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_BUFFER_ARGPTR_DEC const Derived *const
             SIXTRL_RESTRICT ptr_to_source )
     {
+        namespace st = SIXTRL_CXX_NAMESPACE;
         typedef typename Derived::obj_data_t E;
-        SIXTRL_BUFFER_ARGPTR_DEC E* _ptr = ( ptr_to_source != nullptr )
+        SIXTRL_BUFFER_ARGPTR_DEC E const* _ptr = ( ptr_to_source != nullptr )
             ? ptr_to_source->as_ptr_data() : nullptr;
 
-        return SIXTRL_CXX_NAMESPACE::CObjElem_load_from_flat_cbuffer_to_argptr<
-            E >( buffer, pos_in_buffer, slot_size, _ptr );
+        return st::CObjElem_store_to_flat_cbuffer_from_argptr< E >(
+            buffer, pos_in_buffer, slot_size, _ptr );
     }
 
     template< class E >
