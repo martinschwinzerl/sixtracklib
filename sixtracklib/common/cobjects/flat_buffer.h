@@ -2302,6 +2302,8 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
         typedef SIXTRL_BUFFER_ARGPTR_DEC  _addr_t const*    _ptr_src_addr_t;
         typedef SIXTRL_BUFFER_ARGPTR_DEC  _raw_t  const*    _ptr_src_data_t;
 
+        _addr_t const src_begin_addr = ( _addr_t )( uintptr_t )obj_to_store;
+
         _addr_t const dest_begin_addr =
             NS(CObjIndex_begin_addr)( index_obj );
 
@@ -2324,9 +2326,7 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
         {
             _size_t ii = ( _size_t )0u;
 
-            SIXTRL_ASSERT( ( uintptr_t )obj_to_store % slot_size ==
-                           ( uintptr_t )0u );
-
+            SIXTRL_ASSERT( src_begin_addr % slot_size == ( _addr_t )0u );
             SIXTRL_ASSERT( offsets   != SIXTRL_NULLPTR );
             SIXTRL_ASSERT( sizes     != SIXTRL_NULLPTR );
             SIXTRL_ASSERT( counts    != SIXTRL_NULLPTR );
@@ -2339,9 +2339,12 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
             for( ; ii < num_pointers ; ++ii )
             {
                 _size_t const field_offset = offsets[ ii ];
-                _addr_t const dest_field_addr = dest_begin_addr + field_offset;
-                _ptr_dest_addr_t _ptr_field_addr = ( _ptr_dest_addr_t)(
-                    uintptr_t )dest_field_addr;
+
+                _ptr_dest_addr_t _ptr_dest_field_addr = ( _ptr_dest_addr_t)(
+                    uintptr_t )( dest_begin_addr + field_offset );
+
+                _ptr_src_addr_t _ptr_src_field_addr = ( _ptr_src_addr_t )(
+                    uintptr_t )( src_begin_addr + field_offset );
 
                 if( ( ( field_offset % slot_size ) != ( _size_t )0u ) ||
                     ( ( field_offset + slot_size ) > obj_size ) )
@@ -2350,14 +2353,15 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
                     break;
                 }
 
-                save_ptrs[ ii ] = *( _ptr_field_addr );
-
-                if( ( save_ptrs[ ii ] == NULL_ADDR ) &&
+                if( ( ( save_ptrs[ ii ] == NULL_ADDR ) ||
+                      ( *_ptr_src_field_addr == NULL_ADDR ) ) &&
                     ( counts[ ii ] * sizes[ ii ] > ( _size_t )0u ) )
                 {
                     status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
                     break;
                 }
+
+                save_ptrs[ ii ] = *( _ptr_dest_field_addr );
             }
         }
 
@@ -2376,9 +2380,6 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
         if( ( status == SIXTRL_COBJECTS_STATUS_SUCCESS ) &&
             ( num_pointers > ( _size_t )0u ) )
         {
-            _addr_t const src_begin_addr =
-                    ( _addr_t )( uintptr_t )obj_to_store;
-
             _size_t const requ_storage_size =
                 NS(CObjFlatBuffer_predict_required_num_bytes)(
                     obj_size, num_pointers, sizes, counts, slot_size );
