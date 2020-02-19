@@ -3,16 +3,11 @@ if( NOT  SIXTRACKL_CMAKE_SETUP_OPENCL_FINISHED )
 
     message(STATUS "---- Processing cmake/SetupOpenCL.cmake")
 
-    # --------------------------------------------------------------------------
-    # Add OPENCL to the list of supported modules and track its state:
+    # Set the module specific variables used throughout CMakeLists.txt files
+    # to generate configs, headers, etc.
 
-    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES "OPENCL" )
-
-    if( SIXTRACKL_ENABLE_OPENCL )
-        list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES "1" )
-    else()
-        list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES "0" )
-    endif()
+    set( SIXTRACKLIB_ENABLE_MODULE_OPENCL 0 )
+    set( PY_SIXTRL_MODULE_VALUE "False" )
 
     # --------------------------------------------------------------------------
     # Provide include directories and library directories for OpenCL, if enabled
@@ -185,7 +180,29 @@ if( NOT  SIXTRACKL_CMAKE_SETUP_OPENCL_FINISHED )
                 endif()
             endif()
         endif()
+
+        if( EXISTS ${CXX_OPENCL_HEADER} AND OpenCL_FOUND )
+            set( SIXTRACKLIB_ENABLE_MODULE_OPENCL 1 )
+            set( PY_SIXTRL_MODULE_VALUE "True" )
+        endif()
     endif()
+
+    # --------------------------------------------------------------------------
+    # Add OPENCL to the list of supported modules and track its state:
+
+    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES "OPENCL" )
+    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES
+            "${SIXTRACKLIB_ENABLE_MODULE_OPENCL}" )
+
+    set( SIXTRL_MODULES_INSTALL ${SIXTRL_MODULES_INSTALL}
+         "set( SIXTRACKLIB_ENABLE_MODULE_OPENCL ${SIXTRACKLIB_ENABLE_MODULE_OPENCL} )"
+    )
+
+    if( SIXTRACKL_ENABLE_PYTHON )
+        set( PY_SIXTRACKLIB_MODULES_STR ${PY_SIXTRACKLIB_MODULES_STR}
+             "SIXTRACKLIB_MODULES[ \"opencl\" ] = ${PY_SIXTRL_MODULE_VALUE}" )
+    endif()
+    unset( PY_SIXTRL_MODULE_VALUE )
 endif()
 
 #end: cmake/SetupOpenCL.cmake

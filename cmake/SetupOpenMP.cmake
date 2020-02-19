@@ -3,16 +3,11 @@ if( NOT  SIXTRACKL_CMAKE_SETUP_OPENMP_FINISHED )
 
     message(STATUS "---- Processing cmake/SetupOpenMP.cmake")
 
-     # --------------------------------------------------------------------------
-    # Add OPENMP to the list of supported modules and track its state:
+    # Set the module specific variables used throughout CMakeLists.txt files
+    # to generate configs, headers, etc.
 
-    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES "OPENMP" )
-
-    if( SIXTRACKL_ENABLE_OPENMP )
-        list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES "1" )
-    else()
-        list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES "0" )
-    endif()
+    set( SIXTRACKLIB_ENABLE_MODULE_OPENMP 0 )
+    set( PY_SIXTRL_MODULE_VALUE "False" )
 
     # --------------------------------------------------------------------------
     # Provide include directories and library directories for OpenMP, if enabled
@@ -60,8 +55,26 @@ if( NOT  SIXTRACKL_CMAKE_SETUP_OPENMP_FINISHED )
                      ${OpenMP_Fortran_FLAGS} )
             endif()
 
+            set( SIXTRACKLIB_ENABLE_MODULE_OPENMP 1 )
+            set( PY_SIXTRL_MODULE_VALUE "True" )
         endif()
-
     endif()
+
+    # --------------------------------------------------------------------------
+    # Add OpenMP to the list of supported modules and track its state:
+
+    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES "OPENMP" )
+    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES
+            "${SIXTRACKLIB_ENABLE_MODULE_OPENMP}" )
+
+    set( SIXTRL_MODULES_INSTALL ${SIXTRL_MODULES_INSTALL}
+         "set( SIXTRACKLIB_ENABLE_MODULE_OPENMP ${SIXTRACKLIB_ENABLE_MODULE_OPENMP} )"
+    )
+
+    if( SIXTRACKL_ENABLE_PYTHON )
+        set( PY_SIXTRACKLIB_MODULES_STR ${PY_SIXTRACKLIB_MODULES_STR}
+             "SIXTRACKLIB_MODULES[ \"openmp\" ] = ${PY_SIXTRL_MODULE_VALUE}" )
+    endif()
+    unset( PY_SIXTRL_MODULE_VALUE )
 
 endif()

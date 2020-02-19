@@ -3,57 +3,54 @@ if( NOT  SIXTRACKL_CMAKE_SETUP_MULTI_PRECISION_FINISHED )
 
     message( STATUS "---- Processing cmake/SetupMultiPrecision.cmake" )
 
-    # --------------------------------------------------------------------------
-    # Add MPFR4 to the list of supported modules and track its state:
+    # Set the module specific variables used throughout CMakeLists.txt files
+    # to generate configs, headers, etc.
 
-    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES "MPFR4" )
-
-    if( SIXTRACKL_ENABLE_MPFR4 )
-        list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES "1" )
-    else()
-        list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES "0" )
-    endif()
+    set( SIXTRACKLIB_ENABLE_MODULE_MULTIPREC 0 )
+    set( PY_SIXTRL_MODULE_VALUE "False" )
 
     # --------------------------------------------------------------------------
-    # Provide include directories and library directories for MPFR, if enabled
+    # Handle backends providing multiprecision support
 
-    if( NOT  SIXTRACKL_MULTIPREC_INCLUDE_DIRS )
-        set( SIXTRACKL_MULTIPREC_INCLUDE_DIRS )
-    endif()
-
-    if( NOT  SIXTRACKL_MULTIPREC_LIBRARIES )
-        set( SIXTRACKL_MULTIPREC_LIBRARIES )
-    endif()
-
-    # --------------------------------------------------------------------------
-    # Find MPFR and Gmp packages, if required
-
-    if( SIXTRACKL_ENABLE_MPFR4 OR SIXTRACKL_ENABLE_MPFR_ACCURACY_TESTS )
-
-        if( NOT Gmp_FOUND )
-            find_package( Gmp REQUIRED )
+    if( SIXTRACKL_ENABLE_MULTIPREC )
+        if(  NOT SIXTRL_MULTIPREC_IMPL )
+            set( SIXTRL_MULTIPREC_IMPL "boost" )
         endif()
 
-        if( NOT MPFR_FOUND )
-            find_package( MPFR REQUIRED )
-        endif()
-
-        if( MPFR_FOUND AND Gmp_FOUND )
-
-            if( Gmp_INCLUDES OR MPFR_INCLUDES )
-                set(   SIXTRACKL_MULTIPREC_INCLUDE_DIRS
-                     ${SIXTRACKL_MULTIPREC_INCLUDE_DIRS}
-                     ${Gmp_INCLUDES} ${MPFR_INCLUDES} )
+        if( "${SIXTRL_MULTIPREC_IMPL}" STREQUAL "boost" )
+            if( NOT Boost_FOUND )
+                if( SIXTRACKL_BOOST_COMPONENTS )
+                    find_package( Boost REQUIRED
+                        COMPONENTS ${SIXTRACKL_BOOST_COMPONENTS} )
+                else()
+                    find_package( Boost REQUIRED )
+                endif()
             endif()
 
-            if( Gmp_LIBRARIES OR MPFR_LIBRARIES )
-                set(  SIXTRACKL_MULTIPREC_LIBRARIES
-                    ${SIXTRACKL_MULTIPREC_LIBRARIES}
-                    m ${MPFR_LIBRARIES} ${Gmp_LIBRARIES} )
+            if( Boost_FOUND )
+                set( SIXTRACKLIB_ENABLE_MODULE_MULTIPREC 1 )
+                set( PY_SIXTRL_MODULE_VALUE "True" )
             endif()
-
         endif()
     endif()
+
+
+    # --------------------------------------------------------------------------
+    # Add MULTIPREC to the list of supported modules and track its state:
+
+    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES "MULTIPREC" )
+    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES
+            "${SIXTRACKLIB_ENABLE_MODULE_MULTIPREC}" )
+
+    set( SIXTRL_MODULES_INSTALL ${SIXTRL_MODULES_INSTALL}
+         "set( SIXTRACKLIB_ENABLE_MODULE_MULTIPREC ${SIXTRACKLIB_ENABLE_MODULE_MULTIPREC} )"
+    )
+
+    if( SIXTRACKL_ENABLE_PYTHON )
+        set( PY_SIXTRACKLIB_MODULES_STR ${PY_SIXTRACKLIB_MODULES_STR}
+             "SIXTRACKLIB_MODULES[ \"multiprec\" ] = ${PY_SIXTRL_MODULE_VALUE}" )
+    endif()
+    unset( PY_SIXTRL_MODULE_VALUE )
 endif()
 
 # end: cmake/SetupMultiPrecision.cmake

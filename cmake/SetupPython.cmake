@@ -28,4 +28,8 @@ if(  NOT SETUP_PYTHON_FINISHED )
         find_package( PythonLibs REQUIRED )
     endif()
 
+    if(  NOT PY_SIXTRACKLIB_MODULES_STR )
+        set( PY_SIXTRACKLIB_MODULES_STR "SIXTRACKLIB_MODULES = {}" )
+    endif()
+
 endif()
