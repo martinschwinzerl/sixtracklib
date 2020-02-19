@@ -14,15 +14,15 @@
 # ------------------------------------------------------------------------------
 # ---- Backends and computing architectures:
 
-option( SIXTRACKL_ENABLE_AUTOVECTORIZATION "Enable Autovectorization"     OFF )
-option( SIXTRACKL_ENABLE_MANUAL_SIMD       "Enable manual SIMD backend"   OFF )
-option( SIXTRACKL_ENABLE_OPENMP            "Enable OpenMP backend"        OFF )
-option( SIXTRACKL_ENABLE_OPENCL            "Enable OpenCL 1.x backend"    OFF )
-option( SIXTRACKL_ENABLE_CUDA              "Enable CUDA backend"          OFF )
-option( SIXTRACKL_ENABLE_MPFR4             "Enable GMP/MPFR4 backend"     OFF )
+option( SIXTRACKL_ENABLE_AUTOVEC_SIMD "Enable Autovectorisation (on CPUs)" OFF )
+option( SIXTRACKL_ENABLE_SIMD         "Enable explicit SIMD (on CPUs)"     OFF )
+option( SIXTRACKL_ENABLE_MULTIPREC    "Enable Multiprecision (on CPUs)"    OFF )
+option( SIXTRACKL_ENABLE_OPENMP       "Enable OpenMP backend"              OFF )
+option( SIXTRACKL_ENABLE_OPENCL       "Enable OpenCL 1.x backend"          OFF )
+option( SIXTRACKL_ENABLE_CUDA         "Enable CUDA backend"                OFF )
 
-option( SIXTRACKL_ENABLE_CXX               "Enable C++ bindings"          ON  )
-option( SIXTRACKL_ENABLE_PYTHON            "Enable Python bindings"       ON  )
+option( SIXTRACKL_ENABLE_CXX          "Enable C++ bindings"                ON  )
+option( SIXTRACKL_ENABLE_PYTHON       "Enable Python bindings"             ON  )
 
 # ------------------------------------------------------------------------------
 # ---- Program logistic options:
@@ -65,6 +65,40 @@ set( SIXTRACKL_APERTURE_X_LIMIT_VALUE "1.0"
 set( SIXTRACKL_APERTURE_Y_LIMIT_VALUE "1.0"
      CACHE STRING "Aperture check y limit" FORCE )
 
+# ------------------------------------------------------------------------------
+# Multiprecision options
+
+set( SIXTRACKL_MULTIPREC_IMPL "boost" CACHE STRING
+     "Multiprecision implementation (supported: boost)" FORCE )
+
+# ------------------------------------------------------------------------------
+# Explicit SIMD options
+
+set( SIXTRACKL_SIMD_IMPL "xsimd" CACHE STRING
+     "Explicit SIMD implementation (supported: xsimd)" FORCE )
+
+# ------------------------------------------------------------------------------
+# Boost options
+
+# Set Boost_NO_SYSTEM_PATHS to ON if boost is installed in a non-system location
+set( Boost_NO_SYSTEM_PATHS OFF CACHE BOOL
+     "Set this to ON if boost is installed in a non-system path (default: OFF)"
+     FORCE )
+
+# Explicitly set the Path to the directory containing the boost - includedir
+set( BOOST_ROOT "" CACHE STRING
+     "Path to the boost installation root (default: empty)" FORCE )
+
+set( BOOST_ADDITIONAL_VERSIONS "" CACHE STRING
+     "Denote installed version if it is too recent for cmake (default: empty)"
+     FORCE )
+
+set( SIXTRACKL_BOOST_COMPONENTS "" CACHE STRING
+     "List of required boost component libraries (default: empty)" FORCE )
+
+# xsimd options:
+set( xsimd_DIR "" CACHE STRING
+     "Path to xsimdConfig.cmake file for xsimd (default: empty)" FORCE )
 
 # ------------------------------------------------------------------------------
 # Installation detailed setings
