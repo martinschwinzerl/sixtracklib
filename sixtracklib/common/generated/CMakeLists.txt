@@ -8,41 +8,6 @@ set( SIXTRACKL_COMMON_GENERATED_HEADERS )
 # modules.h is a header file with pre-defined constants, allownig the user
 # of the library to query which modules are present in from C/C++ code
 
-if( SIXTRACKL_ENABLE_MANUAL_SIMD )
-    set( SIXTRACKL_ENABLE_MODULE_SIMD 1 )
-    set( PY_SIXTRACKL_MODULE_SIMD "True" )
-else()
-    set( SIXTRACKL_ENABLE_MODULE_SIMD 0 )
-    set( PY_SIXTRACKL_MODULE_SIMD "False" )
-endif()
-
-if( SIXTRACKL_ENABLE_OPENCL )
-    set( SIXTRACKL_ENABLE_MODULE_OPENCL 1 )
-    set( PY_SIXTRACKL_MODULE_OPENCL "True" )
-else()
-    set( SIXTRACKL_ENABLE_MODULE_OPENCL 0 )
-    set( PY_SIXTRACKL_MODULE_OPENCL "False" )
-endif()
-
-
-if( SIXTRACKL_ENABLE_CUDA )
-    set( SIXTRACKL_ENABLE_MODULE_CUDA 1 )
-    set( PY_SIXTRACKL_MODULE_CUDA "True" )
-else()
-    set( SIXTRACKL_ENABLE_MODULE_CUDA 0 )
-    set( PY_SIXTRACKL_MODULE_CUDA "False" )
-endif()
-
-
-if( SIXTRACKL_ENABLE_MPFR4 )
-    set( SIXTRACKL_ENABLE_MODULE_MPFR4 1 )
-    set( PY_SIXTRACKL_MODULE_MPFRA "True" )
-else()
-    set( SIXTRACKL_ENABLE_MODULE_MPFR4 0 )
-    set( PY_SIXTRACKL_MODULE_MPFRA "False" )
-endif()
-
-
 set( MODULES_H_IN_PATH  "${CMAKE_CURRENT_SOURCE_DIR}/modules.h.template" )
 set( MODULES_H_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/modules.h" )
 
@@ -51,35 +16,15 @@ set(   SIXTRACKL_COMMON_GENERATED_HEADERS
      ${SIXTRACKL_COMMON_GENERATED_HEADERS} "generated/modules.h" )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# prepare python related module list
-
-if( SIXTRACKL_ENABLE_PYTHON )
-    set( PY_SIXTRACKLIB_MODULES_STR
-        "SIXTRACKLIB_MODULES = {}"
-        "SIXTRACKLIB_MODULES[\"simd\"]   = ${PY_SIXTRACKL_MODULE_SIMD}"
-        "SIXTRACKLIB_MODULES[\"opencl\"] = ${PY_SIXTRACKL_MODULE_OPENCL}"
-        "SIXTRACKLIB_MODULES[\"cuda\"]   = ${PY_SIXTRACKL_MODULE_CUDA}"
-        "SIXTRACKLIB_MODULES[\"mpfr4\"]  = ${PY_SIXTRACKL_MODULE_MPFRA}"
-         CACHE INTERNAL "" FORCE )
-endif()
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # install:
 
 set( MODULES_H_INSTALL_PATH
      "${CMAKE_INSTALL_PREFIX}/${GENERATED_INSTALL_PATH}/modules.h" )
 
-set( MODULES_ENABLE_DISABLE_INFO
-    "set( SIXTRACKL_ENABLE_MODULE_OPENCL ${SIXTRACKL_ENABLE_MODULE_OPENCL} )
-     set( SIXTRACKL_ENABLE_MODULE_CUDA   ${SIXTRACKL_ENABLE_MODULE_CUDA}   )
-     set( SIXTRACKL_ENABLE_MODULE_SIMD   ${SIXTRACKL_ENABLE_MODULE_SIMD}   )
-     set( SIXTRACKL_ENABLE_MODULE_MPFR4  ${SIXTRACKL_ENABLE_MODULE_MPFR4}  )" )
-
-install( CODE "
-    ${MODULES_ENABLE_DISABLE_INFO}
-    message( STATUS \"Generating: ${MODULES_H_INSTALL_PATH}\" )
-    configure_file( \"${MODULES_H_IN_PATH}\" \"${MODULES_H_INSTALL_PATH}\"
-        @ONLY ) " )
+install( CODE " ${SIXTRL_MODULES_INSTALL}
+                message( STATUS \"Generating: ${MODULES_H_INSTALL_PATH}\" )
+                configure_file( \"${MODULES_H_IN_PATH}\"
+                                \"${MODULES_H_INSTALL_PATH}\" @ONLY ) " )
 
 # ------------------------------------------------------------------------------
 # create a header file common/generated/path.h with the current,
