@@ -4496,6 +4496,19 @@ if SIXTRACKLIB_MODULES.get("cuda", False):
         st_CudaArgument_p
     )
 
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+    st_CudaTrackJob_default_threads_per_block = \
+        sixtracklib.st_CudaTrackJob_default_threads_per_block
+    st_CudaTrackJob_default_threads_per_block.argtypes = [st_CudaTrackJob_p]
+    st_CudaTrackJob_default_threads_per_block.restype = st_arch_size_t
+
+    st_CudaTrackJob_default_track_threads_per_block = \
+        sixtracklib.st_CudaTrackJob_default_track_threads_per_block
+    st_CudaTrackJob_default_track_threads_per_block.argtypes = [
+        st_CudaTrackJob_p]
+    st_CudaTrackJob_default_track_threads_per_block.restype = st_arch_size_t
+
 # -----------------------------------------------------------------------------
 # Cl-Context methods
 
