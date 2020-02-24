@@ -773,6 +773,73 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
+    _this_t::track_status_t ClContext::track_until_detail(
+        _this_t::num_turns_t const until_turn,
+        _size_t const pset_index,
+        _this_t::size_type const num_workitems,
+        _this_t::size_type wgroup_size, bool const restore_pset_index )
+    {
+        _this_t::track_status_t status = st::TRACK_STATUS_GENERAL_FAILURE;
+        _kernel_id_t const kernel_id = this->track_until_kernel_id();
+        _size_t const num_kernel_args = this->kernelNumArgs( kernel_id );
+
+        if( ( this->hasSelectedNode() ) && ( num_workitems > _size_t{ 0 } ) &&
+            ( num_kernel_args >= _this_t::MIN_NUM_TRACK_UNTIL_ARGS ) )
+        {
+            SIXTRL_ASSERT( _this_t::MIN_NUM_TRACK_UNTIL_ARGS >= _size_t{ 4 } );
+            SIXTRL_ASSERT( kernel_id >= _kernel_id_t{ 0 } );
+            SIXTRL_ASSERT( static_cast< _size_t >( kernel_id ) <
+                           this->numAvailableKernels() );
+
+            if( this->m_pset_index != pset_index )
+            {
+                uint64_t const pset_index_arg =
+                    static_cast< uint64_t >( pset_index );
+
+                this->assignKernelArgumentValue(
+                    kernel_id, _size_t{ 1 }, pset_index_arg );
+            }
+
+            int64_t const until_turn_arg = static_cast< int64_t >( until_turn );
+
+            this->assignKernelArgumentValue(
+                kernel_id, _size_t{ 3 }, until_turn_arg );
+
+            if( wgroup_size == _size_t{ 0 } )
+            {
+                wgroup_size = this->lastExecWorkGroupSize( kernel_id );
+            }
+
+            if( !this->debugMode() )
+            {
+                if( this->runKernel( kernel_id, num_workitems, wgroup_size ) )
+                {
+                    status = st::TRACK_SUCCESS;
+                }
+            }
+            else if( this->prepare_status_flags_for_use() ==
+                     st::ARCH_STATUS_SUCCESS )
+            {
+                if( this->runKernel( kernel_id, num_workitems, wgroup_size ) )
+                {
+                    status = static_cast< _this_t::track_status_t >(
+                        this->eval_status_flags_after_use() );
+                }
+            }
+
+            if( ( this->m_pset_index != pset_index ) && ( restore_pset_index ) )
+            {
+                uint64_t const pset_index_arg =
+                    static_cast< uint64_t >( this->m_pset_index );
+
+                this->assignKernelArgumentValue(
+                    kernel_id, _size_t{ 1 }, pset_index_arg );
+            }
+        }
+
+        return status;
+    }
+
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
     bool ClContext::has_track_line_kernel() const SIXTRL_NOEXCEPT

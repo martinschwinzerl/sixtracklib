@@ -127,6 +127,13 @@ namespace SIXTRL_CXX_NAMESPACE
             size_type const pset_index, size_type const nparticles_in_set,
             bool const restore_pset_index = true );
 
+        track_status_t track_until_detail(
+            num_turns_t const until_turn,
+            size_type const pset_index,
+            size_type const num_workitems,
+            size_type workgroup_size = 0,
+            bool const restore_pset_index = true );
+
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
         bool has_track_line_kernel() const SIXTRL_NOEXCEPT;
