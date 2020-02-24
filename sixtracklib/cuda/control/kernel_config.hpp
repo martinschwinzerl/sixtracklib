@@ -104,6 +104,18 @@ namespace SIXTRL_CXX_NAMESPACE
         ::dim3 const* ptrBlocks() const SIXTRL_NOEXCEPT;
         ::dim3 const* ptrThreadsPerBlock() const SIXTRL_NOEXCEPT;
 
+        status_t setGrid(
+            size_type const x_blocks = 1u,
+            size_type const x_threads_per_block = 1u,
+            size_type const y_blocks = 1u,
+            size_type const y_threads_per_block = 1u,
+            size_type const z_blocks = 1u,
+            size_type const z_threads_per_block = 1u );
+
+        status_t setGrid(
+            ::dim3 const& SIXTRL_RESTRICT_REF num_blocks,
+            ::dim3 const& SIXTRL_RESTRICT_REF threads_per_block );
+
         size_type totalNumBlocks() const SIXTRL_NOEXCEPT;
         size_type totalNumThreadsPerBlock() const SIXTRL_NOEXCEPT;
         size_type totalNumThreads() const SIXTRL_NOEXCEPT;
