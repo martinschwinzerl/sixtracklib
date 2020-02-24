@@ -404,6 +404,12 @@ namespace SIXTRL_CXX_NAMESPACE
         TrackJobCl& SIXTRL_RESTRICT_REF job,
         TrackJobCl::size_type const until_turn ) SIXTRL_NOEXCEPT;
 
+    SIXTRL_HOST_FN TrackJobCl::track_status_t track(
+        TrackJobCl& SIXTRL_RESTRICT_REF job,
+        TrackJobCl::size_type const until_turn,
+        TrackJobCl::size_type const num_workitems,
+        TrackJobCl::size_type workgroup_size = 0u ) SIXTRL_NOEXCEPT;
+
     SIXTRL_HOST_FN TrackJobCl::track_status_t trackElemByElem(
         TrackJobCl& SIXTRL_RESTRICT_REF job,
         TrackJobCl::size_type const until_turn_elem_by_elem ) SIXTRL_NOEXCEPT;
@@ -499,6 +505,8 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t)
 NS(TrackJobCl_track_until_turn)(
     NS(TrackJobCl)* SIXTRL_RESTRICT track_job,
     NS(buffer_size_t) const until_turn );
+
+
 
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(track_status_t)
 NS(TrackJobCl_track_elem_by_elem)(

@@ -1398,6 +1398,69 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
+    _this_t::track_status_t track(
+        TrackJobCl& SIXTRL_RESTRICT_REF job,
+        _size_t const until_turn,
+        _size_t const num_workitems,
+        _size_t workgroup_size ) SIXTRL_NOEXCEPT
+    {
+        _this_t::track_status_t status = st::TRACK_STATUS_GENERAL_FAILURE;
+
+        SIXTRL_ASSERT( job.ptrContext() != nullptr );
+        SIXTRL_ASSERT( job.ptrParticlesArg() != nullptr );
+        SIXTRL_ASSERT( job.ptrBeamElementsArg() != nullptr );
+        SIXTRL_ASSERT( job.ptrContext()->hasSelectedNode() );
+        SIXTRL_ASSERT( job.context().has_track_until_kernel() );
+        SIXTRL_ASSERT( job.particleSetIndicesBegin() != nullptr );
+        SIXTRL_ASSERT( job.numParticlesInSetsBegin() != nullptr );
+
+        _size_t const num_psets = job.numParticleSets();
+
+        if( num_psets == _size_t{ 1 } )
+        {
+            auto pset_it = job.particleSetIndicesBegin();
+            SIXTRL_ASSERT( job.context().selected_particle_set() == *pset_it );
+            SIXTRL_ASSERT( job.context().num_particles_in_selected_set() ==
+                *pset_it );
+
+            status = job.context().track_until_detail( until_turn, *pset_it,
+                num_workitems, workgroup_size, false );
+        }
+        else if( num_psets > _size_t{ 1 } )
+        {
+            auto pset_it  = job.particleSetIndicesBegin();
+            auto pset_end = job.particleSetIndicesEnd();
+            auto npart_it = job.numParticlesInSetsBegin();
+
+            uint64_t const saved_pset_idx_arg = static_cast< uint64_t >(
+                job.context().selected_particle_set() );
+
+            SIXTRL_ASSERT( std::distance( pset_it, pset_end ) ==
+                std::distance( npart_it, job.numParticlesInSetsEnd() ) );
+
+            status = st::TRACK_SUCCESS;
+
+            for( ; pset_it != pset_end ; ++pset_it, ++npart_it )
+            {
+                SIXTRL_ASSERT( ( *pset_it != saved_pset_idx_arg ) ||
+                    ( job.context().num_particles_in_selected_set() ==
+                      *npart_it ) );
+
+                status |= job.context().track_until_detail(
+                    until_turn, *pset_it, num_workitems, workgroup_size, false );
+            }
+
+            SIXTRL_ASSERT( job.context().track_until_kernel_id() !=
+                st::ARCH_ILLEGAL_KERNEL_ID );
+
+            job.context().assignKernelArgumentValue(
+                job.context().track_until_kernel_id(), _size_t{ 1 },
+                    saved_pset_idx_arg );
+        }
+
+        return status;
+    }
+
     _this_t::track_status_t trackElemByElem(
         TrackJobCl& SIXTRL_RESTRICT_REF job,
         _size_t const until_turn ) SIXTRL_NOEXCEPT
