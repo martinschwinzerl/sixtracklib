@@ -232,6 +232,9 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN track_status_t track(
             size_type const until_turn );
 
+        SIXTRL_HOST_FN track_status_t trackUntil(
+            size_type const until_turn );
+
         SIXTRL_HOST_FN track_status_t trackElemByElem(
             size_type const until_turn_elem_by_elem );
 

@@ -495,6 +495,12 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->doTrackUntilTurn( until_turn );
     }
 
+    _this_t::track_status_t TrackJobBase::trackUntil(
+        _this_t::size_type const until_turn )
+    {
+        return this->doTrackUntilTurn( until_turn );
+    }
+
     _this_t::track_status_t TrackJobBase::trackElemByElem(
         _size_t const until_turn )
     {
@@ -2275,6 +2281,8 @@ namespace SIXTRL_CXX_NAMESPACE
         ( void )particles_buffer;
 
         SIXTRL_ASSERT( particles_buffer != nullptr );
+        ( void )particles_buffer;
+
         SIXTRL_ASSERT( !::NS(Buffer_needs_remapping)( particles_buffer ) );
 
         SIXTRL_ASSERT( ( ::NS(Buffer_get_num_of_objects)( particles_buffer ) ==
