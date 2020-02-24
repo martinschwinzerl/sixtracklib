@@ -363,6 +363,16 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
+
+    TrackJobCpu::track_status_t track(
+        TrackJobCpu& SIXTRL_RESTRICT_REF job,
+        TrackJobCpu::size_type const until_turn,
+        TrackJobCpu::size_type const /*num_workitems*/,
+        TrackJobCpu::size_type /*workgroup_size*/ ) SIXTRL_NOEXCEPT
+    {
+        return SIXTRL_CXX_NAMESPACE::trackUntil( job, until_turn );
+    }
+
     _this_t::track_status_t trackElemByElem(
         TrackJobCpu& SIXTRL_RESTRICT_REF job,
         _this_t::size_type const until_turn ) SIXTRL_NOEXCEPT
