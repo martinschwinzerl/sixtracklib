@@ -312,7 +312,8 @@ namespace SIXTRL_CXX_NAMESPACE
         struct TrackItem
         {
             TrackItem() : num_turns( 0 ), num_particles( 0 ),
-                num_repetitions( 0 ), be_start_idx( -1 ), be_stop_idx( -1 ),
+                num_repetitions( 0 ), num_workitems( 0 ),
+                be_start_idx( -1 ), be_stop_idx( -1 ),
                 finish_turn( false ), elem_by_elem( false )
             {
 
@@ -350,6 +351,8 @@ namespace SIXTRL_CXX_NAMESPACE
             uint64_t num_turns;
             uint64_t num_particles;
             uint64_t num_repetitions;
+            uint64_t num_workitems;
+            uint64_t workgroup_size;
 
             int64_t be_start_idx;
             int64_t be_stop_idx;
@@ -480,6 +483,12 @@ namespace SIXTRL_CXX_NAMESPACE
                         ::toml_array_t* ptr_num_repetitions = ::toml_array_in(
                             this->track_config, "num_repetitions" );
 
+                        ::toml_array_t* ptr_num_workitems = ::toml_array_in(
+                            this->track_config, "num_workitems" );
+
+                        ::toml_array_t* ptr_workgroup_size = ::toml_array_in(
+                            this->track_config, "workgroup_size" );
+
                         if( ( ptr_num_particles != nullptr ) &&
                             ( ::toml_array_kind( ptr_num_particles ) == 'v' ) &&
                             ( ::toml_array_type( ptr_num_particles ) == 'i' ) &&
@@ -493,7 +502,17 @@ namespace SIXTRL_CXX_NAMESPACE
                             ( ::toml_array_kind( ptr_num_repetitions ) == 'v' ) &&
                             ( ::toml_array_type( ptr_num_repetitions ) == 'i' ) &&
                             ( ::toml_array_nelem( ptr_num_repetitions ) ==
-                              ::toml_array_nelem( ptr_num_particles ) ) )
+                              ::toml_array_nelem( ptr_num_particles ) ) &&
+                            ( ( ptr_num_workitems != nullptr ) ||
+                              ( ( ::toml_array_kind( ptr_num_workitems ) == 'v' ) &&
+                                ( ::toml_array_type( ptr_num_workitems ) == 'i' ) &&
+                                ( ::toml_array_nelem( ptr_num_workitems ) ==
+                                  ::toml_array_nelem( ptr_num_particles ) ) ) ) &&
+                            ( ( ptr_workgroup_size != nullptr ) ||
+                              ( ( ::toml_array_kind( ptr_workgroup_size ) == 'v' ) &&
+                                ( ::toml_array_type( ptr_workgroup_size ) == 'i' ) &&
+                                ( ::toml_array_nelem( ptr_workgroup_size ) ==
+                                  ::toml_array_nelem( ptr_num_particles ) ) ) ) )
                         {
                             int const nn =
                                 ::toml_array_nelem( ptr_num_particles );
@@ -503,6 +522,8 @@ namespace SIXTRL_CXX_NAMESPACE
                                 int64_t temp_num_particles   = int64_t{ 0 };
                                 int64_t temp_num_turns       = int64_t{ 0 };
                                 int64_t temp_num_repetitions = int64_t{ 0 };
+                                int64_t temp_num_workitems   = int64_t{ 0 };
+                                int64_t temp_workgroupsize   = int64_t{ 0 };
 
                                 char const* raw_str = ::toml_raw_at(
                                     ptr_num_particles, ii );
@@ -551,9 +572,57 @@ namespace SIXTRL_CXX_NAMESPACE
                                     success = false;
                                 }
 
-                                if( ( temp_num_particles < int64_t{ 0 } ) ||
-                                    ( temp_num_turns < int64_t{ 0 } ) ||
-                                    ( temp_num_repetitions < int64_t{ 0 } ) )
+                                if( ( success ) &&
+                                    ( ptr_num_workitems != nullptr ) )
+                                {
+                                    raw_str = ::toml_raw_at( ptr_num_workitems, ii );
+
+                                    if( raw_str != nullptr )
+                                    {
+                                        if( 0 != ::toml_rtoi(
+                                                raw_str, &temp_num_workitems ) )
+                                        {
+                                            success = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        success = false;
+                                    }
+                                }
+                                else if( success )
+                                {
+                                    temp_num_workitems = temp_num_particles;
+                                }
+
+                                if( ( success ) &&
+                                    ( ptr_workgroup_size != nullptr ) )
+                                {
+                                    raw_str = ::toml_raw_at( ptr_workgroup_size, ii );
+
+                                    if( raw_str != nullptr )
+                                    {
+                                        if( 0 != ::toml_rtoi(
+                                                raw_str, &temp_workgroupsize ) )
+                                        {
+                                            success = false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        success = false;
+                                    }
+                                }
+                                else if( success )
+                                {
+                                    temp_workgroupsize = int64_t{ 0 };
+                                }
+
+                                if( ( temp_num_particles   < int64_t{ 0 } ) ||
+                                    ( temp_num_turns       < int64_t{ 0 } ) ||
+                                    ( temp_num_repetitions < int64_t{ 0 } ) ||
+                                    ( temp_num_workitems   < int64_t{ 0 } ) ||
+                                    ( temp_workgroupsize   < int64_t{ 0 } ) )
                                 {
                                     success = false;
                                 }
@@ -570,6 +639,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
                                     this->track_items.back().num_repetitions =
                                         temp_num_repetitions;
+
+                                    this->track_items.back().num_workitems =
+                                        temp_num_workitems;
+
+                                    this->track_items.back().workgroup_size =
+                                        temp_workgroupsize;
                                 }
                                 else
                                 {
@@ -804,6 +879,8 @@ namespace SIXTRL_CXX_NAMESPACE
                   << std::setw( 19 ) << "Num Part"
                   << std::setw( 20 ) << "Num Turns"
                   << std::setw( 20 ) << "Repetitions"
+                  << std::setw( 20 ) << "Num Workitems"
+                  << std::setw( 20 ) << "Workgroup Size"
                   << std::setw( 20 ) << "Time/Part/Turn"
                   << std::setw( 20 ) << "Lost Particles"
                   << std::setw( 20 ) << "Min Time/Part/Turn"
@@ -815,6 +892,8 @@ namespace SIXTRL_CXX_NAMESPACE
                   << std::setw( 19 ) << "[#particles]"
                   << std::setw( 20 ) << "[#turns]"
                   << std::setw( 20 ) << "[#repetitions]"
+                  << std::setw( 20 ) << "[#workitems]"
+                  << std::setw( 20 ) << "[#workgroup size]"
                   << std::setw( 20 ) << "[sec]"
                   << std::setw( 20 ) << "[#particles]"
                   << std::setw( 20 ) << "[sec]"
@@ -865,6 +944,10 @@ namespace SIXTRL_CXX_NAMESPACE
                          << std::setw( 12 ) << track_it->num_turns << "\r\n"
                          << " -> num_repetitions = "
                          << std::setw( 12 ) << track_it->num_repetitions
+                         << " -> num_workitems   = "
+                         << std::setw( 12 ) << track_it->num_workitems
+                         << " -> workgroup size  = "
+                         << std::setw( 12 ) << track_it->workgroup_size
                          << "\r\n" << "setup particle buffer ... ";
 
                 int64_t const num_particles = track_it->num_particles;
@@ -1019,7 +1102,8 @@ namespace SIXTRL_CXX_NAMESPACE
                         { return at_element == 0; } ) );
 
                     auto start_track_time = std::chrono::steady_clock::now();
-                    job.trackUntil( track_it->num_turns );
+                    st::track( job, track_it->num_turns, track_it->num_workitems,
+                        track_it->workgroup_size );
                     auto end_track_time = std::chrono::steady_clock::now();
 
                     job.collectParticles();
@@ -1098,6 +1182,8 @@ namespace SIXTRL_CXX_NAMESPACE
                 a2str << std::setw( 20 ) << num_particles
                       << std::setw( 20 ) << track_it->num_turns
                       << std::setw( 20 ) << track_it->num_repetitions
+                      << std::setw( 20 ) << track_it->num_workitems
+                      << std::setw( 20 ) << track_it->workgroup_size
                       << std::setw( 20 ) << results[ median ].first
                       << std::setw( 20 ) << results[ median ].second
                       << std::setw( 20 ) << results[ 0 ].first
@@ -1188,11 +1274,11 @@ int main( int argc, char* argv[] )
 
             if( target_config.optimized )
             {
-                job.ptrContext()->enableOptimizedtrackingByDefault();
+                job.ptrContext()->enable_optimized_tracking();
             }
             else
             {
-                job.ptrContext()->disableOptimizedTrackingByDefault();
+                job.ptrContext()->disable_optimized_tracking();
             }
 
             success = st::benchmark::TrackJob_run_benchmark(
