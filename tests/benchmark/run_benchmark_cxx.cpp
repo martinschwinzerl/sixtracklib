@@ -503,12 +503,12 @@ namespace SIXTRL_CXX_NAMESPACE
                             ( ::toml_array_type( ptr_num_repetitions ) == 'i' ) &&
                             ( ::toml_array_nelem( ptr_num_repetitions ) ==
                               ::toml_array_nelem( ptr_num_particles ) ) &&
-                            ( ( ptr_num_workitems != nullptr ) ||
+                            ( ( ptr_num_workitems == nullptr ) ||
                               ( ( ::toml_array_kind( ptr_num_workitems ) == 'v' ) &&
                                 ( ::toml_array_type( ptr_num_workitems ) == 'i' ) &&
                                 ( ::toml_array_nelem( ptr_num_workitems ) ==
                                   ::toml_array_nelem( ptr_num_particles ) ) ) ) &&
-                            ( ( ptr_workgroup_size != nullptr ) ||
+                            ( ( ptr_workgroup_size == nullptr ) ||
                               ( ( ::toml_array_kind( ptr_workgroup_size ) == 'v' ) &&
                                 ( ::toml_array_type( ptr_workgroup_size ) == 'i' ) &&
                                 ( ::toml_array_nelem( ptr_workgroup_size ) ==
