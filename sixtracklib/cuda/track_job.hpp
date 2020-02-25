@@ -485,6 +485,13 @@ namespace SIXTRL_CXX_NAMESPACE
         CudaTrackJob& SIXTRL_RESTRICT_REF track_job,
         CudaTrackJob::size_type const until_turn );
 
+    CudaTrackJob::track_status_t track(
+        CudaTrackJob& SIXTRL_RESTRICT_REF track_job,
+        CudaTrackJob::size_type const until_turn,
+        CudaTrackJob::size_type const num_workitems,
+        CudaTrackJob::size_type workgroup_size = 0u );
+
+
     CudaTrackJob::track_status_t trackElemByElemUntilTurn(
         CudaTrackJob& SIXTRL_RESTRICT_REF track_job,
         CudaTrackJob::size_type const until_turn );

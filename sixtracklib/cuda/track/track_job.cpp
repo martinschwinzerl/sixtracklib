@@ -39,12 +39,14 @@
 #if defined( __cplusplus ) && !defined( _GPUCODE ) && \
    !defined( __CUDACC__  ) && !defined( __CUDA_ARCH__ )
 
-namespace st = SIXTRL_CXX_NAMESPACE;
-
 namespace SIXTRL_CXX_NAMESPACE
 {
-    using _this_t = st::CudaTrackJob;
-    using _base_t = st::TrackJobNodeCtrlArgBase;
+    namespace
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        using _this_t = st::CudaTrackJob;
+        using _base_t = st::TrackJobNodeCtrlArgBase;
+    }
 
     constexpr _this_t::size_type _this_t::DEFAULT_TRACK_THREADS_PER_BLOCK;
     constexpr _this_t::size_type _this_t::DEFAULT_THREADS_PER_BLOCK;
@@ -1987,6 +1989,89 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_ASSERT( trackjob.particleSetIndicesBegin() != nullptr );
 
         size_t const pset_index = *trackjob.particleSetIndicesBegin();
+
+        if( !trackjob.isInDebugMode() )
+        {
+            ::NS(Track_particles_until_turn_cuda_wrapper)( kernel_conf,
+                trackjob.ptrCudaParticlesArg(), pset_index,
+                trackjob.ptrCudaBeamElementsArg(), until_turn, nullptr );
+
+            status = st::TRACK_SUCCESS;
+        }
+        else if( trackjob.hasCudaDebugRegisterArg() )
+        {
+            using ctrl_status_t = track_job_t::status_t;
+
+            ctrl_status_t ctrl_status = trackjob.prepareDebugRegisterForUse();
+
+            if( ctrl_status == st::ARCH_STATUS_SUCCESS )
+            {
+                ::NS(Track_particles_until_turn_cuda_wrapper)( kernel_conf,
+                    trackjob.ptrCudaParticlesArg(), pset_index,
+                    trackjob.ptrCudaBeamElementsArg(), until_turn,
+                    trackjob.ptrCudaDebugRegisterArg() );
+
+                ctrl_status = trackjob.evaluateDebugRegisterAfterUse();
+            }
+
+            if( ctrl_status == st::ARCH_STATUS_SUCCESS )
+            {
+                status = st::TRACK_SUCCESS;
+            }
+            else
+            {
+                status = static_cast< track_status_t >( ctrl_status );
+            }
+        }
+
+        return status;
+    }
+
+    CudaTrackJob::track_status_t track(
+        CudaTrackJob& SIXTRL_RESTRICT_REF trackjob,
+        CudaTrackJob::size_type const until_turn,
+        CudaTrackJob::size_type const num_workitems,
+        CudaTrackJob::size_type workgroup_size )
+    {
+        using track_job_t     = CudaTrackJob;
+        using controller_t    = track_job_t::cuda_controller_t;
+        using argument_t      = track_job_t::cuda_argument_t;
+        using kernel_config_t = track_job_t::cuda_kernel_config_t;
+        using kernel_id_t     = track_job_t::kernel_id_t;
+        using _size_t         = track_job_t::size_type;
+
+        track_job_t::track_status_t status = st::TRACK_STATUS_GENERAL_FAILURE;
+
+        kernel_id_t const kid = trackjob.trackUntilKernelId();
+        SIXTRL_ASSERT( kid != controller_t::ILLEGAL_KERNEL_ID );
+
+        controller_t*  ptr_ctrl = trackjob.ptrCudaController();
+        SIXTRL_ASSERT( ptr_ctrl != nullptr );
+        SIXTRL_ASSERT( ptr_ctrl->hasSelectedNode() );
+        SIXTRL_ASSERT( ptr_ctrl->readyForRunningKernel() );
+
+        kernel_config_t* kernel_conf = ptr_ctrl->ptrKernelConfig( kid );
+        SIXTRL_ASSERT( kernel_conf != nullptr );
+        SIXTRL_ASSERT( trackjob.hasCudaParticlesArg() );
+        SIXTRL_ASSERT( trackjob.hasCudaBeamElementsArg() );
+
+        if( workgroup_size == _size_t{ 0 } )
+        {
+            workgroup_size = kernel_conf->workGroupSize( 0u );
+        }
+
+        if( ( num_workitems  != kernel_conf->totalNumThreads() ) ||
+            ( workgroup_size != kernel_conf->workGroupSize( 0u ) ) )
+        {
+            _size_t num_blocks = num_workitems / workgroup_size;
+            if( ( num_blocks * workgroup_size ) < num_workitems ) ++num_blocks;
+            kernel_conf->setGrid( num_blocks, workgroup_size );
+        }
+
+        SIXTRL_ASSERT( trackjob.numParticleSets() == _size_t{ 1 } );
+        SIXTRL_ASSERT( trackjob.particleSetIndicesBegin() != nullptr );
+
+        _size_t const pset_index = *trackjob.particleSetIndicesBegin();
 
         if( !trackjob.isInDebugMode() )
         {
