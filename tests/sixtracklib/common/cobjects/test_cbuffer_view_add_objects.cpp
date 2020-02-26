@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <random>
+#include <functional>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -434,7 +435,7 @@ TEST( CxxCommonCObjectsCBufferViewAddObjectsTests, BasicUsageTypeFixedNumPtrs )
                     ::NS(TypeFixedNumPtrs_const_c_values_end)( &orig2 ),
                     ::NS(TypeFixedNumPtrs_const_c_values_begin)( copy2 ) ) );
 
-    /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
 
     ASSERT_TRUE( static_cast< SIXTRL_UINT64_T >( std::distance(
                     ::NS(TypeFixedNumPtrs_const_b_values_begin)( copy1 ),

@@ -1,9 +1,9 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 #include <random>
 #include <vector>
-#include <typeinfo>
 
 #include <gtest/gtest.h>
 

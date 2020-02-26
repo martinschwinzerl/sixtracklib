@@ -34,13 +34,19 @@ if( SIXTRACKL_ENABLE_PROGRAMM_TESTS )
     set( SIXTRACKL_TEST_LIBRARIES sixtrack_test sixtrack )
 
     add_subdirectory( common )
-#     add_custom_target( testdata DEPENDS testdata_common )
 
-    if( SIXTRACKL_ENABLE_OPENCL )
+    if(   SIXTRACKLIB_ENABLE_MODULE_MULTIPREC AND
+        ${SIXTRACKLIB_ENABLE_MODULE_MULTIPREC} EQUAL 1 )
+        add_subdirectory( multiprec )
+    endif()
+
+    if(   SIXTRACKLIB_ENABLE_MODULE_OPENCL AND
+        ${SIXTRACKLIB_ENABLE_MODULE_OPENCL} EQUAL 1 )
         add_subdirectory( opencl )
     endif()
 
-    if( SIXTRACKL_ENABLE_CUDA )
+    if(   SIXTRACKLIB_ENABLE_MODULE_CUDA AND
+        ${SIXTRACKLIB_ENABLE_MODULE_CUDA} EQUAL 1 )
         add_subdirectory( cuda )
     endif()
 
