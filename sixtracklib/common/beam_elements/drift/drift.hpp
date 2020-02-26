@@ -23,14 +23,14 @@ namespace SIXTRL_CXX_NAMESPACE
         public:
         typedef typename DriftTraits< ObjData >::real_t real_t;
 
-        typedef typename TypeMethodParamTraits< real_t >::argument_type
+        typedef typename TypeMethodParamTraits< real_t >::const_argument_type
                 real_arg_t;
 
         typedef typename TypeMethodParamTraits< real_t >::const_existing_type
                 real_const_existing_t;
     };
 
-    /* --------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
 
     template< class E, store_backend_t St >
     SIXTRL_INLINE SIXTRL_FN typename TDriftImpl< E, St >::real_const_existing_t

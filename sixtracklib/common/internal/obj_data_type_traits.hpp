@@ -19,6 +19,7 @@
     #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/internal/obj_type_id_traits.hpp"
     #include "sixtracklib/common/internal/obj_c_api_traits.hpp"
+    #include "sixtracklib/common/internal/obj_illegal_type.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
@@ -28,7 +29,7 @@ namespace SIXTRL_CXX_NAMESPACE
     template< typename TypeIdT, TypeIdT type_id >
     struct ObjTypeIdDataTypeMap
     {
-        typedef void value_type;
+        typedef IllegalType value_type;
     };
 
     /* --------------------------------------------------------------------- */
@@ -37,10 +38,13 @@ namespace SIXTRL_CXX_NAMESPACE
     static SIXTRL_FN constexpr bool
     ObjData_has_type_for_type_id() SIXTRL_NOEXCEPT
     {
-        return ( SIXTRL_CXX_NAMESPACE::ObjTypeId_illegal_type_id<
-                    TypeIdT >() != type_id ) &&
-               ( !std::is_void< typename ObjTypeIdDataTypeMap<
-                    TypeIdT, type_id >::value_type >::value );
+        return
+        ( SIXTRL_CXX_NAMESPACE::ObjTypeId_illegal_type_id<
+            TypeIdT >() != type_id ) &&
+        ( !std::is_void< typename ObjTypeIdDataTypeMap< TypeIdT,
+            type_id >::value_type >::value ) &&
+        ( !SIXTRL_CXX_NAMESPACE::ObjData_is_specific_illegal_type<
+            typename ObjTypeIdDataTypeMap< TypeIdT, type_id >::value_type >() );
     }
 
     /* ===================================================================== */

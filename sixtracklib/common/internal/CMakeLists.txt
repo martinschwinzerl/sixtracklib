@@ -38,10 +38,12 @@ set( SIXTRL_COMMON_INTERNAL_CXX_HEADERS
      math_factorial.h
      obj_type_id_traits.hpp
      obj_c_api_traits.hpp
+     obj_convert.hpp
      obj_data_type_traits.hpp
      obj_base_class.hpp
      stl_buffer_helper.hpp
      track_job_base.h
+     type_comparison_helpers.hpp
      type_store_traits.hpp
 )
 

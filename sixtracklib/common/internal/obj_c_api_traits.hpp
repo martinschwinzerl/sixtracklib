@@ -17,6 +17,7 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/control/definitions.h"
+    #include "sixtracklib/common/internal/obj_illegal_type.h"
     #include "sixtracklib/common/internal/type_store_traits.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -31,6 +32,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         return (
             ( !std::is_void< typename std::decay< E >::type >::value ) &&
+            ( !SIXTRL_CXX_NAMESPACE::ObjData_is_specific_illegal_type< E >() )&&
             (  std::is_trivial< typename std::decay< E >::type >::value ) &&
             (  std::is_standard_layout<
                     typename std::decay< E >::type >::value ) );
@@ -52,13 +54,15 @@ namespace SIXTRL_CXX_NAMESPACE
      * We provide some infrastructore to safely mark those ObjClass classes
      * that can work in such a context */
 
-    /* By default, we do not assume a proper C-API mapping. Having void as
-     * a C-API pointer is actually rather convenient */
+    /* By default, we do not assume a proper C-API mapping.
+     * NOTE: we use IllegalType as the default type as taking a sizeof( void )
+     *       is undefined behaviour and can not always be avoided in this
+     *       context */
 
     template< class ObjData >
     struct ObjDataCApiTypeTraits
     {
-        typedef void c_api_t;
+        typedef IllegalType c_api_t;
     };
 
     /* --------------------------------------------------------------------- */
@@ -99,6 +103,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         return
            !std::is_void< typename std::decay< E >::type >::value &&
+           !SIXTRL_CXX_NAMESPACE::ObjData_is_specific_illegal_type< E >() &&
             std::is_standard_layout< typename std::decay< E >::type >::value &&
             std::is_trivially_copyable< typename std::decay< E >::type>::value;
     }

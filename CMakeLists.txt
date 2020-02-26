@@ -100,6 +100,10 @@ set( SIXTRACKLIB_CXX_FLAGS )
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
 message( STATUS "---- cmake_module_path: ${CMAKE_MODULE_PATH}" )
 
+# Prepare installation support
+
+set( SIXTRL_MODULES_INSTALL )
+
 # ------------------------------------------------------------------------------
 # Setup language bindings - we have to be first to pull in python (if needed)
 # to prevent any module picking a python version we do not wish to support:
@@ -108,6 +112,7 @@ include(CheckLanguage)
 
 include( SetupC99 )
 include( SetupCxx )
+include( SetupCpuFlags )
 include( SetupPython )
 include( SetupGit )
 
@@ -117,14 +122,15 @@ include( SetupGit )
 include( SetupUnitTesting )
 
 # ------------------------------------------------------------------------------
-# MPFR4:
+# Multiprecision:
 
 include( SetupMultiPrecision )
 
 # ------------------------------------------------------------------------------
 # Autovectorization and SIMD:
 
-include( SetupAutoVecSIMD )
+include( SetupAutoVecSimd )
+include( SetupSimd )
 
 # ------------------------------------------------------------------------------
 # OpenMP:

@@ -2392,6 +2392,8 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
                 NS(CObjIndex_size)( index_obj ) );
             SIXTRL_ASSERT( save_ptrs != SIXTRL_NULLPTR );
 
+            ( void )requ_storage_size;
+
             for( ; ii < num_pointers ; ++ii )
             {
                 _size_t const field_offset = offsets[ ii ];
@@ -2572,6 +2574,8 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
             SIXTRL_ASSERT( requ_storage_size >=
                 NS(CObjIndex_size)( index_obj ) );
             SIXTRL_ASSERT( save_ptrs != SIXTRL_NULLPTR );
+
+            ( void )requ_storage_size;
 
             for( ; ii < num_pointers ; ++ii )
             {
@@ -3641,11 +3645,6 @@ SIXTRL_INLINE NS(ptr_cobj_index_t) NS(CObjFlatBuffer_add_copy_of_object)(
             ( counts  != SIXTRL_NULLPTR ) && ( sizes != counts  ) &&
             ( counts  != offsets        ) && ( sizes != offsets ) ) ) )
     {
-        _size_t const obj_size_for_storage =
-            NS(CObjFlatBuffer_slot_based_size)( obj_size, slot_size );
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
         _size_t const cur_num_slots =
             NS(CObjFlatBuffer_num_slots)( buffer, slot_size );
 
@@ -3685,22 +3684,21 @@ SIXTRL_INLINE NS(ptr_cobj_index_t) NS(CObjFlatBuffer_add_copy_of_object)(
         SIXTRL_ASSERT( cur_num_slots <= max_num_slots );
         SIXTRL_ASSERT( cur_num_objs  <= max_num_objs  );
         SIXTRL_ASSERT( cur_num_ptrs  <= max_num_ptrs  );
-        SIXTRL_ASSERT( obj_size_for_storage >= obj_size );
+        SIXTRL_ASSERT( NS(CObjFlatBuffer_slot_based_size)(
+            obj_size, slot_size ) >= obj_size );
 
         if( ( requ_num_slots <= max_num_slots ) &&
             ( requ_num_objs  <= max_num_objs  ) &&
             ( requ_num_ptrs  <= max_num_ptrs  ) )
         {
-            _size_t const max_num_garbage_ranges =
-                NS(CObjFlatBuffer_max_num_garbage_ranges)( buffer, slot_size );
-
             _size_t const predicted_stored_bytes_in_slots =
                 additional_num_slots * slot_size;
 
             SIXTRL_ASSERT( NS(CObjFlatBuffer_calc_required_buffer_size)(
-                buffer, requ_num_slots, requ_num_objs, requ_num_ptrs,
-                    max_num_garbage_ranges, slot_size ) <=
-                        NS(CObjFlatBuffer_size)( buffer, slot_size ) );
+                    buffer, requ_num_slots, requ_num_objs, requ_num_ptrs,
+                        NS(CObjFlatBuffer_max_num_garbage_ranges)(
+                            buffer, slot_size ), slot_size ) <=
+                NS(CObjFlatBuffer_size)( buffer, slot_size ) );
 
             status = NS(_CObjFlatBuffer_add_copy_of_object_obj_handle_part)(
                 buffer, slot_size, ptr_obj_to_copy, obj_size,
@@ -3877,9 +3875,6 @@ NS(_CObjFlatBuffer_add_copy_of_object_obj_handle_part)(
     typedef SIXTRL_BUFFER_DATAPTR_DEC   _raw_t*       _ptr_obj_dest_t;
 
     SIXTRL_STATIC_VAR _raw_t SIXTRL_CONSTEXPR_OR_CONST ZBYTE = ( _raw_t )0u;
-    SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
-        ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
-
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
     if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( _size_t )0u ) &&
@@ -3900,7 +3895,7 @@ NS(_CObjFlatBuffer_add_copy_of_object_obj_handle_part)(
          * there should be no problems, so every violation here would
          * be pretty exceptional */
 
-        SIXTRL_ASSERT( obj_addr != NULL_ADDR  );
+        SIXTRL_ASSERT( obj_addr != ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS );
 
         SIXTRL_ASSERT( NS(CObjFlatBuffer_section_end_addr)( buffer,
             SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size ) >=
@@ -4193,9 +4188,6 @@ NS(_CObjFlatBuffer_add_copy_of_object_index_part)(
     typedef SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)* _ptr_index_t;
     typedef SIXTRL_BUFFER_DATAPTR_DEC _raw_t*           _ptr_raw_t;
 
-    SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
-        ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
-
     _ptr_index_t ptr_stored_index = SIXTRL_NULLPTR;
 
     _size_t const storage_index_size = NS(CObjFlatBuffer_slot_based_size)(
@@ -4213,7 +4205,8 @@ NS(_CObjFlatBuffer_add_copy_of_object_index_part)(
     SIXTRL_ASSERT( num_bytes_stored_in_slots % slot_size == ( _size_t )0u );
 
     SIXTRL_ASSERT( stored_obj_begin_addr % slot_size == ( _addr_t )0u );
-    SIXTRL_ASSERT( stored_obj_begin_addr != NULL_ADDR );
+    SIXTRL_ASSERT( stored_obj_begin_addr !=
+        ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS );
 
     /* Check that the stored obj plus the amount of data stored in slots
      * still fits into the slots section */
@@ -4227,7 +4220,8 @@ NS(_CObjFlatBuffer_add_copy_of_object_index_part)(
             NS(CObjFlatBuffer_section_data_end_addr)( buffer,
                 SIXTRL_CBUFFER_SECTION_ID_INDICES, slot_size );
 
-        SIXTRL_ASSERT( index_begin_addr != NULL_ADDR );
+        SIXTRL_ASSERT( index_begin_addr !=
+            ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS );
         SIXTRL_ASSERT( index_begin_addr % slot_size == ( _addr_t )0u );
 
         /* Verify that we have enough space in the indices section to store one

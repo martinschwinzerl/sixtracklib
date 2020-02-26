@@ -16,6 +16,10 @@ typedef struct NS(Drift)
 }
 NS(Drift);
 
+SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(Drift)*
+NS(Drift_preset)( SIXTRL_BE_ARGPTR_DEC NS(Drift)*
+    SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT;
+
 SIXTRL_STATIC SIXTRL_FN NS(be_real_t) NS(Drift_length)( SIXTRL_BE_ARGPTR_DEC
     const NS(Drift) *const SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT;
 
@@ -42,6 +46,17 @@ namespace SIXTRL_CXX_NAMESPACE
 #if !defined( __GPUCODE ) && defined( __cplusplus )
 extern "C" {
 #endif /* !defined( __GPUCODE ) && defined( __cplusplus ) */
+
+SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_preset)(
+    SIXTRL_BE_ARGPTR_DEC NS(Drift)* SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT
+{
+    if( drift != SIXTRL_NULLPTR )
+    {
+        drift->length = ( NS(be_real_t) )0.0;
+    }
+
+    return drift;
+}
 
 SIXTRL_INLINE NS(be_real_t) NS(Drift_length)( SIXTRL_BE_ARGPTR_DEC const
     NS(Drift) *const SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT

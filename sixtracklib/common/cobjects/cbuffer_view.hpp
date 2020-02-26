@@ -459,7 +459,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* ===================================================================== */
 
-    CBufferView::CBufferView(
+    SIXTRL_INLINE CBufferView::CBufferView(
         CBufferView::address_t const base_addr,
         CBufferView::size_type const slot_size,
         CBufferView::size_type const buffer_capacity,

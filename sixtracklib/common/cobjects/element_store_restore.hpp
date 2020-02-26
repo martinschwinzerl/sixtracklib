@@ -435,7 +435,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         static_assert( st::ObjData_can_be_memcopied< E >(),
             "Can only restore entities from a CObjects buffer which are "
-            "suitable for memcpy -> use delegates for other entities" );
+            "suitable for memcpy -> use conversion for other entities" );
 
         return reinterpret_cast< ptr_elem_t >( reinterpret_cast< uintptr_t >(
             ::NS(CObjIndex_begin_addr_filter_by_type_info)( index_obj,
@@ -869,7 +869,10 @@ namespace SIXTRL_CXX_NAMESPACE
                 E >( ptr_obj_to_update ) );
     }
 
-    /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
+
+
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
 
     template< class Derived >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
@@ -1264,7 +1267,10 @@ namespace SIXTRL_CXX_NAMESPACE
                     ptr_to_source ) );
     }
 
-    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
+
+
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
 
     template< class Derived >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<

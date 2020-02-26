@@ -35,6 +35,7 @@ set( SIXTRL_COMMON_COBJECTS_CXX_HEADERS
      field_counts.hpp
      c_api_helpers.hpp
      helper_functions.hpp
+     obj_delegate.hpp
      obj_base_class.hpp )
 
 set( SIXTRL_COMMON_COBJECTS_CXX_SOURCES

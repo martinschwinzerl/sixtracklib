@@ -11,13 +11,14 @@
     #include "sixtracklib/common/internal/particles_defines.h"
     #include "sixtracklib/common/buffer/buffer_type.h"
 
-    #if !defined( __cplusplus )
+    #if defined( __cplusplus )
         #include "sixtracklib/common/internal/obj_store_traits.hpp"
-    #endif /* !defined( __cplusplus ) */
+        #include "sixtracklib/common/internal/type_store_traits.hpp"
+    #endif /* defined( __cplusplus ) */
 
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#if defined( __cplusplus ) && !defined( _GPUCODE ) && !defined( __CUDA_ARCH__ )
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 extern "C" {
 #endif /* C++, Host  */
 
@@ -63,9 +64,11 @@ NS(ParticlesGlobalConstantsEnum);
 #endif /* !defined( _GPUCODE ) */
 
 
-#if defined( __cplusplus ) && !defined( _GPUCODE ) && !defined( __CUDA_ARCH__ )
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 }
+#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
+#if defined( __cplusplus )
 namespace SIXTRL_CXX_NAMESPACE
 {
     typedef ::NS(particle_index_t)              particle_index_t;
@@ -94,34 +97,26 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* --------------------------------------------------------------------- */
 
-    template< class ParticleData >
+    template< class ParticleDataObj >
     struct ParticleTraits
     {
-        typedef ::NS(buffer_size_t)     size_type;
+        typedef particle_real_t         real_t;
+        typedef particle_index_t        index_t;
 
-        typedef ::NS(particle_real_t)   real_t;
-        typedef real_t                  real_ret_t;
-        typedef real_t const            real_arg_t;
+        static constexpr arch_size_t real_alignment =
+            SIXTRL_CXX_NAMESPACE::Type_storage_align< real_t >();
 
-        typedef ::NS(particle_index_t)  index_t;
-        typedef index_t                 index_ret_t;
-        typedef index_t const           index_arg_t;
-
-        static SIXTRL_FN constexpr size_type RealAlignment() SIXTRL_NOEXCEPT
-        {
-            namespace st = SIXTRL_CXX_NAMESPACE;
-            return st::TypeStoreTraits< real_t >::StorageAlign();
-        }
-
-        static SIXTRL_FN constexpr size_type IndexAlignment() SIXTRL_NOEXCEPT
-        {
-            namespace st = SIXTRL_CXX_NAMESPACE;
-            return st::TypeStoreTraits< index_t >::StorageAlign();
-        }
+        static constexpr arch_size_t index_alignment =
+            SIXTRL_CXX_NAMESPACE::Type_storage_align< index_t >();
     };
-}
 
-#endif /* C++, Host  */
+    template< class E >
+    constexpr arch_size_t ParticleTraits< E >::real_alignment;
+
+    template< class E >
+    constexpr arch_size_t ParticleTraits< E >::index_alignment;
+}
+#endif /* C++  */
 
 #endif /* SIXTRACKLIB_COMMON_PARTICLES_DEFINITIONS_H__ */
 

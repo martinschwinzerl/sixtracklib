@@ -49,12 +49,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
         typedef ::NS(Drift) c_api_t;
     };
-
-
-
-
-
-
 }
 
 #endif /* __cplusplus */

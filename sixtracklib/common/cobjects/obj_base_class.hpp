@@ -23,6 +23,7 @@
     #include "sixtracklib/common/cobjects/field_counts.hpp"
     #include "sixtracklib/common/cobjects/index_object.h"
     #include "sixtracklib/common/internal/obj_base_class.hpp"
+    #include "sixtracklib/common/internal/obj_convert.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
@@ -34,10 +35,6 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_CXX_NAMESPACE::cobj_type_id_t, Derived >
     {
         private:
-
-        typedef SIXTRL_CXX_NAMESPACE::ObjDataDelegateStorageTraits<
-            ObjData, SIXTRL_CXX_NAMESPACE::STORAGE_BE_COBJECTS >
-            _delegate_traits_t;
 
         typedef SIXTRL_CXX_NAMESPACE::ObjDataInterfaceBase< ObjData,
             SIXTRL_CXX_NAMESPACE::cobj_type_id_t, Derived > _base_t;
@@ -54,7 +51,6 @@ namespace SIXTRL_CXX_NAMESPACE
         typedef typename _base_t::c_api_t               c_api_t;
         typedef typename _base_t::size_type             size_type;
         typedef typename _base_t::status_t              status_t;
-        typedef typename _delegate_traits_t::Delegate   delegate_t;
         typedef SIXTRL_CXX_NAMESPACE::buffer_addr_t     buffer_addr_t;
         typedef ::NS(CObjIndex)                         index_obj_t;
         typedef ObjData                                 obj_data_t;
@@ -77,19 +73,146 @@ namespace SIXTRL_CXX_NAMESPACE
                 cxx_api_t >();
         }
 
-//         static SIXTRL_FN constexpr bool
-//             has_delegate_type_defined() SIXTRL_NOEXCEPT
-//         {
-//             return SIXTRL_CXX_NAMESPACE::ObjDataCObjects_has_delegate_type_defined<
-//                 cxx_api_t >();
-//         }
+        /* ----------------------------------------------------------------- */
 
-//         static SIXTRL_FN constexpr bool
-//             allow_delegate_storage() SIXTRL_NOEXCEPT
-//         {
-//             return SIXTRL_CXX_NAMESPACE::ObjDataCObjects_allow_delegate_storage<
-//                 cxx_api_t >();
-//         }
+        template< class DstObjData, store_backend_t DstStoreT,
+                  class DstDerived >
+        static SIXTRL_FN constexpr bool allow_conversion_to(
+            SIXTRL_ARGPTR_DEC const ObjDataStorageInterfaceBase<
+                DstObjData, DstStoreT, DstDerived > *const SIXTRL_RESTRICT
+                    /* ptr_dest */ = nullptr ) SIXTRL_NOEXCEPT
+        {
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion< ObjData,
+                ObjDataStorageInterfaceBase< DstObjData, DstStoreT, DstDerived >
+                    , STORAGE_BE_COBJECTS, DstStoreT >();
+        }
+
+        template< class DstObjData,
+                  store_backend_t DstStoreT = STORAGE_BE_COBJECTS >
+        static SIXTRL_FN constexpr bool allow_conversion_to(
+            SIXTRL_ARGPTR_DEC const DstObjData *const SIXTRL_RESTRICT
+                /* ptr_dest */ = nullptr ) SIXTRL_NOEXCEPT
+        {
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
+                ObjData, DstObjData, STORAGE_BE_COBJECTS, DstStoreT >();
+        }
+
+        template< class SrcObjData, store_backend_t SrcStoreT,
+                  class SrcDerived >
+        static SIXTRL_FN constexpr bool allow_conversion_from(
+            SIXTRL_ARGPTR_DEC const ObjDataStorageInterfaceBase<
+                SrcObjData, SrcStoreT, SrcDerived > *const SIXTRL_RESTRICT
+                    /* ptr_src */ = nullptr ) SIXTRL_NOEXCEPT
+        {
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
+                ObjDataStorageInterfaceBase< SrcObjData, SrcStoreT, SrcDerived >
+                    , ObjData, SrcStoreT, STORAGE_BE_COBJECTS >();
+        }
+
+        template< class SrcObjData,
+                  store_backend_t SrcStoreT = STORAGE_BE_COBJECTS >
+        static SIXTRL_FN constexpr bool allow_conversion_from(
+            SIXTRL_ARGPTR_DEC const SrcObjData *const SIXTRL_RESTRICT
+                /* ptr_src */ = nullptr ) SIXTRL_NOEXCEPT
+        {
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
+                SrcObjData, ObjData, SrcStoreT, STORAGE_BE_COBJECTS >();
+        }
+
+        /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
+        template< class DstObjData,
+                  store_backend_t DstStoreT = STORAGE_BE_COBJECTS >
+        SIXTRL_INLINE SIXTRL_FN arch_status_t convert_to(
+            SIXTRL_ARGPTR_DEC DstObjData* SIXTRL_RESTRICT ptr_dest )
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            st::arch_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+            if( ( allow_conversion_to< DstObjData, DstStoreT >( ptr_dest ) ) &&
+                ( this->as_ptr_data() != nullptr ) )
+            {
+                status = st::ObjDataConversionPrepare< ObjData, DstObjData,
+                    st::STORAGE_BE_COBJECTS, DstStoreT >::prepare(
+                        ptr_dest, this->as_ptr_data() );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = st::ObjDataConverter< ObjData, DstObjData,
+                        st::STORAGE_BE_COBJECTS, DstStoreT >::convert(
+                            ptr_dest, this->as_ptr_data() );
+                }
+            }
+
+            return status;
+        }
+
+        template< class DstObjData, store_backend_t DstStoreT,
+                  class DstDerived >
+        SIXTRL_INLINE SIXTRL_FN arch_status_t convert_to(
+            SIXTRL_ARGPTR_DEC ObjDataStorageInterfaceBase< DstObjData,
+                DstStoreT, DstDerived >* SIXTRL_RESTRICT ptr_dest )
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            st::arch_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+            if( ( ptr_dest != nullptr ) &&
+                ( ptr_dest->as_ptr_data() != nullptr ) )
+            {
+                status = this->convert_to< DstObjData, DstStoreT >(
+                    ptr_dest->as_ptr_data() );
+            }
+
+            return status;
+        }
+
+        /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
+
+        template< class SrcObjData,
+                  store_backend_t SrcStoreT = STORAGE_BE_COBJECTS >
+        SIXTRL_INLINE SIXTRL_FN arch_status_t convert_from(
+            SIXTRL_ARGPTR_DEC const SrcObjData *const SIXTRL_RESTRICT ptr_src )
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            st::arch_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+            if( ( allow_conversion_from< SrcObjData, SrcStoreT >( ptr_src ) ) &&
+                ( this->as_ptr_data() != nullptr ) )
+            {
+                status = st::ObjDataConversionPrepare< SrcObjData, ObjData,
+                    SrcStoreT, st::STORAGE_BE_COBJECTS >::prepare(
+                        this->as_ptr_data(), ptr_src );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = st::ObjDataConverter< SrcObjData, ObjData,
+                        SrcStoreT, st::STORAGE_BE_COBJECTS >::convert(
+                            this->as_ptr_data(), ptr_src );
+                }
+            }
+
+            return status;
+        }
+
+        template< class SrcObjData, store_backend_t SrcStoreT,
+                  class SrcDerived >
+        SIXTRL_INLINE SIXTRL_FN arch_status_t convert_from(
+            SIXTRL_ARGPTR_DEC const ObjDataStorageInterfaceBase<
+                SrcObjData, SrcStoreT, SrcDerived > *const
+                    SIXTRL_RESTRICT ptr_src )
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            st::arch_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+
+            if( ( ptr_src != nullptr ) &&
+                ( ptr_src->as_ptr_data() != nullptr ) )
+            {
+                status = this->convert_from< SrcObjData, SrcStoreT >(
+                    ptr_src->as_ptr_data() );
+            }
+
+            return status;
+        }
 
         /* ----------------------------------------------------------------- */
         /* dataptrs - interface */

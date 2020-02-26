@@ -3,10 +3,9 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/particles/definitions.h"
     #include "sixtracklib/common/particles/particle.h"
-    #include "sixtracklib/common/internal/objects_type_id.h"
-    #include "sixtracklib/common/internal/buffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus )
@@ -16,17 +15,11 @@
     #include <cstdlib>
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/internal/obj_type_traits.hpp"
-    #include "sixtracklib/common/internal/obj_store_traits.hpp"
-    #include "sixtracklib/common/internal/buffer.hpp"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
-
 namespace SIXTRL_CXX_NAMESPACE
 {
-    template< class real_t, class index_t,
-        std::size_t RAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align< R >(),
-        std::size_t IAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align< I >() >
+    template< class R, class I,
+        arch_size_t RAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align< R >(),
+        arch_size_t IAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align< I >() >
     struct ParticleData
     {
         real_t  x             SIXTRL_ALIGN( RAlign );
@@ -55,71 +48,48 @@ namespace SIXTRL_CXX_NAMESPACE
         real_t  pc0           SIXTRL_ALIGN( RAlign );
     };
 
-    /* ------------------------------------------------------------------------------ */
+    /* ********************************************************************* */
+    /* Specializations for ParticleData: */
+    /* ********************************************************************* */
 
-    template< class R, class I, std::size_t RAlign, std::size_t IAlign >
+    template< class R, class I, arch_size_t RAlign, arch_size_t IAlign >
     struct ParticleTraits< ParticleData< R, I, RAlign, IAlign > >
     {
-        typedef SIXTRL_CXX_NAMESPACE::buffer_size_t size_type;
-        typedef R                       real_t;
-        typedef real_t const&           real_ret_t;
-        typedef real_t const&           real_arg_t;
+        typedef R real_t;
+        typedef I index_t;
 
-        typedef I                       index_t;
-        typedef index_t const&          index_ret_t;
-        typedef index_t const&          index_arg_t;
-
-        static SIXTRL_FN constexpr size_type RealAlignment() SIXTRL_NOEXCEPT
-        {
-            return static_cast< size_type >( RAlign );
-        }
-
-        static SIXTRL_FN constexpr size_type IndexAlignment() SIXTRL_NOEXCEPT
-        {
-            return static_cast< size_type >( IAlign );
-        }
+        static constexpr arch_size_t real_alignment  = RAlign;
+        static constexpr arch_size_t index_alignment = IAlign;
     };
 
-    /* ------------------------------------------------------------------------------ */
+    template< class R, class I, arch_size_t RAlign, arch_size_t IAlign >
+    constexpr arch_size_t ParticleTraits<
+        ParticleData< R, I, RAlign, IAlign > >::real_alignment;
 
-    template<> struct ObjDataStoreTraits< ParticleData< ::NS(particle_real_t),
-        ::NS(particle_index_t), std::size_t{ 8 }, std::size_t{ 8 } > >
+    template< class R, class I, arch_size_t RAlign, arch_size_t IAlign >
+    constexpr arch_size_t ParticleTraits<
+        ParticleData< R, I, RAlign, IAlign > >::index_alignment;
+
+    /* ********************************************************************* */
+    /* Create an equivalency between the ::NS(Particle) type and the
+     * corresponding specialization of the ParticleData template */
+    /* ********************************************************************* */
+
+    typedef ParticleData<
+                typename ParticleTraits< ::NS(Particle) >::real_t,
+                typename ParticleTraits< ::NS(Particle) >::index_t,
+                ParticleTraits< ::NS(Particle) >::real_alignment,
+                ParticleTraits< ::NS(Particle) >::index_alignment > >
+        CParticleEquivData;
+
+    template<> struct ObjDataCApiTypeTraits< CParticleEquivData >
     {
-        typedef SIXTRL_CXX_NAMESPACE::object_type_id_t type_id_t;
+        static_assert(
+            SIXTRL_CXX_NAMESPACE::ObjData_can_be_equivalent_to_c_api_type<
+                CParticleEquivData, ::NS(Particle) >(),
+        "CParticleEquivData and ::NS(Particle) are not equivalent C-Api types");
 
-        static SIXTRL_FN constexpr type_id_t ObjTypeId() SIXTRL_NOEXCEPT
-        {
-            return SIXTRL_CXX_NAMESPACE::OBJECT_TYPE_PARTICLES;
-        }
-    };
-
-    template<> struct ObjDataStoreCApiTraits< ParticleData< ::NS(particle_real_t),
-        ::NS(particle_index_t), std::size_t{ 8 }, std::size_t{ 8 } > >
-    {
         typedef ::NS(Particle) c_api_t;
-    };
-
-    template<> struct ParticleTraits< ParticleData< ::NS(particle_real_t),
-        ::NS(particle_index_t), std::size_t{ 8 }, std::size_t{ 8 } > >
-    {
-        typedef SIXTRL_CXX_NAMESPACE::buffer_size_t size_type;
-        typedef R                       real_t;
-        typedef real_t                  real_ret_t;
-        typedef real_t const            real_arg_t;
-
-        typedef I                       index_t;
-        typedef index_t                 index_ret_t;
-        typedef index_t const           index_arg_t;
-
-        static SIXTRL_FN constexpr size_type RealAlignment() SIXTRL_NOEXCEPT
-        {
-            return static_cast< size_type >( 8u );
-        }
-
-        static SIXTRL_FN constexpr size_type IndexAlignment() SIXTRL_NOEXCEPT
-        {
-            return static_cast< size_type >( 8u );
-        }
     };
 }
 

@@ -34,19 +34,19 @@ namespace SIXTRL_CXX_NAMESPACE
         typedef typename MultipoleTraits< ObjData >::order_t        order_t;
         typedef typename MultipoleTraits< ObjData >::address_t      address_t;
 
-        typedef typename TypeMethodParamTraits< real_t >::argument_type
+        typedef typename TypeMethodParamTraits< real_t >::const_argument_type
                 real_arg_t;
 
         typedef typename TypeMethodParamTraits< real_t >::const_existing_type
                 real_const_existing_t;
 
-        typedef typename TypeMethodParamTraits< order_t >::argument_type
+        typedef typename TypeMethodParamTraits< order_t >::const_argument_type
                 order_arg_t;
 
         typedef typename TypeMethodParamTraits< order_t >::const_existing_type
                 order_const_existing_t;
 
-        typedef typename TypeMethodParamTraits< address_t >::argument_type
+        typedef typename TypeMethodParamTraits< address_t >::const_argument_type
                 address_arg_t;
 
         typedef typename TypeMethodParamTraits< address_t>::const_existing_type

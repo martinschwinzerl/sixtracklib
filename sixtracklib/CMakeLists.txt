@@ -52,12 +52,39 @@ add_subdirectory( common )
 
 # ------------------------------------------------------------------------------
 
-if( SIXTRACKL_ENABLE_OPENCL )
-    add_subdirectory( opencl )
+if(  SIXTRACKLIB_ENABLE_MODULE_MULTIPREC AND
+   ${SIXTRACKLIB_ENABLE_MODULE_MULTIPREC} EQUAL 1 )
+    add_subdirectory( multiprec )
+else()
+    message( STATUS "---- skipping module multiprec" )
 endif()
 
-if( SIXTRACKL_ENABLE_CUDA )
+if(  SIXTRACKLIB_ENABLE_MODULE_SIMD AND
+   ${SIXTRACKLIB_ENABLE_MODULE_SIMD} EQUAL 1 )
+    add_subdirectory( simd )
+else()
+    message( STATUS "---- skipping module simd" )
+endif()
+
+if(  SIXTRACKLIB_ENABLE_MODULE_OPENMP AND
+   ${SIXTRACKLIB_ENABLE_MODULE_OPENMP} EQUAL 1 )
+    add_subdirectory( openmp )
+else()
+    message( STATUS "---- skipping module openmp" )
+endif()
+
+if( SIXTRACKLIB_ENABLE_MODULE_OPENCL AND
+  ${SIXTRACKLIB_ENABLE_MODULE_OPENCL} EQUAL 1 )
+    add_subdirectory( opencl )
+else()
+    message( STATUS "---- skipping module opencl" )
+endif()
+
+if(  SIXTRACKLIB_ENABLE_MODULE_CUDA AND
+   ${SIXTRACKLIB_ENABLE_MODULE_CUDA} EQUAL 1 )
     add_subdirectory( cuda )
+else()
+    message( STATUS "---- skipping module cuda" )
 endif()
 
 # ------------------------------------------------------------------------------
