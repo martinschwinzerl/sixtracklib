@@ -220,6 +220,11 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->doTrackUntilTurn( until_turn );
     }
 
+    tjob_t::track_status_t tjob_t::trackUntil( st_size_t const until_turn )
+    {
+        return this->doTrackUntilTurn( until_turn );
+    }
+
     tjob_t::track_status_t tjob_t::trackElemByElem(
         st_size_t const until_turn )
     {
@@ -710,7 +715,6 @@ namespace SIXTRL_CXX_NAMESPACE
         return item;
     }
 
-<<<<<<< HEAD
     tjob_t::assign_item_t* tjob_t::add_assign_address_item(
         tjob_t::object_type_id_t const dest_type_id,
         st_size_t const dest_buffer_id,
@@ -720,21 +724,14 @@ namespace SIXTRL_CXX_NAMESPACE
         st_size_t const src_buffer_id,
         st_size_t const src_elem_index,
         st_size_t const src_pointer_offset )
-=======
-    _this_t::buffer_t* TrackJobBase::ptrOutputBuffer() SIXTRL_NOEXCEPT
->>>>>>> mschwinz/benchmark
     {
         return this->add_assign_address_item( tjob_t::assign_item_t{
             dest_type_id, dest_buffer_id, dest_elem_index, dest_pointer_offset,
             src_type_id, src_buffer_id, src_elem_index, src_pointer_offset } );
     }
 
-<<<<<<< HEAD
     st_status_t tjob_t::remove_assign_address_item(
         tjob_t::assign_item_t const& SIXTRL_RESTRICT_REF item_to_remove )
-=======
-    _this_t::buffer_t* TrackJobBase::ptrOutputBuffer() const SIXTRL_NOEXCEPT
->>>>>>> mschwinz/benchmark
     {
         tjob_t::assign_item_key_t const key =
         tjob_t::assign_item_key_t{
@@ -747,25 +744,15 @@ namespace SIXTRL_CXX_NAMESPACE
         return this->doRemoveAssignAddressItem( key, item_index );
     }
 
-<<<<<<< HEAD
     st_status_t tjob_t::remove_assign_address_item(
         tjob_t::assign_item_key_t const& SIXTRL_RESTRICT_REF key,
         st_size_t const index_of_item_to_remove )
-=======
-    _this_t::c_buffer_t*
-    TrackJobBase::ptrCOutputBuffer() SIXTRL_NOEXCEPT
->>>>>>> mschwinz/benchmark
     {
         return this->doRemoveAssignAddressItem( key, index_of_item_to_remove );
     }
 
-<<<<<<< HEAD
     bool tjob_t::has_assign_address_item( tjob_t::assign_item_t const&
         SIXTRL_RESTRICT_REF assign_item ) const SIXTRL_NOEXCEPT
-=======
-    _this_t::c_buffer_t const*
-    TrackJobBase::ptrCOutputBuffer() const SIXTRL_NOEXCEPT
->>>>>>> mschwinz/benchmark
     {
         st_size_t const item_index =
             this->doFindAssingAddressItem( assign_item );

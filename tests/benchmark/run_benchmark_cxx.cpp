@@ -222,6 +222,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 }
 
                 this->optimized = false;
+                return true;
             }
 
             bool init( MainConfig& main )
@@ -1188,11 +1189,11 @@ int main( int argc, char* argv[] )
 
             if( target_config.optimized )
             {
-                job.ptrContext()->enableOptimizedtrackingByDefault();
+                job.ptrContext()->enable_optimized_tracking();
             }
             else
             {
-                job.ptrContext()->disableOptimizedTrackingByDefault();
+                job.ptrContext()->disable_optimized_tracking();
             }
 
             success = st::benchmark::TrackJob_run_benchmark(
