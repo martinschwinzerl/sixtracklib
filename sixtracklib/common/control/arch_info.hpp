@@ -72,10 +72,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
         protected:
 
-        SIXTRL_HOST_FN void doSetArchId(
+        SIXTRL_HOST_FN void set_arch_id(
             arch_id_t const arch_id ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void doSetArchStr(
+        SIXTRL_HOST_FN void set_arch_str(
             const char *const SIXTRL_RESTRICT arch_str );
 
         private:

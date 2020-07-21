@@ -14,7 +14,7 @@ namespace SIXTRL_CXX_NAMESPACE
         const char *const SIXTRL_RESTRICT arch_str ) :
         m_arch_str(), m_arch_id( arch_id )
     {
-        this->doSetArchStr( arch_str );
+        this->set_arch_str( arch_str );
     }
 
     ArchInfo::ArchInfo( ArchInfo::arch_id_t const arch_id,
@@ -94,14 +94,12 @@ namespace SIXTRL_CXX_NAMESPACE
         return;
     }
 
-    void ArchInfo::doSetArchId(
-        ArchInfo::arch_id_t const arch_id ) SIXTRL_NOEXCEPT
+    void ArchInfo::set_arch_id( ArchInfo::arch_id_t const arch_id ) SIXTRL_NOEXCEPT
     {
         this->m_arch_id = arch_id;
     }
 
-    void ArchInfo::doSetArchStr(
-        const char *const SIXTRL_RESTRICT arch_str )
+    void ArchInfo::set_arch_str( const char *const SIXTRL_RESTRICT arch_str )
     {
         if( ( arch_str != nullptr ) &&
             ( std::strlen( arch_str ) > std::size_t{ 0 } ) )
@@ -114,5 +112,3 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     }
 }
-
-/* end: sixtracklib/common/control/arch_info.cpp */

@@ -15,6 +15,7 @@ typedef SIXTRL_UINT64_T       NS(arch_size_t);
 typedef SIXTRL_UINT64_T       NS(arch_debugging_t);
 typedef SIXTRL_UINT32_T       NS(arch_kernel_id_t);
 typedef SIXTRL_UINT32_T       NS(arch_program_id_t);
+typedef SIXTRL_UINT64_T       NS(arch_class_id_t);
 
 typedef NS(arch_status_t)     NS(ctrl_status_t);
 typedef NS(arch_size_t)       NS(ctrl_size_t);
@@ -189,6 +190,22 @@ NS(ctrl_perform_remap_flag_t);
     #define SIXTRL_NODE_ID_STR_FORMAT_ILLEGAL 0xffff
 #endif /* !defined( SIXTRL_NODE_ID_STR_FORMAT_ILLEGAL) */
 
+/* ------------------------------------------------------------------------- */
+
+#if !defined( SIXTRL_ARCH_CLASS_ID_UNDEFINED )
+    #define SIXTRL_ARCH_CLASS_ID_UNDEFINED 0xffff
+#endif /* !defined( SIXTRL_ARCH_CLASS_ID_UNDEFINED ) */
+
+#if !defined( SIXTRL_ARCH_CLASS_ID_PROGRAM_CODE )
+    #define SIXTRL_ARCH_CLASS_ID_PROGRAM_CODE 1
+#endif /* !defined( SIXTRL_ARCH_CLASS_ID_PROGRAM_CODE ) */
+
+#if !defined( SIXTRL_ARCH_CLASS_ID_COMPILED_PROGRAM )
+    #define SIXTRL_ARCH_CLASS_ID_COMPILED_PROGRAM 2
+#endif /* !defined( SIXTRL_ARCH_CLASS_ID_COMPILED_PROGRAM ) */
+
+/* ------------------------------------------------------------------------- */
+
 #if !defined( _GPUCODE )
 
 SIXTRL_STATIC_VAR NS(arch_id_t) const NS(ARCHITECTURE_ID_BITMASK) =
@@ -322,6 +339,15 @@ SIXTRL_STATIC_VAR NS(node_id_str_fmt_t) const NS(NODE_ID_STR_FORMAT_ILLEGAL) =
 
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
 
+SIXTRL_STATIC_VAR NS(arch_class_id_t) const NS(ARCH_CLASS_ID_UNDEFINED) =
+    ( NS(arch_class_id_t) )SIXTRL_ARCH_CLASS_ID_UNDEFINED;
+
+SIXTRL_STATIC_VAR NS(arch_class_id_t) const NS(ARCH_CLASS_ID_PROGRAM_CODE) =
+    ( NS(arch_class_id_t) )SIXTRL_ARCH_CLASS_ID_PROGRAM_CODE;
+
+SIXTRL_STATIC_VAR NS(arch_class_id_t) const NS(ARCH_CLASS_ID_COMPILED_PROGRAM) =
+    ( NS(arch_class_id_t) )SIXTRL_ARCH_CLASS_ID_COMPILED_PROGRAM;
+
 #endif /* !defined( _GPUCODE ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -342,6 +368,7 @@ namespace SIXTRL_CXX_NAMESPACE
     typedef ::NS(arch_debugging_t)    arch_debugging_t;
     typedef ::NS(arch_kernel_id_t)    arch_kernel_id_t;
     typedef ::NS(arch_program_id_t)   arch_program_id_t;
+    typedef ::NS(arch_class_id_t)     arch_class_id_t;
 
     typedef ::NS(node_platform_id_t)  node_platform_id_t;
     typedef ::NS(node_device_id_t)    node_device_id_t;
@@ -504,6 +531,20 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST node_id_str_fmt_t
         NODE_ID_STR_FORMAT_DEFAULT = static_cast< node_id_str_fmt_t >(
             SIXTRL_NODE_ID_STR_FORMAT_DEFAULT );
+
+    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_class_id_t
+        ARCH_CLASS_ID_UNDEFINED = static_cast< arch_class_id_t >(
+            SIXTRL_ARCH_CLASS_ID_UNDEFINED );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_class_id_t
+        ARCH_CLASS_ID_PROGRAM_CODE = static_cast< arch_class_id_t >(
+            SIXTRL_ARCH_CLASS_ID_PROGRAM_CODE );
+
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST arch_class_id_t
+        ARCH_CLASS_ID_COMPILED_PROGRAM = static_cast< arch_class_id_t >(
+            SIXTRL_ARCH_CLASS_ID_COMPILED_PROGRAM );
 }
 #endif /* C++ */
 

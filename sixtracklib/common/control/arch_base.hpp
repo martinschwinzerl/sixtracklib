@@ -1,33 +1,80 @@
 #ifndef SIXTRACKLIB_COMMON_CONTROL_ARCH_BASE_OBJECT_HPP__
 #define SIXTRACKLIB_COMMON_CONTROL_ARCH_BASE_OBJECT_HPP__
 
-#if defined( __cplusplus ) && !defined( _GPUCODE ) && \
-   !defined( __CUDACC__  ) && !defined( __CUDA_ARCH__ )
-
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/control/arch_info.hpp"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
-
-#if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
-    #include <cstddef>
-    #include <cstdlib>
-    #include <string>
-#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
-
-#endif /* C++, Host */
-
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/control/definitions.h"
+    #include "sixtracklib/common/control/arch_info.hpp"
+    #include "sixtracklib/common/internal/compiler_attributes.h"
     #include "sixtracklib/common/buffer/buffer_type.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
+#if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
+    #if defined( __cplusplus )
+        #include <cstddef>
+        #include <cstdlib>
+        #include <string>
+        #include <type_traits>
+    #endif /* C++ */
+#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
-#if defined( __cplusplus ) && !defined( _GPUCODE ) && \
-   !defined( __CUDACC__  ) && !defined( __CUDA_ARCH__ )
-
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 namespace SIXTRL_CXX_NAMESPACE
 {
+    class BaseArchObj : public SIXTRL_CXX_NAMESPACE::ArchInfo
+    {
+        public:
+
+        using class_id_t = SIXTRL_CXX_NAMESPACE::arch_class_id_t;
+        using status_t = SIXTRL_CXX_NAMESPACE::arch_status_t;
+
+        static constexpr class_id_t UNDEFINED_CLASS =
+            SIXTRL_CXX_NAMESPACE::ARCH_CLASS_ID_UNDEFINED;
+
+        SIXTRL_HOST_FN class_id_t class_id() const SIXTRL_NOEXCEPT
+        {
+            return this->m_class_id;
+        }
+
+        SIXTRL_HOST_FN bool is_arch_obj_compatible_with(
+            BaseArchObj const& SIXTRL_RESTRICT_REF other ) const SIXTRL_NOEXCEPT
+        {
+            return ( ( this->archId() == other.archId() ) &&
+                     ( ( ( this->m_class_id != UNDEFINED_CLASS ) &&
+                         ( this->m_class_id == other.m_class_id ) ) ||
+                       ( this->m_class_id == UNDEFINED_CLASS ) ) );
+        }
+
+        protected:
+
+        SIXTRL_HOST_FN explicit BaseArchObj(
+            arch_id_t const arch_id,
+            class_id_t const class_id = UNDEFINED_CLASS,
+            std::string const& SIXTRL_RESTRICT_REF arch_str = std::string{} ) :
+            ArchInfo( arch_id, arch_str ), m_class_id( class_id )
+        {
+
+        }
+
+        SIXTRL_HOST_FN BaseArchObj( BaseArchObj const& ) = default;
+        SIXTRL_HOST_FN BaseArchObj( BaseArchObj&& ) = default;
+
+        SIXTRL_HOST_FN BaseArchObj& operator=( BaseArchObj const& ) = default;
+        SIXTRL_HOST_FN BaseArchObj& operator=( BaseArchObj&& ) = default;
+
+        SIXTRL_HOST_FN virtual ~BaseArchObj() = default;
+
+        SIXTRL_HOST_FN void do_set_class_id(
+            class_id_t const class_id ) SIXTRL_NOEXCEPT
+        {
+            this->m_class_id = class_id;
+        }
+
+        private:
+
+        class_id_t m_class_id;
+    };
+
     class ArchBase : public SIXTRL_CXX_NAMESPACE::ArchInfo
     {
         public:
@@ -76,6 +123,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN bool doParseConfigStrArchBase(
             const char *const SIXTRL_RESTRICT config_str ) SIXTRL_NOEXCEPT;
+
 
         std::string m_config_str;
     };
@@ -157,15 +205,13 @@ namespace SIXTRL_CXX_NAMESPACE
         bool m_debug_mode;
     };
 }
-
 #endif /* C++, Host */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 extern "C" {
 #endif /* C++ */
 
-#if defined( __cplusplus ) && !defined( _GPUCODE ) && \
-   !defined( __CUDACC__  ) && !defined( __CUDA_ARCH__ )
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 
 typedef SIXTRL_CXX_NAMESPACE::ArchBase      NS(ArchBase);
 typedef SIXTRL_CXX_NAMESPACE::ArchDebugBase NS(ArchDebugBase);
@@ -180,7 +226,4 @@ typedef void NS(ArchDebugBase);
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
 #endif /* C++ */
-
 #endif /* SIXTRACKLIB_COMMON_CONTROL_ARCH_BASE_OBJECT_HPP__ */
-
-/* end: sixtracklib/common/control/arch_base.hpp */
