@@ -4,6 +4,7 @@
 set( SIXTRACKLIB_CUDA_CONTROL_CXX_HEADERS
      kernel_config.hpp
      node_info.hpp
+     program_code.h
 )
 
 set( SIXTRACKLIB_CUDA_CONTROL_CXX_SOURCES
@@ -11,6 +12,7 @@ set( SIXTRACKLIB_CUDA_CONTROL_CXX_SOURCES
      kernel_config_c99.cpp
      node_info.cpp
      node_info_c99.cpp
+     program_code.cpp
      argument.cpp
      argument_c99.cpp
      controller.cpp
