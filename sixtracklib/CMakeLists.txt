@@ -37,6 +37,7 @@ set( SIXTRACKL_LOCAL_CXX_HEADERS
      sixtracklib.hpp
 )
 
+add_subdirectory( base )
 add_subdirectory( common )
 
 # ------------------------------------------------------------------------------
@@ -58,6 +59,10 @@ endif()
 
 if( SIXTRACKL_ENABLE_CUDA )
     add_subdirectory( cuda )
+endif()
+
+if( SIXTRACKL_ENABLE_CUNVRTC )
+    add_subdirectory( cunvrtc )
 endif()
 
 # ------------------------------------------------------------------------------
