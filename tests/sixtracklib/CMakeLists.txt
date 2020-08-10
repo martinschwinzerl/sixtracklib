@@ -24,24 +24,25 @@ set( SIXTRL_TESTLIB_INSTALL_LIB_PREFIX "${CMAKE_INSTALL_PREFIX}/lib" )
 # ------------------------------------------------------------------------------
 # ---- build the sixtrack_test library
 
-add_subdirectory( testlib )
+# add_subdirectory( testlib )
 
 # ------------------------------------------------------------------------------
 # ---- run the submodule - unit-tests
 
 if( SIXTRACKL_ENABLE_PROGRAMM_TESTS )
 
-    set( SIXTRACKL_TEST_LIBRARIES sixtrack_test sixtrack )
+    set( SIXTRACKLIB_TEST_LIBRARIES sixtrack )
+    add_subdirectory( backends )
 
-    add_subdirectory( common )
+#     add_subdirectory( common )
 #     add_custom_target( testdata DEPENDS testdata_common )
 
     if( SIXTRACKL_ENABLE_OPENCL )
-        add_subdirectory( opencl )
+#         add_subdirectory( opencl )
     endif()
 
     if( SIXTRACKL_ENABLE_CUDA )
-        add_subdirectory( cuda )
+#         add_subdirectory( cuda )
     endif()
 
 endif()
