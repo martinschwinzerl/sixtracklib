@@ -11,5 +11,6 @@
 track.obs*.p*
 .cache
 
+export.h
 Settings.cmake
 build*
