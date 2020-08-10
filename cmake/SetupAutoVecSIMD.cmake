@@ -7,7 +7,6 @@ if( NOT  SIXTRACKL_CMAKE_SETUP_AUTOVEC_SIMD_FINISHED )
     # Add AUTOVECTORIZATION and MANUAL_SIMD to the list of supported modules
     # and track its state:
 
-    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES "AUTOVECTORIZATION" )
     set( SIXTRACKL_C_ENABLED_AUTOVEC_FLAGS )
     set( SIXTRACKL_C_DISABLED_AUTOVEC_FLAGS )
 
@@ -46,7 +45,6 @@ if( NOT  SIXTRACKL_CMAKE_SETUP_AUTOVEC_SIMD_FINISHED )
     set( SIXTRACKL_CXX_AUTOVEC_FLAGS )
 
     if( SIXTRACKL_ENABLE_AUTOVECTORIZATION )
-        list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES "1" )
         set( SIXTRACKL_C99_AUTOVEC_FLAGS ${SIXTRACKL_C_ENABLED_AUTOVEC_FLAGS} )
 
         if( SIXTRACKL_ENABLE_CXX )
@@ -62,16 +60,6 @@ if( NOT  SIXTRACKL_CMAKE_SETUP_AUTOVEC_SIMD_FINISHED )
             set( SIXTRACKL_C99_AUTOVEC_FLAGS
                ${SIXTRACKL_C99_ENABLED_AUTOVEC_FLAGS} )
         endif()
-    endif()
-
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-    list( APPEND SIXTRACKLIB_SUPPORTED_MODULES "MANUAL_SIMD" )
-
-    if( SIXTRACKL_ENABLE_MANUAL_SIMD )
-        list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES "1" )
-    else()
-        list( APPEND SIXTRACKLIB_SUPPORTED_MODULES_VALUES "0" )
     endif()
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
