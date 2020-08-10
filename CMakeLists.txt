@@ -9,8 +9,9 @@
 # granted to it by virtue of its status as an Intergovernmental Organization or
 # submit itself to any jurisdiction.
 
-cmake_minimum_required( VERSION 3.8 FATAL_ERROR )
-project( sixtracklib LANGUAGES C CXX )
+cmake_minimum_required( VERSION 3.9 FATAL_ERROR )
+project( sixtracklib VERSION 0.1.0 LANGUAGES C CXX
+         HOMEPAGE_URL "https:://github.com/SixTrack/sixtracklib" )
 
 message( STATUS "---- Project sixtracklib" )
 message( STATUS "---- Inside main CMakeLists.txt" )
@@ -75,23 +76,18 @@ set( SIXTRACKL_VERSION_STR "0.1.0" )
 # ==============================================================================
 # handle dependencies and external libraries/toolkits:
 
-# ------------------------------------------------------------------------------
-# These two abstract lists contain the name of the modules that are know to
-# SixTrackLib and "1" and "0" for representing the enabled and disabled state
-# of these modules. This is used to generate headers, list, install files, etc.
-
-set( SIXTRACKLIB_SUPPORTED_MODULES        )
-set( SIXTRACKLIB_SUPPORTED_MODULES_VALUES )
-
-set( SIXTRACKLIB_SUPPORTED_BINDINGS        )
-set( SIXTRACKLIB_SUPPORTED_BINDINGS_VALUES )
-
-set( SIXTRACKLIB_TESTDATA_DIR
-     "${CMAKE_SOURCE_DIR}/tests/testdata" CACHE STRING "" FORCE )
-
+set( SIXTRACKLIB_NAMESPACE_FLAGS )
 set( SIXTRACKLIB_CPU_FLAGS )
 set( SIXTRACKLIB_C99_FLAGS )
 set( SIXTRACKLIB_CXX_FLAGS )
+
+# ------------------------------------------------------------------------------
+# include some required CMake extensions *before* expanding the
+# CMAKE_MODULE_PATH variable -> just to be sure
+
+include( GNUInstallDirs )
+include( GenerateExportHeader )
+include( CheckIPOSupported )
 
 # ------------------------------------------------------------------------------
 # place all contributed cmake modules and snipplets into the cmake subdirectory
@@ -106,11 +102,16 @@ message( STATUS "---- cmake_module_path: ${CMAKE_MODULE_PATH}" )
 
 include(CheckLanguage)
 
-include( SetupFeatures )
 include( SetupC99 )
 include( SetupCxx )
 include( SetupPython )
+include( SetupFeatures )
 include( SetupGit )
+
+# ------------------------------------------------------------------------------
+# Setup external dependencies
+
+include( SetupExternalToml11 )
 
 # ------------------------------------------------------------------------------
 # Unit-testing:
@@ -149,41 +150,34 @@ if( SIXTRACKL_ENABLE_CUDA )
 endif()
 
 include( SetupCuda )
+include( SetupCudaNvrtc )
 
 # ------------------------------------------------------------------------------
-# Namespace handling:
+# After all dependencies are met, build the list of avialable & enabled modules
 
-set( SIXTRACKLIB_NAMESPACE_FLAGS )
-
-if( SIXTRACKL_C_NAMESPACE_PREFIX )
-    list( APPEND SIXTRACKLIB_NAMESPACE_FLAGS
-          "__NAMESPACE=${SIXTRACKL_C_NAMESPACE_PREFIX}" )
-endif()
-
-if( SIXTRACKL_CXX_NAMESPACE )
-    list( APPEND SIXTRACKLIB_NAMESPACE_FLAGS
-          "SIXTRL_NAMESPACE=${SIXTRACKL_CXX_NAMESPACE}" )
-endif()
+include( SetupBackendModules )
 
 # ==============================================================================
 # sixtracklib: C/C++ library ; sixtracklib python bindings
 
 add_subdirectory( external )
+
+add_subdirectory( sixtracklib_base )
 add_subdirectory( sixtracklib )
 
 # ------------------------------------------------------------------------------
 # Add tools
 
-if( SIXTRACKL_BUILD_TOOLS )
-    add_subdirectory( tools )
-endif()
+# if( SIXTRACKL_BUILD_TOOLS )
+#     add_subdirectory( tools )
+# endif()
 
 # ------------------------------------------------------------------------------
 # Add sixtracklib Python 3.x bindings
 
-if( SIXTRACKL_ENABLE_PYTHON )
-    add_subdirectory( python )
-endif()
+# if( SIXTRACKL_ENABLE_PYTHON )
+#     add_subdirectory( python )
+# endif()
 
 # ==============================================================================
 # examples: c99, cxx, python
