@@ -12,168 +12,72 @@
 
 message( STATUS "---- processing sixtracklib/CMakeLists.txt" )
 
-# ------------------------------------------------------------------------------
+set( CMAKE_POSITION_INDEPENDENT_CODE ON )
+set( CMAKE_VISIBILITY_INLINES_HIDDEN TRUE )
+set( CMAKE_CXX_VISIBILITY_PRESET hidden )
+set( CMAKE_CXX_STANDARD 11 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
-set( SIXTRACKL_LINK_LIBRARIES  "" CACHE INTERNAL "" FORCE )
-set( SIXTRACKL_LIBRARY_MODULES "" CACHE INTERNAL "" FORCE )
-
-# ------------------------------------------------------------------------------
-
-set( SIXTRACKLIB_C99_INSTALL_PREFIX
-     "${CMAKE_INSTALL_PREFIX}/include/sixtracklib" )
-
-set( SIXTRACKLIB_CXX_INSTALL_PREFIX ${SIXTRACKLIB_C99_INSTALL_PREFIX} )
+check_ipo_supported( RESULT SIXTRL_LTO_SUPPORTED )
 
 # ------------------------------------------------------------------------------
+# Collect submodules and link_libriaries in these two lists:
 
-set( SIXTRACKLIB_C99_HEADERS )
-set( SIXTRACKLIB_CXX_HEADERS )
+set( SIXTRACKLIB_SUBMODULES )
+set( SIXTRACKLIB_SUBMODULES_LINK_LIBRARIES )
 
-set( SIXTRACKL_LOCAL_C99_HEADERS
-     sixtracklib.h
-)
-
-set( SIXTRACKL_LOCAL_CXX_HEADERS
-     sixtracklib.hpp
-)
-
-add_subdirectory( base )
-add_subdirectory( common )
+# prepare install path for the "main" sixtracklib
+set( SIXTRL_INSTALL_PATH "${CMAKE_INSTALL_INCLUDEDIR}/sixtracklib" )
 
 # ------------------------------------------------------------------------------
+# iterate over the submodules
 
-# if( SIXTRACKL_ENABLE_MANUAL_SIMD )
-#
-#     add_subdirectory( simd )
-#
-#     set( SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
-#          $<TARGET_OBJECTS:sixtrack_simd> )
-#
-# endif()
+add_subdirectory( backends )
 
 # ------------------------------------------------------------------------------
+# build the library
 
-if( SIXTRACKL_ENABLE_OPENCL )
-    add_subdirectory( opencl )
-endif()
-
-if( SIXTRACKL_ENABLE_CUDA )
-    add_subdirectory( cuda )
-endif()
-
-if( SIXTRACKL_ENABLE_CUNVRTC )
-    add_subdirectory( cunvrtc )
-endif()
-
-# ------------------------------------------------------------------------------
-
-set( SIXTRACKL_LINK_LIBRARIES ${SIXTRACKL_LINK_LIBRARIES} m )
+set( SIXTRACKLIB_HEADERS )
+set( SIXTRACKLIB_SOURCES )
 
 add_library( sixtrack SHARED
-             ${SIXTRACKLIB_C99_HEADERS}
-             ${SIXTRACKL_LOCAL_C99_HEADERS}
-             ${SIXTRACKLIB_CXX_HEADERS}
-             ${SIXTRACKL_LOCAL_CXX_HEADERS}
-             ${SIXTRACKL_LIBRARY_MODULES}
-)
-
-if( SIXTRACKL_LINK_LIBRARIES )
-    target_link_libraries( sixtrack ${SIXTRACKL_LINK_LIBRARIES} )
-endif()
-
-target_include_directories(
-    sixtrack PUBLIC $<INSTALL_INTERFACE:include>
-             PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> )
-
-if( TARGET sixtrack_cuda_host )
-    target_include_directories( sixtrack
-        PUBLIC $<BUILD_INTERFACE:${SIXTRACKL_CUDA_INCLUDE_DIRS}> )
-endif()
-
-if( TARGET sixtrack_opencl )
-    target_include_directories( sixtrack
-        PUBLIC $<BUILD_INTERFACE:${SIXTRACKL_OPENCL_INCLUDE_DIR}> )
-endif()
+    ${SIXTRACKLIB_HEADERS} ${SIXTRACKLIB_SOURCES} ${SIXTRACKLIB_SUBMODULES} )
 
 set_target_properties( sixtrack PROPERTIES
-    LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON C_STANDARD 99
-    DEBUG_POSTFIX d C_STANDARD_REQUIRED ON )
+    LINK_WHAT_YOU_USE TRUE SOVERSION 0.1.0 VERSION 0.1.0 )
 
-target_compile_options( sixtrack PRIVATE
-    ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS}
-    ${SIXTRACKL_C99_AUTOVEC_FLAGS} )
+if( SIXTRL_LTO_SUPPORTED )
+    set_target_properties( sixtrack PROPERTIES
+        INTERPROCEDURAL_OPTIMIZATION TRUE )
+endif()
 
-# ------------------------------------------------------------------------------
-# provide a copy of the library to the python module if it is defined!
+target_link_libraries( sixtrack PUBLIC sixtrack_base )
 
-if( SIXTRACKL_ENABLE_PYTHON )
+target_include_directories( sixtrack
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> )
 
-    set( DEST_PATH "${CMAKE_SOURCE_DIR}/python/sixtracklib" )
-
-    if( EXISTS ${DEST_PATH} )
-
-        get_target_property( OUT_LIB_NAME_PREFIX  sixtrack PREFIX )
-        get_target_property( OUT_LIB_NAME sixtrack LIBRARY_OUTPUT_NAME )
-        get_target_property( OUT_LIB_NAME_POSTFIX sixtrack RELEASE_POSTFIX )
-
-        if(  NOT OUT_LIB_NAME_PREFIX )
-            set( OUT_LIB_NAME_PREFIX "lib" )
-        endif()
-
-
-        if(  NOT OUT_LIB_NAME_POSTFIX )
-            set( OUT_LIB_NAME_POSTFIX ".so" )
-        endif()
-
-        if(  NOT OUT_LIB_NAME )
-            set( OUT_LIB_NAME "sixtrack" )
-        endif()
-
-        set( LIB_NAME
-             "${OUT_LIB_NAME_PREFIX}${OUT_LIB_NAME}${OUT_LIB_NAME_POSTFIX}" )
-
-        set( IN_PATH   $<TARGET_FILE:sixtrack> )
-        set( DEST_PATH "${DEST_PATH}/${LIB_NAME}" )
-
-        message( STATUS "------ python: providing a copy of "
-                        "library to ${DEST_PATH}" )
-
-        set( PY_SIXTRACKLIB_SHARED_LIB ${LIB_NAME} CACHE INTERNAL "" FORCE )
-
-        add_custom_command( TARGET sixtrack POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${IN_PATH} ${DEST_PATH} )
-    endif()
+if( SIXTRACKLIB_SUBMODULES_LINK_LIBRARIES )
+    target_link_libraries( sixtrack
+        PRIVATE ${SIXTRACKLIB_SUBMODULES_LINK_LIBRARIES} )
 endif()
 
 # ------------------------------------------------------------------------------
-# install :
+# prepare the header with API export macros
 
-install( TARGETS sixtrack
-         EXPORT  SixTracklib-targets
-         RUNTIME DESTINATION bin
-         LIBRARY DESTINATION lib
-         ARCHIVE DESTINATION lib )
-
-install( EXPORT SixTracklib-targets
-         FILE   SixTracklibTargets.cmake
-         NAMESPACE SixTracklib::
-         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake
+generate_export_header( sixtrack
+    EXPORT_FILE_NAME ${CMAKE_CURRENT_SOURCE_DIR}/export.h
+    EXPORT_MACRO_NAME SIXTRL_EXPORT_API
+    NO_EXPORT_MACRO_NAME SIXTRL_PRIVATE_API
+    DEPRECATED_MACRO_NAME SIXTRL_DEPRECATED_API
+    STATIC_DEFINE SIXTRL_IS_STATIC_BUILD
 )
 
-if( SIXTRACKL_LOCAL_C99_HEADERS )
-
-    set( SIXTRACKLIB_C99_INSTALL_PATH include/sixtracklib )
-
-    install( FILES ${SIXTRACKL_LOCAL_C99_HEADERS}
-             DESTINATION ${SIXTRACKLIB_C99_INSTALL_PATH} )
-endif()
-
-if( SIXTRACKL_LOCAL_CXX_HEADERS )
-
-    set( SIXTRACKLIB_CXX_INSTALL_PATH include/sixtracklib )
-
-    install( FILES ${SIXTRACKL_LOCAL_CXX_HEADERS}
-             DESTINATION ${SIXTRACKLIB_CXX_INSTALL_PATH} )
-endif()
-
 # ------------------------------------------------------------------------------
+# handle install:
+
+if( SIXTRACKLIB_HEADERS )
+    install( FILES ${SIXTRACKLIB_HEADERS} DESTINATION ${SIXTRL_INSTALL_PATH} )
+endif()
+
+install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/export.h
+         DESTINATION ${SIXTRL_INSTALL_PATH} )
