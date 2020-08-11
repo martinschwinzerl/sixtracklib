@@ -62,6 +62,18 @@ namespace SIXTRL_CXX_NAMESPACE
     #define SIXTRL_CLASS_ID_NODE_INFO 2
 #endif /* !defined( SIXTRL_CLASS_ID_NODE_INFO ) */
 
+#if !defined( SIXTRL_CLASS_ID_CONTEXT )
+    #define SIXTRL_CLASS_ID_CONTEXT 3
+#endif /* !defined( SIXTRL_CLASS_ID_CONTEXT ) */
+
+#if !defined( SIXTRL_CLASS_ID_DEVICE )
+    #define SIXTRL_CLASS_ID_DEVICE 4
+#endif /* !defined( SIXTRL_CLASS_ID_DEVICE ) */
+
+#if !defined( SIXTRL_CLASS_ID_PROGRAM_CODE )
+    #define SIXTRL_CLASS_ID_PROGRAM_CODE 5
+#endif /* !defined( SIXTRL_CLASS_ID_PROGRAM_CODE ) */
+
 #if !defined( _GPUCODE )
 #if defined( __cplusplus )
 extern "C" {
@@ -75,6 +87,15 @@ SIXTRL_STATIC_VAR const NS(obj_class_id_t) NS(CLASS_ID_NODE_ID) =
 
 SIXTRL_STATIC_VAR const NS(obj_class_id_t) NS(CLASS_ID_NODE_INFO) =
     ( NS(obj_class_id_t) )SIXTRL_CLASS_ID_NODE_INFO;
+
+SIXTRL_STATIC_VAR const NS(obj_class_id_t) NS(CLASS_ID_CONTEXT) =
+    ( NS(obj_class_id_t) )SIXTRL_CLASS_ID_CONTEXT;
+
+SIXTRL_STATIC_VAR const NS(obj_class_id_t) NS(CLASS_ID_DEVICE) =
+    ( NS(obj_class_id_t) )SIXTRL_CLASS_ID_DEVICE;
+
+SIXTRL_STATIC_VAR const NS(obj_class_id_t) NS(CLASS_ID_PROGRAM_CODE) =
+    ( NS(obj_class_id_t) )SIXTRL_CLASS_ID_PROGRAM_CODE;
 
 #if defined( __cplusplus )
 }
@@ -90,9 +111,17 @@ namespace SIXTRL_CXX_NAMESPACE
     static constexpr obj_class_id_t CLASS_ID_NODE_ID =
         static_cast< obj_class_id_t >( SIXTRL_CLASS_ID_NODE_ID );
 
-
     static constexpr obj_class_id_t CLASS_ID_NODE_INFO =
         static_cast< obj_class_id_t >( SIXTRL_CLASS_ID_NODE_INFO );
+
+    static constexpr obj_class_id_t CLASS_ID_CONTEXT =
+        static_cast< obj_class_id_t >( SIXTRL_CLASS_ID_CONTEXT );
+
+    static constexpr obj_class_id_t CLASS_ID_DEVICE =
+        static_cast< obj_class_id_t >( SIXTRL_CLASS_ID_DEVICE );
+
+    static constexpr obj_class_id_t CLASS_ID_PROGRAM_CODE =
+        static_cast< obj_class_id_t >( SIXTRL_CLASS_ID_PROGRAM_CODE );
 
 } /* ns: SIXTRL_CXX_NAMESPACE */
 #endif /* C++ */
