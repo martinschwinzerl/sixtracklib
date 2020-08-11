@@ -1,5 +1,5 @@
-set( SIXTRL_CUDA_PLUGIN_HEADERS init_finish.h cuda_tools.h node.h )
-set( SIXTRL_CUDA_PLUGIN_SOURCES init_finish.cpp node.cpp )
+set( SIXTRL_CUDA_PLUGIN_HEADERS init_finish.h cuda_tools.h node.h device.h )
+set( SIXTRL_CUDA_PLUGIN_SOURCES init_finish.cpp node.cpp device.cpp )
 
 add_library( sixtrack_cuda_plugin OBJECT
     ${SIXTRL_CUDA_PLUGIN_HEADERS} ${SIXTRL_CUDA_PLUGIN_SOURCES} )
