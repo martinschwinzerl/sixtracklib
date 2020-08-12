@@ -4,6 +4,7 @@ set( SIXTRL_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/class_id.h
     ${CMAKE_CURRENT_SOURCE_DIR}/compiler_attributes.h
     ${CMAKE_CURRENT_SOURCE_DIR}/compiler_compability.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/mem_helpers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/namespace_defines.h
     ${CMAKE_CURRENT_SOURCE_DIR}/namespace_undef.h )
 
