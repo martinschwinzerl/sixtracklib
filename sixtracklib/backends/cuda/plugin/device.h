@@ -12,6 +12,8 @@
     #if defined( __cplusplus )
         #include <memory>
         #include <string>
+        #include <type_traits>
+        #include <utility>
     #endif /* C++ */
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
@@ -28,21 +30,33 @@ namespace SIXTRL_CXX_NAMESPACE
         using str_format_t  = SIXTRL_CXX_NAMESPACE::node_id_str_fmt_t;
         using string_type   = std::string;
 
-        SIXTRL_HOST_FN explicit CudaDevice(
-            ::NS(NodeId) const& SIXTRL_RESTRICT_REF node_id );
+        static_assert( std::is_integral< ::CUdevice >::value &&
+                       std::is_signed< ::CUdevice >::value,
+            "Requirement that ::CUdevice is a type-alias to a signed integral "
+            "type violated" );
 
-        SIXTRL_HOST_FN explicit CudaDevice(
-            ::CUdevice const cuda_device_handle );
+        static constexpr ::CUdevice ILLEGAL_DEVICE_HANDLE = ::CUdevice{ -1 };
 
-        SIXTRL_HOST_FN explicit CudaDevice(
-            string_type const& SIXTRL_RESTRICT_REF node_id_str );
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN CudaDevice(
-            string_type const& SIXTRL_RESTRICT_REF node_id_str,
-            node_id_str_fmt_t const node_id_str_format );
+        SIXTRL_HOST_FN CudaDevice() = default;
 
-        SIXTRL_HOST_FN CudaDevice(
-            platform_id_t const platform_id, device_id_t const device_id );
+        template< class FirstArg, class... Args, typename =
+            typename std::enable_if< !std::is_same< typename std::decay<
+                FirstArg >::type, CudaDevice >::value, void >::type >
+        SIXTRL_HOST_FN CudaDevice( FirstArg&& arg0, Args&&... init_args ) :
+            SIXTRL_CXX_NAMESPACE::BaseBackendObj(
+                SIXTRL_CXX_NAMESPACE::BACKEND_CUDA,
+                SIXTRL_CXX_NAMESPACE::CLASS_ID_DEVICE )
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            st::status_t const status = this->init(
+                std::forward< FirstArg&& >( arg0 ),
+                std::forward< Args&& >( init_args )... );
+
+            SIXTRL_ASSERT( status == st::STATUS_SUCCESS );
+            ( void )status;
+        }
 
         SIXTRL_HOST_FN CudaDevice( CudaDevice const& ) = default;
         SIXTRL_HOST_FN CudaDevice( CudaDevice&& ) = default;
@@ -58,19 +72,43 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN device_id_t device_id() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN bool is_legal() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN ::NS(NodeId) const& node_id_data() const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN ::CUdevice cuda_device_handle() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN c_node_id_t const& node_id_data() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN ::CUdevice cuda_handle() const SIXTRL_NOEXCEPT;
 
-        private:
+        /* ----------------------------------------------------------------- */
 
-        using status_t = SIXTRL_CXX_NAMESPACE::status_t;
+        SIXTRL_HOST_FN void reset() SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_t init_cuda_device_handle_from_node_id(
+        SIXTRL_HOST_FN status_t init(
+            c_node_id_t const& SIXTRL_RESTRICT_REF node_id );
+
+        SIXTRL_HOST_FN status_t init(
+            const c_node_id_t *const SIXTRL_RESTRICT_REF node_id );
+
+        SIXTRL_HOST_FN status_t init(
+            SIXTRL_CXX_NAMESPACE::NodeId const& SIXTRL_RESTRICT_REF node_id );
+
+        SIXTRL_HOST_FN status_t init(
             platform_id_t const platform_id,
             device_id_t const device_id = device_id_t{ 0 } );
 
-        ::CUdevice      m_cuda_device;
-        ::NS(NodeId)    m_node_id;
+        SIXTRL_HOST_FN status_t init(
+            string_type const& SIXTRL_RESTRICT_REF node_id_str );
+
+        SIXTRL_HOST_FN status_t init(
+            string_type const& SIXTRL_RESTRICT_REF node_id_str,
+            str_format_t node_id_str_format );
+
+        SIXTRL_HOST_FN status_t init( ::CUdevice const cuda_device_handle );
+
+        private:
+
+        c_node_id_t m_node_id = {
+            SIXTRL_CXX_NAMESPACE::BACKEND_ILLEGAL,
+            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_PLATFORM_ID,
+            SIXTRL_CXX_NAMESPACE::NODE_ILLEGAL_DEVICE_ID };
+
+        ::CUdevice m_cuda_device = ILLEGAL_DEVICE_HANDLE;
     };
 }
 
@@ -96,7 +134,7 @@ NS(CudaDevice_create_from_platform_id_device_id)(
 
 SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(CudaDevice)*
 NS(CudaDevice_create_from_node_id)(
-    const NS(NodeId) *const SIXTRL_RESTRICT node_id ;
+    const NS(NodeId) *const SIXTRL_RESTRICT node_id );
 
 SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(CudaDevice)*
 NS(CudaDevice_create_from_string)( char const* SIXTRL_RESTRICT node_id_str );
@@ -109,7 +147,7 @@ NS(CudaDevice_create_from_string_using_format)(
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 SIXTRL_EXPORT_API SIXTRL_HOST_FN void NS(CudaDevice_delete)(
-    NS(CudaDevice)* SIXTRL_RESTRICT node_id ) SIXTRL_NOEXCEPT;
+    NS(CudaDevice)* SIXTRL_RESTRICT device ) SIXTRL_NOEXCEPT;
 
 /* ------------------------------------------------------------------------- */
 
@@ -118,20 +156,19 @@ NS(CudaDevice_platform_id)( const NS(CudaDevice) *const SIXTRL_RESTRICT
     device ) SIXTRL_NOEXCEPT;
 
 SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(node_device_id_t)
-NS(CudaDevice_device_id) const SIXTRL_NOEXCEPT;
+NS(CudaDevice_device_id)( const NS(CudaDevice) *const SIXTRL_RESTRICT
+    device ) SIXTRL_NOEXCEPT;
 
 SIXTRL_EXPORT_API SIXTRL_HOST_FN bool NS(CudaDevice_is_legal)(
     const NS(CudaDevice) *const SIXTRL_RESTRICT device ) SIXTRL_NOEXCEPT;
 
-SIXTRL_EXPORT_API SIXTRL_HOST_FN const ::NS(NodeId) *const
-NS(CudaDevice_node_id_data)( const NS(CudaDevice) *const
-    SIXTRL_RESTRICT device ) SIXTRL_NOEXCEPT;
+SIXTRL_EXPORT_API SIXTRL_HOST_FN const NS(NodeId) *const NS(CudaDevice_node_id)(
+    const NS(CudaDevice) *const SIXTRL_RESTRICT device ) SIXTRL_NOEXCEPT;
 
-SIXTRL_EXPORT_API SIXTRL_HOST_FN CUdevice NS(CudaDevice_cuda_device_handle)(
+SIXTRL_EXPORT_API SIXTRL_HOST_FN CUdevice NS(CudaDevice_cuda_handle)(
     const NS(CudaDevice) *const SIXTRL_RESTRICT device ) SIXTRL_NOEXCEPT;
 
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 }
 #endif /* C++, Host */
-
 #endif /* SIXTRACKLIB_BACKENDS_CUDA_PLUGIN_DEVICE_H__ */
