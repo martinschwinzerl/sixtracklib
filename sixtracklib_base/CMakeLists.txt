@@ -17,6 +17,7 @@ set( SIXTRL_BASE_SUBMODULE_LINK_LIBRARIES )
 # iterate over submodules:
 
 add_subdirectory( backend )
+add_subdirectory( cobjects )
 # add_subdirectory( controller )
 add_subdirectory( generated )
 add_subdirectory( internal )
