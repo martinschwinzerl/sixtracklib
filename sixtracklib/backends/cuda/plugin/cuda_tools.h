@@ -83,7 +83,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         if( err_code != ::CUDA_SUCCESS )
         {
-            char* error_name = nullptr;
+            char const* error_name = nullptr;
             ::CUresult const ret = ::cuGetErrorName( err_code, &error_name );
             SIXTRL_ASSERT( ret == ::CUDA_SUCCESS );
             ( void )ret;
@@ -107,7 +107,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         if( err_code != ::CUDA_SUCCESS )
         {
-            char* error_msg = nullptr;
+            char const* error_msg = nullptr;
             ::CUresult const ret = ::cuGetErrorString( err_code, &error_msg );
             SIXTRL_ASSERT( ret == ::CUDA_SUCCESS );
             ( void )ret;
