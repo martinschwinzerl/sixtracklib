@@ -14,9 +14,12 @@
         #include <cstdlib>
         #include <istream>
         #include <memory>
+        #include <mutex>
         #include <ostream>
+        #include <vector>
         #include <sstream>
         #include <string>
+        #include <thread>
         #include <unordered_map>
     #endif /* C++ */
 
@@ -59,23 +62,11 @@ namespace SIXTRL_CXX_NAMESPACE
         using dlib_loader_t = std::shared_ptr<
             SIXTRL_CXX_NAMESPACE::BaseDynLibLoader >;
 
-        using run_dlib_init_finish_fn_flags_t = uint16_t;
+        using thread_id_type = std::thread::id;
+        using lockable_type  = std::mutex;
+        using guard_type     = std::unique_lock< lockable_type >;
 
-        static constexpr run_dlib_init_finish_fn_flags_t
-            RUN_BACKEND_INIT_FN_AUTO =
-                run_dlib_init_finish_fn_flags_t{ 0x00 };
-
-        static constexpr run_dlib_init_finish_fn_flags_t
-            RUN_BACKEND_INIT_FN_EXPLICITLY =
-                run_dlib_init_finish_fn_flags_t{ 0x01 };
-
-        static constexpr run_dlib_init_finish_fn_flags_t
-            RUN_BACKEND_SHUTDOWN_FN_AUTO =
-                run_dlib_init_finish_fn_flags_t{ 0x00 };
-
-        static constexpr run_dlib_init_finish_fn_flags_t
-            RUN_BACKEND_SHUTDOWN_FN_EXPLICITLY =
-                run_dlib_init_finish_fn_flags_t{ 0x02 };
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
         using be_symbol_id_t = uint64_t;
 
@@ -84,6 +75,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         static constexpr class_variant_t
             BACKEND_VARIANT_HAS_NODES = class_variant_t{ 0x01 };
+
+        static constexpr class_variant_t
+            BACKEND_VARIANT_HAS_CONTEXT_STORE = class_variant_t{ 0x02 };
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -159,22 +153,76 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN run_dlib_init_finish_fn_flags_t
-        run_init_backend_fn_mode() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool threads_require_init() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool main_thread_auto_init() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN run_dlib_init_finish_fn_flags_t
-        run_shutdown_backend_fn_mode() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool threads_require_shutdown() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool main_thread_auto_shutdown() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool run_init_backend_fn_auto() const SIXTRL_NOEXCEPT;
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN bool
-        run_init_backend_fn_explicitly() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN size_type num_associated_threads() const;
+        SIXTRL_HOST_FN size_type num_associated_threads(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const;
 
-        SIXTRL_HOST_FN bool
-        run_shutdown_backend_fn_auto() const SIXTRL_NOEXCEPT;
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN bool
-        run_shutdown_backend_fn_explicitly() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN thread_id_type const* associated_thread_ids_begin(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN thread_id_type const* associated_thread_ids_end(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SIXTRL_HOST_FN bool is_associated_with_thread(
+            thread_id_type id ) const;
+
+        SIXTRL_HOST_FN bool is_associated_with_thread(
+            thread_id_type id, guard_type const& lock ) const SIXTRL_NOEXCEPT;
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SIXTRL_HOST_FN bool is_associated_with_current_thread(
+            ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN bool is_associated_with_current_thread(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SIXTRL_HOST_FN thread_id_type main_thread_id() const;
+        SIXTRL_HOST_FN bool current_thread_is_main() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN thread_id_type main_thread_id(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN bool current_thread_is_main(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SIXTRL_HOST_FN status_t associate_with_thread( thread_id_type tid );
+        SIXTRL_HOST_FN status_t associate_with_thread(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SIXTRL_HOST_FN status_t associate_with_current_thread();
+        SIXTRL_HOST_FN status_t associate_with_current_thread(
+            guard_type const& SIXTRL_RESTRICT_REF lock );
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SIXTRL_HOST_FN status_t disassociate_from_thread( thread_id_type tid );
+        SIXTRL_HOST_FN status_t disassociate_from_thread(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+        SIXTRL_HOST_FN status_t disassociate_from_current_thread();
+        SIXTRL_HOST_FN status_t disassociate_from_current_thread(
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         /* ----------------------------------------------------------------- */
 
@@ -212,12 +260,21 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN status_t make_available();
         SIXTRL_HOST_FN status_t make_ready();
 
+        /* ----------------------------------------------------------------- */
 
+        SIXTRL_HOST_FN lockable_type* ptr_lockable() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN lockable_type& lockable() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN guard_type create_lock() const;
+
+        SIXTRL_HOST_FN bool is_locked( guard_type const&
+            SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         protected:
 
         using symid_to_symbol_name_map_t = std::unordered_map<
             be_symbol_id_t, string_type >;
+
+        using associated_thread_ids_type = std::vector< thread_id_type >;
 
         using symbol_name_flags_t = uint16_t;
 
@@ -231,15 +288,14 @@ namespace SIXTRL_CXX_NAMESPACE
             SYMBOL_NAME_ADD_CXX_NAMESPACE_STR = symbol_name_flags_t{ 0x02 };
 
 
-
         SIXTRL_HOST_FN explicit BaseBackend( backend_id_t const bend_id,
             string_type const& SIXTRL_RESTRICT_REF bend_str = string_type{} );
 
         SIXTRL_HOST_FN BaseBackend( BaseBackend const& ) = delete;
-        SIXTRL_HOST_FN BaseBackend( BaseBackend&& ) = default;
+        SIXTRL_HOST_FN BaseBackend( BaseBackend&& orig ) = delete;
 
         SIXTRL_HOST_FN BaseBackend& operator=( BaseBackend const& ) = delete;
-        SIXTRL_HOST_FN BaseBackend& operator=( BaseBackend&& ) = default;
+        SIXTRL_HOST_FN BaseBackend& operator=( BaseBackend&& rhs )= delete;
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -266,10 +322,20 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN virtual status_t do_reset_symbols();
         SIXTRL_HOST_FN virtual status_t do_make_ready();
 
+        SIXTRL_HOST_FN virtual status_t do_associate_with_thread(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+
+        SIXTRL_HOST_FN virtual status_t do_disassociate_with_thread(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+
         SIXTRL_HOST_FN status_t set_backend_string(
             string_type const& SIXTRL_RESTRICT_REF backend_str );
 
         SIXTRL_HOST_FN bool check_is_base_backend_ready() const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN status_t set_main_thread_id(
+            thread_id_type new_main_thread_id,
+            guard_type const& SIXTRL_RESTRICT_REF lock ) SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN void update_is_available_flag(
             bool const is_available ) SIXTRL_NOEXCEPT;
@@ -277,23 +343,48 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void update_is_ready_flag(
             bool const is_ready ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN void update_run_init_finish_fn_mode(
-            run_dlib_init_finish_fn_flags_t const
-                run_init_finish_mode ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN void update_threads_require_init_flag(
+            bool const threads_require_init ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN void update_main_thread_auto_init_flag(
+            bool const main_thread_auto_init ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN void update_threads_require_shutdown_flag(
+            bool const threads_require_shutdown ) SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN void update_main_thread_auto_shutdown_flag(
+            bool const main_thread_auto_shutdown ) SIXTRL_NOEXCEPT;
 
         private:
+
+        SIXTRL_HOST_FN status_t do_associate_with_thread_base_impl(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+
+        SIXTRL_HOST_FN status_t do_disassociate_with_thread_base_impl(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+
         symid_to_symbol_name_map_t m_symbol_id_to_symbol_name_map;
+
         string_type m_backend_str;
+        associated_thread_ids_type m_associated_threads;
+
         dlib_loader_t m_dlib_loader = dlib_loader_t{ nullptr };
 
+        mutable lockable_type m_lockable;
+
         protected:
+
         init_backend_fn_t      m_init_backend_fn     = nullptr;
         shutdown_backend_fn_t  m_shutdown_backend_fn = nullptr;
 
         private:
-        run_dlib_init_finish_fn_flags_t m_run_init_finish_fn_mode =
-            RUN_BACKEND_INIT_FN_EXPLICITLY |
-            RUN_BACKEND_SHUTDOWN_FN_EXPLICITLY;
+
+        thread_id_type m_main_thread_id = thread_id_type{};
+
+        bool m_threads_require_init = false;
+        bool m_main_thread_auto_init = false;
+        bool m_threads_require_shutdown = false;
+        bool m_main_thread_auto_shutdown = false;
 
         bool m_is_available = false;
         bool m_is_ready = false;

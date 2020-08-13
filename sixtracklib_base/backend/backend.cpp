@@ -14,6 +14,7 @@
     #include <cstring>
     #include <fstream>
     #include <sstream>
+    #include <iostream>
 
     #include <toml.hpp>
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
@@ -34,22 +35,14 @@ namespace SIXTRL_CXX_NAMESPACE
         using str_char_t = this_t::string_char_t;
         using sstream_t = this_t::sstream_t;
         using in_sstream_t = std::istringstream;
+        using lockable_t = this_t::lockable_type;
+        using guard_t = this_t::guard_type;
+        using thread_id_t = this_t::thread_id_type;
     }
 
-    constexpr st_class_variant_t this_t::BACKEND_VARIANT_DEFAULT;
-    constexpr st_class_variant_t this_t::BACKEND_VARIANT_HAS_NODES;
-
-    constexpr this_t::run_dlib_init_finish_fn_flags_t
-              this_t::RUN_BACKEND_INIT_FN_AUTO;
-
-    constexpr this_t::run_dlib_init_finish_fn_flags_t
-              this_t::RUN_BACKEND_INIT_FN_EXPLICITLY;
-
-    constexpr this_t::run_dlib_init_finish_fn_flags_t
-              this_t::RUN_BACKEND_SHUTDOWN_FN_AUTO;
-
-    constexpr this_t::run_dlib_init_finish_fn_flags_t
-              this_t::RUN_BACKEND_SHUTDOWN_FN_EXPLICITLY;
+    constexpr st_class_variant_t     this_t::BACKEND_VARIANT_DEFAULT;
+    constexpr st_class_variant_t     this_t::BACKEND_VARIANT_HAS_NODES;
+    constexpr st_class_variant_t     this_t::BACKEND_VARIANT_HAS_CONTEXT_STORE;
 
     constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_INIT_BACKEND;
     constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_SHUTDOWN_BACKEND;
@@ -187,10 +180,85 @@ namespace SIXTRL_CXX_NAMESPACE
 
     this_t::~BaseBackend() SIXTRL_NOEXCEPT
     {
-        if( ( this->run_shutdown_backend_fn_explicitly() ) &&
-            ( this->m_shutdown_backend_fn != nullptr ) )
+        guard_t lock( this->create_lock() );
+
+        bool const has_main_thread =
+            ( this->m_main_thread_id == thread_id_t{} );
+
+        SIXTRL_ASSERT( ( !has_main_thread ) ||
+            ( this->current_thread_is_main( lock ) ) );
+
+        SIXTRL_ASSERT( this->is_locked( lock ) );
+        SIXTRL_ASSERT( !has_main_thread ||
+            ( this->is_associated_with_current_thread( lock ) ) );
+
+        std::ostringstream a2str;
+        a2str << "WARNING : During destruction of backend (id = "
+              << this->backend_id();
+
+        if( this->has_backend_string() )
         {
-            this->m_shutdown_backend_fn();
+            a2str << ", name=" << this->backend_string_str();
+        }
+
+        a2str << "): ";
+
+        SIXTRL_ASSERT( std::is_sorted( this->m_associated_threads.begin(),
+            this->m_associated_threads.end() ) );
+
+        auto illegal_range = std::equal_range(
+            this->m_associated_threads.begin(),
+            this->m_associated_threads.end(), thread_id_t{} );
+
+        if( ( illegal_range.first != this->m_associated_threads.end() ) &&
+            ( illegal_range.first != illegal_range.second ) )
+        {
+            this->m_associated_threads.erase(
+                illegal_range.first, illegal_range.second );
+        }
+
+        SIXTRL_ASSERT( std::is_sorted( this->m_associated_threads.begin(),
+            this->m_associated_threads.end() ) );
+
+        if( !this->m_associated_threads.empty() )
+        {
+            std::vector< thread_id_t > const temp_tids(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end() );
+
+            for( thread_id_t const tid : temp_tids )
+            {
+                SIXTRL_ASSERT( tid != thread_id_t{} );
+                if( ( has_main_thread ) &&
+                    ( tid == this->main_thread_id( lock ) ) ) continue;
+
+                if( ( this->threads_require_shutdown() ) &&
+                    (  tid != std::this_thread::get_id() ) )
+                {
+                    std::cerr << a2str.str()
+                              << "unable to execute shutdown function for "
+                              << "thread id = " << tid
+                              << " before destruction\r\n";
+                }
+
+                this->do_disassociate_with_thread_base_impl( tid, lock );
+            }
+
+            SIXTRL_ASSERT( ( ( !has_main_thread ) &&
+                             ( this->m_associated_threads.empty() ) ) ||
+                           ( ( has_main_thread ) &&
+                             ( this->m_associated_threads.size() ==
+                                st_size_t{ 1 } ) &&
+                             ( this->m_associated_threads.front() ==
+                               this->main_thread_id( lock ) ) ) );
+
+            if( ( has_main_thread ) && ( this->current_thread_is_main() ) &&
+                (  this->is_associated_with_current_thread( lock ) ) &&
+                ( !this->main_thread_auto_shutdown() ) &&
+                (  this->m_shutdown_backend_fn != nullptr ) )
+            {
+                this->m_shutdown_backend_fn();
+            }
         }
     }
 
@@ -380,46 +448,238 @@ namespace SIXTRL_CXX_NAMESPACE
         return ( ( this->is_available() ) && ( this->m_is_ready ) );
     }
 
+    /* --------------------------------------------------------------------- */
+
+    bool this_t::threads_require_init() const SIXTRL_NOEXCEPT
+    {
+        return this->m_threads_require_init;
+    }
+
+    bool this_t::main_thread_auto_init() const SIXTRL_NOEXCEPT
+    {
+        return this->m_threads_require_shutdown;
+    }
+
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-    this_t::run_dlib_init_finish_fn_flags_t
-    this_t::run_init_backend_fn_mode() const SIXTRL_NOEXCEPT
+    bool this_t::threads_require_shutdown() const SIXTRL_NOEXCEPT
     {
-        return ( this->m_run_init_finish_fn_mode & (
-            this_t::RUN_BACKEND_INIT_FN_AUTO |
-            this_t::RUN_BACKEND_INIT_FN_EXPLICITLY ) );
+        return this->m_main_thread_auto_init;
     }
 
-    this_t::run_dlib_init_finish_fn_flags_t
-    this_t::run_shutdown_backend_fn_mode() const SIXTRL_NOEXCEPT
+    bool this_t::main_thread_auto_shutdown() const SIXTRL_NOEXCEPT
     {
-        return ( this->m_run_init_finish_fn_mode & (
-            this_t::RUN_BACKEND_SHUTDOWN_FN_AUTO |
-            this_t::RUN_BACKEND_SHUTDOWN_FN_EXPLICITLY ) );
+        return this->m_main_thread_auto_shutdown;
     }
 
-    bool this_t::run_init_backend_fn_auto() const SIXTRL_NOEXCEPT
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    this_t::size_type this_t::num_associated_threads() const
     {
-        return !this->run_init_backend_fn_explicitly();
+        guard_t lock( this->create_lock() );
+        return this->num_associated_threads( lock );
     }
 
-    bool this_t::run_init_backend_fn_explicitly() const SIXTRL_NOEXCEPT
+    st_size_t this_t::num_associated_threads(
+        guard_t const& SIXTRL_RESTRICT_REF lock ) const
     {
-        return ( ( this->m_run_init_finish_fn_mode &
-                   this_t::RUN_BACKEND_INIT_FN_EXPLICITLY ) ==
-                   this_t::RUN_BACKEND_INIT_FN_EXPLICITLY );
+        st_size_t num_assoc_threads = st_size_t{ 0 };
+
+        if( ( this->is_locked( lock ) ) &&
+            ( this->backend_id() != st::BACKEND_ILLEGAL ) &&
+            ( this->backend_id() != st::BACKEND_UNDEFINED ) )
+        {
+            SIXTRL_ASSERT( std::is_sorted( this->m_associated_threads.begin(),
+                this->m_associated_threads.end() ) );
+
+            SIXTRL_ASSERT( !std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(), thread_id_t{} ) );
+
+            SIXTRL_ASSERT( ( this->m_main_thread_id == thread_id_t{} ) ||
+                ( ( this->m_associated_threads.size() >= st_size_t{ 1 } ) &&
+                  ( this->is_associated_with_thread(
+                    this->m_main_thread_id, lock ) ) ) );
+
+            num_assoc_threads = this->m_associated_threads.size();
+        }
+
+        return num_assoc_threads;
     }
 
-    bool this_t::run_shutdown_backend_fn_auto() const SIXTRL_NOEXCEPT
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    thread_id_t const* this_t::associated_thread_ids_begin(
+        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        return !this->run_shutdown_backend_fn_explicitly();
+        SIXTRL_ASSERT( this->backend_id() != st::BACKEND_ILLEGAL );
+        SIXTRL_ASSERT( this->backend_id() != st::BACKEND_UNDEFINED );
+
+        SIXTRL_ASSERT( std::is_sorted( this->m_associated_threads.begin(),
+                this->m_associated_threads.end() ) );
+
+        SIXTRL_ASSERT( !std::binary_search( this->m_associated_threads.begin(),
+            this->m_associated_threads.end(), thread_id_t{} ) );
+
+        SIXTRL_ASSERT( ( this->m_main_thread_id == thread_id_t{} ) ||
+            ( ( this->m_associated_threads.size() >= st_size_t{ 1 } ) &&
+                ( this->is_associated_with_thread(
+                this->m_main_thread_id, lock ) ) ) );
+
+        return ( ( this->is_locked( lock ) ) &&
+                 ( this->m_associated_threads.empty() ) )
+            ? this->m_associated_threads.data() : nullptr;
     }
 
-    bool this_t::run_shutdown_backend_fn_explicitly() const SIXTRL_NOEXCEPT
+    thread_id_t const* this_t::associated_thread_ids_end(
+        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->m_run_init_finish_fn_mode &
-                   this_t::RUN_BACKEND_SHUTDOWN_FN_EXPLICITLY ) ==
-                   this_t::RUN_BACKEND_SHUTDOWN_FN_EXPLICITLY );
+        auto end_ptr = this->associated_thread_ids_begin( lock );
+
+        if( ( end_ptr != nullptr ) && ( this->is_locked( lock ) ) )
+        {
+            std::advance( end_ptr, this->num_associated_threads( lock ) );
+        }
+
+        return end_ptr;
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    bool this_t::is_associated_with_thread( thread_id_t tid ) const
+    {
+        guard_t lock( this->create_lock() );
+        return this->is_associated_with_thread( tid, lock );
+    }
+
+    bool this_t::is_associated_with_thread(
+        thread_id_t tid, guard_t const& lock ) const SIXTRL_NOEXCEPT
+    {
+        bool is_assoc = false;
+
+        if( ( tid != thread_id_t{} ) && ( this->is_locked( lock ) ) &&
+            ( this->is_ready() ) )
+        {
+            SIXTRL_ASSERT( this->backend_id() != st::BACKEND_ILLEGAL );
+            SIXTRL_ASSERT( this->backend_id() != st::BACKEND_UNDEFINED );
+
+            SIXTRL_ASSERT( std::is_sorted(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end() ) );
+
+            is_assoc = std::binary_search( this->m_associated_threads.begin(),
+                this->m_associated_threads.end(), tid );
+        }
+
+        return is_assoc;
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    bool this_t::is_associated_with_current_thread() const SIXTRL_NOEXCEPT
+    {
+        guard_t lock( this->create_lock() );
+        return this->is_associated_with_thread(
+            std::this_thread::get_id(), lock );
+    }
+
+    bool this_t::is_associated_with_current_thread(
+        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+    {
+        return this->is_associated_with_thread(
+            std::this_thread::get_id(), lock );
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    thread_id_t this_t::main_thread_id() const {
+        guard_t lock( this->create_lock() );
+        return this->m_main_thread_id;
+    }
+
+    thread_id_t this_t::main_thread_id(
+        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+    {
+        return ( this->is_locked( lock ) )
+            ? this->m_main_thread_id : thread_id_t{};
+    }
+
+    bool this_t::current_thread_is_main() const SIXTRL_NOEXCEPT
+    {
+        guard_t lock( this->create_lock() );
+        return this->current_thread_is_main( lock );
+    }
+
+    bool this_t::current_thread_is_main(
+        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+    {
+        return ( ( this->is_locked( lock ) ) &&
+                 ( this->m_main_thread_id != thread_id_t{} ) &&
+                 ( this->m_main_thread_id == std::this_thread::get_id() ) );
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    st_status_t this_t::associate_with_thread( thread_id_type tid )
+    {
+        guard_t lock( this->create_lock() );
+        return this->associate_with_thread( tid, lock );
+    }
+
+    st_status_t this_t::associate_with_thread(
+        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        st_status_t status = st::STATUS_GENERAL_FAILURE;
+
+        if( ( tid != thread_id_t{} ) && ( this->is_locked( lock ) ) &&
+            ( this->is_ready() ) &&
+            ( !this->is_associated_with_thread( tid ) ) )
+        {
+            status = this->do_associate_with_thread( tid, lock );
+        }
+
+        return status;
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    st_status_t this_t::associate_with_current_thread() {
+        guard_t lock( this->create_lock() );
+        return this->associate_with_thread( std::this_thread::get_id(), lock );
+    }
+
+    st_status_t this_t::associate_with_current_thread(
+        guard_t const& SIXTRL_RESTRICT_REF lock ) {
+        return this->associate_with_thread( std::this_thread::get_id(), lock );
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    st_status_t this_t::disassociate_from_thread( thread_id_t tid )
+    {
+        guard_t lock( this->create_lock() );
+        return this->do_disassociate_with_thread( tid, lock );
+    }
+
+    st_status_t this_t::disassociate_from_thread(
+        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        return this->do_disassociate_with_thread( tid, lock );
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    st_status_t this_t::disassociate_from_current_thread()
+    {
+        guard_t lock( this->create_lock() );
+        return this->disassociate_from_current_thread( lock );
+    }
+
+    st_status_t this_t::disassociate_from_current_thread(
+        guard_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        return this->disassociate_from_thread(
+            std::this_thread::get_id(), lock );
     }
 
     /* --------------------------------------------------------------------- */
@@ -560,7 +820,8 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         st_status_t status = st::STATUS_GENERAL_FAILURE;
 
-        if( ( !this->is_available() ) && ( !this->is_ready() ) )
+        if( ( !this->is_available() ) && ( !this->is_ready() ) &&
+            ( this->current_thread_is_main() ) )
         {
             status = this->do_make_available();
 
@@ -577,17 +838,49 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         st_status_t status = st::STATUS_GENERAL_FAILURE;
 
-        if( ( this->is_available() ) && ( !this->is_ready() ) )
+        if( ( this->is_available() ) && ( !this->is_ready() ) &&
+            ( this->current_thread_is_main() ) )
         {
             status = this->do_make_ready();
 
             if( status == st::STATUS_SUCCESS )
             {
+                if( ( !this->main_thread_auto_init() ) &&
+                    (  this->m_init_backend_fn != nullptr ) )
+                {
+                    this->m_init_backend_fn();
+                }
+
                 this->update_is_ready_flag( true );
             }
         }
 
         return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    lockable_t* this_t::ptr_lockable() const SIXTRL_NOEXCEPT
+    {
+        return &this->m_lockable;
+    }
+
+    lockable_t& this_t::lockable() const SIXTRL_NOEXCEPT
+    {
+        return this->m_lockable;
+    }
+
+    guard_t this_t::create_lock() const
+    {
+        return guard_t{ this->m_lockable };
+    }
+
+    bool this_t::is_locked(
+        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+    {
+        return ( ( this->ptr_lockable() != nullptr ) &&
+                 ( lock.mutex() == this->ptr_lockable() ) &&
+                 ( lock.owns_lock() ) );
     }
 
     /* ******************************************************************** */
@@ -596,8 +889,15 @@ namespace SIXTRL_CXX_NAMESPACE
         string_t const& SIXTRL_RESTRICT_REF backend_name_str ) :
         st::BaseBackendObj( backend_id, st::CLASS_ID_BACKEND ),
         m_symbol_id_to_symbol_name_map(),
-        m_backend_str( backend_name_str )
-    {}
+        m_backend_str( backend_name_str ),
+        m_associated_threads(), m_lockable()
+    {
+        guard_t lock( this->create_lock() );
+        SIXTRL_ASSERT( this->is_locked( lock ) );
+
+        this->m_main_thread_id = std::this_thread::get_id();
+        this->m_associated_threads.push_back( this->m_main_thread_id );
+    }
 
     st_status_t this_t::do_configure(
         std::istream& SIXTRL_RESTRICT_REF in_stream,
@@ -653,10 +953,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
             if( status == st::STATUS_SUCCESS )
             {
-                if( ( ( this->run_init_backend_fn_explicitly() ) &&
-                      ( this->m_init_backend_fn == nullptr ) ) ||
-                    ( ( this->run_shutdown_backend_fn_explicitly() ) &&
-                      ( this->m_shutdown_backend_fn == nullptr ) ) )
+                if( ( ( !this->main_thread_auto_init() ) &&
+                      (  this->m_init_backend_fn == nullptr ) ) ||
+                    ( ( !this->main_thread_auto_shutdown() ) &&
+                      (  this->m_shutdown_backend_fn == nullptr ) ) )
                 {
                     status = st::STATUS_GENERAL_FAILURE;
                 }
@@ -693,7 +993,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 this->m_init_backend_fn = ptr_dlib_loader->load_symbol<
                     decltype( this->m_init_backend_fn ) >( symbol_name,
-                        this->run_init_backend_fn_explicitly() );
+                        !this->main_thread_auto_init() ||
+                         this->threads_require_init() );
 
                 symbol_name = ( this->has_symbol_name(
                         this_t::SYMBOL_ID_SHUTDOWN_BACKEND ) )
@@ -702,7 +1003,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 this->m_shutdown_backend_fn = ptr_dlib_loader->load_symbol<
                     decltype( this->m_shutdown_backend_fn ) >( symbol_name,
-                        this->run_shutdown_backend_fn_explicitly() );
+                        !this->main_thread_auto_shutdown() ||
+                         this->threads_require_shutdown() );
             }
         }
 
@@ -722,6 +1024,16 @@ namespace SIXTRL_CXX_NAMESPACE
             ? st::STATUS_SUCCESS : st::STATUS_GENERAL_FAILURE;
     }
 
+    st_status_t this_t::do_associate_with_thread(
+        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock ) {
+        return this->do_associate_with_thread_base_impl( tid, lock );
+    }
+
+    st_status_t this_t::do_disassociate_with_thread(
+        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock ) {
+        return this->do_disassociate_with_thread_base_impl( tid, lock );
+    }
+
     st_status_t this_t::set_backend_string(
         string_t const& SIXTRL_RESTRICT_REF backend_str ) {
         this->m_backend_str = backend_str;
@@ -731,6 +1043,25 @@ namespace SIXTRL_CXX_NAMESPACE
     bool this_t::check_is_base_backend_ready() const SIXTRL_NOEXCEPT
     {
         return this->is_available();
+    }
+
+    st_status_t this_t::set_main_thread_id( thread_id_t new_main_thread_id,
+        guard_t const& SIXTRL_RESTRICT_REF lock ) SIXTRL_NOEXCEPT
+    {
+        st_status_t status = st::STATUS_GENERAL_FAILURE;
+
+        if( ( new_main_thread_id != thread_id_t{} ) &&
+            ( this->is_locked( lock ) ) &&
+            ( this->is_associated_with_thread( new_main_thread_id, lock ) ) &&
+            ( ( this->m_main_thread_id == thread_id_t{} ) ||
+              ( this->current_thread_is_main( lock ) ) ) &&
+            ( this->m_main_thread_id != new_main_thread_id ) )
+        {
+            this->m_main_thread_id = new_main_thread_id;
+            status = st::STATUS_SUCCESS;
+        }
+
+        return status;
     }
 
     void this_t::update_is_available_flag(
@@ -744,16 +1075,164 @@ namespace SIXTRL_CXX_NAMESPACE
         this->m_is_ready = is_ready;
     }
 
-    void this_t::update_run_init_finish_fn_mode(
-        this_t::run_dlib_init_finish_fn_flags_t const
-            run_init_finish_mode ) SIXTRL_NOEXCEPT
+    void this_t::update_threads_require_init_flag(
+        bool const threads_require_init ) SIXTRL_NOEXCEPT
     {
-        this->m_run_init_finish_fn_mode = ( (
-            this_t::RUN_BACKEND_INIT_FN_AUTO |
-            this_t::RUN_BACKEND_INIT_FN_EXPLICITLY |
-            this_t::RUN_BACKEND_SHUTDOWN_FN_AUTO |
-            this_t::RUN_BACKEND_SHUTDOWN_FN_EXPLICITLY ) &
-            run_init_finish_mode );
+        SIXTRL_ASSERT( !this->is_available() );
+        SIXTRL_ASSERT( !this->is_ready() );
+        this->m_threads_require_init = threads_require_init;
+    }
+
+    void this_t::update_main_thread_auto_init_flag(
+        bool const main_thread_auto_init ) SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( !this->is_available() );
+        SIXTRL_ASSERT( !this->is_ready() );
+        this->m_main_thread_auto_init = main_thread_auto_init;
+    }
+
+    void this_t::update_threads_require_shutdown_flag(
+        bool const threads_require_shutdown ) SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( !this->is_available() );
+        SIXTRL_ASSERT( !this->is_ready() );
+        this->m_threads_require_shutdown = threads_require_shutdown;
+    }
+
+    void this_t::update_main_thread_auto_shutdown_flag(
+        bool const main_thread_auto_shutdown ) SIXTRL_NOEXCEPT
+    {
+        SIXTRL_ASSERT( !this->is_available() );
+        SIXTRL_ASSERT( !this->is_ready() );
+        this->m_main_thread_auto_shutdown = main_thread_auto_shutdown;
+    }
+
+    st_status_t this_t::do_associate_with_thread_base_impl(
+        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        st_status_t status = st::STATUS_GENERAL_FAILURE;
+
+        if( ( tid != thread_id_t{} ) && ( this->is_locked( lock ) ) &&
+            ( !this->is_associated_with_thread( tid, lock ) ) )
+        {
+            SIXTRL_ASSERT( this->main_thread_id( lock ) != thread_id_t{} );
+            SIXTRL_ASSERT( std::is_sorted( this->m_associated_threads.begin(),
+                this->m_associated_threads.end() ) );
+
+            SIXTRL_ASSERT( !std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(), tid ) );
+
+            SIXTRL_ASSERT( !std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(), thread_id_t{} ) );
+
+            SIXTRL_ASSERT( std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(),
+                this->main_thread_id( lock ) ) );
+
+            this->m_associated_threads.push_back( tid );
+            std::sort( this->m_associated_threads.begin(),
+                       this->m_associated_threads.end() );
+
+            status = st::STATUS_SUCCESS;
+            if( tid == std::this_thread::get_id() )
+            {
+                if( this->threads_require_init() )
+                {
+                    if( this->m_init_backend_fn != nullptr )
+                    {
+                        this->m_init_backend_fn();
+                    }
+                    else
+                    {
+                        status = st::STATUS_GENERAL_FAILURE;
+                    }
+                }
+            }
+        }
+
+        return status;
+    }
+
+    st_status_t this_t::do_disassociate_with_thread_base_impl(
+        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        st_status_t status = st::STATUS_GENERAL_FAILURE;
+
+        if( ( tid != thread_id_t{} ) && ( this->is_locked( lock ) ) &&
+            ( this->main_thread_id( lock ) != thread_id_t{} ) &&
+            ( this->is_ready() ) && ( tid != this->main_thread_id( lock ) ) &&
+            ( this->is_associated_with_thread( tid, lock ) ) )
+        {
+            SIXTRL_ASSERT( std::is_sorted(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end() ) );
+
+            SIXTRL_ASSERT( std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(), tid ) );
+
+            SIXTRL_ASSERT( std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(),
+                this->main_thread_id( lock ) ) );
+
+            SIXTRL_ASSERT( !std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(), thread_id_t{} ) );
+
+            SIXTRL_ASSERT( this->num_associated_threads(
+                lock ) >= st_size_t{ 2 } );
+
+            auto range = std::equal_range(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(), tid );
+
+            SIXTRL_ASSERT( range.first != this->m_associated_threads.end() );
+            SIXTRL_ASSERT( range.first != range.second );
+
+            this->m_associated_threads.erase( range.first, range.second );
+
+            SIXTRL_ASSERT( std::is_sorted(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end() ) );
+
+            SIXTRL_ASSERT( !std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(), tid ) );
+
+            SIXTRL_ASSERT( std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(),
+                this->main_thread_id( lock ) ) );
+
+            SIXTRL_ASSERT( !std::binary_search(
+                this->m_associated_threads.begin(),
+                this->m_associated_threads.end(), thread_id_t{} ) );
+
+            SIXTRL_ASSERT( this->m_associated_threads.size() >=
+                st_size_t{ 1 } );
+
+            status = st::STATUS_SUCCESS;
+            if( tid == std::this_thread::get_id() )
+            {
+                if( this->threads_require_shutdown() )
+                {
+                    if( this->m_shutdown_backend_fn != nullptr )
+                    {
+                        this->m_shutdown_backend_fn();
+                    }
+                    else
+                    {
+                        status = st::STATUS_GENERAL_FAILURE;
+                    }
+                }
+            }
+        }
+
+        return status;
     }
 }
 
