@@ -10,7 +10,7 @@ target_compile_options( sixtrack_base_node PRIVATE
     ${SIXTRACKL_CXX_AUTOVEC_FLAGS} )
 
 if( SIXTRL_BASE_LTO_SUPPORTED )
-    set_target_properties( sixtrack_base_backend PROPERTIES
+    set_target_properties( sixtrack_base_node PROPERTIES
         INTERPROCEDURAL_OPTIMIZATION TRUE )
 endif()
 
