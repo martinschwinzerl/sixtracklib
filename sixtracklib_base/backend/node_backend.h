@@ -157,13 +157,13 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN BaseNodeBackend( BaseNodeBackend const& ) = delete;
 
-        SIXTRL_HOST_FN BaseNodeBackend( BaseNodeBackend&& ) = default;
+        SIXTRL_HOST_FN BaseNodeBackend( BaseNodeBackend&& ) = delete;
 
         SIXTRL_HOST_FN BaseNodeBackend& operator=(
             BaseNodeBackend const& ) = delete;
 
         SIXTRL_HOST_FN BaseNodeBackend&
-        operator=( BaseNodeBackend&& ) = default;
+        operator=( BaseNodeBackend&& ) = delete;
 
         /* ----------------------------------------------------------------- */
 
