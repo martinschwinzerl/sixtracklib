@@ -66,12 +66,16 @@ namespace SIXTRL_CXX_NAMESPACE
     #define SIXTRL_CLASS_ID_CONTEXT 3
 #endif /* !defined( SIXTRL_CLASS_ID_CONTEXT ) */
 
+#if !defined( SIXTRL_CLASS_ID_CONTEXT_STORE )
+    #define SIXTRL_CLASS_ID_CONTEXT_STORE 4
+#endif /* !defined( SIXTRL_CLASS_ID_CONTEXT_STORE ) */
+
 #if !defined( SIXTRL_CLASS_ID_DEVICE )
-    #define SIXTRL_CLASS_ID_DEVICE 4
+    #define SIXTRL_CLASS_ID_DEVICE 5
 #endif /* !defined( SIXTRL_CLASS_ID_DEVICE ) */
 
 #if !defined( SIXTRL_CLASS_ID_PROGRAM_CODE )
-    #define SIXTRL_CLASS_ID_PROGRAM_CODE 5
+    #define SIXTRL_CLASS_ID_PROGRAM_CODE 6
 #endif /* !defined( SIXTRL_CLASS_ID_PROGRAM_CODE ) */
 
 #if !defined( _GPUCODE )
@@ -90,6 +94,9 @@ SIXTRL_STATIC_VAR const NS(obj_class_id_t) NS(CLASS_ID_NODE_INFO) =
 
 SIXTRL_STATIC_VAR const NS(obj_class_id_t) NS(CLASS_ID_CONTEXT) =
     ( NS(obj_class_id_t) )SIXTRL_CLASS_ID_CONTEXT;
+
+SIXTRL_STATIC_VAR const NS(obj_class_id_t) NS(CLASS_ID_CONTEXT_STORE) =
+    ( NS(obj_class_id_t) )SIXTRL_CLASS_ID_CONTEXT_STORE;
 
 SIXTRL_STATIC_VAR const NS(obj_class_id_t) NS(CLASS_ID_DEVICE) =
     ( NS(obj_class_id_t) )SIXTRL_CLASS_ID_DEVICE;
@@ -116,6 +123,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
     static constexpr obj_class_id_t CLASS_ID_CONTEXT =
         static_cast< obj_class_id_t >( SIXTRL_CLASS_ID_CONTEXT );
+
+    static constexpr obj_class_id_t CLASS_ID_CONTEXT_STORE =
+        static_cast< obj_class_id_t >( SIXTRL_CLASS_ID_CONTEXT_STORE );
 
     static constexpr obj_class_id_t CLASS_ID_DEVICE =
         static_cast< obj_class_id_t >( SIXTRL_CLASS_ID_DEVICE );
