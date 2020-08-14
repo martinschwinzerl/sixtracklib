@@ -18,11 +18,10 @@ set( SIXTRL_BASE_SUBMODULE_LINK_LIBRARIES )
 
 add_subdirectory( backend )
 add_subdirectory( cobjects )
-# add_subdirectory( controller )
+add_subdirectory( control )
 add_subdirectory( generated )
 add_subdirectory( internal )
 add_subdirectory( node )
-# add_subdirectory( track )
 
 # -----------------------------------------------------------------------------
 # build library sixtrack_base:
