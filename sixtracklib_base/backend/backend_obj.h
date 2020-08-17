@@ -24,6 +24,7 @@ namespace SIXTRL_CXX_NAMESPACE
         typedef SIXTRL_CXX_NAMESPACE::obj_class_id_t class_id_t;
         typedef SIXTRL_CXX_NAMESPACE::obj_class_variant_t class_variant_t;
         typedef SIXTRL_CXX_NAMESPACE::status_t status_t;
+        typedef SIXTRL_CXX_NAMESPACE::status_t status_type;
 
         SIXTRL_HOST_FN explicit BaseBackendObj(
             backend_id_t const backend_id =
@@ -51,13 +52,13 @@ namespace SIXTRL_CXX_NAMESPACE
 
         protected:
 
-        SIXTRL_HOST_FN status_t set_backend_id(
+        SIXTRL_HOST_FN status_type set_backend_id(
             backend_id_t const backend_id ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_t set_class_id(
+        SIXTRL_HOST_FN status_type set_class_id(
             class_id_t const class_id ) SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_t set_class_variant(
+        SIXTRL_HOST_FN status_type set_class_variant(
             class_variant_t const class_variant ) SIXTRL_NOEXCEPT;
 
         private:

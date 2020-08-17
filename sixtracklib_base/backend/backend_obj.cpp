@@ -12,7 +12,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using st_backend_id_t = this_t::backend_id_t;
         using st_class_id_t = this_t::class_id_t;
         using st_class_variant_t = this_t::class_variant_t;
-        using st_status_t = this_t::status_t;
+        using st_status_t = this_t::status_type;
     }
 
     this_t::BaseBackendObj(
