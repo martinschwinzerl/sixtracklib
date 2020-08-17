@@ -633,7 +633,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         if( ( tid != thread_id_t{} ) && ( this->is_locked( lock ) ) &&
             ( this->is_ready() ) &&
-            ( !this->is_associated_with_thread( tid ) ) )
+            ( !this->is_associated_with_thread( tid, lock ) ) )
         {
             status = this->do_associate_with_thread( tid, lock );
         }
