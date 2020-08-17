@@ -16,9 +16,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN CudaBackend();
         SIXTRL_HOST_FN CudaBackend( CudaBackend const& ) = delete;
-        SIXTRL_HOST_FN CudaBackend( CudaBackend&& ) = default;
+        SIXTRL_HOST_FN CudaBackend( CudaBackend&& ) = delete;
         SIXTRL_HOST_FN CudaBackend& operator=( CudaBackend const& ) = delete;
-        SIXTRL_HOST_FN CudaBackend& operator=( CudaBackend&& ) = default;
+        SIXTRL_HOST_FN CudaBackend& operator=( CudaBackend&& ) = delete;
         SIXTRL_HOST_FN virtual ~CudaBackend() = default;
 
         protected:
