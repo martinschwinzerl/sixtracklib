@@ -1,5 +1,6 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/backends/cuda/plugin/node.h"
+    #include "sixtracklib/backends/cuda/dlib.h"
     #include "sixtracklib/backends/cuda/plugin/cuda_tools.h"
     #include "sixtracklib_base/internal/compiler_attributes.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
@@ -19,41 +20,40 @@ namespace SIXTRL_CXX_NAMESPACE
     namespace
     {
         namespace st = SIXTRL_CXX_NAMESPACE;
+        using node_id_t         = st::CudaNodeId;
+        using st_platform_id_t  = node_id_t::platform_id_t;
 
-        using this_t      = st::CudaNodeInfo;
-        using st_size_t   = this_t::size_type;
-        using string_t    = this_t::string_type;
-        using st_status_t = this_t::status_t;
-        using c_node_id_t = ::NS(NodeId);
+        using ninfo_t           = st::CudaNodeInfo;
+        using st_size_t         = ninfo_t::size_type;
+        using string_t          = ninfo_t::string_type;
+        using st_status_t       = ninfo_t::status_t;
+        using c_node_id_t       = ::NS(NodeId);
     }
 
-    constexpr st_size_t this_t::CU_COMPUTE_MODE_DEFAULT;
-    constexpr st_size_t this_t::CU_COMPUTE_MODE_PROHIBITED;
-    constexpr st_size_t this_t::CU_COMPUTE_MODE_EXCLUSIVE_PROCESS;
+    /* ********************************************************************* */
+    /* ********                     CudaNodeId                      ******** */
+    /* ********************************************************************* */
 
-    st_size_t this_t::NUM_ALL_NODES()
+    st_size_t node_id_t::NUM_ALL_NODES()
     {
         int temp_num_devices = 0;
-        ::CUresult const ret = ::cuDeviceGetCount( &temp_num_devices );
-        return ( ret == ::CUDA_SUCCESS )
-            ? static_cast< st_size_t >( temp_num_devices ) : st_size_t{ 0 };
+        SIXTRL_CUDA_DRIVER_API_CALL(
+            ::cuDeviceGetCount, ( &temp_num_devices ) );
+
+        SIXTRL_ASSERT( temp_num_devices >= 0 );
+        return static_cast< st_size_t >( temp_num_devices );
     }
 
-    st_size_t this_t::GET_ALL_NODE_IDS(
+    st_size_t node_id_t::GET_ALL_NODE_IDS(
         ::NS(NodeId)* SIXTRL_RESTRICT node_ids_begin,
         st_size_t const max_num_node_ids )
     {
         st_size_t num_node_ids_added = st_size_t{ 0 };
         if( node_ids_begin == nullptr ) return num_node_ids_added;
 
-        int temp_num_devices = 0;
-        ::CUresult ret = ::cuDeviceGetCount( &temp_num_devices );
-
-        if( ( ret == ::CUDA_SUCCESS ) && ( temp_num_devices > 0 ) )
+        st_size_t const num_devices = node_id_t::NUM_ALL_NODES();
+        if( num_devices > 0 )
         {
-            st_size_t const num_devices = static_cast<
-                st_size_t >( temp_num_devices );
-
             st_size_t const nn = ( num_devices <= max_num_node_ids )
                 ? num_devices : max_num_node_ids;
 
@@ -62,7 +62,8 @@ namespace SIXTRL_CXX_NAMESPACE
                 SIXTRL_ASSERT( ii >= num_node_ids_added );
 
                 ::CUdevice device;
-                ret = ::cuDeviceGet( &device, static_cast< int >( ii ) );
+                ::CUresult const ret = ::cuDeviceGet(
+                    &device, static_cast< int >( ii ) );
                 if( ret != ::CUDA_SUCCESS ) continue;
 
                 node_ids_begin[ num_node_ids_added ].m_backend_id =
@@ -70,7 +71,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 node_ids_begin[ num_node_ids_added ].m_platform_id = ii;
                 node_ids_begin[ num_node_ids_added ].m_device_id =
-                    this_t::device_id_t{ 0 };
+                    ninfo_t::device_id_t{ 0 };
 
                 ++num_node_ids_added;
             }
@@ -92,31 +93,265 @@ namespace SIXTRL_CXX_NAMESPACE
         return num_node_ids_added;
     }
 
-    /*
-    st_size_t this_t::GET_NODE_IDS(
-        ::NS(NodeId)* SIXTRL_RESTRICT node_ids_begin,
-        st_size_t const max_num_node_ids, st_size_t const skip_first_num_nodes,
-        string_t const& SIXTRL_RESTRICT_REF env_variable_name,
-        string_t const& SIXTRL_RESTRICT_REF config_string )
-    {
-
-    }
-    */
-
     /* ===================================================================== */
 
-    this_t::CudaNodeInfo(
-        this_t::platform_id_t const platform_id,
-        this_t::device_id_t const device_id ) :
-        st::BaseNodeInfo( st::BACKEND_CUDA )
+    constexpr node_id_t::device_handle_type
+        node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE;
+
+    /* --------------------------------------------------------------------- */
+
+    node_id_t::CudaNodeId(
+        node_id_t::device_handle_type const cuda_device_handle ) :
+        st::NodeId( st::BACKEND_CUDA ),
+        m_handle( node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE )
     {
-        st_status_t status = this->get_device_properties(
-            platform_id, device_id );
+        st_status_t const status =
+            this->set_device_handle( cuda_device_handle );
+        if( status != st::STATUS_SUCCESS ) st::NodeId::do_clear();
+    }
+
+    node_id_t::CudaNodeId( node_id_t::platform_id_t const platform_id,
+        node_id_t::device_id_t const device_id  ) :
+        st::NodeId( st::BACKEND_CUDA ),
+        m_handle( node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE )
+    {
+        using dev_handle_t = node_id_t::device_handle_type;
+
+        if( ( platform_id != st::NODE_ILLEGAL_PLATFORM_ID ) &&
+            ( device_id == device_id_t{ 0 } ) )
+        {
+            dev_handle_t const cuda_dev_handle =
+                static_cast< dev_handle_t >( platform_id );
+
+            if( ( cuda_dev_handle != node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE ) &&
+                ( cuda_dev_handle >= dev_handle_t{ 0 } ) &&
+                ( cuda_dev_handle < static_cast< dev_handle_t >(
+                    node_id_t::NUM_ALL_NODES() ) ) )
+            {
+                this->as_c_node_id().m_platform_id = platform_id;
+                this->as_c_node_id().m_device_id = device_id;
+            }
+        }
+    }
+
+
+    node_id_t::CudaNodeId( ::NS(NodeId) const& SIXTRL_RESTRICT_REF node_id ) :
+        st::NodeId( st::BACKEND_CUDA ),
+        m_handle( node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE )
+    {
+        using dev_handle_t = node_id_t::device_handle_type;
+
+        if( ( ( node_id.m_backend_id == st::BACKEND_CUDA ) ||
+              ( node_id.m_backend_id == st::BACKEND_UNDEFINED ) ) &&
+            ( node_id.m_platform_id != st::NODE_ILLEGAL_PLATFORM_ID ) &&
+            ( node_id.m_device_id == device_id_t{ 0 } ) )
+        {
+            dev_handle_t const cuda_dev_handle =
+                static_cast< dev_handle_t >( node_id.m_platform_id );
+
+            if( ( cuda_dev_handle != node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE ) &&
+                ( cuda_dev_handle >= dev_handle_t{ 0 } ) &&
+                ( cuda_dev_handle < static_cast< dev_handle_t >(
+                    node_id_t::NUM_ALL_NODES() ) ) )
+            {
+                this->as_c_node_id().m_platform_id = node_id.m_platform_id;
+                this->as_c_node_id().m_device_id = node_id.m_device_id;
+            }
+        }
+    }
+
+    node_id_t::CudaNodeId( const ::NS(NodeId) *const SIXTRL_RESTRICT node_id ) :
+        st::NodeId( st::BACKEND_CUDA ),
+        m_handle( node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE )
+    {
+        using dev_handle_t = node_id_t::device_handle_type;
+
+        if( ( node_id != nullptr ) &&
+            ( ( node_id->m_backend_id == st::BACKEND_CUDA ) ||
+              ( node_id->m_backend_id == st::BACKEND_UNDEFINED ) ) &&
+            ( node_id->m_platform_id != st::NODE_ILLEGAL_PLATFORM_ID ) &&
+            ( node_id->m_device_id == device_id_t{ 0 } ) )
+        {
+            dev_handle_t const cuda_dev_handle =
+                static_cast< dev_handle_t >( node_id->m_platform_id );
+
+            if( ( cuda_dev_handle != node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE ) &&
+                ( cuda_dev_handle >= dev_handle_t{ 0 } ) &&
+                ( cuda_dev_handle < static_cast< dev_handle_t >(
+                    node_id_t::NUM_ALL_NODES() ) ) )
+            {
+                this->as_c_node_id().m_platform_id = node_id->m_platform_id;
+                this->as_c_node_id().m_device_id = node_id->m_device_id;
+            }
+        }
+    }
+
+    node_id_t::CudaNodeId(
+        node_id_t::string_type const& SIXTRL_RESTRICT_REF node_id_str ) :
+        st::NodeId( st::BACKEND_CUDA ),
+        m_handle( node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE )
+    {
+        st::status_t const status = node_id_t::do_parse_device_str_cuda(
+            node_id_str, this->find_device_string_format( node_id_str ) );
 
         if( status == st::STATUS_SUCCESS )
         {
-            status = this->update_stored_node_id( std::unique_ptr< st::NodeId >(
-                new st::NodeId( st::BACKEND_CUDA, platform_id, device_id ) ) );
+            SIXTRL_ASSERT( this->backend_id() == st::BACKEND_CUDA );
+            SIXTRL_ASSERT( this->device_id() != st::NODE_ILLEGAL_DEVICE_ID );
+
+            if( ( this->platform_id() != st::NODE_ILLEGAL_PLATFORM_ID ) &&
+                ( this->platform_id() >= st_platform_id_t{ 0 } ) &&
+                ( this->platform_id() <  static_cast< st_platform_id_t >(
+                    node_id_t::NUM_ALL_NODES() ) ) )
+            {
+                this->m_handle = this->platform_id();
+            }
+            else
+            {
+                st::NodeId::do_clear();
+            }
+        }
+    }
+
+    node_id_t::CudaNodeId(
+        node_id_t::string_type const& SIXTRL_RESTRICT_REF node_id_str,
+        node_id_t::str_format_t const node_id_str_format ) :
+            st::NodeId( st::BACKEND_CUDA ),
+            m_handle( node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE )
+        {
+            st::status_t const status = node_id_t::do_parse_device_str_cuda(
+                node_id_str, node_id_str_format );
+
+            if( status == st::STATUS_SUCCESS )
+            {
+                SIXTRL_ASSERT( this->backend_id() == st::BACKEND_CUDA );
+                SIXTRL_ASSERT( this->device_id() != st::NODE_ILLEGAL_DEVICE_ID );
+
+                if( ( this->platform_id() != st::NODE_ILLEGAL_PLATFORM_ID ) &&
+                    ( this->platform_id() >= st_platform_id_t{ 0 } ) &&
+                    ( this->platform_id() <  static_cast< st_platform_id_t >(
+                        node_id_t::NUM_ALL_NODES() ) ) )
+                {
+                    this->m_handle = this->platform_id();
+                }
+                else
+                {
+                    st::NodeId::do_clear();
+                }
+            }
+        }
+
+    /* --------------------------------------------------------------------- */
+
+    node_id_t::device_handle_type
+    node_id_t::device_handle() const SIXTRL_NOEXCEPT
+    {
+        return this->m_handle;
+    }
+
+    st_status_t node_id_t::set_device_handle(
+        node_id_t::device_handle_type const device_handle )
+    {
+        using dev_handle_t = node_id_t::device_handle_type;
+        st_status_t status = st::STATUS_GENERAL_FAILURE;
+
+        if( ( device_handle != node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE ) &&
+            ( device_handle >= dev_handle_t{ 0 } ) &&
+            ( device_handle < static_cast< dev_handle_t >(
+                node_id_t::NUM_ALL_NODES() ) ) )
+        {
+            this->as_c_node_id().m_platform_id = device_handle;
+            this->as_c_node_id().m_device_id = node_id_t::device_id_t{ 0 };
+            this->m_handle = device_handle;
+            status = st::STATUS_SUCCESS;
+        }
+
+        return status;
+    }
+
+    void node_id_t::do_clear() {
+        this->m_handle = node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE;
+        st::NodeId::do_clear();
+    }
+
+    st_status_t node_id_t::do_parse_device_str(
+        node_id_t::string_type const& SIXTRL_RESTRICT_REF device_str,
+        node_id_t::str_format_t const device_str_format )
+    {
+        return node_id_t::do_parse_device_str_cuda(
+            device_str, device_str_format );
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    st_status_t node_id_t::do_parse_device_str_cuda(
+        node_id_t::string_type const& SIXTRL_RESTRICT_REF device_str,
+        node_id_t::str_format_t const device_str_format )
+    {
+        st_status_t status = st::NodeId::do_parse_device_str(
+            device_str, device_str_format );
+
+        if( ( status == st::STATUS_SUCCESS ) &&
+            ( this->backend_id() == st::BACKEND_UNDEFINED ) )
+        {
+            this->as_c_node_id().m_backend_id = st::BACKEND_CUDA;
+        }
+
+        if( ( status == st::STATUS_SUCCESS ) &&
+            ( this->backend_id() == st::BACKEND_CUDA ) &&
+            ( this->platform_id() != st::NODE_ILLEGAL_PLATFORM_ID ) &&
+            ( this->platform_id() >= st_platform_id_t{ 0 } ) &&
+            ( this->platform_id() < static_cast< st_platform_id_t >(
+                node_id_t::NUM_ALL_NODES() ) ) )
+        {
+            this->m_handle = static_cast< node_id_t::device_handle_type >(
+                this->platform_id() );
+        }
+        else
+        {
+            st::NodeId::do_clear();
+            this->m_handle = node_id_t::ILLEGAL_CUDA_DEVICE_HANDLE;
+        }
+
+        return status;
+    }
+
+    /* ********************************************************************* */
+    /* ********                     CudaNodeInfo                    ******** */
+    /* ********************************************************************* */
+
+    constexpr st_size_t ninfo_t::CU_COMPUTE_MODE_DEFAULT;
+    constexpr st_size_t ninfo_t::CU_COMPUTE_MODE_PROHIBITED;
+    constexpr st_size_t ninfo_t::CU_COMPUTE_MODE_EXCLUSIVE_PROCESS;
+
+    /* ===================================================================== */
+
+    ninfo_t::CudaNodeInfo(
+        st::CudaNodeId const& SIXTRL_RESTRICT_REF cuda_node_id )  :
+            SIXTRL_CXX_NAMESPACE::BaseNodeInfo(
+                SIXTRL_CXX_NAMESPACE::BACKEND_CUDA )
+    {
+        std::unique_ptr< st::CudaNodeId > temp_node_id;
+
+        if( cuda_node_id.backend_id() != st::BACKEND_CUDA )
+        {
+            temp_node_id.reset( new st::CudaNodeId(
+                cuda_node_id.platform_id(), cuda_node_id.device_id() ) );
+        }
+
+        if( temp_node_id.get() == nullptr )
+        {
+            throw std::runtime_error( "unable to construct a CudaNodeId"
+                " from constructor parameters" );
+        }
+
+        st_status_t status = this->get_device_properties(
+            temp_node_id->platform_id(), temp_node_id->device_id() );
+
+        if( status == st::STATUS_SUCCESS )
+        {
+            status = this->update_stored_node_id(
+                std::move( temp_node_id ) );
         }
 
         if( status != st::STATUS_SUCCESS )
@@ -128,185 +363,206 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     }
 
+    st::CudaNodeId const* ninfo_t::ptr_cuda_device() const SIXTRL_NOEXCEPT
+    {
+        return ( ( this->backend_id() == st::BACKEND_CUDA ) &&
+                 ( this->base_node_id() != nullptr ) &&
+                 ( this->base_node_id()->backend_id() == st::BACKEND_CUDA ) )
+            ? static_cast< st::CudaNodeId const* >( this->base_node_id() )
+            : nullptr;
+    }
+
+    st::CudaNodeId const& ninfo_t::cuda_device() const
+    {
+        st::CudaNodeId const* ptr = this->ptr_cuda_device();
+
+        if( ptr == nullptr )
+        {
+            throw std::runtime_error( "illegal CudaNodeId for CudaNodeInfo" );
+        }
+
+        return *ptr;
+    }
+
     /* --------------------------------------------------------------------- */
 
-    st_size_t this_t::max_block_dim_x() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_block_dim_x() const SIXTRL_NOEXCEPT {
         return this->m_max_block_dim[ 0 ]; }
 
-    st_size_t this_t::max_block_dim_y() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_block_dim_y() const SIXTRL_NOEXCEPT {
         return this->m_max_block_dim[ 1 ]; }
 
-    st_size_t this_t::max_block_dim_z() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_block_dim_z() const SIXTRL_NOEXCEPT {
         return this->m_max_block_dim[ 2 ]; }
 
-    st_size_t this_t::max_grid_dim_x() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_grid_dim_x() const SIXTRL_NOEXCEPT {
         return this->m_max_grid_dim[ 0 ]; }
 
-    st_size_t this_t::max_grid_dim_y() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_grid_dim_y() const SIXTRL_NOEXCEPT {
         return this->m_max_grid_dim[ 1 ]; }
 
-    st_size_t this_t::max_grid_dim_z() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_grid_dim_z() const SIXTRL_NOEXCEPT {
         return this->m_max_grid_dim[ 2 ]; }
 
-    st_size_t this_t::max_blocks_per_multiprocessor() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_blocks_per_multiprocessor() const SIXTRL_NOEXCEPT {
         return this->m_max_blocks_per_mp; }
 
-    st_size_t this_t::max_threads_per_block() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_threads_per_block() const SIXTRL_NOEXCEPT {
         return this->m_max_threads_per_block; }
 
-    st_size_t this_t::max_threads_per_multiprocessor() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_threads_per_multiprocessor() const SIXTRL_NOEXCEPT {
         return this->m_max_threads_per_mp; }
 
-    st_size_t this_t::max_shared_mem_per_block() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_shared_mem_per_block() const SIXTRL_NOEXCEPT {
         return this->m_max_shared_mem_per_block; }
 
-    st_size_t this_t::reserved_shared_mem_per_block() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::reserved_shared_mem_per_block() const SIXTRL_NOEXCEPT {
         return this->m_reserved_shared_mem_per_block; }
 
-    st_size_t this_t::max_shared_mem_per_multiprocessor() const SIXTRL_NOEXCEPT{
+    st_size_t ninfo_t::max_shared_mem_per_multiprocessor() const SIXTRL_NOEXCEPT{
         return this->m_max_shared_mem_per_mp; }
 
-    st_size_t this_t::max_registers_per_block() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_registers_per_block() const SIXTRL_NOEXCEPT {
         return this->m_max_i32_registers_per_block; }
 
-    st_size_t this_t::max_registers_per_multiprocessor() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_registers_per_multiprocessor() const SIXTRL_NOEXCEPT {
         return this->m_max_i32_registers_per_mp; }
 
-    st_size_t this_t::total_memory() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::total_memory() const SIXTRL_NOEXCEPT {
         return this->m_total_memory; }
 
-    st_size_t this_t::total_const_memory() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::total_const_memory() const SIXTRL_NOEXCEPT {
         return this->m_total_const_memory; }
 
-    st_size_t this_t::clock_rate_khz() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::clock_rate_khz() const SIXTRL_NOEXCEPT {
         return this->m_clock_rate_khz; }
 
-    st_size_t this_t::memory_clock_rate_khz() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::memory_clock_rate_khz() const SIXTRL_NOEXCEPT {
         return this->m_memory_clock_rate_khz; }
 
-    st_size_t this_t::global_memory_bus_width() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::global_memory_bus_width() const SIXTRL_NOEXCEPT {
         return this->m_global_memory_bus_width; }
 
-    st_size_t this_t::max_pitch() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_pitch() const SIXTRL_NOEXCEPT {
             return this->m_max_pitch; }
 
-    st_size_t this_t::texture_alignment() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::texture_alignment() const SIXTRL_NOEXCEPT {
         return this->m_texture_alignment; }
 
-    st_size_t this_t::texture_pitch_alignment() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::texture_pitch_alignment() const SIXTRL_NOEXCEPT {
         return this->m_texture_pitch_alignment; }
 
-    st_size_t this_t::compute_capability_major() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::compute_capability_major() const SIXTRL_NOEXCEPT {
         return this->m_compute_capability_major; }
 
-    st_size_t this_t::compute_capability_minor() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::compute_capability_minor() const SIXTRL_NOEXCEPT {
         return this->m_compute_capability_minor; }
 
-    st_size_t this_t::compute_capability() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::compute_capability() const SIXTRL_NOEXCEPT {
         return this->m_compute_capability_minor + st_size_t{ 10 } *
             this->m_compute_capability_major; }
 
-    st_size_t this_t::warp_size() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::warp_size() const SIXTRL_NOEXCEPT {
         return this->m_warp_size; }
 
-    st_size_t this_t::single_to_double_perf_ratio() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::single_to_double_perf_ratio() const SIXTRL_NOEXCEPT {
         return this->m_single_to_double_perf_ratio; }
 
-    st_size_t this_t::multiprocessor_count() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::multiprocessor_count() const SIXTRL_NOEXCEPT {
         return this->m_mp_count; }
 
-    st_size_t this_t::l2_cache_size() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::l2_cache_size() const SIXTRL_NOEXCEPT {
         return this->m_l2_cache_size; }
 
-    st_size_t this_t::max_persisting_l2_cache_size() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::max_persisting_l2_cache_size() const SIXTRL_NOEXCEPT {
         return this->m_max_persisting_l2_cache_size; }
 
-    st_size_t this_t::multi_gpu_board_group_id() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::multi_gpu_board_group_id() const SIXTRL_NOEXCEPT {
         return this->m_multi_gpu_board_group_id; }
 
-    st_size_t this_t::compute_mode() const SIXTRL_NOEXCEPT {
+    st_size_t ninfo_t::compute_mode() const SIXTRL_NOEXCEPT {
         return this->m_compute_mode; }
 
-    bool this_t::is_in_default_compute_mode() const SIXTRL_NOEXCEPT {
-        return this->m_compute_mode == this_t::CU_COMPUTE_MODE_DEFAULT; }
+    bool ninfo_t::is_in_default_compute_mode() const SIXTRL_NOEXCEPT {
+        return this->m_compute_mode == ninfo_t::CU_COMPUTE_MODE_DEFAULT; }
 
-    bool this_t::is_in_prohibited_compute_mode() const SIXTRL_NOEXCEPT {
-        return this->m_compute_mode == this_t::CU_COMPUTE_MODE_PROHIBITED; }
+    bool ninfo_t::is_in_prohibited_compute_mode() const SIXTRL_NOEXCEPT {
+        return this->m_compute_mode == ninfo_t::CU_COMPUTE_MODE_PROHIBITED; }
 
-    bool this_t::is_in_exclusive_process_compute_mode() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::is_in_exclusive_process_compute_mode() const SIXTRL_NOEXCEPT {
         return ( this->m_compute_mode ==
-                 this_t::CU_COMPUTE_MODE_EXCLUSIVE_PROCESS );
+                 ninfo_t::CU_COMPUTE_MODE_EXCLUSIVE_PROCESS );
     }
 
-    bool this_t::has_kernel_exec_timeout() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::has_kernel_exec_timeout() const SIXTRL_NOEXCEPT {
         return this->m_has_kernel_exec_timeout; }
 
-    bool this_t::uses_tcc_driver() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::uses_tcc_driver() const SIXTRL_NOEXCEPT {
         return this->m_uses_tcc_driver; }
 
-    bool this_t::is_integrated() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::is_integrated() const SIXTRL_NOEXCEPT {
         return this->m_is_integrated; }
 
-    bool this_t::is_on_multi_gpu_board() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::is_on_multi_gpu_board() const SIXTRL_NOEXCEPT {
         return this->m_is_on_multi_gpu_board; }
 
-    bool this_t::supports_overlap_mem_xfer_kernel_exec() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_overlap_mem_xfer_kernel_exec() const SIXTRL_NOEXCEPT {
         return this->m_supports_overlap_mem_xfer_kernel_exec; }
 
-    bool this_t::can_map_host_memory() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::can_map_host_memory() const SIXTRL_NOEXCEPT {
         return this->m_can_map_host_mem; }
 
-    bool this_t::supports_pageable_mem_access() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_pageable_mem_access() const SIXTRL_NOEXCEPT {
         return this->m_supports_pageable_mem_access; }
 
-    bool this_t::supports_pageable_mem_access_via_host_page_tables(
+    bool ninfo_t::supports_pageable_mem_access_via_host_page_tables(
         ) const SIXTRL_NOEXCEPT {
         return this->m_supports_pageable_mem_access_via_host_page_tables; }
 
-    bool this_t::supports_concurrent_managed_mem_access() const SIXTRL_NOEXCEPT
+    bool ninfo_t::supports_concurrent_managed_mem_access() const SIXTRL_NOEXCEPT
     {
         return this->m_supports_concurrent_managed_mem_access;
     }
 
-    bool this_t::supports_ecc() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_ecc() const SIXTRL_NOEXCEPT {
         return this->m_supports_ecc; }
 
-    bool this_t::supports_concurrent_kernel_exec() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_concurrent_kernel_exec() const SIXTRL_NOEXCEPT {
         return this->m_supports_concurrent_kernel_exec; }
 
-    bool this_t::supports_compute_preemption() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_compute_preemption() const SIXTRL_NOEXCEPT {
         return this->m_supports_compute_preemption; }
 
-    bool this_t::supports_global_l1_caching() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_global_l1_caching() const SIXTRL_NOEXCEPT {
         return this->m_supports_global_l1_cache; }
 
-    bool this_t::supports_local_l1_caching() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_local_l1_caching() const SIXTRL_NOEXCEPT {
         return this->m_supports_local_l1_cache; }
 
-    bool this_t::supports_host_native_atomics() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_host_native_atomics() const SIXTRL_NOEXCEPT {
         return this->m_supports_host_native_atomic; }
 
-    bool this_t::supports_unified_addressing() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_unified_addressing() const SIXTRL_NOEXCEPT {
         return this->m_supports_unified_addressing; }
 
-    bool this_t::supports_generic_compression() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_generic_compression() const SIXTRL_NOEXCEPT {
         return this->m_supports_generic_compression; }
 
-    bool this_t::supports_virtual_address_management() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::supports_virtual_address_management() const SIXTRL_NOEXCEPT {
         return this->m_supports_virtual_address_management; }
 
     bool
-    this_t::supports_direct_managed_mem_accesss_from_host() const SIXTRL_NOEXCEPT
+    ninfo_t::supports_direct_managed_mem_accesss_from_host() const SIXTRL_NOEXCEPT
     {
         return this->m_supports_direct_managed_mem_accesss_from_host;
     }
 
-    bool this_t::can_use_host_ptr_for_registered_mem() const SIXTRL_NOEXCEPT {
+    bool ninfo_t::can_use_host_ptr_for_registered_mem() const SIXTRL_NOEXCEPT {
         return this->m_can_use_host_ptr_for_registered_mem; }
 
-    void this_t::do_print_extended_section(
+    void ninfo_t::do_print_extended_section(
         std::ostream& SIXTRL_RESTRICT_REF ostr,
-        this_t::print_flags_t const flags ) const
+        ninfo_t::print_flags_t const flags ) const
     {
         st::BaseNodeInfo::do_print_extended_section( ostr, flags );
 
@@ -329,7 +585,7 @@ namespace SIXTRL_CXX_NAMESPACE
              << this->m_max_threads_per_block << "\r\n";
     }
 
-    void this_t::clear_device_properties() SIXTRL_NOEXCEPT
+    void ninfo_t::clear_device_properties() SIXTRL_NOEXCEPT
     {
         this->set_platform_name( "" );
         this->set_device_name( "" );
@@ -391,9 +647,9 @@ namespace SIXTRL_CXX_NAMESPACE
         this->m_can_use_host_ptr_for_registered_mem = false;
     }
 
-    st_status_t this_t::get_device_properties(
-        this_t::platform_id_t const platform_id,
-        this_t::device_id_t const device_id )
+    st_status_t ninfo_t::get_device_properties(
+        ninfo_t::platform_id_t const platform_id,
+        ninfo_t::device_id_t const device_id )
     {
         st_status_t status = st::STATUS_GENERAL_FAILURE;
 
@@ -401,13 +657,13 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( platform_id == st::NODE_ILLEGAL_PLATFORM_ID ) ||
             ( device_id == st::NODE_ILLEGAL_DEVICE_ID ) ||
             ( static_cast< st_size_t >( platform_id ) >=
-                this_t::NUM_ALL_NODES() ) )
+              st::CudaNodeId::NUM_ALL_NODES() ) )
         {
             return status;
         }
 
         /* NOTE: Check whether this is general enough? */
-        if( device_id != this_t::device_id_t{ 0 } ) return status;
+        if( device_id != ninfo_t::device_id_t{ 0 } ) return status;
 
         int cuda_driver_version = 0;
         ::CUresult ret = ::cuDriverGetVersion( &cuda_driver_version );
@@ -942,10 +1198,10 @@ namespace SIXTRL_CXX_NAMESPACE
             {
                 st_size_t const compute_mode = static_cast< st_size_t >( temp );
 
-                if( ( compute_mode == this_t::CU_COMPUTE_MODE_DEFAULT ) ||
-                    ( compute_mode == this_t::CU_COMPUTE_MODE_PROHIBITED ) ||
+                if( ( compute_mode == ninfo_t::CU_COMPUTE_MODE_DEFAULT ) ||
+                    ( compute_mode == ninfo_t::CU_COMPUTE_MODE_PROHIBITED ) ||
                     ( compute_mode ==
-                        this_t::CU_COMPUTE_MODE_EXCLUSIVE_PROCESS ) )
+                        ninfo_t::CU_COMPUTE_MODE_EXCLUSIVE_PROCESS ) )
                 {
                     this->m_compute_mode = compute_mode;
                     status = st::STATUS_SUCCESS;
@@ -1216,14 +1472,14 @@ namespace SIXTRL_CXX_NAMESPACE
 
 ::NS(size_t) NS(Cuda_num_all_nodes)( void )
 {
-    return SIXTRL_CXX_NAMESPACE::CudaNodeInfo::NUM_ALL_NODES();
+    return SIXTRL_CXX_NAMESPACE::CudaNodeId::NUM_ALL_NODES();
 }
 
 ::NS(size_t) NS(Cuda_all_node_ids)(
     ::NS(NodeId)* SIXTRL_RESTRICT node_ids_begin,
     ::NS(size_t) const max_num_node_ids )
 {
-    return SIXTRL_CXX_NAMESPACE::CudaNodeInfo::GET_ALL_NODE_IDS(
+    return SIXTRL_CXX_NAMESPACE::CudaNodeId::GET_ALL_NODE_IDS(
         node_ids_begin, max_num_node_ids );
 }
 
