@@ -314,6 +314,16 @@ namespace SIXTRL_CXX_NAMESPACE
             string_type const& SIXTRL_RESTRICT_REF device_str,
             str_format_t const device_str_format );
 
+        SIXTRL_HOST_FN ::NS(NodeId) const& as_c_node_id() const SIXTRL_NOEXCEPT
+        {
+            return static_cast< ::NS(NodeId) const& >( *this );
+        }
+
+        SIXTRL_HOST_FN ::NS(NodeId)& as_c_node_id() SIXTRL_NOEXCEPT
+        {
+            return static_cast< ::NS(NodeId)& >( *this );
+        }
+
         private:
 
         SIXTRL_HOST_FN str_format_t do_find_device_string_format_base_impl(
