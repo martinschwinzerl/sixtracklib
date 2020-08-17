@@ -20,12 +20,14 @@
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 namespace SIXTRL_CXX_NAMESPACE
 {
-    class BaseMTSharableContext;
+    class BaseMTShareableContext;
 
     class SIXTRL_BASE_EXPORT_API BaseContext :
         public SIXTRL_CXX_NAMESPACE::BaseBackendObj
     {
         public:
+
+        typedef SIXTRL_CXX_NAMESPACE::size_t size_type;
 
         static constexpr class_variant_t CTX_VARIANT_DEFAULT =
             class_variant_t{ 0x01 };
@@ -41,10 +43,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN bool is_mt_shareable_context() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN BaseMTSharableContext const*
+        SIXTRL_HOST_FN BaseMTShareableContext const*
         as_mt_shareable_context() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN BaseMTSharableContext*
+        SIXTRL_HOST_FN BaseMTShareableContext*
         as_mt_shareable_context() SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
@@ -77,7 +79,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* ===================================================================== */
 
-    class SIXTRL_BASE_EXPORT_API BaseMTSharableContext :
+    class SIXTRL_BASE_EXPORT_API BaseMTShareableContext :
         public SIXTRL_CXX_NAMESPACE::BaseContext
     {
         public:
@@ -87,136 +89,143 @@ namespace SIXTRL_CXX_NAMESPACE
         typedef base_backend_t::guard_type guard_type;
         typedef base_backend_t::size_type size_type;
 
-        SIXTRL_HOST_FN virtual ~BaseMTSharableContext();
+        SIXTRL_HOST_FN virtual ~BaseMTShareableContext() = default;
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN size_type num_associated_threads() const;
-        SIXTRL_HOST_FN size_type num_associated_threads(
-            guard_type const& SIXTRL_RESTRICT_REF guard ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool has_owner_thread() const;
+        SIXTRL_HOST_FN bool has_owner_thread(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN bool is_associated_with_any_thread(
-            lock_t const& SIXTRL_RESTRICT_REF guard ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN thread_id_type owner_thread() const;
+        SIXTRL_HOST_FN thread_id_type owner_thread(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool is_associated_with_any_thread() const {
-            lock_t guard( this->m_lockable );
-            return this->is_associated_with_any_thread( guard ); }
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+        SIXTRL_HOST_FN bool is_current_thread_owner() const;
+        SIXTRL_HOST_FN bool is_current_thread_owner(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN bool is_associated_with_thread( thread_id_type const tid,
-            lock_t const& SIXTRL_RESTRICT_REF guard ) const SIXTRL_NOEXCEPT;
+        /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN bool is_associated_with_thread( thread_id_type const
-            tid ) const { return this->is_associated_with_thread( tid,
-                lock_t{ this->m_lockable } ); }
+        SIXTRL_HOST_FN size_type num_attached_threads() const;
+        SIXTRL_HOST_FN size_type num_attached_threads(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN thread_id_type const* associated_thread_ids_begin(
-            lock_t const& SIXTRL_RESTRICT_REF guard ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool is_attached_to_any_thread() const;
+        SIXTRL_HOST_FN bool is_attached_to_any_thread(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN thread_id_type const* associated_thread_ids_begin() const {
-            return this->associated_thread_ids_begin( lock_t{
-                    this->m_lockable } ); }
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+        SIXTRL_HOST_FN bool is_attached_to_thread(
+            thread_id_type const tid ) const;
 
-        SIXTRL_HOST_FN thread_id_type const* associated_thread_ids_end(
-            lock_t const& SIXTRL_RESTRICT_REF guard ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool is_attached_to_thread( thread_id_type const tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN thread_id_type const* associated_thread_ids_end() const {
-            return this->associated_thread_ids_end(
-                lock_t{ this->m_lockable } ); }
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+        SIXTRL_HOST_FN bool is_attached_to_current_thread() const;
 
-        SIXTRL_HOST_FN status_type associate_with_current_thread( lock_t const&
-            SIXTRL_RESTRICT_REF guard );
+        SIXTRL_HOST_FN bool is_attached_to_current_thread(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_type associate_with_current_thread() {
-            return this->associate_with_current_thread(
-                lock_t{ this->m_lockable } ); }
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+        SIXTRL_HOST_FN thread_id_type const* attached_thread_ids_begin(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_type associate_with_thread(
-            thread_id_type const tid, lock_t const& SIXTRL_RESTRICT_REF guard );
+        SIXTRL_HOST_FN thread_id_type const* attached_thread_ids_end(
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN status_type associate_with_thread( thread_id_type const
-            tid ) { return this->associate_with_thread( tid,
-                lock_t{ this->m_lockable } ); }
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+        SIXTRL_HOST_FN status_type attach_to_thread( thread_id_type const tid );
+        SIXTRL_HOST_FN status_type attach_to_thread( thread_id_type const tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
-        SIXTRL_HOST_FN status_type disassociate_from_current_thread(
-            lock_t const& SIXTRL_RESTRICT_REF guard );
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN status_type disassociate_from_current_thread() {
-            return this->disassociate_from_current_thread(
-                lock_t{ this->m_lockable } ); }
+        SIXTRL_HOST_FN status_type attach();
+        SIXTRL_HOST_FN status_type attach(
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN status_type disassociate_from_thread(
-            thread_id_type const tid, lock_t const& SIXTRL_RESTRICT_REF guard );
+        SIXTRL_HOST_FN status_type detach_from_thread(
+            thread_id_type const tid );
 
-        SIXTRL_HOST_FN status_type disassociate_from_thread( thread_id_type
-            const tid ) { return this->disassociate_from_thread(
-                    tid, lock_t{ this->m_lockable } ); }
+        SIXTRL_HOST_FN status_type detach_from_thread(
+            thread_id_type const tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-
-
+        SIXTRL_HOST_FN status_type detach();
+        SIXTRL_HOST_FN status_type detach(
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         protected:
 
-        SIXTRL_HOST_FN explicit BaseMTSharableContext(
+        SIXTRL_HOST_FN explicit BaseMTShareableContext(
             base_backend_t& SIXTRL_RESTRICT backend );
 
-        SIXTRL_HOST_FN explicit BaseMTSharableContext(
+        SIXTRL_HOST_FN explicit BaseMTShareableContext(
             backend_id_t const backend_id );
 
-        SIXTRL_HOST_FN BaseMTSharableContext(
-            BaseMTSharableContext const& ) = default;
+        SIXTRL_HOST_FN BaseMTShareableContext(
+            BaseMTShareableContext const& ) = delete;
 
-        SIXTRL_HOST_FN BaseMTSharableContext(
-            BaseMTSharableContext&& ) = default;
+        SIXTRL_HOST_FN BaseMTShareableContext(
+            BaseMTShareableContext&& ) = delete;
 
-        SIXTRL_HOST_FN BaseMTSharableContext&
-        operator=( BaseMTSharableContext const& ) = default;
+        SIXTRL_HOST_FN BaseMTShareableContext&
+        operator=( BaseMTShareableContext const& ) = delete;
 
-        SIXTRL_HOST_FN BaseMTSharableContext&
-        operator=( BaseMTSharableContext&& ) = default;
+        SIXTRL_HOST_FN BaseMTShareableContext&
+        operator=( BaseMTShareableContext&& ) = delete;
 
+        /* ----------------------------------------------------------------- */
 
+        SIXTRL_HOST_FN virtual status_t do_attach_to_thread(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
 
-        SIXTRL_HOST_FN cuda_handle_type cuda_handle(
-            lock_t const& SIXTRL_RESTRICT_REF guard ) SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN virtual status_t do_detach_from_thread(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
 
-        SIXTRL_HOST_FN cuda_handle_type cuda_handle() {
-            return this->cuda_handle( lock_t{ this->m_lockable } ); }
-
-
-        SIXTRL_HOST_FN const_cuda_handle_type cuda_handle(
-            lock_t const& SIXTRL_RESTRICT_REF guard ) const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN const_cuda_handle_type cuda_handle() const {
-            return this->cuda_handle( lock_t{ this->m_lockable } ); }
-
-
-        SIXTRL_HOST_FN cuda_handle_int_repr_type cuda_handle_int_repr(
-            lock_t const& SIXTRL_RESTRICT_REF guard ) const SIXTRL_NOEXCEPT;
-        SIXTRL_HOST_FN cuda_handle_int_repr_type cuda_handle_int_repr() const {
-            return this->cuda_handle_int_repr( lock_t{ this->m_lockable } ); }
-
-
+        SIXTRL_HOST_FN virtual status_t do_set_owner_thread_id(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
 
         private:
 
-        std::vector< thread_id_type > m_associated_threads;
-    };
-};
+        SIXTRL_HOST_FN status_t do_attach_to_thread_mt_impl(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
 
-extern "C" { typedef SIXTRL_CXX_NAMESPACE::BaseContext NS(BaseContext); }
+        SIXTRL_HOST_FN status_t do_detach_from_thread_mt_impl(
+            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+
+        std::vector< thread_id_type > m_attached_threads;
+        thread_id_type m_owner_thread_id = thread_id_type{};
+    };
+}
+
+extern "C" {
+
+typedef SIXTRL_CXX_NAMESPACE::BaseContext NS(BaseContext);
+typedef SIXTRL_CXX_NAMESPACE::BaseMTShareableContext NS(BaseMTShareableContext);
+
+}
 
 #elif !defined( _GPUCODE ) /* C, Host */
 
 struct NS(BaseContext);
+struct NS(BaseMTShareableContext);
 
 #endif /* C++, Host */
 #endif /* SIXTRACKLIB_BASE_CONTROL_CONTEXT_H__ */
