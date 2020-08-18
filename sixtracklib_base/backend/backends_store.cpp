@@ -904,11 +904,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 st_size_t nn_backendid = st_size_t{ 0 };
                 st_size_t nn_backendstr = st_size_t{ 0 };
 
-                if( this->m_backends_with_nodes.size() > st_size_t{ 1 } )
-                {
-                    backendid_regex << "(";
-                }
-
+                backendid_regex << "(";
                 for( auto const backend_id : this->m_backends_with_nodes )
                 {
                     auto backend = this->backend( backend_id );
@@ -922,17 +918,13 @@ namespace SIXTRL_CXX_NAMESPACE
                     if( backend->has_backend_string() ) ++nn_backendstr;
                 }
 
-                if( this->m_backends_with_nodes.size() > st_size_t{ 1 } )
-                {
-                    backendid_regex << ")";
-                }
-
+                backendid_regex << ")";
                 backendid_regex << "\\:([0-9]{1,3})\\.([0-9]{1,3})";
 
                 if( nn_backendstr >= st_size_t{ 1 } )
                 {
                     st_size_t ii = st_size_t{ 0 };
-                    if( nn_backendstr > st_size_t{ 1 } ) backendstr_regex << "(";
+                    backendstr_regex << "(";
 
                     for( auto const backend_id : this->m_backends_with_nodes )
                     {
@@ -948,7 +940,7 @@ namespace SIXTRL_CXX_NAMESPACE
                         ++ii;
                     }
 
-                    if( nn_backendstr > st_size_t{ 1 } ) backendstr_regex << ")";
+                    backendstr_regex << ")";
                     backendstr_regex << "\\:([0-9]{1,3})\\.([0-9]{1,3})";
                 }
             }
