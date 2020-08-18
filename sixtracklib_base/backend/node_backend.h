@@ -254,16 +254,28 @@ namespace SIXTRL_CXX_NAMESPACE
         create_node_info_fn_t m_create_node_info_fn = nullptr;
         delete_node_info_fn_t m_delete_node_info_fn = nullptr;
     };
-}
+} /* ns: SIXTRL_CXX_NAMESPACE */
+#endif /* C++, Host */
 
-extern "C"
-{
-    typedef SIXTRL_CXX_NAMESPACE::BaseNodeBackend NS(BaseNodeBackend);
-}
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                   Exported Plugin C-API :: Types                !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
-#else /* C++, Host */
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+extern "C" {
+#endif /* C++, Host */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+
+typedef SIXTRL_CXX_NAMESPACE::BaseNodeBackend NS(BaseNodeBackend);
+
+#elif !defined( _GPUCODE ) /* C, Host */
 
 struct NS(Backend);
 
+#endif /* C / C++, Host */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+}
 #endif /* C++, Host */
 #endif /* SIXTRACKLIB_BASE_BACKEND_NODE_BACKEND_H__ */
