@@ -32,6 +32,18 @@ namespace SIXTRL_CXX_NAMESPACE
     constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_DELETE_NODE_INFO;
     constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_GET_TOTAL_NUM_NODES;
     constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_GET_ALL_NODE_IDS;
+    constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_CREATE_NODE_ID;
+
+    constexpr this_t::be_symbol_id_t
+        this_t::SYMBOL_ID_CREATE_NODE_ID_FROM_STRING;
+
+    constexpr this_t::be_symbol_id_t
+        this_t::SYMBOL_ID_CREATE_NODE_ID_FROM_STRING_DETAILED;
+
+    constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_DELETE_NODE_ID;
+
+    /* ********************************************************************* */
+
     this_t::managed_base_node_id_t this_t::create_node_id(
         this_t::platform_id_t const platform_id,
         this_t::device_id_t const device_id )
