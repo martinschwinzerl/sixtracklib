@@ -32,6 +32,73 @@ namespace SIXTRL_CXX_NAMESPACE
     constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_DELETE_NODE_INFO;
     constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_GET_TOTAL_NUM_NODES;
     constexpr this_t::be_symbol_id_t this_t::SYMBOL_ID_GET_ALL_NODE_IDS;
+    this_t::managed_base_node_id_t this_t::create_node_id(
+        this_t::platform_id_t const platform_id,
+        this_t::device_id_t const device_id )
+    {
+        if( this->m_delete_node_id_fn == nullptr )
+        {
+            throw std::runtime_error( "delete_node_id_fn symbol required!" );
+        }
+
+        this_t::managed_base_node_id_t ptr_node_id{
+                nullptr, this->m_delete_node_id_fn };
+
+        if( ( this->m_create_node_id_fn != nullptr ) &&
+            ( platform_id != st::NODE_ILLEGAL_PLATFORM_ID ) &&
+            ( device_id != st::NODE_ILLEGAL_DEVICE_ID ) )
+        {
+            ptr_node_id.reset( this->m_create_node_id_fn(
+                platform_id, device_id ) );
+        }
+
+        return ptr_node_id;
+    }
+
+    this_t::managed_base_node_id_t this_t::create_node_id(
+            std::string const& SIXTRL_RESTRICT_REF node_id_str )
+    {
+        if( this->m_delete_node_id_fn == nullptr )
+        {
+            throw std::runtime_error( "delete_node_id_fn symbol required!" );
+        }
+
+        this_t::managed_base_node_id_t ptr_node_id{
+                nullptr, this->m_delete_node_id_fn };
+
+        if( ( this->m_create_node_id_fn != nullptr ) &&
+            ( !node_id_str.empty() ) )
+        {
+            ptr_node_id.reset( this->m_create_node_id_from_str_fn(
+                node_id_str.c_str() ) );
+        }
+
+        return ptr_node_id;
+    }
+
+    this_t::managed_base_node_id_t this_t::create_node_id(
+        std::string const& SIXTRL_RESTRICT_REF node_id_str,
+        SIXTRL_CXX_NAMESPACE::node_id_str_fmt_t const format )
+    {
+        if( this->m_delete_node_id_fn == nullptr )
+        {
+            throw std::runtime_error( "delete_node_id_fn symbol required!" );
+        }
+
+        this_t::managed_base_node_id_t ptr_node_id{
+                nullptr, this->m_delete_node_id_fn };
+
+        if( ( this->m_create_node_id_fn != nullptr ) &&
+            ( !node_id_str.empty() ) )
+        {
+            ptr_node_id.reset( this->m_create_node_id_from_str_detail_fn(
+                node_id_str.c_str(), format ) );
+        }
+
+        return ptr_node_id;
+    }
+
+    /* --------------------------------------------------------------------- */
 
     this_t::managed_base_node_info_t this_t::create_node_info(
         this_t::platform_id_t const platform_id,

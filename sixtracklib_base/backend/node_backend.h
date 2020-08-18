@@ -77,6 +77,16 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
+        SIXTRL_HOST_FN managed_base_node_id_t create_node_id(
+            platform_id_t const platform_id, device_id_t const device_id );
+
+        SIXTRL_HOST_FN managed_base_node_id_t create_node_id(
+            std::string const& SIXTRL_RESTRICT_REF node_id_str );
+
+        SIXTRL_HOST_FN managed_base_node_id_t create_node_id(
+            std::string const& SIXTRL_RESTRICT_REF node_id_str,
+            SIXTRL_CXX_NAMESPACE::node_id_str_fmt_t const format );
+
         SIXTRL_HOST_FN managed_base_node_info_t
         create_node_info( platform_id_t const platform_id,
                           device_id_t const device_id );
