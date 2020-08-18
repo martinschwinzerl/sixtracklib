@@ -28,6 +28,7 @@ namespace SIXTRL_CXX_NAMESPACE
         public:
 
         typedef SIXTRL_CXX_NAMESPACE::size_t size_type;
+        typedef void (*context_delete_fn_type)( BaseContext* SIXTRL_RESTRICT );
 
         static constexpr class_variant_t CTX_VARIANT_DEFAULT =
             class_variant_t{ 0x01 };
