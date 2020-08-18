@@ -480,6 +480,66 @@ namespace SIXTRL_CXX_NAMESPACE
         node_id.print_using_format( ostr, NodeId::DEFAULT_STR_FORMAT );
         return ostr;
     }
+} /* ns: SIXTRL_CXX_NAMESPACE */
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                Exported Plugin C-API :: Functions               !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+::NS(BaseNodeId)* NS(NodeId_create_undefined)(
+    ::NS(node_platform_id_t) const platform_id,
+    ::NS(node_device_id_t) const device_id )
+{
+    namespace st = SIXTRL_CXX_NAMESPACE;
+    return new st::NodeId( st::BACKEND_UNDEFINED, platform_id, device_id );
+}
+
+::NS(BaseNodeId)* NS(NodeId_create_undefined_from_str)(
+    char const* SIXTRL_RESTRICT config_str )
+{
+    namespace st = SIXTRL_CXX_NAMESPACE;
+    std::unique_ptr< ::NS(BaseNodeId) > temp{ nullptr };
+
+    if( ( config_str != nullptr ) &&
+        ( std::strlen( config_str ) > st_size_t{ 0 } ) )
+    {
+        temp.reset( new st::NodeId( config_str ));
+        if( ( temp.get() != nullptr ) &&
+            ( temp->backend_id() != st::BACKEND_UNDEFINED ) &&
+            ( temp->backend_id() != st::BACKEND_ILLEGAL ) )
+        {
+            temp->set_backend_id( st::BACKEND_UNDEFINED );
+        }
+    }
+
+    return temp.release();
+}
+
+::NS(BaseNodeId)* NS(NodeId_create_undefined_from_str_detailed)(
+    char const* SIXTRL_RESTRICT config_str,
+    ::NS(node_id_str_fmt_t) const node_id_str_fmt )
+{
+    namespace st = SIXTRL_CXX_NAMESPACE;
+    std::unique_ptr< ::NS(BaseNodeId) > temp{ nullptr };
+
+    if( ( config_str != nullptr ) &&
+        ( std::strlen( config_str ) > st_size_t{ 0 } ) )
+    {
+        temp.reset( new st::NodeId( config_str, node_id_str_fmt ));
+        if( ( temp.get() != nullptr ) &&
+            ( temp->backend_id() != st::BACKEND_UNDEFINED ) &&
+            ( temp->backend_id() != st::BACKEND_ILLEGAL ) )
+        {
+            temp->set_backend_id( st::BACKEND_UNDEFINED );
+        }
+    }
+
+    return temp.release();
+}
+
+void NS(NodeId_delete)( ::NS(BaseNodeId)* SIXTRL_RESTRICT n_id ) SIXTRL_NOEXCEPT
+{
+    delete n_id;
 }
 
 #endif /* C++, Host */
