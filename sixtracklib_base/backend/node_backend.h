@@ -59,6 +59,18 @@ namespace SIXTRL_CXX_NAMESPACE
         static constexpr be_symbol_id_t SYMBOL_ID_GET_ALL_NODE_IDS =
             be_symbol_id_t{ 5 };
 
+        static constexpr be_symbol_id_t SYMBOL_ID_CREATE_NODE_ID =
+            be_symbol_id_t{ 6 };
+
+        static constexpr be_symbol_id_t SYMBOL_ID_CREATE_NODE_ID_FROM_STRING =
+            be_symbol_id_t{ 7 };
+
+        static constexpr be_symbol_id_t
+            SYMBOL_ID_CREATE_NODE_ID_FROM_STRING_DETAILED = be_symbol_id_t{ 8 };
+
+        static constexpr be_symbol_id_t SYMBOL_ID_DELETE_NODE_ID =
+            be_symbol_id_t{ 9 };
+
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN virtual ~BaseNodeBackend() = default;
