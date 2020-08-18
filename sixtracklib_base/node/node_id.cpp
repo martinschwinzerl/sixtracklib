@@ -418,13 +418,16 @@ namespace SIXTRL_CXX_NAMESPACE
 
                     if( ( !regex_str.empty() ) &&
                         ( std::regex_match( device_str, matched_parts,
-                          std::regex{ regex_str } ) ) &&
-                        ( matched_parts.size() == st_size_t{ 4 } ) )
+                          std::regex{ regex_str } ) ) )
                     {
-                        this->m_backend_id = std::stoi( matched_parts[ 1 ] );
-                        this->m_platform_id = std::stoi( matched_parts[ 2 ] );
-                        this->m_device_id = std::stoi( matched_parts[ 3 ] );
-                        status = st::STATUS_SUCCESS;
+                        st_size_t const nn = matched_parts.size();
+                        if( nn == st_size_t{ 4 } )
+                        {
+                            this->m_backend_id = std::stoi( matched_parts[ 1 ] );
+                            this->m_platform_id = std::stoi( matched_parts[ 2 ] );
+                            this->m_device_id = std::stoi( matched_parts[ 3 ] );
+                            status = st::STATUS_SUCCESS;
+                        }
                     }
 
                     break;
@@ -437,19 +440,22 @@ namespace SIXTRL_CXX_NAMESPACE
 
                     if( ( !regex_str.empty() ) &&
                         ( std::regex_match( device_str, matched_parts,
-                          std::regex{ regex_str } ) ) &&
-                        ( matched_parts.size() == st_size_t{ 4 } ) )
+                          std::regex{ regex_str } ) ) )
                     {
-                        string_t const backend_str = matched_parts[ 1 ];
-
-                        if( ( !backend_str.empty() ) &&
-                            ( backend_store.has_backend_by_str( backend_str ) ) )
+                        st_size_t const nn = matched_parts.size();
+                        if( nn == st_size_t{ 4 } )
                         {
-                            this->m_backend_id =
-                                backend_store.backend_id_by_str( backend_str );
-                            this->m_platform_id = std::stoi( matched_parts[ 2 ] );
-                            this->m_device_id = std::stoi( matched_parts[ 3 ] );
-                            status = st::STATUS_SUCCESS;
+                            string_t const backend_str = matched_parts[ 1 ];
+
+                            if( ( !backend_str.empty() ) &&
+                                ( backend_store.has_backend_by_str( backend_str ) ) )
+                            {
+                                this->m_backend_id =
+                                    backend_store.backend_id_by_str( backend_str );
+                                this->m_platform_id = std::stoi( matched_parts[ 2 ] );
+                                this->m_device_id = std::stoi( matched_parts[ 3 ] );
+                                status = st::STATUS_SUCCESS;
+                            }
                         }
                     }
 
