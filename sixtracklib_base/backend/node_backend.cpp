@@ -412,11 +412,6 @@ namespace SIXTRL_CXX_NAMESPACE
                         this->symbol_name( this_t::SYMBOL_ID_CREATE_NODE_INFO ),
                             SYMBOL_IS_REQUIRED );
 
-                this->m_delete_node_info_fn = ptr_dlib_loader->load_symbol<
-                    decltype( this->m_delete_node_info_fn ) >(
-                        this->symbol_name( this_t::SYMBOL_ID_DELETE_NODE_INFO ),
-                            SYMBOL_IS_REQUIRED );
-
                 this->m_get_total_num_nodes_fn = ptr_dlib_loader->load_symbol<
                     decltype( this->m_get_total_num_nodes_fn ) >(
                         this->symbol_name( this_t::SYMBOL_ID_GET_TOTAL_NUM_NODES
@@ -426,6 +421,55 @@ namespace SIXTRL_CXX_NAMESPACE
                     decltype( this->m_get_all_node_ids_fn ) >(
                         this->symbol_name( this_t::SYMBOL_ID_GET_ALL_NODE_IDS ),
                             SYMBOL_IS_REQUIRED );
+
+                if( this->has_symbol_name( this_t::SYMBOL_ID_DELETE_NODE_INFO ) )
+                {
+                    this->m_delete_node_info_fn = ptr_dlib_loader->load_symbol<
+                        decltype( this->m_delete_node_info_fn ) >(
+                            this->symbol_name(
+                                this_t::SYMBOL_ID_DELETE_NODE_INFO ),
+                                    SYMBOL_IS_REQUIRED );
+                }
+
+                if( this->has_symbol_name( this_t::SYMBOL_ID_CREATE_NODE_ID ) )
+                {
+                    this->m_create_node_id_fn = ptr_dlib_loader->load_symbol<
+                        decltype( this->m_create_node_id_fn ) >(
+                        this->symbol_name( this_t::SYMBOL_ID_CREATE_NODE_ID ),
+                        SYMBOL_IS_REQUIRED );
+                }
+
+                if( this->has_symbol_name(
+                    this_t::SYMBOL_ID_CREATE_NODE_ID_FROM_STRING ) )
+                {
+                    this->m_create_node_id_from_str_fn =
+                    ptr_dlib_loader->load_symbol<
+                        decltype( this->m_create_node_id_from_str_fn ) >(
+                        this->symbol_name(
+                            this_t::SYMBOL_ID_CREATE_NODE_ID_FROM_STRING ),
+                            SYMBOL_IS_REQUIRED );
+                }
+
+                if( this->has_symbol_name(
+                    this_t::SYMBOL_ID_CREATE_NODE_ID_FROM_STRING_DETAILED ) )
+                {
+                    this->m_create_node_id_from_str_detail_fn =
+                    ptr_dlib_loader->load_symbol<
+                        decltype( this->m_create_node_id_from_str_detail_fn ) >(
+                        this->symbol_name(
+                        this_t::SYMBOL_ID_CREATE_NODE_ID_FROM_STRING_DETAILED ),
+                        SYMBOL_IS_REQUIRED );
+                }
+
+                if( this->has_symbol_name( this_t::SYMBOL_ID_DELETE_NODE_ID ) )
+                {
+                    this->m_delete_node_id_fn =
+                    ptr_dlib_loader->load_symbol<
+                        decltype( this->m_delete_node_id_fn ) >(
+                        this->symbol_name(
+                        this_t::SYMBOL_ID_CREATE_NODE_ID_FROM_STRING_DETAILED ),
+                        SYMBOL_IS_REQUIRED );
+                }
             }
         }
 
