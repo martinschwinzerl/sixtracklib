@@ -354,7 +354,7 @@ namespace SIXTRL_CXX_NAMESPACE
             this->do_update_node_id_format_regex_strs();
         }
 
-        return this->m_node_id_format_backendid_regex_str;
+        return this->m_node_id_format_backendstr_regex_str;
     }
 
     string_t store_t::node_id_format_backendid_regex_str_for_backend(
