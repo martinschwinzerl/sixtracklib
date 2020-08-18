@@ -182,8 +182,8 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         guard_t lock( this->create_lock() );
 
-        bool const has_main_thread =
-            ( this->m_main_thread_id == thread_id_t{} );
+        thread_id_t const main_thread_id = this->m_main_thread_id;
+        bool const has_main_thread = ( main_thread_id != thread_id_t{} );
 
         SIXTRL_ASSERT( ( !has_main_thread ) ||
             ( this->current_thread_is_main( lock ) ) );
@@ -244,13 +244,12 @@ namespace SIXTRL_CXX_NAMESPACE
                 this->do_disassociate_with_thread_base_impl( tid, lock );
             }
 
-            SIXTRL_ASSERT( ( ( !has_main_thread ) &&
-                             ( this->m_associated_threads.empty() ) ) ||
-                           ( ( has_main_thread ) &&
-                             ( this->m_associated_threads.size() ==
-                                st_size_t{ 1 } ) &&
-                             ( this->m_associated_threads.front() ==
-                               this->main_thread_id( lock ) ) ) );
+            SIXTRL_ASSERT(
+                ( ( !has_main_thread ) &&
+                  ( this->m_associated_threads.empty() ) ) ||
+                ( ( has_main_thread ) &&
+                  ( this->m_associated_threads.size() == st_size_t{ 1 } ) &&
+                  ( this->m_associated_threads.front() == main_thread_id ) ) );
 
             if( ( has_main_thread ) && ( this->current_thread_is_main() ) &&
                 (  this->is_associated_with_current_thread( lock ) ) &&
