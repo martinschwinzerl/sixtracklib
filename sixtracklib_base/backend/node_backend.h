@@ -166,8 +166,19 @@ namespace SIXTRL_CXX_NAMESPACE
 
         // Symbols imported from the plugin:
 
+        using delete_node_id_fn_t = void (*)( ::NS(BaseNodeId)* );
+
         using create_node_info_fn_t = ::NS(BaseNodeInfo)* (*)(
             platform_id_t const, device_id_t const );
+
+        using create_node_id_fn_t = ::NS(BaseNodeId)* (*)(
+            platform_id_t const, device_id_t const );
+
+        using create_node_id_from_str_fn_t =
+            ::NS(BaseNodeId)* (*)( char const* );
+
+        using create_node_id_from_str_detail_fn_t = ::NS(BaseNodeId)* (*)(
+            char const*, ::NS(node_id_str_fmt_t) const );
 
         using delete_node_info_fn_t = void (*)( ::NS(BaseNodeInfo)* );
 
@@ -232,10 +243,16 @@ namespace SIXTRL_CXX_NAMESPACE
             string_type{ "SIXTRACKLIB_DEVICES" };
 
         protected:
-        create_node_info_fn_t       m_create_node_info_fn    = nullptr;
-        delete_node_info_fn_t       m_delete_node_info_fn    = nullptr;
-        get_total_num_nodes_fn_t    m_get_total_num_nodes_fn = nullptr;
-        get_all_node_ids_fn_t       m_get_all_node_ids_fn    = nullptr;
+
+        get_total_num_nodes_fn_t m_get_total_num_nodes_fn = nullptr;
+        get_all_node_ids_fn_t m_get_all_node_ids_fn = nullptr;
+        create_node_id_fn_t m_create_node_id_fn = nullptr;
+        create_node_id_from_str_fn_t m_create_node_id_from_str_fn = nullptr;
+        create_node_id_from_str_detail_fn_t
+            m_create_node_id_from_str_detail_fn = nullptr;
+        delete_node_id_fn_t m_delete_node_id_fn = nullptr;
+        create_node_info_fn_t m_create_node_info_fn = nullptr;
+        delete_node_info_fn_t m_delete_node_info_fn = nullptr;
     };
 }
 
