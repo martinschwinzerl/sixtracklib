@@ -333,7 +333,47 @@ namespace SIXTRL_CXX_NAMESPACE
             string_type const& SIXTRL_RESTRICT_REF device_str,
             str_format_t const device_str_format ) SIXTRL_NOEXCEPT;
     };
-}
+} /* ns: SIXTRL_CXX_NAMESPACE */
+#endif /* C++, Host */
 
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                   Exported Plugin C-API :: Types                !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+#if !defined( _GPUCODE ) && defined( __cplusplus )
+extern "C" {
+#endif /* C++, Host */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+
+typedef SIXTRL_CXX_NAMESPACE::NodeId NS(BaseNodeId);
+
+#elif !defined( _GPUCODE ) /* C, Host */
+
+struct NS(BaseNodeId);
+
+#endif /* C++ / C, Host */
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                Exported Plugin C-API :: Functions               !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+SIXTRL_BASE_EXPORT_API SIXTRL_HOST_FN NS(BaseNodeId)*
+NS(NodeId_create_undefined)( NS(node_platform_id_t) const platform_id,
+     NS(node_device_id_t) const device_id );
+
+SIXTRL_BASE_EXPORT_API SIXTRL_HOST_FN NS(BaseNodeId)*
+NS(NodeId_create_undefined_from_str)( char const* SIXTRL_RESTRICT config_str );
+
+SIXTRL_BASE_EXPORT_API SIXTRL_HOST_FN NS(BaseNodeId)*
+NS(NodeId_create_undefined_from_str_detailed)(
+    char const* SIXTRL_RESTRICT config_str,
+    NS(node_id_str_fmt_t) const node_id_str_fmt );
+
+SIXTRL_BASE_EXPORT_API SIXTRL_HOST_FN void NS(NodeId_delete)(
+    NS(BaseNodeId)* SIXTRL_RESTRICT ) SIXTRL_NOEXCEPT;
+
+#if !defined( _GPUCODE ) && defined( __cplusplus )
+}
 #endif /* C++, Host */
 #endif /* SIXTRACKLIB_BASE_NODE_NODE_ID_H__ */
