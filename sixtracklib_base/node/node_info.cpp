@@ -842,6 +842,17 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return status;
     }
+} /* ns: SIXTRL_CXX_NAMESPACE */
+
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                Exported Plugin C-API :: Functions               !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+void NS(NodeInfo_delete)( ::NS(BaseNodeInfo)*
+    SIXTRL_RESTRICT node_info ) SIXTRL_NOEXCEPT
+{
+   delete node_info;
 }
 
 #endif /* C++, Host */
