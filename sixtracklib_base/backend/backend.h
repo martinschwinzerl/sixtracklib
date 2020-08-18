@@ -382,9 +382,13 @@ namespace SIXTRL_CXX_NAMESPACE
         thread_id_type m_main_thread_id = thread_id_type{};
 
         bool m_threads_require_init = false;
-        bool m_main_thread_auto_init = false;
+        bool m_main_thread_auto_init =
+            SIXTRL_CXX_NAMESPACE::DLIB_CONSTRUCTOR_ENABLED;
+
         bool m_threads_require_shutdown = false;
-        bool m_main_thread_auto_shutdown = false;
+
+        bool m_main_thread_auto_shutdown =
+            SIXTRL_CXX_NAMESPACE::DLIB_DESTRUCTOR_ENABLED;
 
         bool m_is_available = false;
         bool m_is_ready = false;
