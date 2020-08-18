@@ -377,7 +377,13 @@ namespace SIXTRL_CXX_NAMESPACE
         string_t const& SIXTRL_RESTRICT_REF backend_str ) :
         st::BaseBackend( backend_id, backend_str ),
         m_node_id_to_node_info_map(), m_node_infos(), m_node_ids(),
-        m_allowed_node_ids()
+        m_allowed_node_ids(),
+        m_create_node_id_fn( &::NS(NodeId_create_undefined) ),
+        m_create_node_id_from_str_fn( &::NS(NodeId_create_undefined_from_str) ),
+        m_create_node_id_from_str_detail_fn(
+            &::NS(NodeId_create_undefined_from_str_detailed) ),
+        m_delete_node_id_fn( &::NS(NodeId_delete) ),
+        m_delete_node_info_fn( &::NS(NodeInfo_delete) )
     {
         this->set_class_variant(
             this->class_variant_flags() |
