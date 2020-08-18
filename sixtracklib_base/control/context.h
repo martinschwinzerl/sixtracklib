@@ -213,19 +213,37 @@ namespace SIXTRL_CXX_NAMESPACE
         std::vector< thread_id_type > m_attached_threads;
         thread_id_type m_owner_thread_id = thread_id_type{};
     };
-}
+} /* ns: SIXTRL_CXX_NAMESPACE */
+#endif /* C++, Host */
 
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                   Exported Plugin C-API :: Types                !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 extern "C" {
+#endif /* C++, Host */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 
 typedef SIXTRL_CXX_NAMESPACE::BaseContext NS(BaseContext);
 typedef SIXTRL_CXX_NAMESPACE::BaseMTShareableContext NS(BaseMTShareableContext);
 
-}
-
-#elif !defined( _GPUCODE ) /* C, Host */
+#elif !defined( _GPUCODE )  /* C, Host */
 
 struct NS(BaseContext);
 struct NS(BaseMTShareableContext);
 
+#endif /* C++ / C & Host */
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                Exported Plugin C-API :: Functions               !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
+SIXTRL_BASE_EXPORT_API SIXTRL_HOST_FN void NS(Context_delete)(
+    NS(BaseContext)* SIXTRL_RESTRICT ctx ) SIXTRL_NOEXCEPT;
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+}
 #endif /* C++, Host */
 #endif /* SIXTRACKLIB_BASE_CONTROL_CONTEXT_H__ */

@@ -533,5 +533,14 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return status;
     }
+} /* ns: SIXTRL_CXX_NAMESPACE */
+
+/* ************************************************************************* */
+
+void NS(Context_delete)(
+    ::NS(BaseContext)* SIXTRL_RESTRICT ctx ) SIXTRL_NOEXCEPT
+{
+    delete ctx;
 }
+
 #endif /* C++, Host */
