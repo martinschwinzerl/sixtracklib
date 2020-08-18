@@ -44,6 +44,9 @@ namespace SIXTRL_CXX_NAMESPACE
         using managed_base_node_info_t = std::unique_ptr< ::NS(BaseNodeInfo),
             void (*)( ::NS(BaseNodeInfo)* ) >;
 
+        using managed_base_node_id_t = std::unique_ptr< ::NS(BaseNodeId),
+            void (*)( ::NS(BaseNodeId)* ) >;
+
         static constexpr be_symbol_id_t SYMBOL_ID_CREATE_NODE_INFO =
             be_symbol_id_t{ 2 };
 
