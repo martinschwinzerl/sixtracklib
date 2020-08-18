@@ -275,18 +275,29 @@ namespace SIXTRL_CXX_NAMESPACE
     BackendsStore* BackendsStore_ptr_global();
 
 } /* ns: SIXTRL_CXX_NAMESPACE */
-
-extern "C" { typedef SIXTRL_CXX_NAMESPACE::BackendsStore NS(BackendsStore); }
-
-#else /* C++, Host */
-
-struct NS(BackendsStore);
-
 #endif /* C++, Host */
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                   Exported Plugin C-API :: Types                !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 extern "C" {
 #endif /* C++, Host */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+
+typedef SIXTRL_CXX_NAMESPACE::BackendsStore NS(BackendsStore);
+
+#elif !defined( _GPUCODE ) /* C, Host */
+
+struct NS(BackendsStore);
+
+#endif /* C / C++, Host */
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!               Exported Plugin C-API :: Functions                !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
 SIXTRL_BASE_EXPORT_API SIXTRL_HOST_FN
 NS(BackendsStore) const* NS(BackendsStore_ptr_const_global)( void );
