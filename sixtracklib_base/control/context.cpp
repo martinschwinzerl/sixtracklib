@@ -172,16 +172,12 @@ namespace SIXTRL_CXX_NAMESPACE
             rhs.m_ptr_base_backend = nullptr;
         }
 
-    thread_id_t mt_ctx_t::owner_thread() const {
-        guard_t const lock( this->base_backend().create_lock() );
-        return this->owner_thread( lock );
+        return *this;
     }
 
-    thread_id_t mt_ctx_t::owner_thread( guard_t const& SIXTRL_RESTRICT_REF
-        lock ) const SIXTRL_NOEXCEPT
+    void base_ctx_t::update_is_active( bool const is_active_flag )
     {
-        return ( this->base_backend().is_locked( lock ) )
-            ? this->m_owner_thread_id : thread_id_t{};
+        this->m_is_active.store( is_active_flag );
     }
 
     /* ********************************************************************* */
