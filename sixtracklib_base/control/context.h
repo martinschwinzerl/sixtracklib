@@ -209,7 +209,10 @@ typedef SIXTRL_CXX_NAMESPACE::BaseMTShareableContext NS(BaseMTShareableContext);
 #elif !defined( _GPUCODE )  /* C, Host */
 
 struct NS(BaseContext);
+typedef struct NS(BaseContext) NS(BaseContext);
+
 struct NS(BaseMTShareableContext);
+typedef sturct NS(BaseMTShareableContext) NS(BaseMTShareableContext);
 
 #endif /* C++ / C & Host */
 
