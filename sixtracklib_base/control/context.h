@@ -10,6 +10,7 @@
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
     #if defined( __cplusplus )
+        #include <atomic>
         #include <memory>
         #include <string>
         #include <thread>
@@ -57,6 +58,10 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN base_backend_t const&
             base_backend() const SIXTRL_NOEXCEPT;
 
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_HOST_FN bool is_active() const;
+
         protected:
 
         SIXTRL_HOST_FN explicit BaseContext(
@@ -65,18 +70,18 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN explicit BaseContext(
             backend_id_t const backend_id );
 
-        SIXTRL_HOST_FN BaseContext( BaseContext const& ) = default;
-        SIXTRL_HOST_FN BaseContext( BaseContext&& ) = default;
+        SIXTRL_HOST_FN BaseContext( BaseContext const& );
+        SIXTRL_HOST_FN BaseContext( BaseContext&& );
 
-        SIXTRL_HOST_FN BaseContext& operator=( BaseContext const& ) = default;
-        SIXTRL_HOST_FN BaseContext& operator=( BaseContext&& ) = default;
+        SIXTRL_HOST_FN BaseContext& operator=( BaseContext const& );
+        SIXTRL_HOST_FN BaseContext& operator=( BaseContext&& );
+
+        SIXTRL_HOST_FN void update_is_active( bool const is_active_flag );
 
         private:
 
+        std::atomic< bool > m_is_active;
         base_backend_t* m_ptr_base_backend;
-
-        protected:
-        bool m_is_active;
     };
 
     /* ===================================================================== */

@@ -70,6 +70,13 @@ namespace SIXTRL_CXX_NAMESPACE
         return *this->m_ptr_base_backend;
     }
 
+    bool base_ctx_t::is_active() const
+    {
+        return this->m_is_active.load();
+    }
+
+    /* --------------------------------------------------------------------- */
+
     base_ctx_t::BaseContext(
         base_ctx_t::base_backend_t& SIXTRL_RESTRICT backend ) :
         st::BaseBackendObj( backend.backend_id(), st::CLASS_ID_CONTEXT ),
@@ -92,6 +99,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_ASSERT( backend.is_available() );
         this->m_ptr_base_backend = &backend;
+        this->m_is_active.store( false );
     }
 
     base_ctx_t::BaseContext( base_ctx_t::backend_id_t const backend_id ) :
@@ -126,27 +134,43 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_ASSERT( backend->is_available() );
         this->m_ptr_base_backend = backend;
+        this->m_is_active.store( false );
     }
 
-    /* ********************************************************************* */
-    /* *******               BaseMTShareableContext                   ****** */
-    /* ********************************************************************* */
-
-
-
-    bool mt_ctx_t::has_owner_thread() const {
-        guard_t const lock( this->base_backend().create_lock() );
-        return this->has_owner_thread( lock );
-    }
-
-    bool mt_ctx_t::has_owner_thread(
-        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+    base_ctx_t::BaseContext( BaseContext const& other ) :
+        m_ptr_base_backend( other.m_ptr_base_backend )
     {
-        return ( ( this->base_backend().is_locked( lock ) ) &&
-                 ( this->m_owner_thread_id != thread_id_t{} ) );
+        this->m_is_active.store( other.m_is_active.load() );
     }
 
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    base_ctx_t::BaseContext( BaseContext&& other ) :
+        m_is_active( other.m_is_active.load() ),
+        m_ptr_base_backend( std::move( other.m_ptr_base_backend ) )
+    {
+        other.m_is_active.store( false );
+        other.m_ptr_base_backend = nullptr;
+    }
+
+    base_ctx_t& base_ctx_t::operator=( BaseContext const& rhs )
+    {
+        if( &rhs != this )
+        {
+            this->m_ptr_base_backend = rhs.m_ptr_base_backend;
+            this->m_is_active.store( rhs.m_is_active.load() );
+        }
+
+        return *this;
+    }
+
+    base_ctx_t& base_ctx_t::operator=( BaseContext&& rhs )
+    {
+        if( &rhs != this )
+        {
+            this->m_ptr_base_backend = std::move( rhs.m_ptr_base_backend );
+            this->m_is_active.store( rhs.m_is_active.load() );
+            rhs.m_is_active.store( false );
+            rhs.m_ptr_base_backend = nullptr;
+        }
 
     thread_id_t mt_ctx_t::owner_thread() const {
         guard_t const lock( this->base_backend().create_lock() );
