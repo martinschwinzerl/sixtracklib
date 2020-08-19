@@ -418,14 +418,11 @@ extern "C" {
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 
 typedef SIXTRL_CXX_NAMESPACE::BaseBackend NS(BaseBackend);
-typedef SIXTRL_CXX_NAMESPACE::BaseBackend::thread_id_type
-        NS(backend_thread_id_t);
 
 #elif !defined( _GPUCODE ) /* C, Host */
 
-/* TODO: Enure portability of C NS(backend_thread_id_t) typedef! */
-struct NS(backend_thread_id_t);
 struct NS(BaseBackend);
+typedef struct NS(BaseBackend) NS(BaseBackend);
 
 #endif /* C++ / C & Host */
 #if defined( __cplusplus ) && !defined( _GPUCODE )
