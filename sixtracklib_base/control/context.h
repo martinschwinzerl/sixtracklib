@@ -5,6 +5,7 @@
     #include "sixtracklib_base/control/definitions.h"
     #include "sixtracklib_base/backend/backend.h"
     #include "sixtracklib_base/backend/backend_obj.h"
+    #include "sixtracklib_base/internal/thread_id.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
@@ -85,7 +86,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         public:
 
-        typedef base_backend_t::thread_id_type thread_id_type;
+        typedef SIXTRL_CXX_NAMESPACE::ThreadId thread_id_type;
         typedef base_backend_t::lockable_type lockable_type;
         typedef base_backend_t::guard_type guard_type;
         typedef base_backend_t::size_type size_type;
