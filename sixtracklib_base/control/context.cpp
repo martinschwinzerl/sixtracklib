@@ -184,19 +184,20 @@ namespace SIXTRL_CXX_NAMESPACE
             ? this->m_owner_thread_id : thread_id_t{};
     }
 
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* ********************************************************************* */
+    /* *******               BaseMTShareableContext                   ****** */
+    /* ********************************************************************* */
 
-    bool mt_ctx_t::is_current_thread_owner() const {
+    thread_id_t mt_ctx_t::owned_by() const {
         guard_t const lock( this->base_backend().create_lock() );
-        return this->is_current_thread_owner( lock );
+        return this->owned_by( lock );
     }
 
-    bool mt_ctx_t::is_current_thread_owner(
-        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
+    thread_id_t const& mt_ctx_t::owned_by( guard_t const& SIXTRL_RESTRICT_REF
+        lock ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->base_backend().is_locked( lock ) ) &&
-                 ( this->m_owner_thread_id != thread_id_t{} ) &&
-                 ( this->m_owner_thread_id == std::this_thread::get_id() ) );
+        SIXTRL_ASSERT( this->base_backend().is_locked( lock ) );
+        return this->m_owner_thread_id;
     }
 
     /* --------------------------------------------------------------------- */
@@ -210,7 +211,7 @@ namespace SIXTRL_CXX_NAMESPACE
     st_size_t mt_ctx_t::num_attached_threads(
         guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        st_size_t num_attached_thrds = st_size_t{ 0 };
+        st_size_t num_attached_threads = st_size_t{ 0 };
 
         if( ( this->base_backend().is_ready() ) &&
             ( this->base_backend().is_locked( lock ) ) )
@@ -227,42 +228,31 @@ namespace SIXTRL_CXX_NAMESPACE
 
             SIXTRL_ASSERT( std::all_of( this->m_attached_threads.begin(),
                 this->m_attached_threads.end(),
-                [this, &lock]( mt_ctx_t::thread_id_type const tid ) -> bool {
+                [this, &lock]( thread_id_t const& tid ) -> bool {
                     return this->base_backend().is_associated_with_thread(
-                        tid, lock ); } ) );
+                        tid, lock ); }
+            ) );
 
-            num_attached_thrds = this->m_attached_threads.size();
+            num_attached_threads = this->m_attached_threads.size();
         }
 
-        return num_attached_thrds;
+        return num_attached_threads;
     }
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-    bool mt_ctx_t::is_attached_to_any_thread() const
+    bool mt_ctx_t::is_attached(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid ) const
     {
         guard_t const lock( this->base_backend().create_lock() );
-        return this->is_attached_to_any_thread( lock );
+        return this->is_attached( tid, lock );
     }
 
-    bool mt_ctx_t::is_attached_to_any_thread(
+    bool mt_ctx_t::is_attached(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid,
         guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        return ( this->num_attached_threads( lock ) > st_size_t{ 0 } );
-    }
-
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-    bool mt_ctx_t::is_attached_to_thread( thread_id_t const tid ) const
-    {
-        guard_t const lock( this->base_backend().create_lock() );
-        return this->is_attached_to_thread( tid, lock );
-    }
-
-    bool mt_ctx_t::is_attached_to_thread( thread_id_t const tid,
-        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
-    {
-        bool is_assoc_with_tid = ( tid != thread_id_t{} );
+        bool is_assoc_with_tid = tid.is_legal();
 
         if( ( is_assoc_with_tid ) && ( this->base_backend().is_ready() ) &&
             ( this->base_backend().is_associated_with_thread( tid, lock ) ) )
@@ -293,24 +283,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-    bool mt_ctx_t::is_attached_to_current_thread() const
-    {
-        guard_t const lock( this->base_backend().create_lock() );
-        return this->is_attached_to_thread( std::this_thread::get_id(), lock );
-    }
-
-    bool mt_ctx_t::is_attached_to_current_thread(
-        guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
-    {
-        return this->is_attached_to_thread( std::this_thread::get_id(), lock );
-    }
-
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
     thread_id_t const* mt_ctx_t::attached_thread_ids_begin(
         guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        return ( this->is_attached_to_any_thread( lock ) )
+        return ( this->num_attached_threads( lock ) > st_size_t{ 0 } )
             ? this->m_attached_threads.data() : nullptr;
     }
 
@@ -328,22 +304,24 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-    st_status_t mt_ctx_t::attach_to_thread( thread_id_t const tid )
+    st_status_t mt_ctx_t::attach_thread(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid )
     {
         guard_t lock( this->base_backend().create_lock() );
-        return this->attach_to_thread( tid, lock );
+        return this->attach_thread( tid, lock );
     }
 
-    st_status_t mt_ctx_t::attach_to_thread(
-        thread_id_t const tid, guard_t const& SIXTRL_RESTRICT_REF lock )
+    st_status_t mt_ctx_t::attach_thread(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid,
+        guard_t const& SIXTRL_RESTRICT_REF lock )
     {
         st_status_t status = st::STATUS_GENERAL_FAILURE;
 
         if( ( this->base_backend().is_associated_with_thread( tid, lock ) ) &&
-            ( !this->is_attached_to_thread( tid, lock ) ) )
+            ( !this->is_attached( tid, lock ) ) )
         {
-            SIXTRL_ASSERT( tid != thread_id_t{} );
-            status = this->do_attach_to_thread( tid, lock );
+            SIXTRL_ASSERT( tid.is_legal() );
+            status = this->do_attach_thread( tid, lock );
         }
 
         return status;
@@ -351,128 +329,63 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-    st_status_t mt_ctx_t::attach()
+    st_status_t mt_ctx_t::detach_thread(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid )
     {
         guard_t const lock( this->base_backend().create_lock() );
-        return this->attach_to_thread( std::this_thread::get_id(), lock );
+        return this->detach_thread( tid, lock );
     }
 
-    st_status_t mt_ctx_t::attach( guard_t const& SIXTRL_RESTRICT_REF lock )
-    {
-        return this->attach_to_thread( std::this_thread::get_id(), lock );
-    }
-
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-    st_status_t mt_ctx_t::detach_from_thread( thread_id_t const tid )
-    {
-        guard_t const lock( this->base_backend().create_lock() );
-        return this->detach_from_thread( tid, lock );
-    }
-
-    st_status_t mt_ctx_t::detach_from_thread( thread_id_t const tid,
+    st_status_t mt_ctx_t::detach_thread(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid,
         guard_t const& SIXTRL_RESTRICT_REF lock )
     {
-        st_status_t status = st::STATUS_GENERAL_FAILURE;
-
-        if( this->is_attached_to_thread( tid, lock ) )
-        {
-            status = this->do_detach_from_thread( tid, lock );
-        }
-
-        return status;
-    }
-
-    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-    st_status_t mt_ctx_t::detach()
-    {
-        guard_t const lock( this->base_backend().create_lock() );
-        return this->detach_from_thread( std::this_thread::get_id(), lock );
-    }
-
-    st_status_t mt_ctx_t::detach(
-        guard_t const& SIXTRL_RESTRICT_REF lock )
-    {
-        return this->detach_from_thread( std::this_thread::get_id(), lock );
+        return ( this->is_attached( tid, lock ) )
+            ? this->do_detach_thread( tid, lock ) : st::STATUS_GENERAL_FAILURE;
     }
 
     /* ===================================================================== */
 
     mt_ctx_t::BaseMTShareableContext(
-        mt_ctx_t::base_backend_t& SIXTRL_RESTRICT backend ) :
-        base_ctx_t( backend ), m_attached_threads()
+        mt_ctx_t::base_backend_t& SIXTRL_RESTRICT backend,
+        thread_id_t const& SIXTRL_RESTRICT_REF tid ) :
+        base_ctx_t( backend ), m_attached_threads(), m_owner_thread_id( tid )
     {
-
+        this->set_class_variant(
+            this->class_variant_flags() |
+            base_ctx_t::CTX_VARIANT_MT_SHAREABLE );
     }
 
-    mt_ctx_t::BaseMTShareableContext( mt_ctx_t::backend_id_t const backend_id ) :
-        base_ctx_t( backend_id ), m_attached_threads()
+    mt_ctx_t::BaseMTShareableContext(
+        mt_ctx_t::backend_id_t const backend_id,
+        thread_id_t const& SIXTRL_RESTRICT_REF tid ) :
+        base_ctx_t( backend_id ), m_attached_threads(),
+        m_owner_thread_id( tid )
     {
-
+        this->set_class_variant(
+            this->class_variant_flags() |
+            base_ctx_t::CTX_VARIANT_MT_SHAREABLE );
     }
 
     /* --------------------------------------------------------------------- */
 
-    st_status_t mt_ctx_t::do_attach_to_thread(
-        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock )
-    {
-        return this->do_attach_to_thread_mt_impl( tid, lock );
-    }
-
-    st_status_t mt_ctx_t::do_detach_from_thread(
-        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock )
-    {
-        return this->do_detach_from_thread_mt_impl( tid, lock );
-    }
-
-    st_status_t mt_ctx_t::do_set_owner_thread_id( thread_id_t const tid,
+    st_status_t mt_ctx_t::do_attach_thread(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid,
         guard_t const& SIXTRL_RESTRICT_REF lock )
     {
-        st_status_t status = st::STATUS_GENERAL_FAILURE;
-        thread_id_t const current_owner_thread = this->owner_thread( lock );
-
-        if( ( this->base_backend().is_locked( lock ) ) &&
-            ( ( ( current_owner_thread == thread_id_t{} ) &&
-                ( tid != thread_id_t{} ) &&
-                ( tid == std::this_thread::get_id() ) ) ||
-              ( ( current_owner_thread != thread_id_t{} ) &&
-                ( current_owner_thread == std::this_thread::get_id() ) &&
-                ( tid == thread_id_t{} ) ) ||
-              ( ( current_owner_thread == thread_id_t{} ) &&
-                ( tid == thread_id_t{} ) ) ) )
-        {
-            this->m_owner_thread_id = tid;
-            status = st::STATUS_SUCCESS;
-        }
-
-        if( status == st::STATUS_SUCCESS )
-        {
-            SIXTRL_ASSERT( std::is_sorted( this->m_attached_threads.begin(),
-                this->m_attached_threads.end() ) );
-
-            if( ( tid != thread_id_t{} ) &&
-                ( !std::binary_search( this->m_attached_threads.begin(),
-                    this->m_attached_threads.end(), tid ) ) )
-            {
-                status = this->do_attach_to_thread( tid, lock );
-            }
-            else if( ( tid == thread_id_t{} ) &&
-                     ( current_owner_thread != thread_id_t{} ) &&
-                     ( std::binary_search( this->m_attached_threads.begin(),
-                         this->m_attached_threads.end(),
-                            current_owner_thread ) ) )
-            {
-                status = this->do_detach_from_thread(
-                    current_owner_thread, lock );
-            }
-        }
-
-        return status;
+        return this->do_attach_thread_mt_impl( tid, lock );
     }
 
-    st_status_t mt_ctx_t::do_attach_to_thread_mt_impl(
-        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock )
+    st_status_t mt_ctx_t::do_detach_thread(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid,
+        guard_t const& SIXTRL_RESTRICT_REF lock )
+    {
+        return this->do_detach_thread_mt_impl( tid, lock );
+    }
+
+    st_status_t mt_ctx_t::do_attach_thread_mt_impl(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid,
+        guard_t const& SIXTRL_RESTRICT_REF lock )
     {
         st_status_t status = st::STATUS_GENERAL_FAILURE;
 
@@ -502,20 +415,21 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    st_status_t mt_ctx_t::do_detach_from_thread_mt_impl(
-        thread_id_t tid, guard_t const& SIXTRL_RESTRICT_REF lock )
+    st_status_t mt_ctx_t::do_detach_thread_mt_impl(
+        thread_id_t const& SIXTRL_RESTRICT_REF tid,
+        guard_t const& SIXTRL_RESTRICT_REF lock )
     {
         st_status_t status = st::STATUS_GENERAL_FAILURE;
 
-        if( this->is_attached_to_thread( tid, lock ) )
+        if( this->is_attached( tid, lock ) )
         {
             SIXTRL_ASSERT( this->base_backend().is_ready() );
             SIXTRL_ASSERT( this->base_backend().is_locked( lock ) );
             SIXTRL_ASSERT( this->base_backend().backend_id() ==
                            this->backend_id() );
 
-            SIXTRL_ASSERT( this->base_backend().is_associated_with_thread(
-                tid, lock ) );
+            SIXTRL_ASSERT( this->base_backend(
+                ).is_associated_with_thread( tid, lock ) );
 
             SIXTRL_ASSERT( std::is_sorted(
                 this->m_attached_threads.begin(),
@@ -529,7 +443,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 this->m_attached_threads.begin(),
                 this->m_attached_threads.end(), thread_id_t{} ) );
 
-            SIXTRL_ASSERT( this->is_attached_to_any_thread( lock ) );
+            SIXTRL_ASSERT( this->num_attached_threads( lock ) > st_size_t{ 0 } );
 
             auto range = std::equal_range(
                 this->m_attached_threads.begin(),

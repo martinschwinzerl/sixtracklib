@@ -100,20 +100,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN bool has_owner_thread() const;
-        SIXTRL_HOST_FN bool has_owner_thread(
-            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN thread_id_type owner_thread() const;
-        SIXTRL_HOST_FN thread_id_type owner_thread(
-            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN bool is_current_thread_owner() const;
-        SIXTRL_HOST_FN bool is_current_thread_owner(
+        SIXTRL_HOST_FN thread_id_type owned_by() const;
+        SIXTRL_HOST_FN thread_id_type const& owned_by(
             guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
@@ -124,23 +112,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN bool is_attached_to_any_thread() const;
-        SIXTRL_HOST_FN bool is_attached_to_any_thread(
-            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN bool is_attached(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid ) const;
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN bool is_attached_to_thread(
-            thread_id_type const tid ) const;
-
-        SIXTRL_HOST_FN bool is_attached_to_thread( thread_id_type const tid,
-            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN bool is_attached_to_current_thread() const;
-
-        SIXTRL_HOST_FN bool is_attached_to_current_thread(
+        SIXTRL_HOST_FN bool is_attached(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
             guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -153,38 +129,31 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN status_type attach_to_thread( thread_id_type const tid );
-        SIXTRL_HOST_FN status_type attach_to_thread( thread_id_type const tid,
+        SIXTRL_HOST_FN status_type attach_thread(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid );
+
+        SIXTRL_HOST_FN status_type attach_thread(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
             guard_type const& SIXTRL_RESTRICT_REF lock );
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN status_type attach();
-        SIXTRL_HOST_FN status_type attach(
-            guard_type const& SIXTRL_RESTRICT_REF lock );
+        SIXTRL_HOST_FN status_type detach_thread(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid );
 
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN status_type detach_from_thread(
-            thread_id_type const tid );
-
-        SIXTRL_HOST_FN status_type detach_from_thread(
-            thread_id_type const tid,
-            guard_type const& SIXTRL_RESTRICT_REF lock );
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN status_type detach();
-        SIXTRL_HOST_FN status_type detach(
+        SIXTRL_HOST_FN status_type detach_thread(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
             guard_type const& SIXTRL_RESTRICT_REF lock );
 
         protected:
 
         SIXTRL_HOST_FN explicit BaseMTShareableContext(
-            base_backend_t& SIXTRL_RESTRICT backend );
+            base_backend_t& SIXTRL_RESTRICT backend,
+            thread_id_type const& SIXTRL_RESTRICT_REF tid = thread_id_type{} );
 
         SIXTRL_HOST_FN explicit BaseMTShareableContext(
-            backend_id_t const backend_id );
+            backend_id_t const backend_id,
+            thread_id_type const& SIXTRL_RESTRICT_REF tid = thread_id_type{} );
 
         SIXTRL_HOST_FN BaseMTShareableContext(
             BaseMTShareableContext const& ) = delete;
@@ -200,25 +169,26 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN virtual status_t do_attach_to_thread(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+        SIXTRL_HOST_FN virtual status_t do_attach_thread(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
-        SIXTRL_HOST_FN virtual status_t do_detach_from_thread(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
-
-        SIXTRL_HOST_FN virtual status_t do_set_owner_thread_id(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+        SIXTRL_HOST_FN virtual status_t do_detach_thread(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         private:
 
-        SIXTRL_HOST_FN status_t do_attach_to_thread_mt_impl(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+        SIXTRL_HOST_FN status_t do_attach_thread_mt_impl(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
-        SIXTRL_HOST_FN status_t do_detach_from_thread_mt_impl(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+        SIXTRL_HOST_FN status_t do_detach_thread_mt_impl(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         std::vector< thread_id_type > m_attached_threads;
-        thread_id_type m_owner_thread_id = thread_id_type{};
+        thread_id_type m_owner_thread_id;
     };
 } /* ns: SIXTRL_CXX_NAMESPACE */
 #endif /* C++, Host */
