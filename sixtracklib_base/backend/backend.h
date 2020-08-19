@@ -6,6 +6,8 @@
     #include "sixtracklib_base/backend/backend_obj.h"
     #include "sixtracklib_base/backend/dlib_loader.h"
     #include "sixtracklib_base/internal/compiler_attributes.h"
+    #include "sixtracklib_base/internal/thread_id.h"
+    #include "sixtracklib_base/internal/thread_lock.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
@@ -14,12 +16,10 @@
         #include <cstdlib>
         #include <istream>
         #include <memory>
-        #include <mutex>
         #include <ostream>
         #include <vector>
         #include <sstream>
         #include <string>
-        #include <thread>
         #include <unordered_map>
     #else /* C */
         #include <pthread.h>
@@ -64,9 +64,9 @@ namespace SIXTRL_CXX_NAMESPACE
         using dlib_loader_t = std::shared_ptr<
             SIXTRL_CXX_NAMESPACE::BaseDynLibLoader >;
 
-        using thread_id_type = std::thread::id;
-        using lockable_type  = std::mutex;
-        using guard_type     = std::unique_lock< lockable_type >;
+        using thread_id_type = SIXTRL_CXX_NAMESPACE::ThreadId;
+        using lockable_type  = SIXTRL_CXX_NAMESPACE::ThreadLockable;
+        using guard_type     = SIXTRL_CXX_NAMESPACE::ThreadUniqueLock;
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -178,10 +178,11 @@ namespace SIXTRL_CXX_NAMESPACE
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
         SIXTRL_HOST_FN bool is_associated_with_thread(
-            thread_id_type id ) const;
+            thread_id_type const& SIXTRL_RESTRICT_REF tid ) const;
 
         SIXTRL_HOST_FN bool is_associated_with_thread(
-            thread_id_type id, guard_type const& lock ) const SIXTRL_NOEXCEPT;
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -196,7 +197,7 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN thread_id_type main_thread_id() const;
         SIXTRL_HOST_FN bool current_thread_is_main() const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN thread_id_type main_thread_id(
+        SIXTRL_HOST_FN thread_id_type const& main_thread_id(
             guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN bool current_thread_is_main(
@@ -204,9 +205,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN status_t associate_with_thread( thread_id_type tid );
         SIXTRL_HOST_FN status_t associate_with_thread(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+            thread_id_type const& SIXTRL_RESTRICT_REF tid );
+
+        SIXTRL_HOST_FN status_t associate_with_thread(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -216,9 +220,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        SIXTRL_HOST_FN status_t disassociate_from_thread( thread_id_type tid );
         SIXTRL_HOST_FN status_t disassociate_from_thread(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+            thread_id_type const& SIXTRL_RESTRICT_REF tid );
+        SIXTRL_HOST_FN status_t disassociate_from_thread(
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -325,10 +331,12 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN virtual status_t do_make_ready();
 
         SIXTRL_HOST_FN virtual status_t do_associate_with_thread(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         SIXTRL_HOST_FN virtual status_t do_disassociate_with_thread(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         SIXTRL_HOST_FN status_t set_backend_string(
             string_type const& SIXTRL_RESTRICT_REF backend_str );
@@ -336,7 +344,7 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN bool check_is_base_backend_ready() const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN status_t set_main_thread_id(
-            thread_id_type new_main_thread_id,
+            thread_id_type const& SIXTRL_RESTRICT_REF new_main_thread_id,
             guard_type const& SIXTRL_RESTRICT_REF lock ) SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN void update_is_available_flag(
@@ -360,10 +368,12 @@ namespace SIXTRL_CXX_NAMESPACE
         private:
 
         SIXTRL_HOST_FN status_t do_associate_with_thread_base_impl(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         SIXTRL_HOST_FN status_t do_disassociate_with_thread_base_impl(
-            thread_id_type tid, guard_type const& SIXTRL_RESTRICT_REF lock );
+            thread_id_type const& SIXTRL_RESTRICT_REF tid,
+            guard_type const& SIXTRL_RESTRICT_REF lock );
 
         symid_to_symbol_name_map_t m_symbol_id_to_symbol_name_map;
 
@@ -371,7 +381,6 @@ namespace SIXTRL_CXX_NAMESPACE
         associated_thread_ids_type m_associated_threads;
 
         dlib_loader_t m_dlib_loader = dlib_loader_t{ nullptr };
-
         mutable lockable_type m_lockable;
 
         protected:
