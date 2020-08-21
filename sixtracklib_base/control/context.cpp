@@ -217,7 +217,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
             SIXTRL_ASSERT( !std::binary_search(
                 this->m_attached_threads.begin(),
-                this->m_attached_threads.end(), thread_id_t{} ) );
+                this->m_attached_threads.end(),
+                thread_id_t::ILLEGAL_TYPE() ) );
 
             SIXTRL_ASSERT( this->m_attached_threads.size() <=
                 this->base_backend().num_associated_threads( lock ) );
@@ -258,7 +259,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
             SIXTRL_ASSERT( !std::binary_search(
                 this->m_attached_threads.begin(),
-                this->m_attached_threads.end(), thread_id_t{} ) );
+                this->m_attached_threads.end(),
+                thread_id_t::ILLEGAL_TYPE() ) );
 
             SIXTRL_ASSERT( this->m_attached_threads.size() <=
                 this->base_backend().num_associated_threads( lock ) );
@@ -350,6 +352,8 @@ namespace SIXTRL_CXX_NAMESPACE
         this->set_class_variant(
             this->class_variant_flags() |
             base_ctx_t::CTX_VARIANT_MT_SHAREABLE );
+
+        if( tid.is_legal() ) this->m_attached_threads.push_back( tid );
     }
 
     mt_ctx_t::BaseMTShareableContext(
@@ -361,6 +365,8 @@ namespace SIXTRL_CXX_NAMESPACE
         this->set_class_variant(
             this->class_variant_flags() |
             base_ctx_t::CTX_VARIANT_MT_SHAREABLE );
+
+        if( tid.is_legal() ) this->m_attached_threads.push_back( tid );
     }
 
     /* --------------------------------------------------------------------- */
@@ -399,7 +405,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
             SIXTRL_ASSERT( !std::binary_search(
                 this->m_attached_threads.begin(),
-                this->m_attached_threads.end(), thread_id_t{} ) );
+                this->m_attached_threads.end(),
+                thread_id_t::ILLEGAL_TYPE() ) );
 
             this->m_attached_threads.push_back( tid );
             std::sort( this->m_attached_threads.begin(),
@@ -437,7 +444,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
             SIXTRL_ASSERT( !std::binary_search(
                 this->m_attached_threads.begin(),
-                this->m_attached_threads.end(), thread_id_t{} ) );
+                this->m_attached_threads.end(),
+                thread_id_t::ILLEGAL_TYPE() ) );
 
             SIXTRL_ASSERT( this->num_attached_threads( lock ) > st_size_t{ 0 } );
 
@@ -460,7 +468,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
             SIXTRL_ASSERT( !std::binary_search(
                 this->m_attached_threads.begin(),
-                this->m_attached_threads.end(), thread_id_t{} ) );
+                this->m_attached_threads.end(),
+                thread_id_t::ILLEGAL_TYPE() ) );
 
             status = st::STATUS_SUCCESS;
         }
