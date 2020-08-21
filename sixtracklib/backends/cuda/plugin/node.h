@@ -123,6 +123,18 @@ namespace SIXTRL_CXX_NAMESPACE
         ::CUdevice m_handle;
     };
 
+    SIXTRL_STATIC SIXTRL_HOST_FN bool NodeId_is_cuda_node_id(
+        const SIXTRL_CXX_NAMESPACE::NodeId *const SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT;
+
+    SIXTRL_STATIC SIXTRL_HOST_FN CudaNodeId const* CudaNodeId_get(
+        const SIXTRL_CXX_NAMESPACE::NodeId *const SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT;
+
+    SIXTRL_STATIC SIXTRL_HOST_FN CudaNodeId* CudaNodeId_get(
+        SIXTRL_CXX_NAMESPACE::NodeId* SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT;
+
     /* ********************************************************************* */
     /* ********                     CudaNodeInfo                    ******** */
     /* ********************************************************************* */
@@ -380,15 +392,71 @@ namespace SIXTRL_CXX_NAMESPACE
         bool m_supports_direct_managed_mem_accesss_from_host = false;
         bool m_can_use_host_ptr_for_registered_mem = false;
     };
-}
 
-extern "C" { typedef SIXTRL_CXX_NAMESPACE::CudaNodeInfo NS(CudaNodeInfo); }
+    SIXTRL_STATIC SIXTRL_HOST_FN bool NodeInfo_is_cuda_node_info(
+        const SIXTRL_CXX_NAMESPACE::BaseNodeInfo *const SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT;
 
-#elif !defined( _GPUCODE )
+    SIXTRL_STATIC SIXTRL_HOST_FN CudaNodeInfo const* CudaNodeInfo_get(
+        const SIXTRL_CXX_NAMESPACE::BaseNodeInfo *const SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT;
 
-struct NS(CudaNodeInfo);
+    SIXTRL_STATIC SIXTRL_HOST_FN CudaNodeInfo* CudaNodeInfo_get(
+        SIXTRL_CXX_NAMESPACE::BaseNodeInfo* SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT;
 
-#endif /* C++ */
+} /* ns: SIXTRL_CXX_NAMESPACE */
+
+
+namespace SIXTRL_CXX_NAMESPACE
+{
+    SIXTRL_INLINE bool NodeId_is_cuda_node_id( const
+        SIXTRL_CXX_NAMESPACE::NodeId *const
+            SIXTRL_RESTRICT ptr_base ) SIXTRL_NOEXCEPT {
+        return (  ( ptr_base != nullptr ) && ( ptr_base->backend_id() ==
+            SIXTRL_CXX_NAMESPACE::BACKEND_CUDA ) ); }
+
+    SIXTRL_INLINE CudaNodeId const* CudaNodeId_get(
+        const SIXTRL_CXX_NAMESPACE::NodeId *const SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        return ( st::NodeId_is_cuda_node_id( ptr_base ) )
+            ? static_cast< st::CudaNodeId const* >( ptr_base ) : nullptr; }
+
+    SIXTRL_INLINE CudaNodeId* CudaNodeId_get(
+        SIXTRL_CXX_NAMESPACE::NodeId* SIXTRL_RESTRICT ptr_base ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        return ( st::NodeId_is_cuda_node_id( ptr_base ) )
+            ? static_cast< st::CudaNodeId* >( ptr_base ) : nullptr; }
+
+    /* --------------------------------------------------------------------- */
+
+    SIXTRL_INLINE bool NodeInfo_is_cuda_node_info(
+        const SIXTRL_CXX_NAMESPACE::BaseNodeInfo *const SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT {
+        return ( ( ptr_base != nullptr ) && ( ptr_base->backend_id() ==
+            SIXTRL_CXX_NAMESPACE::BACKEND_CUDA ) ); }
+
+    SIXTRL_INLINE CudaNodeInfo const* CudaNodeInfo_get(
+        const SIXTRL_CXX_NAMESPACE::BaseNodeInfo *const SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        return ( st::NodeInfo_is_cuda_node_info( ptr_base ) )
+            ? static_cast< st::CudaNodeInfo const* >( ptr_base ) : nullptr;
+    }
+
+    SIXTRL_INLINE CudaNodeInfo* CudaNodeInfo_get(
+        SIXTRL_CXX_NAMESPACE::BaseNodeInfo* SIXTRL_RESTRICT
+            ptr_base ) SIXTRL_NOEXCEPT {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        return ( st::NodeInfo_is_cuda_node_info( ptr_base ) )
+            ? static_cast< st::CudaNodeInfo* >( ptr_base ) : nullptr;
+    }
+
+} /* ns: SIXTRL_CXX_NAMESPACE */
+#endif /* C++, Host */
+#endif /* SIXTRACKL_ENABLE_BACKEND_CUDA */
 
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 extern "C" {
