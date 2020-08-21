@@ -14,6 +14,9 @@
     #endif /* C++ */
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
+#if  defined( SIXTRACKL_ENABLE_BACKEND_CUDA ) && \
+            ( SIXTRACKL_ENABLE_BACKEND_CUDA == 1 )
+
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 namespace SIXTRL_CXX_NAMESPACE
 {
@@ -133,7 +136,6 @@ namespace SIXTRL_CXX_NAMESPACE
             }
         }
     }
-
 
     node_id_t::CudaNodeId( ::NS(NodeId) const& SIXTRL_RESTRICT_REF node_id ) :
         st::NodeId( st::BACKEND_CUDA ),
@@ -1467,8 +1469,10 @@ namespace SIXTRL_CXX_NAMESPACE
         #endif /* CUDART_VERSION suitable */
         return status;
     }
-
 } /* ns: SIXTRL_CXX_NAMESPACE */
+#endif /* SIXTRACKL_ENABLE_BACKEND_CUDA */
+
+#if defined( SIXTRL_CUDA_PLUGIN_BUILT ) && ( SIXTRL_CUDA_PLUGIN_BUILT == 1 )
 
 ::NS(size_t) NS(Cuda_num_all_nodes)( void )
 {
@@ -1483,16 +1487,159 @@ namespace SIXTRL_CXX_NAMESPACE
         node_ids_begin, max_num_node_ids );
 }
 
-::NS(CudaNodeInfo)* NS(CudaNodeInfo_create)(
+::NS(BaseNodeId)* NS(CudaNodeId_create)(
+    ::NS(node_platform_id_t) const platform_id,
+    ::NS(node_device_id_t) const device_id )
+{
+    return new SIXTRL_CXX_NAMESPACE::CudaNodeId( platform_id, device_id );
+}
+
+::NS(BaseNodeId)* NS(CudaNodeId_create_from_device_handle)(
+    ::NS(cuda_device_handle_type) const cuda_dev_handle )
+{
+    namespace st = SIXTRL_CXX_NAMESPACE;
+    std::unique_ptr< ::NS(BaseNodeId) > temp{ nullptr };
+
+    if( cuda_dev_handle != st::CudaNodeId::ILLEGAL_CUDA_DEVICE_HANDLE )
+    {
+        temp.reset( new st::CudaNodeId( cuda_dev_handle ) );
+
+        if( ( temp.get() != nullptr ) &&
+            ( ( temp->platform_id() != st::BACKEND_CUDA ) ||
+              ( !temp->is_legal() ) ||
+              ( st::CudaNodeId_get( temp.get() )->device_handle() !=
+                st::CudaNodeId::ILLEGAL_CUDA_DEVICE_HANDLE ) ) )
+        {
+            temp.reset();
+        }
+    }
+
+    return temp.release();
+}
+
+::NS(BaseNodeId)* NS(CudaNodeId_create_from_string)(
+    char const* SIXTRL_RESTRICT node_id_str )
+{
+    namespace st = SIXTRL_CXX_NAMESPACE;
+    std::unique_ptr< ::NS(BaseNodeId) > temp{ nullptr };
+
+    if( ( node_id_str != nullptr ) &&
+        ( std::strlen( node_id_str ) > st_size_t{ 0 } ) )
+    {
+        temp.reset( new SIXTRL_CXX_NAMESPACE::CudaNodeId( node_id_str ) );
+
+        if( ( temp.get() != nullptr ) &&
+            ( ( temp->backend_id() != st::BACKEND_CUDA ) ||
+              ( !temp->is_legal() ) ) )
+        {
+            temp.reset();
+        }
+    }
+
+    return temp.release();
+}
+
+::NS(BaseNodeId)* NS(CudaNodeId_create_from_string_detailed)(
+    char const* SIXTRL_RESTRICT node_id_str,
+    ::NS(node_id_str_fmt_t) const format )
+{
+    namespace st = SIXTRL_CXX_NAMESPACE;
+    std::unique_ptr< ::NS(CudaNodeId) > temp{ nullptr };
+
+    if( ( node_id_str != nullptr ) &&
+        ( std::strlen( node_id_str ) > st_size_t{ 0 } ) )
+    {
+        temp.reset( new st::CudaNodeId( node_id_str, format ) );
+
+        if( ( temp.get() != nullptr ) &&
+            ( ( temp->backend_id() != st::BACKEND_CUDA ) ||
+              ( !temp->is_legal() ) ) )
+        {
+            temp.reset();
+        }
+    }
+
+    return temp.release();
+}
+
+::NS(cuda_device_handle_type) NS(CudaNodeId_device_handle)(
+    const ::NS(BaseNodeId) *const SIXTRL_RESTRICT node_id ) SIXTRL_NOEXCEPT
+{
+    namespace st = SIXTRL_CXX_NAMESPACE;
+    st::CudaNodeId const* cuda_node_id = st::CudaNodeId_get( node_id );
+
+    return ( cuda_node_id != nullptr )
+        ? cuda_node_id->device_handle()
+        : st::CudaNodeId::ILLEGAL_CUDA_DEVICE_HANDLE;
+}
+
+::NS(status_t) NS(CudaNodeId_set_device_handle)(
+    ::NS(BaseNodeId)* SIXTRL_RESTRICT node_id,
+    ::NS(cuda_device_handle_type) const device_handle )
+{
+    namespace st = SIXTRL_CXX_NAMESPACE;
+    st::CudaNodeId* cuda_node_id = st::CudaNodeId_get( node_id );
+
+    return ( cuda_node_id != nullptr )
+        ? cuda_node_id->set_device_handle( device_handle )
+        : st::STATUS_GENERAL_FAILURE;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+::NS(BaseNodeInfo)* NS(CudaNodeInfo_create)(
     ::NS(node_platform_id_t) const platform_id,
     ::NS(node_device_id_t) const device_id )
 {
     return new SIXTRL_CXX_NAMESPACE::CudaNodeInfo( platform_id, device_id );
 }
 
-void NS(CudaNodeInfo_delete)( ::NS(CudaNodeInfo)* SIXTRL_RESTRICT node_info )
+#else /* !SIXTRL_CUDA_PLUGIN_BUILT */
+
+::NS(size_t) NS(Cuda_num_all_nodes)( void )
 {
-    delete node_info;
+    return ::NS(size_t){ 0 };
 }
 
+::NS(size_t) NS(Cuda_all_node_ids)(
+    ::NS(NodeId)* SIXTRL_RESTRICT SIXTRL_UNUSED( node_ids_begin ),
+    ::NS(size_t) const SIXTRL_UNUSED( max_num_node_ids ) )
+{
+    return ::NS(size_t){ 0 };
+}
+
+::NS(BaseNodeId)* NS(CudaNodeId_create)(
+    ::NS(node_platform_id_t) const SIXTRL_UNUSED( platform_id ),
+    ::NS(node_device_id_t) const SIXTRL_UNUSED( device_id ) )
+{
+    return nullptr;
+}
+
+::NS(BaseNodeId)* NS(CudaNodeId_create_from_device_handle)(
+    ::NS(cuda_device_handle_type) const SIXTRL_UNUSED( cuda_dev_handle ) )
+{
+    return nullptr;
+}
+
+::NS(BaseNodeId)* NS(CudaNodeId_create_from_string)(
+    char const* SIXTRL_RESTRICT SIXTRL_UNUSED( node_id_str ) )
+{
+    return nullptr;
+}
+
+::NS(BaseNodeId)* NS(CudaNodeId_create_from_string_detailed)(
+    char const* SIXTRL_RESTRICT SIXTRL_UNUSED( node_id_str ),
+    ::NS(node_id_str_fmt_t) const SIXTRL_UNUSED( format ) )
+{
+    return nullptr;
+}
+
+::NS(BaseNodeInfo)* NS(CudaNodeInfo_create)(
+    ::NS(node_platform_id_t) const SIXTRL_UNUSED( platform_id ),
+    ::NS(node_device_id_t) const SIXTRL_UNUSED( device_id ) )
+{
+    return nullptr;
+}
+
+#endif /* SIXTRL_CUDA_PLUGIN_BUILT */
 #endif /* !defined( _GPUCODE ) && defined( __cplusplus ) */

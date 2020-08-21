@@ -458,9 +458,45 @@ namespace SIXTRL_CXX_NAMESPACE
 #endif /* C++, Host */
 #endif /* SIXTRACKL_ENABLE_BACKEND_CUDA */
 
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                   Exported Plugin C-API :: Types                !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 extern "C" {
 #endif /* C++, Host */
+
+#if defined( SIXTRL_CUDA_PLUGIN_BUILT ) && ( SIXTRL_CUDA_PLUGIN_BUILT == 1 )
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+
+typedef SIXTRL_CXX_NAMESPACE::CudaNodeId NS(CudaNodeId);
+typedef SIXTRL_CXX_NAMESPACE::CudaNodeId::device_handle_type
+        NS(cuda_device_handle_type);
+
+typedef SIXTRL_CXX_NAMESPACE::CudaNodeInfo NS(CudaNodeInfo);
+
+#elif !defined( _GPUCODE ) /* C, Host */
+
+struct NS(CudaNodeId);
+typedef struct NS(CudaNodeId) NS(CudaNodeId);
+typedef int NS(cuda_device_handle_type);
+
+struct NS(CudaNodeInfo);
+typedef struct NS(CudaNodeInfo) NS(CudaNodeInfo);
+
+#endif /* C++ / C, Host */
+#else /* NOT SIXTRACKL_ENABLE_BACKEND_CUDA */
+
+typedef void NS(CudaNodeId);
+typedef int NS(cuda_device_handle_type);
+
+typedef void NS(CudaNodeInfo);
+
+#endif /* SIXTRACKL_ENABLE_BACKEND_CUDA */
+
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!                Exported Plugin C-API :: Functions               !!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
 SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(size_t) NS(Cuda_num_all_nodes)( void );
 
@@ -468,15 +504,37 @@ SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(size_t) NS(Cuda_all_node_ids)(
     NS(NodeId)* SIXTRL_RESTRICT node_ids_begin,
     NS(size_t) const max_num_node_ids );
 
-SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(CudaNodeInfo)*
+SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(BaseNodeId)*
+NS(CudaNodeId_create_from_device_handle)(
+    NS(cuda_device_handle_type) const device_handle );
+
+SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(BaseNodeId)* NS(CudaNodeId_create)(
+    NS(node_platform_id_t) const platform_id,
+    NS(node_device_id_t) const device_id );
+
+SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(BaseNodeId)*
+NS(CudaNodeId_create_from_string)( char const* SIXTRL_RESTRICT node_id_str );
+
+SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(BaseNodeId)*
+NS(CudaNodeId_create_from_string_detailed)(
+    char const* SIXTRL_RESTRICT node_id_str,
+    NS(node_id_str_fmt_t) const format );
+
+SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(cuda_device_handle_type)
+NS(CudaNodeId_device_handle)( const NS(BaseNodeId) *const
+    SIXTRL_RESTRICT node_id ) SIXTRL_NOEXCEPT;
+
+SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(status_t) NS(CudaNodeId_set_device_handle)(
+    NS(BaseNodeId)* SIXTRL_RESTRICT node_id,
+    NS(cuda_device_handle_type) const device_handle );
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_EXPORT_API SIXTRL_HOST_FN NS(BaseNodeInfo)*
 NS(CudaNodeInfo_create)( NS(node_platform_id_t) const platform_id,
                          NS(node_device_id_t) const device_id );
-
-SIXTRL_EXPORT_API SIXTRL_HOST_FN void NS(CudaNodeInfo_delete)(
-    NS(CudaNodeInfo)* SIXTRL_RESTRICT node_info );
 
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 }
 #endif /* C++, Host */
-
 #endif /* SIXTRACKLIB_BACKENDS_CUDA_PLUGIN_NODE_H__ */
