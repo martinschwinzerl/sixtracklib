@@ -4,29 +4,36 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/backends/cuda/definitions.h"
     #include "sixtracklib/backends/cuda/dlib.h"
-#endif /* C++ */
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
-    #include <cuda.h>
+    #if defined( SIXTRACKL_ENABLE_BACKEND_CUDA ) && \
+        ( SIXTRACKL_ENABLE_BACKEND_CUDA == 1 )
+        #include <cuda.h>
+    #endif /* cuda backend enabled */
+
     #if defined( __cplusplus )
+        #include <iostream>
         #include <ostream>
         #include <sstream>
         #include <stdexcept>
     #endif /* defined( __cplusplus ) */
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
+#if defined( SIXTRACKL_ENABLE_BACKEND_CUDA ) && \
+    ( SIXTRACKL_ENABLE_BACKEND_CUDA == 1 ) && \
+    defined( SIXTRL_CUDA_PLUGIN_BUILT )
+
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 extern "C" {
 #endif /* C++, Host */
 
 #if !defined( _GPUCODE )
-
 SIXTRL_STATIC SIXTRL_HOST_FN void NS(Cuda_init_thread)(
     unsigned int const flags );
 
 SIXTRL_STATIC SIXTRL_HOST_FN NS(status_t) NS(Cuda_curesult_to_status)(
     CUresult const result ) SIXTRL_NOEXCEPT;
-
 #endif /* _GPUCODE */
 
 #if !defined( _GPUCODE ) && defined( __cplusplus )
@@ -158,4 +165,5 @@ namespace SIXTRL_CXX_NAMESPACE
 }
 #endif /* C++ */
 
+#endif /* SIXTRACKLIB_ENABLE_BACKEND_CUDA */
 #endif /* SIXTRACKLIB_BACKENDS_CUDA_PLUGIN_CUDA_TOOLS_H__ */
