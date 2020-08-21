@@ -1,7 +1,7 @@
 if( NOT SETUP_CUDA_NVRTC_FINISHED )
     set( SETUP_CUDA_NVRTC_FINISHED 1 )
 
-    if( SIXTRACKL_ENABLE_CUDA_NVRTC )
+    if( SIXTRACKL_ENABLE_CUDA )
         if( NOT CUDAToolkit_FOUND )
             if( CMAKE_VERSION VERSION_LESS "3.17" )
                 message( FATAL_ERROR "Currently, cmake >= 3.17 is required for "
