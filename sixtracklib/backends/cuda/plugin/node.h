@@ -3,17 +3,25 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/backends/cuda/definitions.h"
+    #include "sixtracklib/backends/cuda/dlib.h"
     #include "sixtracklib_base/node/node_id.h"
     #include "sixtracklib_base/node/node_info.h"
     #include "sixtracklib_base/internal/compiler_attributes.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
-    #include <cuda.h>
+    #if defined( SIXTRACKL_ENABLE_BACKEND_CUDA ) && \
+        ( SIXTRACKL_ENABLE_BACKEND_CUDA == 1 )
+        #include <cuda.h>
+    #endif /* defined( SIXTRACKL_ENABLE_BACKEND_CUDA ) */
+
     #if defined( __cplusplus )
         #include <type_traits>
     #endif /* C++ */
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
+
+#if defined( SIXTRACKL_ENABLE_BACKEND_CUDA ) && \
+    ( SIXTRACKL_ENABLE_BACKEND_CUDA == 1 )
 
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 namespace SIXTRL_CXX_NAMESPACE
