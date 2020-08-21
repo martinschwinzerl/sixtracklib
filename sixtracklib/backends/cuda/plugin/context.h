@@ -78,6 +78,15 @@ namespace SIXTRL_CXX_NAMESPACE
                         "CREATE_PRIMARY_CTX has to be disjunct from the upstream "
                         "cuda create context flags" );
 
+        static constexpr flags_type CREATE_OWNED_CTX =
+            flags_type{ 0x02000000 };
+        static constexpr flags_type HAS_OWNERSHIP_CTX = CREATE_OWNED_CTX;
+
+        static_assert( ( CREATE_OWNED_CTX & CREATE_CUDA_FLAGS_BITMASK ) ==
+                         FLAGS_NONE,
+                        "CREATE_OWNED_CTX has to be disjunct from the upstream "
+                        "cuda create context flags" );
+
         static constexpr flags_type ALL_FLAGS =
             CREATE_CUDA_FLAGS_BITMASK | CREATE_PRIMARY_CTX;
 
