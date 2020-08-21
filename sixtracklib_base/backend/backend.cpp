@@ -620,9 +620,11 @@ namespace SIXTRL_CXX_NAMESPACE
     bool this_t::current_thread_is_main(
         guard_t const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
     {
-        return ( (  this->is_locked( lock ) ) &&
-                 ( !this->m_main_thread_id.is_legal() ) &&
-                 (  this->m_main_thread_id == std::this_thread::get_id() ) );
+        thread_id_t const current_thread_id;
+
+        return ( ( this->is_locked( lock ) ) &&
+                 ( this->m_main_thread_id.is_legal() ) &&
+                 ( this->m_main_thread_id == current_thread_id ) );
     }
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
