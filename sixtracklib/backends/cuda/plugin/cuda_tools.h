@@ -135,15 +135,15 @@ namespace SIXTRL_CXX_NAMESPACE
     #endif /* use exceptions ? */
 #endif /* !defined( SIXTRL_CUDA_DRIVER_API_CALL ) */
 
-
-/* ------------------------------------------------------------------------ */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
+/* !!!!!                    Inline Implementations                     !!!!! */
+/* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 extern "C" {
 #endif /* C++, Host */
 
 #if !defined( _GPUCODE )
-
 SIXTRL_INLINE void NS(Cuda_init_thread)( unsigned int const flags )
 {
     CUresult const ret = cuInit( flags );
@@ -158,8 +158,8 @@ SIXTRL_INLINE NS(status_t) NS(Cuda_curesult_to_status)(
         ? ( NS(status_t) )SIXTRL_STATUS_SUCCESS
         : ( NS(status_t) )SIXTRL_STATUS_GENERAL_FAILURE;
 }
-
 #endif /* _GPUCODE */
+
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 }
 #endif /* C++, Host */
@@ -178,14 +178,8 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ASSERT( ret == ::CUDA_SUCCESS );
             ( void )ret;
 
-            if( error_name != nullptr )
-            {
-                ostr << error_name;
-            }
-            else
-            {
-                ostr << default_str;
-            }
+            if( error_name != nullptr ) { ostr << error_name; }
+            else { ostr << default_str; }
         }
 
         return ostr;
@@ -202,14 +196,8 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ASSERT( ret == ::CUDA_SUCCESS );
             ( void )ret;
 
-            if( error_msg != nullptr )
-            {
-                ostr << error_msg;
-            }
-            else
-            {
-                ostr << default_str;
-            }
+            if( error_msg != nullptr ) { ostr << error_msg; }
+            else { ostr << default_str; }
         }
 
         return ostr;
