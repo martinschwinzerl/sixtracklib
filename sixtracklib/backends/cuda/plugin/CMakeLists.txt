@@ -1,5 +1,9 @@
-set( SIXTRL_CUDA_PLUGIN_HEADERS init_finish.h cuda_tools.h node.h context.h )
-set( SIXTRL_CUDA_PLUGIN_SOURCES init_finish.cpp node.cpp context.cpp )
+set( SIXTRL_CUDA_PLUGIN_HEADERS cuda_tools.h nvrtc_tools.h )
+set( SIXTRL_CUDA_PLUGIN_HEADERS ${SIXTRL_CUDA_PLUGIN_HEADERS}
+     context.h init_finish.h node.h )
+
+set( SIXTRL_CUDA_PLUGIN_SOURCES
+     init_finish.cpp node.cpp context.cpp )
 
 add_library( sixtrack_cuda_plugin OBJECT
     ${SIXTRL_CUDA_PLUGIN_HEADERS} ${SIXTRL_CUDA_PLUGIN_SOURCES} )
@@ -13,7 +17,6 @@ if( SIXTRL_LTO_SUPPORTED )
 endif()
 
 target_link_libraries( sixtrack_cuda_plugin PRIVATE CUDA::nvrtc )
-
 set( PLUGIN_OBJECT_LIBRARY_SUBMODULES ${PLUGIN_OBJECT_LIBRARY_SUBMODULES}
      $<TARGET_OBJECTS:sixtrack_cuda_plugin> PARENT_SCOPE )
 
