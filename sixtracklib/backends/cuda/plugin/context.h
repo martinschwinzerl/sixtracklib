@@ -2,14 +2,15 @@
 #define SIXTRACKLIB_BACKENDS_CUDA_PLUGIN_CONTEXT_H__
 
 #if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/backends/cuda/definitions.h"
-    #include "sixtracklib/backends/cuda/backend.h"
     #include "sixtracklib/backends/cuda/plugin/node.h"
     #include "sixtracklib_base/control/context.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
-    #include <cuda.h>
+    #if SIXTRACKL_ENABLE_BACKEND_CUDA
+        #include <cuda.h>
+    #endif /* CUDA enabled */
+
     #if defined( __cplusplus )
         #include <memory>
         #include <mutex>
@@ -19,6 +20,9 @@
         #include <vector>
     #endif /* C++ */
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
+
+#if defined( SIXTRACKL_ENABLE_BACKEND_CUDA ) && \
+    ( SIXTRACKL_ENABLE_BACKEND_CUDA == 1 )
 
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 namespace SIXTRL_CXX_NAMESPACE
