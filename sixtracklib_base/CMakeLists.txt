@@ -22,6 +22,7 @@ add_subdirectory( control )
 add_subdirectory( generated )
 add_subdirectory( internal )
 add_subdirectory( node )
+add_subdirectory( program )
 
 # -----------------------------------------------------------------------------
 # build library sixtrack_base:
