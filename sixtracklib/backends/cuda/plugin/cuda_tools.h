@@ -56,27 +56,79 @@ namespace SIXTRL_CXX_NAMESPACE
 #endif /* C++ */
 
 #if !defined( SIXTRL_CUDA_DRIVER_API_NOTHROW_CALL )
-    #define SIXTRL_CUDA_DRIVER_API_NOTHROW_CALL( fn, args ) \
+    #if defined( NDEBUG )
+        #define SIXTRL_CUDA_DRIVER_API_NOTHROW_CALL( fn, args ) \
+         do { ::CUresult const ret = fn args ; \
+            SIXTRL_ASSERT( ret == ::CUDA_SUCCESS ); }while( 0 )
+    #else
+        #define SIXTRL_CUDA_DRIVER_API_NOTHROW_CALL( fn, args ) \
         do { ::CUresult const ret = fn args ; \
-             SIXTRL_ASSERT( ret == ::CUDA_SUCCESS ); }while( 0 )
+            if( ret != ::CUDA_SUCCESS ) { \
+                std::ostringstream a2str; \
+                if( ret == ::CUDA_ERROR_NOT_INITIALIZED ) { \
+                    a2str << "error : failure during call to fn " \
+                          << #fn << ": thread has not been initialized ->\r\n"\
+                          << "error : ensure ::cuInit() is called for this " \
+                          << "thread!";\
+                } else if( ret == ::CUDA_ERROR_DEINITIALIZED ) { \
+                    a2str << "info  : call to fn " << #fn \
+                          << " happened after cuda driver had already been " \
+                          << "shutdown -> \r\n" \
+                          << "info  : call backend shutdown function"; \
+                } else { \
+                    a2str << "error : failure during call to fn " \
+                          << #fn << ": "; \
+                    SIXTRL_CXX_NAMESPACE::CudaError_print_error_name( \
+                        a2str, ret, "unknown_error_name" ) << ": "; \
+                    SIXTRL_CXX_NAMESPACE::CudaError_print_error_description( \
+                        a2str, ret ); \
+                    a2str << "\r\nerror code result = " << ret; \
+                }\
+                if( ret == ::CUDA_ERROR_DEINITIALIZED ) { \
+                    std::cout << a2str.str() << std::endl; \
+                } else { \
+                    std::cerr << a2str.str() << std::endl; \
+                    SIXTRL_ASSERT( ret == ::CUDA_SUCCESS ); } }\
+        } while( 0 )
+    #endif /* NDEBUG */
 #endif /* !defined( SIXTRL_CUDA_DRIVER_API_NOTHROW_CALL ) */
 
 #if !defined( SIXTRL_CUDA_DRIVER_API_CALL )
     #if defined( SIXTRL_CUDA_PLUGIN_EXCEPTION_ON_ERROR ) && \
-        SIXTRL_CUDA_PLUGIN_EXCEPTION_ON_ERROR == 1
+        ( SIXTRL_CUDA_PLUGIN_EXCEPTION_ON_ERROR == 1 )
 
         #define SIXTRL_CUDA_DRIVER_API_CALL( fn, args ) \
         do {\
             ::CUresult const ret = fn args ; \
             if( ret != ::CUDA_SUCCESS ) { \
                 std::ostringstream a2str; \
-                a2str << "error during call to fn" << #fn << ": "; \
-                SIXTRL_CXX_NAMESPACE::CudaError_print_error_name( a2str, ret, \
-                    "unknown_error_name" ) << ": "; \
-                SIXTRL_CXX_NAMESPACE::CudaError_print_error_description( \
-                    a2str, ret ); \
+                if( ret == ::CUDA_ERROR_NOT_INITIALIZED ) { \
+                    a2str << "error : failure during call to fn " \
+                          << #fn << ": thread has not been initialized ->\r\n"\
+                          << "error : ensure ::cuInit() is called for " \
+                          << "this thread!";\
+                } else if( ret == ::CUDA_ERROR_DEINITIALIZED ) { \
+                    a2str << "info  : call to fn " << #fn \
+                          << " happened after cuda driver had already been " \
+                          << "shutdown -> \r\n" \
+                          << "info  : call backend shutdown function"; \
+                } else { \
+                    a2str << "error : failure during call to fn " \
+                          << #fn << ": "; \
+                    SIXTRL_CXX_NAMESPACE::CudaError_print_error_name( \
+                        a2str, ret, "unknown_error_name" ) << ": "; \
+                    SIXTRL_CXX_NAMESPACE::CudaError_print_error_description( \
+                        a2str, ret ); \
+                    a2str << "\r\nerror code result = " << ret; } \
                 throw std::runtime_error( a2str.str() ); } }while( 0 )
-    #else /* do not use exceptions! */
+    #elif !defined( NDEBUG ) /* do not use exceptions but print minimal debug message */
+        #define SIXTRL_CUDA_DRIVER_API_CALL( fn, args ) \
+        do { ::CUresult const ret = fn args ; \
+             if( ret != ::CUDA_SUCCESS ) {\
+                 std::cerr << "error during call to fn " << #fn \
+                           << ": error code = " << ret << std::endl; } \
+             SIXTRL_ASSERT( ret == ::CUDA_SUCCESS ); }while( 0 )
+    #else /* no exceptions and not in debug mode -> use SIXTRL_ASSERT to punt */
         #define SIXTRL_CUDA_DRIVER_API_CALL( fn, args ) \
         do { ::CUresult const ret = fn args ; \
              SIXTRL_ASSERT( ret == ::CUDA_SUCCESS ); }while( 0 )
