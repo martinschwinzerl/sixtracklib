@@ -2,7 +2,6 @@
 #define SIXTRACKLIB_BASE_NODE_NODE_INFO_H__
 
 #if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib_base/definitions.h"
     #include "sixtracklib_base/backend/definitions.h"
     #include "sixtracklib_base/backend/backend_obj.h"
     #include "sixtracklib_base/node/definitions.h"
