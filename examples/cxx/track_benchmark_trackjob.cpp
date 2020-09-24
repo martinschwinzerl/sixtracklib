@@ -47,6 +47,8 @@ int main( int argc, char* argv[] )
     
         st::TrackJobCl job( device_id.c_str(), pbuffer, lattice );
         
+        std::cout << "ii = " << ii;
+        
         auto start_tracking = std::chrono::system_clock::now();
         st::track( job, UNTIL_TURN );
         auto end_tracking = std::chrono::system_clock::now();
