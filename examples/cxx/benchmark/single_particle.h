@@ -38,11 +38,19 @@ typedef struct NS(SingleParticle)
 }
 NS(SingleParticle);
 
+SIXTRL_STATIC SIXTRL_FN void NS(SingleParticle_add_to_energy)(
+    SIXTRL_ARGPTR_DEC NS(SingleParticle)* SIXTRL_RESTRICT p,
+    SIXTRL_REAL_T const delta_energy ) SIXTRL_NOEXCEPT;
+
 SIXTRL_STATIC SIXTRL_FN void NS(SingleParticle_from_particle_set)(
     SIXTRL_ARGPTR_DEC NS(SingleParticle)* SIXTRL_RESTRICT p,
     SIXTRL_PARTICLE_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT pset, 
     SIXTRL_INT64_T const pindex ) SIXTRL_NOEXCEPT;
 
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(SingleParticle_energy0)(
+    SIXTRL_ARGPTR_DEC const NS(SingleParticle) *const 
+        SIXTRL_RESTRICT p ) SIXTRL_NOEXCEPT;
+    
 SIXTRL_STATIC SIXTRL_FN void NS(SingleParticle_to_particle_set)(
     SIXTRL_PARTICLE_ARGPTR_DEC NS(Particles)* SIXTRL_RESTRICT pset, 
     SIXTRL_INT64_T const pindex, 
@@ -127,6 +135,47 @@ SIXTRL_INLINE void NS(SingleParticle_to_particle_set)(
     NS(Particles_set_at_element_id_value)( pset, pindex, p->at_element_id );
     NS(Particles_set_at_turn_value)( pset, pindex, p->at_turn );      
     NS(Particles_set_state_value)( pset, pindex, p->state );
+}
+
+SIXTRL_INLINE SIXTRL_REAL_T NS(SingleParticle_energy0)( SIXTRL_ARGPTR_DEC const 
+    NS(SingleParticle) *const SIXTRL_RESTRICT p ) SIXTRL_NOEXCEPT
+{
+    SIXTRL_ASSERT( p != SIXTRL_NULLPTR );
+    return sqrt( p->p0c * p->p0c + p->mass0 * p->mass0 );
+}
+
+void NS(SingleParticle_add_to_energy)(
+    SIXTRL_ARGPTR_DEC NS(SingleParticle)* SIXTRL_RESTRICT p,
+    SIXTRL_REAL_T const delta_energy ) SIXTRL_NOEXCEPT {
+        
+    typedef SIXTRL_REAL_T real_t;
+
+    real_t const delta_beta0 = p->delta * p->beta0;
+
+    real_t const ptau_beta0 = delta_energy / NS(SingleParticle_energy0)( p ) +
+        sqrt( delta_beta0 * delta_beta0 + ( real_t )2 * delta_beta0 * p->beta0
+                + ( real_t )1 ) - ( real_t )1;
+
+    real_t const ptau   = ptau_beta0 / p->beta0;
+    real_t const psigma = ptau / p->beta0;
+    real_t const delta = sqrt( ptau * ptau + ( real_t )2 * psigma + 
+        ( real_t )1 ) - ( real_t )1;
+
+    real_t const one_plus_delta = delta + ( real_t )1;
+    real_t const rvv = one_plus_delta / ( ( real_t )1 + ptau_beta0 );
+
+    SIXTRL_ASSERT( p->rvv   >  ( real_t )0 );
+    SIXTRL_ASSERT( p->beta0 >  ( real_t )0 );
+    SIXTRL_ASSERT( p->beta0 <= ( real_t )1 );
+    SIXTRL_ASSERT( one_plus_delta > ( real_t )0 );
+    SIXTRL_ASSERT( ( ( ( real_t )1 + ptau_beta0 ) > ( real_t )0 ) ||
+                   ( ( ( real_t )1 + ptau_beta0 ) < ( real_t )0 ) );
+
+    p->delta = delta;
+    p->psigma = psigma;
+    p->zeta *= rvv / p->rvv;
+    p->rvv = rvv;
+    p->rpp = ( real_t )1 / one_plus_delta;
 }
     
 #if defined( __cplusplus ) && !defined( _GPUCODE )
