@@ -54,6 +54,12 @@ if( SIXTRACKL_ENABLE_OPENCL )
     # track_benchmark_trackjob_cxx:
     add_executable( track_benchmark_trackjob_cxx track_benchmark_trackjob.cpp )
     list( APPEND EXAMPLE_OPENCL_TARGETS track_benchmark_trackjob_cxx )
+    
+    # -------------------------------------------------------------------------
+    # track_benchmark_belems_kernel_cxx:
+    add_executable( track_benchmark_belems_kernel_cxx 
+                    track_benchmark_belems_kernel.cpp )
+    list( APPEND EXAMPLE_OPENCL_TARGETS track_benchmark_belems_kernel_cxx )
         
 endif()
 
