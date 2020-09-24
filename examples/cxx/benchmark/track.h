@@ -3,9 +3,11 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/particles.h"
+    #include "sixtracklib/common/constants.h"
     #include "benchmark/single_particle.h"
     #include "sixtracklib/common/be_drift/be_drift.h"
     #include "sixtracklib/common/be_multipole/be_multipole.h"
+    #include "sixtracklib/common/be_cavity/be_cavity.h"
     #include "sixtracklib/common/generated/config.h"
     #include "sixtracklib/common/internal/objects_type_id.h"
     #include "sixtracklib/common/buffer/buffer_object.h"
@@ -24,6 +26,10 @@ SIXTRL_STATIC SIXTRL_FN void NS(Drift_track_single_particle)(
 
 SIXTRL_STATIC SIXTRL_FN void NS(Multipole_track_single_particle)(
     SIXTRL_BE_ARGPTR_DEC const NS(Multipole) *const SIXTRL_RESTRICT mp, 
+    SIXTRL_ARGPTR_DEC NS(SingleParticle)* SIXTRL_RESTRICT p ) SIXTRL_NOEXCEPT;
+    
+SIXTRL_STATIC SIXTRL_FN void NS(Cavity_track_single_particle)(
+    SIXTRL_BE_ARGPTR_DEC const NS(Cavity) *const SIXTRL_RESTRICT cavity, 
     SIXTRL_ARGPTR_DEC NS(SingleParticle)* SIXTRL_RESTRICT p ) SIXTRL_NOEXCEPT;
     
 SIXTRL_STATIC SIXTRL_FN void NS(Track_single_particle_limit_global)(
@@ -132,6 +138,22 @@ SIXTRL_INLINE void NS(Multipole_track_single_particle)(
     p->py += dpy;
 }
 
+SIXTRL_INLINE void NS(Cavity_track_single_particle)(
+    SIXTRL_BE_ARGPTR_DEC const NS(Cavity) *const SIXTRL_RESTRICT cavity, 
+    SIXTRL_ARGPTR_DEC NS(SingleParticle)* SIXTRL_RESTRICT p ) SIXTRL_NOEXCEPT
+{
+    typedef SIXTRL_REAL_T real_t;
+    
+    real_t const phase = 
+        ( SIXTRL_PI / ( real_t )180 ) * NS(Cavity_lag)( cavity ) -
+        ( ( ( real_t )2 * SIXTRL_PI ) / SIXTRL_C_LIGHT ) * 
+        ( p->zeta / ( p->beta0 * p->rvv ) ) * NS(Cavity_frequency)( cavity );
+           
+    SIXTRL_ASSERT( p->state == 1 );
+    NS(SingleParticle_add_to_energy)( p, p->q0 * p->charge_ratio * 
+        sin( phase ) * NS(Cavity_voltage)( cavity ) );
+}
+
 SIXTRL_INLINE void NS(Track_single_particle_limit_global)(
     SIXTRL_ARGPTR_DEC NS(SingleParticle)* SIXTRL_RESTRICT p ) SIXTRL_NOEXCEPT {
     
@@ -228,7 +250,15 @@ SIXTRL_STATIC SIXTRL_FN void NS(Track_single_particle_dispatcher)(
             ptr_to_belem_t belem = ( ptr_to_belem_t )( uintptr_t )begin_addr;
             NS(Multipole_track_single_particle)( belem, p );
             break;
-        }        
+        } 
+        
+        case NS(OBJECT_TYPE_CAVITY):
+        {
+            typedef SIXTRL_BE_ARGPTR_DEC NS(Cavity) const* ptr_to_belem_t;
+            ptr_to_belem_t belem = ( ptr_to_belem_t )( uintptr_t )begin_addr;
+            NS(Cavity_track_single_particle)( belem, p );
+            break;
+        }
     };
 }
 
