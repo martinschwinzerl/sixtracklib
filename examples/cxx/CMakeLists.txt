@@ -45,7 +45,16 @@ if( SIXTRACKL_ENABLE_OPENCL )
     add_executable( track_lhc_no_bb_opencl_cxx track_lhc_no_bb_opencl.cpp )
     list( APPEND EXAMPLE_OPENCL_TARGETS track_lhc_no_bb_opencl_cxx )
 
-
+    # -------------------------------------------------------------------------
+    # track_benchmark_optimised_cxx:
+    add_executable( track_benchmark_optimised_cxx track_benchmark_optimised.cpp )
+    list( APPEND EXAMPLE_OPENCL_TARGETS track_benchmark_optimised_cxx )
+        
+    # -------------------------------------------------------------------------
+    # track_benchmark_trackjob_cxx:
+    add_executable( track_benchmark_trackjob_cxx track_benchmark_trackjob.cpp )
+    list( APPEND EXAMPLE_OPENCL_TARGETS track_benchmark_trackjob_cxx )
+        
 endif()
 
 # ==============================================================================
