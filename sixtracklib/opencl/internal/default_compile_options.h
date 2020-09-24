@@ -16,19 +16,19 @@
         #endif /* !defined( SIXTRL_DATAPTR_DEC ) */
 
         #if !defined( SIXTRL_BUFFER_ARGPTR_DEC )
-            #define SIXTRL_BUFFER_ARGPTR_DEC __global
+            #define SIXTRL_BUFFER_ARGPTR_DEC __private
         #endif /* SIXTRL_BUFFER_ARGPTR_DEC */
 
         #if !defined( SIXTRL_BUFFER_DATAPTR_DEC )
             #define SIXTRL_BUFFER_DATAPTR_DEC __global
         #endif /* SIXTRL_BUFFER_DATAPTR_DEC */
 
-        #if !defined( DSIXTRL_BUFFER_OBJ_ARGPTR_DEC )
-            #define DSIXTRL_BUFFER_OBJ_ARGPTR_DEC __global
+        #if !defined( SIXTRL_BUFFER_OBJ_ARGPTR_DEC )
+            #define SIXTRL_BUFFER_OBJ_ARGPTR_DEC __global
         #endif /* !defined( DSIXTRL_BUFFER_OBJ_ARGPTR_DEC ) */
 
-        #if !defined( DSIXTRL_BUFFER_OBJ_DATAPTR_DEC )
-            #define DSIXTRL_BUFFER_OBJ_DATAPTR_DEC __global
+        #if !defined( SIXTRL_BUFFER_OBJ_DATAPTR_DEC )
+            #define SIXTRL_BUFFER_OBJ_DATAPTR_DEC __global
         #endif /* !defined( DSIXTRL_BUFFER_OBJ_DATAPTR_DEC ) */
 
         #if !defined( SIXTRL_BE_ARGPTR_DEC )
