@@ -208,7 +208,6 @@ namespace SIXTRL_CXX_NAMESPACE
         for( uint64_t ii = uint64_t{ 0 } ; ii < until_turn ; ++ii )
         {
             st_size_t const num_elems = type_ids.size();
-            std::cout << "at_turn = " << ii << std::endl;
             
             for( st_size_t jj = st_size_t{ 0 }; jj < num_elems ; ++jj )
             {
