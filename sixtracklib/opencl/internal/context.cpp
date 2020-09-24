@@ -89,7 +89,7 @@ namespace SIXTRL_CXX_NAMESPACE
         m_assign_elem_by_elem_out_buffer_kernel_id( st::ARCH_ILLEGAL_KERNEL_ID ),
         m_assign_be_mon_out_buffer_kernel_id( st::ARCH_ILLEGAL_KERNEL_ID ),
         m_clear_be_mon_kernel_id( st::ARCH_ILLEGAL_KERNEL_ID ),
-        m_use_optimized_tracking( false )
+        m_use_optimized_tracking( true )
     {
         if( config_str != nullptr )
         {
@@ -98,10 +98,10 @@ namespace SIXTRL_CXX_NAMESPACE
         }
 
         /* WARNING: Workaround for AMD Heisenbug */
-        if( !this->isAvailableNodeAMDPlatform( node_index ) )
-        {
-            this->m_use_optimized_tracking = true;
-        }
+        //if( !this->isAvailableNodeAMDPlatform( node_index ) )
+        //{
+        //    this->m_use_optimized_tracking = true;
+        //}
 
         _this_t::status_t const status =
             this->doInitDefaultFeatureFlagsPrivImpl();
