@@ -91,13 +91,13 @@ NS(Cavity_from_obj_index)( SIXTRL_BUFFER_OBJ_ARGPTR_DEC
     NS(Object)* index_obj ) SIXTRL_NOEXCEPT;
 
 SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(Cavity) const*
-NS(Cavity_const_from_manged_buffer)(
+NS(Cavity_const_from_managed_buffer)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const be_index,
     NS(buffer_size_t) const slot_size ) SIXTRL_NOEXCEPT;
 
 SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(Cavity)*
-NS(Cavity_from_manged_buffer)(
+NS(Cavity_from_managed_buffer)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const be_index,
     NS(buffer_size_t) const slot_size ) SIXTRL_NOEXCEPT;
@@ -328,7 +328,7 @@ SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(Cavity)* NS(Cavity_from_obj_index)(
 }
 
 SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(Cavity) const*
-NS(Cavity_const_from_manged_buffer)(
+NS(Cavity_const_from_managed_buffer)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const be_index,
     NS(buffer_size_t) const slot_size ) SIXTRL_NOEXCEPT
@@ -337,7 +337,7 @@ NS(Cavity_const_from_manged_buffer)(
         NS(ManagedBuffer_get_const_object)( pbuffer, be_index, slot_size ) );
 }
 
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(Cavity)* NS(Cavity_from_manged_buffer)(
+SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(Cavity)* NS(Cavity_from_managed_buffer)(
     SIXTRL_BUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     NS(buffer_size_t) const be_index,
     NS(buffer_size_t) const slot_size ) SIXTRL_NOEXCEPT
