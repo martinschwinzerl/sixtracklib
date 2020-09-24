@@ -34,6 +34,7 @@ SIXTRL_FN SIXTRL_STATIC int NS(Track_particle_drift_exact)(
 /* ========================================================================= */
 
 #if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/track/definitions.h"
     #include "sixtracklib/common/be_drift/be_drift.h"
     #include "sixtracklib/common/generated/config.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
