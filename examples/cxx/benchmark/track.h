@@ -309,6 +309,10 @@ void NS(Track_single_particle_until_turn_impl)(
             p.s = ( SIXTRL_REAL_T )0;
         }        
     }
+    
+    NS(SingleParticle_to_particle_set)( 
+        NS(Particles_managed_buffer_get_particles)( 
+            pbuffer_begin, pset_index, slot_size ), particle_index, &p );
 }
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
