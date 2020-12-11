@@ -11,7 +11,6 @@
 #endif /* SIXTRL_NO_INCLUDES */
 
 #if defined( __cplusplus )
-
 namespace SIXTRL_CXX_NAMESPACE
 {
     template< class Elem > using CObjElemTypeIdTraits =
@@ -19,6 +18,25 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< cobj_type_id_t type_id > using CObjElemTypeIdDataTypeMap =
         ObjTypeIdDataTypeMap< cobj_type_id_t, type_id >;
+
+    /* --------------------------------------------------------------------- */
+
+    template< class E, typename... Args >
+    SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN arch_status_t CObjElem_init(
+        SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT obj, Args&&... args )
+    {
+        return SIXTRL_CXX_NAMESPACE::ObjDataInitialiser<
+            E, SIXTRL_CXX_NAMESPACE::STORAGE_BE_COBJECTS >::init(
+                obj, std::forward< Args >( args )... );
+    }
+
+    template< class E >
+    SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN void CObjElem_preset(
+        SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT obj )
+    {
+        SIXTRL_CXX_NAMESPACE::ObjDataInitialiser< E,
+            SIXTRL_CXX_NAMESPACE::STORAGE_BE_COBJECTS >::preset( obj );
+    }
 
     /* --------------------------------------------------------------------- */
 
@@ -113,11 +131,11 @@ namespace SIXTRL_CXX_NAMESPACE
         }
     };
 
-    template< class Elem > static SIXTRL_FN constexpr bool
+    template< class E > static SIXTRL_FN constexpr bool
         CObjElem_allow_direct_storage() SIXTRL_NOEXCEPT
     {
         return SIXTRL_CXX_NAMESPACE::ObjData_allow_direct_storage<
-            Elem, STORAGE_BE_COBJECTS >();
+            E, SIXTRL_CXX_NAMESPACE::STORAGE_BE_COBJECTS >();
     }
 
     template< class Elem >

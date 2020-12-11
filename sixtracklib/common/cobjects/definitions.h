@@ -97,8 +97,6 @@ typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const*
 #endif /* !defined( SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE ) */
 
 #if !defined( _GPUCODE )
-    SIXTRL_STATIC_VAR ::NS(store_backend_t) const NS(STORAGE_BE_COBJECTS) =
-        ( ::NS(store_backend_t) )SIXTRL_STORAGE_BE_COBJECTS;
 
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST NS(cobj_size_t)
         NS(COBJECTS_STATIC_ARRAY_SIZE_LIMIT) =
@@ -164,6 +162,12 @@ typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const*
             ( NS(cobj_status_t) )SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 #endif /* Host */
 
+SIXTRL_STATIC SIXTRL_FN NS(cobj_status_t) NS(CObjStatus_from_status)(
+    NS(arch_status_t) const status ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(arch_status_t) NS(CObjStatus_to_status)(
+    NS(cobj_status_t) const status ) SIXTRL_NOEXCEPT;
+
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
 #endif /* C++, Host */
@@ -182,9 +186,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
     static constexpr cobj_buffer_flags_t CBUFFER_GENERIC_TYPE =
         static_cast< cobj_buffer_flags_t >( 0 );
-
-    static constexpr store_backend_t STORAGE_BE_COBJECTS = static_cast<
-        store_backend_t >( SIXTRL_STORAGE_BE_COBJECTS );
 
     static constexpr cobj_address_t COBJECTS_NULL_ADDRESS =
         static_cast< cobj_address_t >( SIXTRL_COBJECTS_NULL_ADDRESS );
@@ -235,6 +236,20 @@ namespace SIXTRL_CXX_NAMESPACE
         static_cast< cobj_type_id_t >( SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE);
 
     /* ===================================================================== */
+
+    SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN cobj_status_t CObjStatus_from_status(
+        SIXTRL_CXX_NAMESPACE::arch_status_t const status ) SIXTRL_NOEXCEPT
+    {
+        return ::NS(CObjStatus_from_status)( status );
+    }
+
+    SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN arch_status_t CObjStatus_to_status(
+        SIXTRL_CXX_NAMESPACE::cobj_status_t const cobj_status ) SIXTRL_NOEXCEPT
+    {
+        return ::NS(CObjStatus_to_status)( cobj_status );
+    }
+
+    /* ===================================================================== */
     /* Specialization of StorageBackendTraits<> for CObjects Back-End: */
 
     template<> struct StorageBackendTraits< STORAGE_BE_COBJECTS >
@@ -254,5 +269,25 @@ namespace SIXTRL_CXX_NAMESPACE
 }
 
 #endif /* __cplusplus */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+extern "C" {
+#endif /* C++, Host */
+
+SIXTRL_INLINE NS(cobj_status_t) NS(CObjStatus_from_status)(
+    NS(arch_status_t) const status ) SIXTRL_NOEXCEPT
+{
+    return ( NS(cobj_status_t) )status;
+}
+
+SIXTRL_INLINE NS(arch_status_t) NS(CObjStatus_to_status)(
+    NS(cobj_status_t) const cobj_status ) SIXTRL_NOEXCEPT
+{
+    return ( NS(arch_status_t) )cobj_status;
+}
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+}
+#endif /* C++, Host */
 
 #endif /* SIXTRACKLIB_COMMON_COBJECTS_DEFINITIONS_CXX_HPP__ */

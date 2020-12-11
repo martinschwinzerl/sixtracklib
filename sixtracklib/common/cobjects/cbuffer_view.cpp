@@ -25,46 +25,46 @@ namespace SIXTRL_CXX_NAMESPACE
     namespace
     {
         namespace st = SIXTRL_CXX_NAMESPACE;
-        typedef st::CBufferView                         _view_t;
-        typedef st::CBufferView::size_type              _size_t;
-        typedef st::CBufferView::flags_t                _flags_t;
-        typedef st::CBufferView::address_t              _addr_t;
-        typedef st::CBufferView::status_t               _status_t;
-        typedef st::CBufferView::address_diff_t         _diff_t;
+        typedef st::CBufferView                         st_view_t;
+        typedef st::CBufferView::size_type              st_size_t;
+        typedef st::CBufferView::flags_t                st_flags_t;
+        typedef st::CBufferView::address_t              st_addr_t;
+        typedef st::CBufferView::status_t               st_status_t;
+        typedef st::CBufferView::address_diff_t         st_diff_t;
     }
 
-    _size_t  constexpr CBufferView::DEFAULT_SLOT_SIZE;
-    _size_t  constexpr CBufferView::DEFAULT_HEADER_SIZE;
-    _size_t  constexpr CBufferView::BUFFER_MINIMAL_SIZE;
-    _addr_t  constexpr CBufferView::NULL_ADDRESS;
+    st_size_t  constexpr CBufferView::DEFAULT_SLOT_SIZE;
+    st_size_t  constexpr CBufferView::DEFAULT_HEADER_SIZE;
+    st_size_t  constexpr CBufferView::BUFFER_MINIMAL_SIZE;
+    st_addr_t  constexpr CBufferView::NULL_ADDRESS;
 
-    _flags_t constexpr CBufferView::FLAGS_NONE;
-    _flags_t constexpr CBufferView::FLAGS_ALLOW_REMAPPING;
-    _flags_t constexpr CBufferView::FLAGS_ALLOW_ALLOC;
-    _flags_t constexpr CBufferView::FLAGS_ALLOW_APPEND;
-    _flags_t constexpr CBufferView::FLAGS_ALLOW_REALLOC;
-    _flags_t constexpr CBufferView::FLAGS_FORCE_INIT;
-    _flags_t constexpr CBufferView::FLAGS_OWNS_STORED_DATA;
-    _flags_t constexpr CBufferView::FLAGS_SPECIAL_MEMORY;
+    st_flags_t constexpr CBufferView::FLAGS_NONE;
+    st_flags_t constexpr CBufferView::FLAGS_ALLOW_REMAPPING;
+    st_flags_t constexpr CBufferView::FLAGS_ALLOW_ALLOC;
+    st_flags_t constexpr CBufferView::FLAGS_ALLOW_APPEND;
+    st_flags_t constexpr CBufferView::FLAGS_ALLOW_REALLOC;
+    st_flags_t constexpr CBufferView::FLAGS_FORCE_INIT;
+    st_flags_t constexpr CBufferView::FLAGS_OWNS_STORED_DATA;
+    st_flags_t constexpr CBufferView::FLAGS_SPECIAL_MEMORY;
 
-    _flags_t constexpr CBufferView::FLAGS_BASE_DEFAULT;
+    st_flags_t constexpr CBufferView::FLAGS_BASE_DEFAULT;
 
     /* --------------------------------------------------------------------- */
 
-    _diff_t _view_t::address_to_offset(
-        _addr_t const address ) const SIXTRL_NOEXCEPT
+    st_diff_t st_view_t::address_to_offset(
+        st_addr_t const address ) const SIXTRL_NOEXCEPT
     {
-        SIXTRL_ASSERT( this->m_slot_size > _size_t{ 0 } );
+        SIXTRL_ASSERT( this->m_slot_size > st_size_t{ 0 } );
         SIXTRL_ASSERT( this->base_address() % this->m_slot_size ==
-                       _size_t{ 0 } );
+                       st_size_t{ 0 } );
 
         return ( (   address >= this->base_address() ) &&
-                 ( ( address % this->m_slot_size ) == _addr_t{ 0 } ) )
-             ? ( address - this->base_address() ) : _addr_t{ 0 };
+                 ( ( address % this->m_slot_size ) == st_addr_t{ 0 } ) )
+             ? ( address - this->base_address() ) : st_addr_t{ 0 };
     }
 
-    _addr_t _view_t::offset_to_address(
-        _diff_t const offset ) const SIXTRL_NOEXCEPT
+    st_addr_t st_view_t::offset_to_address(
+        st_diff_t const offset ) const SIXTRL_NOEXCEPT
     {
         if( ::NS(CObjFlatBuffer_check_addr_arithmetic)(
             this->base_address(), offset, this->m_slot_size ) )
@@ -73,29 +73,86 @@ namespace SIXTRL_CXX_NAMESPACE
                 this->base_address(), offset, this->m_slot_size );
         }
 
-        return _view_t::NULL_ADDRESS;
+        return st_view_t::NULL_ADDRESS;
+    }
+
+
+    st_addr_t CBufferView::aligned_base_addr(
+        st_addr_t const raw_base_addr,
+        st_size_t const raw_capacity,
+        st_size_t alignment,
+        SIXTRL_ARGPTR_DEC st_size_t* ptr_capacity,
+        st_size_t const slot_size ) SIXTRL_NOEXCEPT
+    {
+        st_addr_t base_addr = st::COBJECTS_NULL_ADDRESS;
+        st_size_t capacity  = st_size_t{ 0 };
+        SIXTRL_ASSERT( slot_size > st_size_t{ 0 } );
+
+        if( alignment == st_size_t{ 0 } )
+        {
+            alignment = slot_size;
+        }
+        else if( ( alignment % slot_size ) != st_size_t{ 0 } )
+        {
+            alignment = ::NS(CObjFlatBuffer_slot_based_size)(
+                alignment, slot_size );
+        }
+
+        if( ( raw_base_addr != st::COBJECTS_NULL_ADDRESS ) &&
+            ( alignment > st_size_t{ 0 } ) && ( raw_capacity >= alignment ) )
+        {
+            address_t const mis_align = raw_base_addr % alignment;
+            base_addr = raw_base_addr;
+            capacity  = raw_capacity;
+
+            if( mis_align != address_t{ 0 } )
+            {
+                st_size_t const offset = alignment - mis_align;
+                base_addr += offset;
+                capacity  -= offset;
+            }
+        }
+
+        if(  ptr_capacity != SIXTRL_NULLPTR )
+        {
+            *ptr_capacity = capacity;
+        }
+
+        return base_addr;
+    }
+
+    st_size_t st_view_t::required_buffer_length(
+        st_size_t const max_num_slots,
+        st_size_t const max_num_objects,
+        st_size_t const max_num_pointers,
+        st_size_t const max_num_garbage_ranges,
+        st_size_t const slot_size ) SIXTRL_NOEXCEPT
+    {
+        return ::NS(CObjFlatBuffer_predict_required_buffer_size)(
+            max_num_objects, max_num_slots, max_num_pointers,
+                max_num_garbage_ranges, slot_size );
     }
 
     /* ********************************************************************* */
 
     #if !defined( _GPUCODE )
 
-    _status_t CBuffer_to_file(
+    st_status_t CBuffer_to_file(
         SIXTRL_BUFFER_ARGPTR_DEC CBufferView const& SIXTRL_RESTRICT view,
         char const* SIXTRL_RESTRICT path_to_binary_dump )
     {
-        _status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        st_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
         if( ( path_to_binary_dump != nullptr ) &&
-            ( std::strlen( path_to_binary_dump ) > _size_t{ 0 } ) &&
-            (  view.size() > _size_t{ 0 } ) && ( view.p_base() != nullptr ) &&
+            ( std::strlen( path_to_binary_dump ) > st_size_t{ 0 } ) &&
+            (  view.size() > st_size_t{ 0 } ) && ( view.p_base() != nullptr ) &&
             ( !view.needs_remapping() ) )
         {
             ::FILE* fp = std::fopen( path_to_binary_dump, "wb" );
 
             if( fp != nullptr )
             {
-                _size_t const cnt = std::fwrite( view.p_base(),
+                st_size_t const cnt = std::fwrite( view.p_base(),
                     sizeof( unsigned char ), view.size(), fp );
 
                 if( cnt == view.size() ) status = st::ARCH_STATUS_SUCCESS;
@@ -108,28 +165,103 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    _status_t CBuffer_to_file(
+    st_status_t CBuffer_to_file(
         SIXTRL_BUFFER_ARGPTR_DEC CBufferView const& SIXTRL_RESTRICT view,
         std::string const& SIXTRL_RESTRICT_REF path_to_binary_dump )
     {
         return st::CBuffer_to_file( view, path_to_binary_dump.c_str() );
     }
 
-    _status_t CBufferView_from_file(
+    /* . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */
+
+    st_status_t CBuffer_to_file_normalized(
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT view,
+        char const* SIXTRL_RESTRICT path_to_binary_dump,
+        st_addr_t const normalized_base_addr )
+    {
+        st_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        st_addr_t const current_base_addr = view.base_address();
+
+        if( ( path_to_binary_dump != SIXTRL_NULLPTR ) &&
+            ( view.slot_size()   > st_size_t{ 0 } ) &&
+            ( current_base_addr != st_addr_t{ 0 } ) &&
+            ( current_base_addr % view.slot_size() == st_addr_t{ 0 } ) &&
+            ( normalized_base_addr % view.slot_size() == st_addr_t{ 0 } ) &&
+            ( view.allow_remap() ) )
+        {
+            st_diff_t const addr_diff =
+                ( normalized_base_addr >= current_base_addr )
+                    ? normalized_base_addr - current_base_addr
+                    : -( static_cast< st_diff_t >(
+                        current_base_addr - normalized_base_addr ) );
+
+            status = ( addr_diff != st_diff_t{ 0 } )
+                ? ::NS(CObjFlatBuffer_apply_addr_offset)(
+                    view.p_base_begin(), addr_diff, view.slot_size() )
+                : st::ARCH_STATUS_SUCCESS;
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                st_diff_t cmp_addr_diff = st_diff_t{ 0 };
+
+                status = ::NS(CObjFlatBuffer_base_addr_offset)( &cmp_addr_diff,
+                            view.p_base_begin(), view.slot_size() );
+
+                if( ( status == st::ARCH_STATUS_SUCCESS ) &&
+                    ( cmp_addr_diff != addr_diff ) )
+                {
+                    status = st::ARCH_STATUS_GENERAL_FAILURE;
+                }
+            }
+
+            if( status == st::ARCH_STATUS_SUCCESS )
+            {
+                status = st::CBuffer_to_file( view, path_to_binary_dump );
+
+                if( addr_diff != st_diff_t{ 0 } )
+                {
+                    status |= ::NS(CObjFlatBuffer_apply_addr_offset)(
+                        view.p_base_begin(), -addr_diff, view.slot_size() );
+                }
+            }
+            else
+            {
+                view.remap();
+            }
+
+            SIXTRL_ASSERT( ( status != st::ARCH_STATUS_SUCCESS ) ||
+                           ( !view.needs_remapping() ) );
+        }
+
+        return status;
+    }
+
+    st_status_t CBuffer_to_file_normalized(
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT view,
+        std::string const& SIXTRL_RESTRICT_REF path_to_binary_dump,
+        st_addr_t const normalized_base_addr )
+    {
+        return st::CBuffer_to_file_normalized(
+            view, path_to_binary_dump.c_str(), normalized_base_addr );
+    }
+
+    /* . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */
+
+    st_status_t CBufferView_from_file(
         SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT view,
         char const* SIXTRL_RESTRICT_REF path_to_binary_dump,
-        SIXTRL_BUFFER_ARGPTR_DEC _size_t* SIXTRL_RESTRICT ptr_requ_capacity )
+        SIXTRL_BUFFER_ARGPTR_DEC st_size_t* SIXTRL_RESTRICT ptr_requ_capacity )
     {
-        _status_t status = st::ARCH_STATUS_SUCCESS;
+        st_status_t status = st::ARCH_STATUS_SUCCESS;
 
         if( ( path_to_binary_dump != nullptr ) &&
-            ( std::strlen( path_to_binary_dump ) > _size_t{ 0 } ) &&
-            ( view.slot_size() > _size_t{ 0 } ) &&
-            ( view.capacity() > _size_t{ 0 } ) &&
+            ( std::strlen( path_to_binary_dump ) > st_size_t{ 0 } ) &&
+            ( view.slot_size() > st_size_t{ 0 } ) &&
+            ( view.capacity() > st_size_t{ 0 } ) &&
             ( view.p_base() != nullptr ) &&
             ( view.allow_remap() ) && ( view.allow_allocate() ) )
         {
-            _size_t size_of_file = _size_t{ 0 };
+            st_size_t size_of_file = st_size_t{ 0 };
             ::FILE* fp = std::fopen( path_to_binary_dump, "rb" );
 
             if( fp != nullptr )
@@ -141,16 +273,16 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 if( temp_length >= 0 )
                 {
-                    size_of_file = static_cast< _size_t >( temp_length );
+                    size_of_file = static_cast< st_size_t >( temp_length );
                     fp = std::fopen( path_to_binary_dump, "rb" );
                 }
             }
 
             if( ( fp != nullptr ) &&
-                ( size_of_file >= _view_t::DEFAULT_HEADER_SIZE ) &&
+                ( size_of_file >= st_view_t::DEFAULT_HEADER_SIZE ) &&
                 ( size_of_file <= view.capacity() ) )
             {
-                _size_t const cnt = std::fread( view.p_base(),
+                st_size_t const cnt = std::fread( view.p_base(),
                     sizeof( unsigned char ), size_of_file, fp );
 
                 if( cnt == size_of_file )
@@ -175,10 +307,10 @@ namespace SIXTRL_CXX_NAMESPACE
         return status;
     }
 
-    _status_t CBufferView_from_file(
+    st_status_t CBufferView_from_file(
         SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT view,
         std::string const& SIXTRL_RESTRICT_REF path_to_binary_dump,
-        SIXTRL_BUFFER_ARGPTR_DEC _size_t* SIXTRL_RESTRICT ptr_requ_capacity )
+        SIXTRL_BUFFER_ARGPTR_DEC st_size_t* SIXTRL_RESTRICT ptr_requ_capacity )
     {
         return st::CBufferView_from_file( view, path_to_binary_dump.c_str(),
             ptr_requ_capacity );

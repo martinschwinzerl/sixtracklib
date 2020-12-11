@@ -82,9 +82,8 @@ namespace SIXTRL_CXX_NAMESPACE
                 DstObjData, DstStoreT, DstDerived > *const SIXTRL_RESTRICT
                     /* ptr_dest */ = nullptr ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion< ObjData,
-                ObjDataStorageInterfaceBase< DstObjData, DstStoreT, DstDerived >
-                    , STORAGE_BE_COBJECTS, DstStoreT >();
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
+                ObjData, DstDerived, STORAGE_BE_COBJECTS, DstStoreT >();
         }
 
         template< class DstObjData,
@@ -93,7 +92,7 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ARGPTR_DEC const DstObjData *const SIXTRL_RESTRICT
                 /* ptr_dest */ = nullptr ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
                 ObjData, DstObjData, STORAGE_BE_COBJECTS, DstStoreT >();
         }
 
@@ -104,9 +103,8 @@ namespace SIXTRL_CXX_NAMESPACE
                 SrcObjData, SrcStoreT, SrcDerived > *const SIXTRL_RESTRICT
                     /* ptr_src */ = nullptr ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
-                ObjDataStorageInterfaceBase< SrcObjData, SrcStoreT, SrcDerived >
-                    , ObjData, SrcStoreT, STORAGE_BE_COBJECTS >();
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
+                SrcDerived, ObjData, SrcStoreT, STORAGE_BE_COBJECTS >();
         }
 
         template< class SrcObjData,
@@ -115,7 +113,7 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ARGPTR_DEC const SrcObjData *const SIXTRL_RESTRICT
                 /* ptr_src */ = nullptr ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
                 SrcObjData, ObjData, SrcStoreT, STORAGE_BE_COBJECTS >();
         }
 
@@ -132,7 +130,7 @@ namespace SIXTRL_CXX_NAMESPACE
             if( ( allow_conversion_to< DstObjData, DstStoreT >( ptr_dest ) ) &&
                 ( this->as_ptr_data() != nullptr ) )
             {
-                status = st::ObjDataConversionPrepare< ObjData, DstObjData,
+                status = st::ObjDataConverter< ObjData, DstObjData,
                     st::STORAGE_BE_COBJECTS, DstStoreT >::prepare(
                         ptr_dest, this->as_ptr_data() );
 
@@ -179,7 +177,7 @@ namespace SIXTRL_CXX_NAMESPACE
             if( ( allow_conversion_from< SrcObjData, SrcStoreT >( ptr_src ) ) &&
                 ( this->as_ptr_data() != nullptr ) )
             {
-                status = st::ObjDataConversionPrepare< SrcObjData, ObjData,
+                status = st::ObjDataConverter< SrcObjData, ObjData,
                     SrcStoreT, st::STORAGE_BE_COBJECTS >::prepare(
                         this->as_ptr_data(), ptr_src );
 

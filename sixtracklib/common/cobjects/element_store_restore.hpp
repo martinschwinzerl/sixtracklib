@@ -20,6 +20,7 @@
     #include "sixtracklib/common/cobjects/field_offsets.hpp"
     #include "sixtracklib/common/cobjects/field_sizes.hpp"
     #include "sixtracklib/common/cobjects/field_counts.hpp"
+    #include "sixtracklib/common/internal/compiler_attributes.h"
     #include "sixtracklib/common/internal/obj_base_class.hpp"
     #include "sixtracklib/common/internal/obj_store_traits.hpp"
     #if !defined( _GPUCODE )
@@ -148,6 +149,32 @@ namespace SIXTRL_CXX_NAMESPACE
         !SIXTRL_CXX_NAMESPACE::CObjElem_ptrs_case04_direct< E >() ) &&
         !SIXTRL_CXX_NAMESPACE::CObjElem_allow_derived_storage< E >();
     }
+
+    /* ********************************************************************* */
+    /* Provide CObjElem_required_num_objects: */
+
+    template< class E >
+    static SIXTRL_FN constexpr typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElemTypeId_is_illegal< E >(),
+        SIXTRL_CXX_NAMESPACE::cobj_size_t >::type
+    CObjElem_required_num_objects(
+        SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT
+            SIXTRL_UNUSED( ptr_elem ) = SIXTRL_NULLPTR ) SIXTRL_NOEXCEPT
+    {
+        return SIXTRL_CXX_NAMESPACE::cobj_size_t{ 0 };
+    }
+
+    template< class E >
+    static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::CObjElemTypeId_is_legal< E >(),
+        SIXTRL_CXX_NAMESPACE::cobj_size_t >::type
+    CObjElem_required_num_objects(
+        SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT
+            SIXTRL_UNUSED( ptr_elem ) = SIXTRL_NULLPTR ) SIXTRL_NOEXCEPT
+    {
+        return SIXTRL_CXX_NAMESPACE::cobj_size_t{ 1 };
+    }
+
 
     /* ********************************************************************* */
     /* Provide template version of NS(CObjFlatBuffer_slot_based_size)() */
@@ -1719,8 +1746,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class E >
     static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-        SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() ||
-        SIXTRL_CXX_NAMESPACE::CObjElem_allow_derived_storage< E >(),
+        SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >(),
         SIXTRL_BUFFER_OBJ_DATAPTR_DEC E* >::type
     CObjElem_add_copy_of_object(
         SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t)* SIXTRL_RESTRICT buffer,

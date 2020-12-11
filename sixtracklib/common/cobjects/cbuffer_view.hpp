@@ -3,10 +3,10 @@
 
 #if defined( __cplusplus )
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
-    #include <cstdlib>
-    #include <type_traits>
-    #include <iostream>
     #if !defined( _GPUCODE )
+        #include <cstdlib>
+        #include <type_traits>
+        #include <iostream>
         #include <vector>
         #include <string>
     #endif /* !defiend( _GPUCODE ) */
@@ -19,10 +19,12 @@
     #include "sixtracklib/common/cobjects/index_object.h"
     #include "sixtracklib/common/cobjects/garbage_range.h"
     #include "sixtracklib/common/cobjects/element_traits.hpp"
+    #include "sixtracklib/common/cobjects/obj_delegate.hpp"
+    #include "sixtracklib/common/internal/compiler_attributes.h"
+    #include "sixtracklib/common/internal/obj_convert.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus )
-
 namespace SIXTRL_CXX_NAMESPACE
 {
     class CBufferView
@@ -47,6 +49,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         typedef SIXTRL_BUFFER_DATAPTR_DEC int64_t const*  ptr_const_view_i64_t;
         typedef SIXTRL_BUFFER_DATAPTR_DEC int64_t*        ptr_view_i64_t;
+        typedef SIXTRL_CXX_NAMESPACE::store_backend_t     store_be_t;
 
         static constexpr size_type DEFAULT_SLOT_SIZE       =
             SIXTRL_CXX_NAMESPACE::CBUFFER_DEFAULT_SLOT_SIZE;
@@ -59,6 +62,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         static constexpr address_t NULL_ADDRESS =
             SIXTRL_CXX_NAMESPACE::COBJECTS_NULL_ADDRESS;
+
+        static constexpr store_be_t DEFAULT_STORE_BE =
+            SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT;
 
         static constexpr flags_t FLAGS_NONE            = flags_t{ 0x00000000 };
         static constexpr flags_t FLAGS_ALLOW_REMAPPING = flags_t{ 0x00000001 };
@@ -85,9 +91,17 @@ namespace SIXTRL_CXX_NAMESPACE
             flags_t const haystack, flags_t const needle ) SIXTRL_NOEXCEPT;
 
         static SIXTRL_FN size_type required_buffer_length(
-            size_type const num_slots, size_type const num_objects,
-            size_type const num_pointers,
-            size_type const num_garbage_ranges = size_type{ 0 },
+            size_type const max_num_slots,
+            size_type const max_num_objects,
+            size_type const max_num_pointers,
+            size_type const max_num_garbage_ranges = size_type{ 0 },
+            size_type const slot_size = DEFAULT_SLOT_SIZE ) SIXTRL_NOEXCEPT;
+
+        static SIXTRL_FN address_t aligned_base_addr(
+            address_t const raw_base_addr,
+            size_type const raw_capacity,
+            size_type alignment = size_type{ 1 },
+            SIXTRL_ARGPTR_DEC size_type* ptr_capacity = SIXTRL_NULLPTR,
             size_type const slot_size = DEFAULT_SLOT_SIZE ) SIXTRL_NOEXCEPT;
 
 
@@ -113,7 +127,15 @@ namespace SIXTRL_CXX_NAMESPACE
          *       NEVER EVER delete an instance of and derived class
          *       via a pointer to CBufferView !!!!! */
 
+        #if defined( _GPUCODE )
+
         SIXTRL_FN ~CBufferView() = default;
+
+        #else
+
+        SIXTRL_FN virtual ~CBufferView() = default;
+
+        #endif /* defined( _GPUCODE ) */
 
         /* ----------------------------------------------------------------- */
 
@@ -141,51 +163,51 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_FN size_type size_section_header(
             size_type const sec_id ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_FN size_type size_slots() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN size_type size_objects() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN size_type size_pointers() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN size_type size_garbage() const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type size_slots()              const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type size_objects()            const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type size_pointers()           const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type size_garbage()            const SIXTRL_NOEXCEPT;
 
-        SIXTRL_FN size_type n_slots() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN size_type n_objects() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN size_type n_pointers() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN size_type n_garbage() const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type n_slots()                 const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type n_objects()               const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type n_pointers()              const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type n_garbage()               const SIXTRL_NOEXCEPT;
 
-        SIXTRL_FN size_type max_slots() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN size_type max_objects() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN size_type max_pointers() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN size_type max_garbage() const SIXTRL_NOEXCEPT;
-
-        /* ----------------------------------------------------------------- */
-
-        SIXTRL_FN address_t begin_addr() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN address_t end_addr() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_FN address_t begin_addr_slots() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN address_t begin_addr_objects() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN address_t begin_addr_pointers() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN address_t begin_addr_garbage() const SIXTRL_NOEXCEPT;
-
-        SIXTRL_FN address_t end_addr_slots() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN address_t end_addr_objects() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN address_t end_addr_pointers() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN address_t end_addr_garbage() const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type max_slots()               const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type max_objects()             const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type max_pointers()            const SIXTRL_NOEXCEPT;
+        SIXTRL_FN size_type max_garbage()             const SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_FN address_t base() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN address_t base_address() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN ptr_const_raw_data_t p_base() const SIXTRL_NOEXCEPT;
+        SIXTRL_FN address_t begin_addr()              const SIXTRL_NOEXCEPT;
+        SIXTRL_FN address_t end_addr()                const SIXTRL_NOEXCEPT;
+
+        SIXTRL_FN address_t begin_addr_slots()        const SIXTRL_NOEXCEPT;
+        SIXTRL_FN address_t begin_addr_objects()      const SIXTRL_NOEXCEPT;
+        SIXTRL_FN address_t begin_addr_pointers()     const SIXTRL_NOEXCEPT;
+        SIXTRL_FN address_t begin_addr_garbage()      const SIXTRL_NOEXCEPT;
+
+        SIXTRL_FN address_t end_addr_slots()          const SIXTRL_NOEXCEPT;
+        SIXTRL_FN address_t end_addr_objects()        const SIXTRL_NOEXCEPT;
+        SIXTRL_FN address_t end_addr_pointers()       const SIXTRL_NOEXCEPT;
+        SIXTRL_FN address_t end_addr_garbage()        const SIXTRL_NOEXCEPT;
+
+        /* ----------------------------------------------------------------- */
+
+        SIXTRL_FN address_t base()                    const SIXTRL_NOEXCEPT;
+        SIXTRL_FN address_t base_address()            const SIXTRL_NOEXCEPT;
+        SIXTRL_FN ptr_const_raw_data_t p_base()       const SIXTRL_NOEXCEPT;
         SIXTRL_FN ptr_const_raw_data_t p_base_begin() const SIXTRL_NOEXCEPT;
-        SIXTRL_FN ptr_const_raw_data_t p_base_end() const SIXTRL_NOEXCEPT;
+        SIXTRL_FN ptr_const_raw_data_t p_base_end()   const SIXTRL_NOEXCEPT;
 
-        SIXTRL_FN ptr_raw_data_t p_base_begin() SIXTRL_NOEXCEPT;
-        SIXTRL_FN ptr_raw_data_t p_base_end() SIXTRL_NOEXCEPT;
+        SIXTRL_FN ptr_raw_data_t p_base_begin()             SIXTRL_NOEXCEPT;
+        SIXTRL_FN ptr_raw_data_t p_base_end()               SIXTRL_NOEXCEPT;
 
-        SIXTRL_FN ptr_raw_data_t p_base() SIXTRL_NOEXCEPT;
+        SIXTRL_FN ptr_raw_data_t       p_base()             SIXTRL_NOEXCEPT;
         SIXTRL_FN ptr_const_raw_data_t p_const_base_begin() SIXTRL_NOEXCEPT;
-        SIXTRL_FN ptr_const_raw_data_t p_const_base_end() SIXTRL_NOEXCEPT;
-        SIXTRL_FN ptr_const_raw_data_t p_const_base() SIXTRL_NOEXCEPT;
+        SIXTRL_FN ptr_const_raw_data_t p_const_base_end()   SIXTRL_NOEXCEPT;
+        SIXTRL_FN ptr_const_raw_data_t p_const_base()       SIXTRL_NOEXCEPT;
 
         /* ----------------------------------------------------------------- */
 
@@ -306,7 +328,7 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC T const* get_const_object(
             size_type const pos_in_buffer,
             SIXTRL_BUFFER_ARGPTR_DEC const T *const
-                ptr_cls_elem = nullptr ) SIXTRL_NOEXCEPT;
+                ptr_cls_elem = nullptr ) const SIXTRL_NOEXCEPT;
 
         template< class T >
         SIXTRL_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC T* get_object(
@@ -318,13 +340,822 @@ namespace SIXTRL_CXX_NAMESPACE
         /* *****         SUPPORT FOR STORE / LOAD OPERATIONS          ****** */
         /* ***************************************************************** */
 
-        template< class T >
-        SIXTRL_FN status_t load_object( size_type const pos_in_buffer,
-            SIXTRL_BUFFER_ARGPTR_DEC T* SIXTRL_RESTRICT target ) const;
+        /* ----------------------------------------------------------------- */
+        /* a) check can load/store: */
 
-        template< class T >
-        SIXTRL_FN status_t store_object( size_type const pos_in_buffer,
-            SIXTRL_BUFFER_ARGPTR_DEC const T *const SIXTRL_RESTRICT src );
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 1: type neither directly nor via delegate loadable/storable
+         *         from/to CBufferView -> return error */
+
+        template< class E, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            ( !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+              !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >() ) ||
+            ( DstStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL ),
+            bool >::type
+        can_load_object_type( size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT
+                SIXTRL_UNUSED( dst ) ) const
+        {
+            return false;
+        }
+
+        template< class SrcT, class DstT, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            ( !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< SrcT >() &&
+              !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage<
+                  DstT >() ) ||
+            ( DstStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL ),
+            bool >::type
+        can_load_object_type_detailed(
+            size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC const DstT *const SIXTRL_RESTRICT
+                SIXTRL_UNUSED( dst ) ) const
+        {
+            return false;
+        }
+
+        template< class E, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            ( !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+              !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >() ) ||
+            ( SrcStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL ),
+            bool >::type
+        can_store_object_type(SIXTRL_BUFFER_ARGPTR_DEC const E *const
+                SIXTRL_RESTRICT SIXTRL_UNUSED( src ) ) const
+        {
+            return false;
+        }
+
+        template< class SrcT, class DstT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            ( !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< DstT >() &&
+              !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage<
+                  DstT >() ) ||
+            ( SrcStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL ),
+            bool >::type
+        can_store_object_detailed_type(
+            size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC const SrcT *const
+                SIXTRL_RESTRICT SIXTRL_UNUSED( src ) ) const
+        {
+            return false;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 2: directly loadable/storable */
+
+        template< class E, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            DstStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >(),
+            bool >::type
+        can_load_object_type( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT dst ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            constexpr st::store_backend_t SrcStoreT = st::STORAGE_BE_COBJECTS;
+            SIXTRL_BUFFER_DATAPTR_DEC const E *const src =
+                this->get_object< E >( pos_in_buffer );
+
+            return ( ( dst != SIXTRL_NULLPTR ) && ( src != SIXTRL_NULLPTR ) &&
+                     ( ( src == dst ) ||
+                       ( st::ObjDataConverter< E, E, SrcStoreT, DstStoreT
+                           >::allow( dst, src ) ) ) );
+        }
+
+        template< class E, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            SrcStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >(),
+            bool >::type
+        can_store_object_type( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT src ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            constexpr st::store_backend_t DstStoreT = st::STORAGE_BE_COBJECTS;
+            SIXTRL_BUFFER_DATAPTR_DEC E const* dst =
+                this->get_object< E >( pos_in_buffer );
+
+            return ( ( dst != SIXTRL_NULLPTR ) && ( src != SIXTRL_NULLPTR ) &&
+                     ( ( src == dst ) ||
+                       ( st::ObjDataConverter< E, E, SrcStoreT,
+                             DstStoreT >::allow( dst, src ) ) ) );
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 3: storeable/loadable via delegate */
+
+        template< class DstT, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            DstStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< DstT >() &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< DstT >(),
+            bool >::type
+        can_load_object_type( size_type const pos_in_buffer, SIXTRL_BUFFER_ARGPTR_DEC
+            const DstT *const SIXTRL_RESTRICT dst ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            constexpr st::store_backend_t SrcStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataDelegateTraits< DstT > delegate_traits_t;
+            typedef typename delegate_traits_t::delegate_t SrcT;
+
+            static_assert( !st::ObjData_is_specific_illegal_type< SrcT >(),
+                           "SrcT required to be a legal type" );
+
+            static_assert( !std::is_same< SrcT, DstT >::value,
+                "SrcT and DstT are expected to be different types" );
+
+            SIXTRL_BUFFER_DATAPTR_DEC SrcT const* src =
+                this->get_object< SrcT >( pos_in_buffer );
+
+            SIXTRL_ASSERT( ( src == SIXTRL_NULLPTR ) ||
+                ( reinterpret_cast< std::uintptr_t >( dst ) !=
+                  reinterpret_cast< std::uintptr_t >( src ) ) );
+
+            return  ( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) &&
+                      ( st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT
+                          >::allow( dst, src ) ) );
+        }
+
+        template< class SrcT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            SrcStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< SrcT >() &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< SrcT >(),
+            bool >::type
+        can_store_object_type( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT src
+        ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            constexpr st::store_backend_t DstStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataDelegateTraits< SrcT > delegate_traits_t;
+            typedef typename delegate_traits_t::delegate_t DstT;
+
+            static_assert( !st::ObjData_is_specific_illegal_type< DstT >(),
+                           "DstT required to be a legal type" );
+
+            static_assert( !std::is_same< SrcT, DstT >::value,
+                "SrcT and DstT are expected to be different types" );
+
+            SIXTRL_BUFFER_DATAPTR_DEC DstT const* dst =
+                this->get_object< DstT >( pos_in_buffer );
+
+            SIXTRL_ASSERT( ( dst == SIXTRL_NULLPTR ) ||
+                ( reinterpret_cast< std::uintptr_t >( dst ) !=
+                  reinterpret_cast< std::uintptr_t >( src ) ) );
+
+            return  ( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) &&
+                      ( st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT
+                          >::allow( dst, src ) ) );
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 4: explicit SrcT, DstT storeable/loadable */
+
+        template< class SrcT, class DstT, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            DstStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< SrcT >(),
+            bool >::type
+        can_load_object_type_detailed(
+            size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const DstT *const SIXTRL_RESTRICT dst
+        ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            constexpr st::store_backend_t SrcStoreT = st::STORAGE_BE_COBJECTS;
+            SIXTRL_BUFFER_DATAPTR_DEC SrcT const* src =
+                this->get_object< SrcT >( pos_in_buffer );
+
+            bool can_load = false;
+
+            if( ( dst != SIXTRL_NULLPTR ) && ( src != SIXTRL_NULLPTR ) )
+            {
+                if( ( !std::is_same< SrcT, DstT >::value ) ||
+                    ( reinterpret_cast< std::uintptr_t >( src ) !=
+                      reinterpret_cast< std::uintptr_t >( dst ) ) )
+                {
+                    can_load = st::ObjDataConverter< SrcT, DstT, SrcStoreT,
+                        DstStoreT >::allow( dst, src );
+                }
+                else can_load = true;
+            }
+
+            return can_load;
+        }
+
+        template< class SrcT, class DstT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            SrcStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< DstT >(),
+            bool >::type
+        can_store_object_detailed_type(
+            size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT src
+        ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            constexpr st::store_backend_t DstStoreT = st::STORAGE_BE_COBJECTS;
+            SIXTRL_BUFFER_DATAPTR_DEC DstT const* dst =
+                this->get_object< DstT >( pos_in_buffer );
+
+            bool can_load = false;
+
+            if( ( dst != SIXTRL_NULLPTR ) && ( src != SIXTRL_NULLPTR ) )
+            {
+                if( ( !std::is_same< SrcT, DstT >::value ) ||
+                    ( reinterpret_cast< std::uintptr_t >( src ) !=
+                      reinterpret_cast< std::uintptr_t >( dst ) ) )
+                {
+                    can_load = st::ObjDataConverter< SrcT, DstT, SrcStoreT,
+                        DstStoreT >::allow( dst, src );
+                }
+                else can_load = true;
+            }
+
+            return can_load;
+        }
+
+        /* ----------------------------------------------------------------- */
+        /* b) prepare for load/store object */
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 1: type neither directly nor via delegate loadable/storable
+         *         from/to CBufferView -> return error */
+
+        template< class E, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            ( !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+              !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >() ) ||
+            ( DstStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL ),
+            CBufferView::status_t >::type
+        prepare_load_object( size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT SIXTRL_UNUSED( dst )
+        ) const
+        {
+            return SIXTRL_CXX_NAMESPACE::COBJECTS_STATUS_GENERAL_FAILURE;
+        }
+
+        template< class SrcT, class DstT, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< SrcT >() ||
+            DstStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL,
+            CBufferView::status_t >::type
+        prepare_load_object_detailed(
+            size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC DstT* SIXTRL_RESTRICT SIXTRL_UNUSED( dst )
+        ) const
+        {
+            return SIXTRL_CXX_NAMESPACE::COBJECTS_STATUS_GENERAL_FAILURE;
+        }
+
+        template< class E, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            ( !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+              !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >() ) ||
+            ( SrcStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL ),
+            CBufferView::status_t >::type
+        prepare_store_object( size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT
+                SIXTRL_UNUSED( src ) )
+        {
+            return SIXTRL_CXX_NAMESPACE::COBJECTS_STATUS_GENERAL_FAILURE;
+        }
+
+        template< class SrcT, class DstT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< DstT >() ||
+            SrcStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL,
+            CBufferView::status_t >::type
+        prepare_store_object_detailed(
+            size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT
+                 SIXTRL_UNUSED( src ) ) const
+        {
+            return SIXTRL_CXX_NAMESPACE::COBJECTS_STATUS_GENERAL_FAILURE;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 2: directly loadable/storable */
+
+        template< class E, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            DstStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >(),
+            CBufferView::status_t >::type
+        prepare_load_object( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT dst ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            constexpr st::store_backend_t SrcStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< E, E, SrcStoreT, DstStoreT > conv_t;
+
+            SIXTRL_BUFFER_DATAPTR_DEC E const* src =
+                this->get_object< E >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( ( dst != src ) &&
+                           ( conv_t::requires_prepare( dst, src ) ) )
+                    ? st::CObjStatus_from_status( conv_t::prepare( dst, src ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        template< class E, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            SrcStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >(),
+            CBufferView::status_t >::type
+        prepare_store_object( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT src )
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            constexpr st::store_backend_t DstStoreT = st::STORAGE_BE_COBJECTS;
+            using conv_t = st::ObjDataConverter< E, E, SrcStoreT, DstStoreT >;
+
+            SIXTRL_BUFFER_DATAPTR_DEC E* dst =
+                this->get_object< E >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( ( src != dst ) &&
+                           ( conv_t::requires_prepare( dst, src ) ) )
+                    ? st::CObjStatus_from_status( conv_t::prepare( dst, src ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 3: loadable/storable via delegate */
+
+        template< class DstT, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            DstStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< DstT >() &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< DstT >(),
+            CBufferView::status_t >::type
+        prepare_load_object( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC DstT* SIXTRL_RESTRICT dst ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            typedef st::ObjDataDelegateTraits< DstT > delegate_traits_t;
+            typedef typename delegate_traits_t::delegate_t SrcT;
+
+            constexpr st::store_backend_t SrcStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT >
+                    conv_t;
+
+            SIXTRL_BUFFER_DATAPTR_DEC SrcT const* src =
+                this->get_object< SrcT >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( ( ( !std::is_same< SrcT, DstT >::value ) ||
+                             ( reinterpret_cast< std::uintptr_t >( src ) !=
+                               reinterpret_cast< std::uintptr_t >( dst ) ) ) &&
+                           ( conv_t::requires_prepare( dst, src ) ) )
+                    ? st::CObjStatus_from_status( conv_t::prepare( dst, src ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        template< class SrcT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            SrcStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< SrcT >() &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< SrcT >(),
+            CBufferView::status_t >::type
+        prepare_store_object( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT src )
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            typedef st::ObjDataDelegateTraits< SrcT > delegate_traits_t;
+            typedef typename delegate_traits_t::delegate_t DstT;
+
+            constexpr st::store_backend_t DstStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT >
+                    conv_t;
+
+            SIXTRL_BUFFER_DATAPTR_DEC DstT* dst =
+                this->get_object< DstT >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( ( ( !std::is_same< SrcT, DstT >::value ) ||
+                             ( reinterpret_cast< std::uintptr_t >( src ) !=
+                               reinterpret_cast< std::uintptr_t >( dst ) ) ) &&
+                           ( conv_t::requires_prepare( dst, src ) ) )
+                    ? st::CObjStatus_from_status( conv_t::prepare( dst, src ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 4: explicit DstT and SrcT types */
+
+        template< class SrcT, class DstT, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            DstStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< SrcT >(),
+            CBufferView::status_t >::type
+        prepare_load_object_detailed( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC DstT* SIXTRL_RESTRICT dst ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            constexpr st::store_backend_t SrcStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT >
+                    conv_t;
+
+            static_assert( !st::ObjData_is_specific_illegal_type< SrcT >(),
+                           "SrcT required to be a legal type" );
+
+            SIXTRL_BUFFER_DATAPTR_DEC SrcT const* src =
+                this->get_object< SrcT >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( ( ( !std::is_same< SrcT, DstT >::value ) ||
+                             ( reinterpret_cast< std::uintptr_t >( src ) !=
+                               reinterpret_cast< std::uintptr_t >( dst ) ) ) &&
+                           ( conv_t::requires_prepare( dst, src ) ) )
+                    ? st::CObjStatus_from_status( conv_t::prepare( dst, src ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        template< class SrcT, class DstT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+             SrcStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< DstT >(),
+            CBufferView::status_t >::type
+        prepare_store_object_detailed(
+            size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT src
+        ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            constexpr st::store_backend_t DstStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT >
+                    conv_t;
+
+            static_assert( !st::ObjData_is_specific_illegal_type< SrcT >(),
+                           "SrcT required to be a legal type" );
+
+            SIXTRL_BUFFER_DATAPTR_DEC DstT* dst =
+                this->get_object< DstT >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( ( ( !std::is_same< SrcT, DstT >::value ) ||
+                             ( reinterpret_cast< std::uintptr_t >( src ) !=
+                               reinterpret_cast< std::uintptr_t >( dst ) ) ) &&
+                           ( conv_t::requires_prepare( dst, src ) ) )
+                    ? st::CObjStatus_from_status( conv_t::prepare( dst, src ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        /* ----------------------------------------------------------------- */
+        /* c) perform load/store object */
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 1: type neither directly nor via delegate loadable/storable
+         *         from/to CBufferView -> return error */
+
+        template< class E, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT,
+                  typename... Args >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            ( !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+              !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >() ) ||
+            ( DstStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL ),
+            CBufferView::status_t >::type
+        load_object( size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT SIXTRL_UNUSED( dst ),
+            Args&&... SIXTRL_UNUSED( conv_parameters ) ) const
+        {
+            return SIXTRL_CXX_NAMESPACE::COBJECTS_STATUS_GENERAL_FAILURE;
+        }
+
+        template< class SrcT, class DstT, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT, typename... Args >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< SrcT >() ||
+            DstStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL,
+            CBufferView::status_t >::type
+        load_object_detailed(
+            size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC DstT* SIXTRL_RESTRICT SIXTRL_UNUSED( dst ),
+            Args&&... SIXTRL_UNUSED( conv_parameters ) ) const
+        {
+            return SIXTRL_CXX_NAMESPACE::COBJECTS_STATUS_GENERAL_FAILURE;
+        }
+
+        template< class E, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT, typename... Args >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            ( !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+              !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >() ) ||
+            ( SrcStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL ),
+            CBufferView::status_t >::type
+        store_object( size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT
+                SIXTRL_UNUSED( src ),
+            Args&&... SIXTRL_UNUSED( conv_parameters ) )
+        {
+            return SIXTRL_CXX_NAMESPACE::COBJECTS_STATUS_GENERAL_FAILURE;
+        }
+
+        template< class SrcT, class DstT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT, typename... Args >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< DstT >() ||
+            SrcStoreT == SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL,
+            CBufferView::status_t >::type
+        store_object_detailed(
+            size_type const SIXTRL_UNUSED( pos_in_buffer ),
+            SIXTRL_BUFFER_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT
+                 SIXTRL_UNUSED( src ),
+            Args&&... SIXTRL_UNUSED( conv_parameters ) )
+        {
+            return SIXTRL_CXX_NAMESPACE::COBJECTS_STATUS_GENERAL_FAILURE;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 2: directly storable / loadable */
+
+        template< class E, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT,
+                  typename...  Args>
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            DstStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >(),
+            CBufferView::status_t >::type
+        load_object( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC E* SIXTRL_RESTRICT dst,
+            Args&&... conv_parameters ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+            constexpr st::store_backend_t SrcStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< E, E, SrcStoreT, DstStoreT > conv_t;
+
+            SIXTRL_BUFFER_DATAPTR_DEC E const* src =
+                this->get_object< E >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( src != dst )
+                    ? st::CObjStatus_from_status( conv_t::perform( dst, src,
+                        std::forward< Args >( conv_parameters )... ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        template< class E, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT, typename... Args >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            SrcStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< E >() &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< E >(),
+            CBufferView::status_t >::type
+        store_object( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT src,
+            Args&&... conv_parameters )
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            constexpr st::store_backend_t DstStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< E, E, SrcStoreT, DstStoreT > conv_t;
+
+            SIXTRL_BUFFER_DATAPTR_DEC E* dst =
+                this->get_object< E >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( src != dst )
+                    ? st::CObjStatus_from_status( conv_t::perform( dst, src,
+                        std::forward< Args >( conv_parameters )... ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 3: loadable/storable via delegate */
+
+        template< class DstT, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT, typename... Args  >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            DstStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< DstT >() &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< DstT >(),
+            CBufferView::status_t >::type
+        load_object( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC DstT* SIXTRL_RESTRICT dst,
+            Args&&... conv_parameters ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            typedef st::ObjDataDelegateTraits< DstT > delegate_traits_t;
+            typedef typename delegate_traits_t::delegate_t SrcT;
+
+            constexpr st::store_backend_t SrcStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT >
+                    conv_t;
+
+            SIXTRL_BUFFER_DATAPTR_DEC SrcT const* src =
+                this->get_object< SrcT >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( ( !std::is_same< SrcT, DstT >::value ) ||
+                           ( reinterpret_cast< std::uintptr_t >( src ) !=
+                             reinterpret_cast< std::uintptr_t >( dst ) ) )
+                    ? st::CObjStatus_from_status( conv_t::perform( dst, src,
+                        std::forward< Args >( conv_parameters )... ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        template< class SrcT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT, typename... Args >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            SrcStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+           !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< SrcT >() &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_delegate_storage< SrcT >(),
+            CBufferView::status_t >::type
+        store_object( size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT src,
+            Args&&... conv_parameters )
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            typedef st::ObjDataDelegateTraits< SrcT, SrcStoreT > delegate_traits_t;
+            typedef typename delegate_traits_t::delegate_t DstT;
+
+            constexpr st::store_backend_t DstStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT >
+                    conv_t;
+
+            SIXTRL_BUFFER_DATAPTR_DEC DstT* dst =
+                this->get_object< DstT >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                status = ( ( !std::is_same< SrcT, DstT >::value ) ||
+                           ( reinterpret_cast< std::uintptr_t >( src ) !=
+                             reinterpret_cast< std::uintptr_t >( dst ) ) )
+                    ? st::CObjStatus_from_status( conv_t::perform( dst, src,
+                        std::forward< Args >( conv_parameters )... ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+        /* case 4: explicit DstT and SrcT types */
+
+        template< class SrcT, class DstT, store_backend_t DstStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT, typename... Args >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+            DstStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< SrcT >(),
+            CBufferView::status_t >::type
+        load_object_detailed(
+            size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC DstT* SIXTRL_RESTRICT dst,
+            Args&&... conv_parameters ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            constexpr st::store_backend_t SrcStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT >
+                    conv_t;
+
+            static_assert( !st::ObjData_is_specific_illegal_type< SrcT >(),
+                           "SrcT required to be a legal type" );
+
+            SIXTRL_BUFFER_DATAPTR_DEC SrcT const* src =
+                this->get_object< SrcT >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                bool const is_not_same_obj = (
+                    ( !std::is_same< SrcT, DstT >::value ) ||
+                    ( reinterpret_cast< std::uintptr_t >( dst ) ==
+                      reinterpret_cast< std::uintptr_t >( src ) ) );
+
+                status = ( is_not_same_obj )
+                    ? st::CObjStatus_from_status( conv_t::perform( dst, src,
+                        std::forward< Args >( conv_parameters )... ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
+
+        template< class SrcT, class DstT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT, typename... Args >
+        SIXTRL_FN SIXTRL_INLINE typename std::enable_if<
+             SrcStoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL &&
+            !SIXTRL_CXX_NAMESPACE::CObjElem_allow_direct_storage< DstT >(),
+            CBufferView::status_t >::type
+        store_object_detailed(
+            size_type const pos_in_buffer,
+            SIXTRL_BUFFER_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT src,
+            Args&&... conv_parameters ) const
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            CBufferView::status_t status = st::COBJECTS_STATUS_GENERAL_FAILURE;
+
+            constexpr st::store_backend_t DstStoreT = st::STORAGE_BE_COBJECTS;
+            typedef st::ObjDataConverter< SrcT, DstT, SrcStoreT, DstStoreT >
+                    conv_t;
+
+            static_assert( !st::ObjData_is_specific_illegal_type< SrcT >(),
+                           "SrcT required to be a legal type" );
+
+            SIXTRL_BUFFER_DATAPTR_DEC DstT* dst =
+                this->get_object< DstT >( pos_in_buffer );
+
+            if( ( src != SIXTRL_NULLPTR ) && ( dst != SIXTRL_NULLPTR ) )
+            {
+                bool const is_not_same_obj = (
+                    ( !std::is_same< SrcT, DstT >::value ) ||
+                    ( reinterpret_cast< std::uintptr_t >( dst ) ==
+                      reinterpret_cast< std::uintptr_t >( src ) ) );
+
+                status = ( is_not_same_obj )
+                    ? st::CObjStatus_from_status( conv_t::perform( dst, src,
+                        std::forward< Args >( conv_parameters )... ) )
+                    : st::COBJECTS_STATUS_SUCCESS;
+            }
+
+            return status;
+        }
 
         /* ***************************************************************** */
         /* *****  LOW-LEVEL SUPPORT FOR WRITING ELEMENTS TO THE BUFFER ***** */
@@ -369,21 +1200,37 @@ namespace SIXTRL_CXX_NAMESPACE
     #if !defined( _GPUCODE )
 
     SIXTRL_EXTERN SIXTRL_HOST_FN CBufferView::status_t CBuffer_to_file(
-        SIXTRL_BUFFER_ARGPTR_DEC CBufferView const& SIXTRL_RESTRICT view,
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView const& SIXTRL_RESTRICT_REF view,
         char const* SIXTRL_RESTRICT path_to_binary_dump );
 
     SIXTRL_EXTERN SIXTRL_HOST_FN CBufferView::status_t CBuffer_to_file(
-        SIXTRL_BUFFER_ARGPTR_DEC CBufferView const& SIXTRL_RESTRICT view,
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView const& SIXTRL_RESTRICT_REF view,
         std::string const& SIXTRL_RESTRICT_REF path_to_binary_dump );
 
+    /* . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . */
+
+    SIXTRL_EXTERN SIXTRL_HOST_FN CBufferView::status_t
+    CBuffer_to_file_normalized(
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
+        char const* SIXTRL_RESTRICT path_to_binary_dump,
+        CBufferView::address_t const normalized_base_addr );
+
+    SIXTRL_EXTERN SIXTRL_HOST_FN CBufferView::status_t
+    CBuffer_to_file_normalized(
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
+        std::string const& SIXTRL_RESTRICT_REF path_to_binary_dump,
+        CBufferView::address_t const normalized_base_addr );
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
     SIXTRL_EXTERN SIXTRL_HOST_FN CBufferView::status_t CBufferView_from_file(
-        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT view,
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
         char const* SIXTRL_RESTRICT_REF path_to_binary_dump,
         SIXTRL_ARGPTR_DEC CBufferView::size_type* SIXTRL_RESTRICT
             ptr_required_capacity = nullptr );
 
     SIXTRL_EXTERN SIXTRL_HOST_FN CBufferView::status_t CBufferView_from_file(
-        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT view,
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
         std::string const& SIXTRL_RESTRICT_REF path_to_binary_dump,
         SIXTRL_ARGPTR_DEC CBufferView::size_type* SIXTRL_RESTRICT
             ptr_required_capacity = nullptr );
@@ -393,13 +1240,25 @@ namespace SIXTRL_CXX_NAMESPACE
     template< class T >
     SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC T*
     CBufferView_add_copy_of_object_detail(
-        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT view,
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
         SIXTRL_BUFFER_ARGPTR_DEC const T *const SIXTRL_RESTRICT ptr_elem,
         SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_buffer_size,
         SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_n_slots,
         SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_n_objs,
         SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_n_ptrs,
         bool const init_with_zeros = false ) SIXTRL_NOEXCEPT;
+
+    template< class T, typename... Args >
+    SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC T*
+    CBufferView_create_new_object(
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
+        Args&&... init_args );
+
+    template< class T, typename... Args >
+    SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC T*
+    CBufferView_add_object(
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
+        Args&&... init_args );
 }
 
 #if !defined( _GPUCODE )
@@ -414,7 +1273,7 @@ typedef SIXTRL_CXX_NAMESPACE::CBufferView   NS(CBufferView);
 
 #else
 
-struct NS(CBufferView);
+typedef struct NS(CBufferView) NS(CBufferView);
 
 #endif /* __cplusplus */
 
@@ -434,7 +1293,7 @@ namespace SIXTRL_CXX_NAMESPACE
     template< class T >
     SIXTRL_INLINE SIXTRL_BUFFER_OBJ_DATAPTR_DEC T*
     CBufferView_add_copy_of_object_detail(
-        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT view,
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
         SIXTRL_BUFFER_ARGPTR_DEC const T *const SIXTRL_RESTRICT ptr_elem,
         SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_buffer_size,
         SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT requ_n_slots,
@@ -455,6 +1314,39 @@ namespace SIXTRL_CXX_NAMESPACE
         }
 
         return ptr_added_element;
+    }
+
+    template< class T, typename... Args >
+    SIXTRL_INLINE SIXTRL_BUFFER_OBJ_DATAPTR_DEC T*
+    CBufferView_create_new_object(
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
+        Args&&... init_args )
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        SIXTRL_BUFFER_OBJ_DATAPTR_DEC T* ptr_added_element = SIXTRL_NULLPTR;
+        SIXTRL_BUFFER_OBJ_ARGPTR_DEC T temp;
+
+        st::CObjElem_preset( &temp );
+
+        if( st::ARCH_STATUS_SUCCESS == st::ObjDataInitialiser<
+                T, st::STORAGE_BE_COBJECTS >::init(
+                    &temp, std::forward< Args >( init_args )... ) )
+        {
+            ptr_added_element = st::CBufferView_add_copy_of_object_detail(
+                view, &temp, nullptr, nullptr, nullptr, nullptr, false );
+        }
+
+        return ptr_added_element;
+    }
+
+    template< class T, typename... Args >
+    SIXTRL_STATIC SIXTRL_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC T*
+    CBufferView_add_object(
+        SIXTRL_BUFFER_ARGPTR_DEC CBufferView& SIXTRL_RESTRICT_REF view,
+        Args&&... init_args )
+    {
+        return SIXTRL_CXX_NAMESPACE::CBufferView_create_new_object< T >(
+            view, std::forward< Args >( init_args )... );
     }
 
     /* ===================================================================== */
@@ -1268,12 +2160,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< class T >
     SIXTRL_FN SIXTRL_BUFFER_OBJ_DATAPTR_DEC T const*
-    CBufferView::get_const_object(
-        CBufferView::size_type const pos_in_buffer,
-        SIXTRL_BUFFER_ARGPTR_DEC const T *const ptr_cls_elem ) SIXTRL_NOEXCEPT
+    CBufferView::get_const_object( CBufferView::size_type const pos_in_buffer,
+        SIXTRL_BUFFER_ARGPTR_DEC const T *const ptr_cls_elem
+    ) const SIXTRL_NOEXCEPT
     {
         return SIXTRL_CXX_NAMESPACE::CObjElem_const_from_cobj_index< T >(
-            this->const_index_at( pos_in_buffer ),
+            this->index_at( pos_in_buffer ),
                 this->slot_size(), ptr_cls_elem );
     }
 
@@ -1285,28 +2177,6 @@ namespace SIXTRL_CXX_NAMESPACE
         return SIXTRL_CXX_NAMESPACE::CObjElem_from_cobj_index< T >(
             this->index_at( pos_in_buffer ),
                 this->slot_size(), ptr_cls_elem );
-    }
-
-    /* ********************************************************************* */
-    /* *****           SUPPORT FOR STORE / LOAD OPERATIONS            ****** */
-    /* ********************************************************************* */
-
-    template< class T >
-    SIXTRL_FN CBufferView::status_t CBufferView::load_object(
-        CBufferView::size_type const pos_in_buffer,
-        SIXTRL_BUFFER_ARGPTR_DEC T* SIXTRL_RESTRICT target ) const
-    {
-        return SIXTRL_CXX_NAMESPACE::CObjElem_load_from_flat_cbuffer_to_argptr<
-            T >( this->p_base(), pos_in_buffer, this->slot_size(), target );
-    }
-
-    template< class T >
-    SIXTRL_FN CBufferView::status_t CBufferView::store_object(
-        CBufferView::size_type const pos_in_buffer,
-        SIXTRL_BUFFER_ARGPTR_DEC const T *const SIXTRL_RESTRICT src )
-    {
-        return SIXTRL_CXX_NAMESPACE::CObjElem_store_to_flat_cbuffer_from_argptr<
-            T >( this->p_base(), pos_in_buffer, this->slot_size(), src );
     }
 
     /* ***************************************************************** */

@@ -2,7 +2,7 @@
 #define SIXTRACKLIB_COMMON_COBJECTS_FLAT_BUFFER_C99_H__
 
 #if !defined(  SIXTRL_NO_SYSTEM_INCLUDES )
-    #if !defined( __cplusplus )
+    #if !defined( _cplusplus )
         #include <stdbool.h>
         #include <stddef.h>
         #include <stdlib.h>
@@ -18,11 +18,12 @@
     #include "sixtracklib/common/cobjects/definitions.h"
     #include "sixtracklib/common/internal/buffer_main_defines.h"
     #include "sixtracklib/common/internal/buffer_object_defines.h"
+    #include "sixtracklib/common/internal/compiler_attributes.h"
 #endif /* SIXTRL_NO_INCLUDES */
 
-#if defined( __cplusplus ) && !defined( _GPUCODE )
+#if defined( _cplusplus ) && !defined( GPUCODE )
 extern "C" {
-#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
+#endif /* defined( _cplusplus ) && !defined( GPUCODE ) */
 
 /* ************************************************************************* */
 /* *******               Minimal Flat Buffer Interface              ******** */
@@ -517,6 +518,14 @@ NS(CObjFlatBuffer_calc_required_buffer_size)(
     NS(cobj_size_t) const max_num_garbage_ranges,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT;
 
+SIXTRL_STATIC SIXTRL_FN NS(cobj_size_t)
+NS(CObjFlatBuffer_predict_required_buffer_size)(
+    NS(cobj_size_t) const max_num_objects,
+    NS(cobj_size_t) const max_num_slots,
+    NS(cobj_size_t) const max_num_dataptrs,
+    NS(cobj_size_t) const max_num_garbage_ranges,
+    NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT;
+
 SIXTRL_STATIC SIXTRL_FN bool NS(CObjFlatBuffer_has_cbuffer_structure)(
     NS(ptr_raw_buffer_data_t) SIXTRL_RESTRICT buffer,
     NS(cobj_size_t) const current_buffer_capacity,
@@ -584,9 +593,9 @@ NS(CObjFlatBuffer_add_copy_of_object)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT counts,
     bool const init_space_with_zeros ) SIXTRL_NOEXCEPT;
 
-#if defined( __cplusplus ) && !defined( _GPUCODE )
+#if defined( _cplusplus ) && !defined( GPUCODE )
 }
-#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
+#endif /* defined( _cplusplus ) && !defined( GPUCODE ) */
 
 /* ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| */
 /* ||||||||||            implementation of inline methods          ||||||||| */
@@ -599,9 +608,9 @@ NS(CObjFlatBuffer_add_copy_of_object)(
     #include "sixtracklib/common/cobjects/garbage_range.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#if defined( __cplusplus ) && !defined( _GPUCODE )
+#if defined( _cplusplus ) && !defined( GPUCODE )
 extern "C" {
-#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
+#endif /* defined( _cplusplus ) && !defined( GPUCODE ) */
 
 /* ************************************************************************* */
 /* *******         Additional internal functions and helpers        ******** */
@@ -683,10 +692,10 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_slot_based_size)(
     NS(cobj_size_t) const in_length,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)  _size_t;
-    _size_t slot_based_length;
+    typedef NS(cobj_size_t)  st_size_t;
+    st_size_t slot_based_length;
 
-    SIXTRL_ASSERT( slot_size > ( _size_t )0u );
+    SIXTRL_ASSERT( slot_size > ( st_size_t )0u );
 
     slot_based_length  = in_length / slot_size;
     slot_based_length *= slot_size;
@@ -700,21 +709,21 @@ NS(CObjFlatBuffer_ptr_const_header)(
     SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_raw_t) const* SIXTRL_RESTRICT buffer,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)    _size_t;
-    typedef NS(cobj_address_t) _addr_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t const* _ptr_addr_t;
+    typedef NS(cobj_size_t) st_size_t;
+    typedef NS(cobj_address_t) st_addr_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t const* ptr_addr_t;
 
-    _ptr_addr_t ptr_header = SIXTRL_NULLPTR;
+    ptr_addr_t ptr_header = SIXTRL_NULLPTR;
 
-    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > _size_t{ 0 } ) )
+    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0 ) )
     {
-        _addr_t const buffer_addr = ( _addr_t )(uintptr_t )buffer;
+        st_addr_t const buffer_addr = ( st_addr_t )(uintptr_t )buffer;
 
-        SIXTRL_ASSERT( buffer_addr % slot_size == ( _addr_t )0 );
+        SIXTRL_ASSERT( buffer_addr % slot_size == ( st_addr_t )0 );
         SIXTRL_ASSERT( NS(CObjFlatBuffer_slot_based_size)(
-            sizeof( _addr_t ), slot_size ) > ( _size_t )0u );
+            sizeof( st_addr_t ), slot_size ) > ( st_size_t )0u );
 
-        ptr_header = ( _ptr_addr_t )( uintptr_t )buffer_addr;
+        ptr_header = ( ptr_addr_t )( uintptr_t )buffer_addr;
     }
 
     return ptr_header;
@@ -740,7 +749,10 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_section_entity_size)(
     NS(cobj_size_t) entity_size = ( NS(cobj_size_t) )0u;
 
     SIXTRL_ASSERT( slot_size != ( NS(cobj_size_t) )0u );
-    SIXTRL_ASSERT( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u );
+    SIXTRL_ASSERT( ( buffer == SIXTRL_NULLPTR ) ||
+                   ( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u ) );
+
+    ( void )buffer;
 
     switch( section_id )
     {
@@ -787,15 +799,18 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_size_section_header)(
 {
     NS(cobj_size_t) sec_header_size = ( NS(cobj_size_t) )0u;
 
-    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( NS(cobj_size_t) )0u )&&
+    if( ( slot_size > ( NS(cobj_size_t) )0u )&&
         ( section_id >= SIXTRL_CBUFFER_SECTION_ID_SLOTS ) &&
         ( section_id <= SIXTRL_CBUFFER_SECTION_ID_GARBAGE ) )
     {
         sec_header_size = NS(CObjFlatBuffer_slot_based_size)(
             sizeof( NS(cobj_size_t) ) * ( NS(cobj_size_t) )2, slot_size );
 
-        SIXTRL_ASSERT( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u );
+        SIXTRL_ASSERT( ( buffer == SIXTRL_NULLPTR ) ||
+            ( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u ) );
         SIXTRL_ASSERT( sec_header_size > ( NS(cobj_size_t) )0u );
+
+        ( void )buffer;
     }
 
     return sec_header_size;
@@ -902,7 +917,7 @@ SIXTRL_INLINE bool NS(CObjFlatBuffer_is_section_header_consistent)(
     NS(cobj_size_t) const sec_id,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t) const* _ptr_size_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t) const* ptr_size_t;
 
     NS(cobj_size_t) const sec_header_size =
         NS(CObjFlatBuffer_size_section_header)( buffer, sec_id, slot_size );
@@ -910,7 +925,7 @@ SIXTRL_INLINE bool NS(CObjFlatBuffer_is_section_header_consistent)(
     NS(cobj_size_t) const sec_entity_size =
         NS(CObjFlatBuffer_section_entity_size)( buffer, sec_id, slot_size );
 
-    _ptr_size_t ptr_sec_header = ( _ptr_size_t )( uintptr_t
+    ptr_size_t ptr_sec_header = ( ptr_size_t )( uintptr_t
         )NS(CObjFlatBuffer_section_begin_addr)( buffer, sec_id, slot_size );
 
     return (
@@ -932,10 +947,10 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_section_max_size)(
     NS(cobj_size_t) const sec_id,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t) const* _ptr_size_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t) const* ptr_size_t;
 
     NS(cobj_size_t) max_section_size = ( NS(cobj_size_t) )0u;
-    _ptr_size_t ptr_sec_header = ( _ptr_size_t )( uintptr_t
+    ptr_size_t ptr_sec_header = ( ptr_size_t )( uintptr_t
         )NS(CObjFlatBuffer_section_begin_addr)( buffer, sec_id, slot_size );
 
     if( ptr_sec_header != SIXTRL_NULLPTR )
@@ -954,11 +969,11 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_section_num_entities)(
     NS(cobj_size_t) const sec_id,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t) const* _ptr_size_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t) const* ptr_size_t;
 
     NS(cobj_size_t) num_entities = ( NS(cobj_size_t) )0u;
 
-    _ptr_size_t ptr_sec_header = ( _ptr_size_t )( uintptr_t
+    ptr_size_t ptr_sec_header = ( ptr_size_t )( uintptr_t
         )NS(CObjFlatBuffer_section_begin_addr)( buffer, sec_id, slot_size );
 
     if( ptr_sec_header != SIXTRL_NULLPTR )
@@ -1075,10 +1090,10 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_set_section_num_entities)(
     NS(cobj_size_t) const num_entities,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t)* _ptr_sec_header_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t)* ptr_sec_header_t;
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    _ptr_sec_header_t ptr_sec_header = ( _ptr_sec_header_t)( uintptr_t
+    ptr_sec_header_t ptr_sec_header = ( ptr_sec_header_t)( uintptr_t
         )NS(CObjFlatBuffer_section_begin_addr)( buffer, sec_id, slot_size );
 
     if( ptr_sec_header != SIXTRL_NULLPTR )
@@ -1099,10 +1114,10 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_set_section_max_size)(
     NS(cobj_size_t) const max_section_size,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t)* _ptr_sec_header_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t)* ptr_sec_header_t;
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    _ptr_sec_header_t ptr_sec_header = ( _ptr_sec_header_t)( uintptr_t
+    ptr_sec_header_t ptr_sec_header = ( ptr_sec_header_t)( uintptr_t
         )NS(CObjFlatBuffer_section_begin_addr)( buffer, sec_id, slot_size );
 
     if( ( ptr_sec_header != SIXTRL_NULLPTR ) &&
@@ -1124,19 +1139,19 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_section_init)(
     NS(cobj_size_t) const num_elements_in_section,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t) _size_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t)* _ptr_sec_header_t;
+    typedef NS(cobj_size_t) st_size_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC NS(cobj_size_t)* ptr_sec_header_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    _ptr_sec_header_t ptr_sec_header = ( _ptr_sec_header_t )( uintptr_t
+    ptr_sec_header_t ptr_sec_header = ( ptr_sec_header_t )( uintptr_t
         )NS(CObjFlatBuffer_section_begin_addr)( buffer, sec_id, slot_size );
 
-    _size_t const section_size = NS(CObjFlatBuffer_calc_section_size)(
+    st_size_t const section_size = NS(CObjFlatBuffer_calc_section_size)(
         buffer, sec_id, num_elements_in_section, slot_size );
 
-    if( ( ptr_sec_header != SIXTRL_NULLPTR ) && ( slot_size >( _size_t )0u ) &&
-        ( section_size > ( _size_t )0u ) )
+    if( ( ptr_sec_header != SIXTRL_NULLPTR ) && ( slot_size >( st_size_t )0u ) &&
+        ( section_size > ( st_size_t )0u ) )
     {
         ptr_sec_header[ 0 ] = section_size;
         ptr_sec_header[ 1 ] = num_elements_in_section;
@@ -1686,14 +1701,14 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_header)(
         SIXTRL_RESTRICT offsets,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_address_t)      _addr_t;
-    typedef NS(cobj_address_diff_t) _diff_t;
-    typedef NS(cobj_size_t)         _size_t;
+    typedef NS(cobj_address_t) st_addr_t;
+    typedef NS(cobj_address_diff_t) st_diff_t;
+    typedef NS(cobj_size_t) st_size_t;
 
-    SIXTRL_BUFFER_DATAPTR_DEC _addr_t* header =
+    SIXTRL_BUFFER_DATAPTR_DEC st_addr_t* header =
             NS(CObjFlatBuffer_ptr_header)( buffer, slot_size );
 
-    SIXTRL_BUFFER_ARGPTR_DEC _diff_t base_addr_offset = ( _diff_t )0u;
+    SIXTRL_BUFFER_ARGPTR_DEC st_diff_t base_addr_offset = ( st_diff_t )0u;
     NS(cobj_status_t) status = NS(CObjFlatBuffer_base_addr_offset)(
         &base_addr_offset, buffer, slot_size );
 
@@ -1710,28 +1725,28 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_header)(
     SIXTRL_ASSERT( slot_size > ( NS(cobj_size_t) )0u );
     SIXTRL_ASSERT( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u );
 
-    if( base_addr_offset != ( _diff_t )0u )
+    if( base_addr_offset != ( st_diff_t )0u )
     {
-        SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
-            ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
+        SIXTRL_STATIC_VAR st_addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
+            ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
 
-        _size_t const sec_ids[ 5 ] =
+        st_size_t const sec_ids[ 5 ] =
         {
-            ( _size_t )SIXTRL_CBUFFER_SECTION_ID_BASE_ADDR,
-            ( _size_t )SIXTRL_CBUFFER_SECTION_ID_SLOTS,
-            ( _size_t )SIXTRL_CBUFFER_SECTION_ID_INDICES,
-            ( _size_t )SIXTRL_CBUFFER_SECTION_ID_POINTERS,
-            ( _size_t )SIXTRL_CBUFFER_SECTION_ID_GARBAGE
+            ( st_size_t )SIXTRL_CBUFFER_SECTION_ID_BASE_ADDR,
+            ( st_size_t )SIXTRL_CBUFFER_SECTION_ID_SLOTS,
+            ( st_size_t )SIXTRL_CBUFFER_SECTION_ID_INDICES,
+            ( st_size_t )SIXTRL_CBUFFER_SECTION_ID_POINTERS,
+            ( st_size_t )SIXTRL_CBUFFER_SECTION_ID_GARBAGE
         };
 
-        _addr_t remapped[ 5 ] = { 0u, 0u, 0u, 0u, 0u };
+        st_addr_t remapped[ 5 ] = { 0u, 0u, 0u, 0u, 0u };
 
         SIXTRL_ASSERT( header[ sec_ids[ 4 ] ] > header[ sec_ids[ 3 ] ] );
         SIXTRL_ASSERT( header[ sec_ids[ 3 ] ] > header[ sec_ids[ 2 ] ] );
         SIXTRL_ASSERT( header[ sec_ids[ 2 ] ] > header[ sec_ids[ 1 ] ] );
         SIXTRL_ASSERT( header[ sec_ids[ 1 ] ] > header[ sec_ids[ 0 ] ] );
 
-        for( _size_t ii = ( _size_t )0 ; ii < ( _size_t )5 ; ++ii )
+        for( st_size_t ii = ( st_size_t )0 ; ii < ( st_size_t )5 ; ++ii )
         {
             remapped[ ii ] = NS(CObjFlatBuffer_perform_addr_shift)(
                 header[ sec_ids[ ii ] ], offsets[ ii ], slot_size );
@@ -1744,9 +1759,9 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_header)(
         }
 
         if( ( status == SIXTRL_COBJECTS_STATUS_SUCCESS ) &&
-            ( remapped[ 0 ] == ( _addr_t )( uintptr_t )buffer ) )
+            ( remapped[ 0 ] == ( st_addr_t )( uintptr_t )buffer ) )
         {
-            for( _size_t ii = ( _size_t )0u ; ii < ( _size_t )5u ; ++ii )
+            for( st_size_t ii = ( st_size_t )0u ; ii < ( st_size_t )5u ; ++ii )
             {
                 header[ sec_ids[ ii ] ] = remapped[ ii ];
             }
@@ -1763,7 +1778,7 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_header)(
 SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_slots)(
     NS(ptr_raw_buffer_data_t) SIXTRL_RESTRICT buffer,
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_address_diff_t) const*
-        SIXTRL_RESTRICT /* offsets */,
+        SIXTRL_RESTRICT SIXTRL_UNUSED( offsets ),
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
     return ( NS(CObjFlatBuffer_is_section_header_consistent)(
@@ -1778,9 +1793,9 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_indices)(
         SIXTRL_RESTRICT offsets,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_address_t)      _addr_t;
-    typedef NS(cobj_address_diff_t) _diff_t;
-    typedef NS(cobj_size_t)         _size_t;
+    typedef NS(cobj_address_t) st_addr_t;
+    typedef NS(cobj_address_diff_t) st_diff_t;
+    typedef NS(cobj_size_t)  st_size_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
@@ -1790,19 +1805,19 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_indices)(
     {
         status = SIXTRL_COBJECTS_STATUS_SUCCESS;
 
-        if( ( offsets[ 1 ] != ( _diff_t )0u ) &&
+        if( ( offsets[ 1 ] != ( st_diff_t )0u ) &&
             ( NS(CObjFlatBuffer_num_indices)( buffer,slot_size ) >
-              ( _size_t )0u ) )
+              ( st_size_t )0u ) )
         {
-            _addr_t const slots_begin_addr =
+            st_addr_t const slots_begin_addr =
                 NS(CObjFlatBuffer_section_data_begin_addr)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-            _addr_t const slots_end_addr =
+            st_addr_t const slots_end_addr =
                 NS(CObjFlatBuffer_section_data_end_addr)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-            _addr_t min_legal_next_addr = slots_begin_addr;
+            st_addr_t min_legal_next_addr = slots_begin_addr;
 
             NS(ptr_cobj_index_t) it =
                 NS(CObjFlatBuffer_indices_begin)( buffer, slot_size );
@@ -1815,23 +1830,23 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_indices)(
 
             for( ; it != end ; ++it )
             {
-                _addr_t const obj_begin_addr = NS(CObjIndex_begin_addr)( it );
-                _addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+                st_addr_t const obj_begin_addr = NS(CObjIndex_begin_addr)( it );
+                st_addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                         obj_begin_addr, offsets[ 1 ], slot_size );
 
                 SIXTRL_ASSERT( NS(CObjIndex_size)( it ) % slot_size ==
-                               ( _size_t )0u );
+                               ( st_size_t )0u );
 
                 SIXTRL_ASSERT( min_legal_next_addr >= slots_begin_addr );
                 SIXTRL_ASSERT( min_legal_next_addr <  slots_end_addr );
 
-                if( ( r_addr != ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS ) &&
+                if( ( r_addr != ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS ) &&
                     ( r_addr < slots_end_addr ) &&
                     ( r_addr >= min_legal_next_addr ) )
                 {
-                    SIXTRL_ASSERT( r_addr % slot_size == ( _addr_t )0u );
+                    SIXTRL_ASSERT( r_addr % slot_size == ( st_addr_t )0u );
                     SIXTRL_ASSERT( min_legal_next_addr % slot_size ==
-                                   ( _addr_t )0 );
+                                   ( st_addr_t )0 );
 
                     min_legal_next_addr = r_addr + NS(CObjIndex_size)( it );
                     NS(CObjIndex_set_begin_addr)( it, r_addr );
@@ -1854,10 +1869,10 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_dataptrs)(
         SIXTRL_RESTRICT offsets,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)                     _size_t;
-    typedef NS(cobj_address_diff_t)             _diff_t;
-    typedef NS(cobj_address_t)                  _addr_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t*  _ptr_addr_t;
+    typedef NS(cobj_size_t) st_size_t;
+    typedef NS(cobj_address_diff_t) st_diff_t;
+    typedef NS(cobj_address_t) st_addr_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t*  ptr_addr_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
@@ -1867,26 +1882,26 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_dataptrs)(
     {
         status = SIXTRL_COBJECTS_STATUS_SUCCESS;
 
-        if( ( offsets[ 1 ] != ( _diff_t )0u ) &&
+        if( ( offsets[ 1 ] != ( st_diff_t )0u ) &&
             ( NS(CObjFlatBuffer_num_pointers)( buffer,slot_size ) >
-              ( _size_t )0u ) )
+              ( st_size_t )0u ) )
         {
-            SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
-                ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
+            SIXTRL_STATIC_VAR st_addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
+                ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
 
-            _addr_t const slots_begin_addr =
+            st_addr_t const slots_begin_addr =
                 NS(CObjFlatBuffer_section_data_begin_addr)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-            _addr_t const slots_end_addr =
+            st_addr_t const slots_end_addr =
                 NS(CObjFlatBuffer_section_data_end_addr)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-            _ptr_addr_t it = ( _ptr_addr_t )( uintptr_t
+            ptr_addr_t it = ( ptr_addr_t )( uintptr_t
                 )NS(CObjFlatBuffer_section_data_begin_addr)( buffer,
                     SIXTRL_CBUFFER_SECTION_ID_POINTERS, slot_size );
 
-            _ptr_addr_t end = ( _ptr_addr_t )( uintptr_t
+            ptr_addr_t end = ( ptr_addr_t )( uintptr_t
                 )NS(CObjFlatBuffer_section_data_end_addr)( buffer,
                     SIXTRL_CBUFFER_SECTION_ID_POINTERS, slot_size );
 
@@ -1897,12 +1912,12 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_dataptrs)(
 
             for( ; it != end ; ++it )
             {
-                _addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+                st_addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                     *it, offsets[ 1 ], slot_size );
 
-                _ptr_addr_t ptr_in_slots = ( _ptr_addr_t )( uintptr_t )r_addr;
+                ptr_addr_t ptr_in_slots = ( ptr_addr_t )( uintptr_t )r_addr;
 
-                _addr_t const r_slot_addr = ( r_addr != NULL_ADDR )
+                st_addr_t const r_slot_addr = ( r_addr != NULL_ADDR )
                     ? NS(CObjFlatBuffer_perform_addr_shift)(
                         *ptr_in_slots, offsets[ 1 ], slot_size )
                     : NULL_ADDR;
@@ -1935,11 +1950,11 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_garbage)(
         SIXTRL_RESTRICT offsets,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)                             _size_t;
-    typedef NS(cobj_address_diff_t)                     _diff_t;
-    typedef NS(cobj_address_t)                          _addr_t;
-    typedef NS(CObjGarbageRange)                        _garbage_range_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _garbage_range_t* _ptr_to_garbage_t;
+    typedef NS(cobj_size_t) st_size_t;
+    typedef NS(cobj_address_diff_t) st_diff_t;
+    typedef NS(cobj_address_t) st_addr_t;
+    typedef NS(CObjGarbageRange) garbage_range_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC garbage_range_t* ptr_to_garbage_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
@@ -1949,26 +1964,26 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_garbage)(
     {
         status = SIXTRL_COBJECTS_STATUS_SUCCESS;
 
-        if( ( offsets[ 1 ] != ( _diff_t )0u ) &&
+        if( ( offsets[ 1 ] != ( st_diff_t )0u ) &&
             ( NS(CObjFlatBuffer_num_pointers)( buffer,slot_size ) >
-              ( _size_t )0u ) )
+              ( st_size_t )0u ) )
         {
-            SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
-                ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
+            SIXTRL_STATIC_VAR st_addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
+                ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
 
-            _addr_t const slots_begin_addr =
+            st_addr_t const slots_begin_addr =
                 NS(CObjFlatBuffer_section_data_begin_addr)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-            _addr_t const slots_end_addr =
+            st_addr_t const slots_end_addr =
                 NS(CObjFlatBuffer_section_data_end_addr)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-            _ptr_to_garbage_t it = ( _ptr_to_garbage_t )( uintptr_t
+            ptr_to_garbage_t it = ( ptr_to_garbage_t )( uintptr_t
                 )NS(CObjFlatBuffer_section_data_begin_addr)( buffer,
                     SIXTRL_CBUFFER_SECTION_ID_GARBAGE, slot_size );
 
-            _ptr_to_garbage_t end = ( _ptr_to_garbage_t )( uintptr_t
+            ptr_to_garbage_t end = ( ptr_to_garbage_t )( uintptr_t
                 )NS(CObjFlatBuffer_section_data_end_addr)( buffer,
                     SIXTRL_CBUFFER_SECTION_ID_GARBAGE, slot_size );
 
@@ -1979,9 +1994,9 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_remap_section_garbage)(
 
             for( ; it != end ; ++it )
             {
-                _addr_t const addr = NS(CObjGarbageRange_begin_addr)( it );
+                st_addr_t const addr = NS(CObjGarbageRange_begin_addr)( it );
 
-                _addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+                st_addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                     addr, offsets[ 1 ], slot_size );
 
                 if( ( r_addr != NULL_ADDR ) &&
@@ -2047,41 +2062,41 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_apply_addr_offset)(
     NS(cobj_address_diff_t) const addr_offset,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_address_t)                          _addr_t;
-    typedef NS(cobj_address_diff_t)                     _diff_t;
-    typedef NS(cobj_size_t)                             _size_t;
-    typedef NS(CObjGarbageRange)                        _garbage_range_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t*          _ptr_addr_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _garbage_range_t* _ptr_garbage_t;
+    typedef NS(cobj_address_t) st_addr_t;
+    typedef NS(cobj_address_diff_t) st_diff_t;
+    typedef NS(cobj_size_t) st_size_t;
+    typedef NS(CObjGarbageRange)  garbage_range_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t* ptr_addr_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC garbage_range_t* ptr_garbage_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_SUCCESS;
-    _ptr_addr_t header = NS(CObjFlatBuffer_ptr_header)( buffer, slot_size );
+    ptr_addr_t header = NS(CObjFlatBuffer_ptr_header)( buffer, slot_size );
 
-    if( ( addr_offset != ( _diff_t )0 ) && ( header != SIXTRL_NULLPTR ) &&
+    if( ( addr_offset != ( st_diff_t )0 ) && ( header != SIXTRL_NULLPTR ) &&
         ( !NS(CObjFlatBuffer_needs_remapping)( buffer, slot_size ) ) )
     {
-        SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
-            ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
+        SIXTRL_STATIC_VAR st_addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
+            ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
 
-        _size_t const num_objects = NS(CObjFlatBuffer_num_objects)(
+        st_size_t const num_objects = NS(CObjFlatBuffer_num_objects)(
             buffer, slot_size );
 
-        _size_t const num_pointers = NS(CObjFlatBuffer_num_pointers)(
+        st_size_t const num_pointers = NS(CObjFlatBuffer_num_pointers)(
             buffer, slot_size );
 
-        _size_t const num_garbage_ranges =
+        st_size_t const num_garbage_ranges =
             NS(CObjFlatBuffer_num_garbage_ranges)( buffer, slot_size );
 
-        _addr_t const slot_begin_addr = NS(CObjFlatBuffer_section_begin_addr)(
+        st_addr_t const slot_begin_addr = NS(CObjFlatBuffer_section_begin_addr)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-        _addr_t const slot_end_addr = NS(CObjFlatBuffer_section_end_addr)(
+        st_addr_t const slot_end_addr = NS(CObjFlatBuffer_section_end_addr)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-        _addr_t const r_slot_begin_addr =NS(CObjFlatBuffer_perform_addr_shift)(
+        st_addr_t const r_slot_begin_addr =NS(CObjFlatBuffer_perform_addr_shift)(
             slot_begin_addr, addr_offset, slot_size );
 
-        _addr_t const r_slot_end_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+        st_addr_t const r_slot_end_addr = NS(CObjFlatBuffer_perform_addr_shift)(
             slot_end_addr, addr_offset, slot_size );
 
         if( ( r_slot_begin_addr == NULL_ADDR ) ||
@@ -2092,24 +2107,24 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_apply_addr_offset)(
             return SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
         }
 
-        if( num_garbage_ranges > ( _size_t )0u )
+        if( num_garbage_ranges > ( st_size_t )0u )
         {
-            _ptr_garbage_t it  = ( _ptr_garbage_t )( uintptr_t
+            ptr_garbage_t it  = ( ptr_garbage_t )( uintptr_t
                 )NS(CObjFlatBuffer_section_data_begin_addr)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_GARBAGE, slot_size );
 
-            _ptr_garbage_t end  = ( _ptr_garbage_t )( uintptr_t
+            ptr_garbage_t end  = ( ptr_garbage_t )( uintptr_t
                 )NS(CObjFlatBuffer_section_data_end_addr)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_GARBAGE, slot_size );
 
             SIXTRL_ASSERT( it != SIXTRL_NULLPTR );
             SIXTRL_ASSERT( ( uintptr_t )end >= ( uintptr_t )it );
-            SIXTRL_ASSERT( ( _size_t )( end - it ) == num_garbage_ranges );
+            SIXTRL_ASSERT( ( st_size_t )( end - it ) == num_garbage_ranges );
 
             for( ; it != end ; ++it )
             {
-                _addr_t const addr = NS(CObjGarbageRange_begin_addr)( it );
-                _addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+                st_addr_t const addr = NS(CObjGarbageRange_begin_addr)( it );
+                st_addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                     addr, addr_offset, slot_size );
 
                 SIXTRL_ASSERT( addr != NULL_ADDR );
@@ -2127,30 +2142,30 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_apply_addr_offset)(
         }
 
         if( ( status == SIXTRL_COBJECTS_STATUS_SUCCESS ) &&
-            ( num_pointers > ( _size_t )0 ) )
+            ( num_pointers > ( st_size_t )0 ) )
         {
-            _ptr_addr_t it  = ( _ptr_addr_t )( uintptr_t
+            ptr_addr_t it  = ( ptr_addr_t )( uintptr_t
                 )NS(CObjFlatBuffer_section_data_begin_addr)( buffer,
                     SIXTRL_CBUFFER_SECTION_ID_POINTERS, slot_size );
 
-            _ptr_addr_t end = ( _ptr_addr_t )( uintptr_t
+            ptr_addr_t end = ( ptr_addr_t )( uintptr_t
                 )NS(CObjFlatBuffer_section_data_end_addr)( buffer,
                     SIXTRL_CBUFFER_SECTION_ID_POINTERS, slot_size );
 
             SIXTRL_ASSERT( it != SIXTRL_NULLPTR );
             SIXTRL_ASSERT( ( uintptr_t )end >= ( uintptr_t )it );
-            SIXTRL_ASSERT( ( _size_t )( end - it ) == num_pointers );
+            SIXTRL_ASSERT( ( st_size_t )( end - it ) == num_pointers );
 
             for( ; it != end ; ++it )
             {
-                _ptr_addr_t slot_ptr = ( _ptr_addr_t )( uintptr_t )*it;
+                ptr_addr_t slot_ptr = ( ptr_addr_t )( uintptr_t )*it;
 
-                _addr_t const r_slot_addr = ( *it != NULL_ADDR )
+                st_addr_t const r_slot_addr = ( *it != NULL_ADDR )
                     ? NS(CObjFlatBuffer_perform_addr_shift)( *slot_ptr,
                         addr_offset, slot_size )
                     : NULL_ADDR;
 
-                _addr_t const r_slot_ptr_addr =
+                st_addr_t const r_slot_ptr_addr =
                     NS(CObjFlatBuffer_perform_addr_shift)(
                         *it, addr_offset, slot_size );
 
@@ -2178,7 +2193,7 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_apply_addr_offset)(
         }
 
         if( ( status == SIXTRL_COBJECTS_STATUS_SUCCESS ) &&
-            ( num_objects > ( _size_t )0u ) )
+            ( num_objects > ( st_size_t )0u ) )
         {
             NS(ptr_cobj_index_t) it = NS(CObjFlatBuffer_indices_begin)(
                 buffer, slot_size );
@@ -2190,11 +2205,11 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_apply_addr_offset)(
 
             for( ; it != end ; ++it )
             {
-                _addr_t const obj_addr = NS(CObjIndex_begin_addr)( it );
+                st_addr_t const obj_addr = NS(CObjIndex_begin_addr)( it );
 
                 if( obj_addr != NULL_ADDR )
                 {
-                    _addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+                    st_addr_t const r_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                         obj_addr, addr_offset, slot_size );
 
                     SIXTRL_ASSERT( obj_addr >= slot_begin_addr );
@@ -2215,23 +2230,23 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_apply_addr_offset)(
 
         if( status == SIXTRL_COBJECTS_STATUS_SUCCESS )
         {
-            _addr_t const r_base_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+            st_addr_t const r_base_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                 header[ SIXTRL_CBUFFER_SECTION_ID_BASE_ADDR ],
                     addr_offset, slot_size );
 
-            _addr_t const r_slots_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+            st_addr_t const r_slots_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                 header[ SIXTRL_CBUFFER_SECTION_ID_SLOTS ],
                     addr_offset, slot_size );
 
-            _addr_t const r_objs_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+            st_addr_t const r_objs_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                 header[ SIXTRL_CBUFFER_SECTION_ID_INDICES ],
                     addr_offset, slot_size );
 
-            _addr_t const r_ptrs_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+            st_addr_t const r_ptrs_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                 header[ SIXTRL_CBUFFER_SECTION_ID_POINTERS ],
                     addr_offset, slot_size );
 
-            _addr_t const r_garbage_addr = NS(CObjFlatBuffer_perform_addr_shift)(
+            st_addr_t const r_garbage_addr = NS(CObjFlatBuffer_perform_addr_shift)(
                 header[ SIXTRL_CBUFFER_SECTION_ID_GARBAGE ],
                     addr_offset, slot_size );
 
@@ -2251,7 +2266,7 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_apply_addr_offset)(
             }
         }
     }
-    else if( addr_offset != ( _diff_t )0 )
+    else if( addr_offset != ( st_diff_t )0 )
     {
         status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
     }
@@ -2276,13 +2291,13 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_address_t)* SIXTRL_RESTRICT save_ptrs
 ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)     _size_t;
-    typedef NS(cobj_address_t)  _addr_t;
-    typedef NS(cobj_raw_t)      _raw_t;
+    typedef NS(cobj_size_t)   st_size_t;
+    typedef NS(cobj_address_t)  st_addr_t;
+    typedef NS(cobj_raw_t)      st_raw_t;
 
-    SIXTRL_STATIC_VAR _raw_t SIXTRL_CONSTEXPR_OR_CONST ZBYTE = ( _raw_t )0u;
-    SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
-        ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
+    SIXTRL_STATIC_VAR st_raw_t SIXTRL_CONSTEXPR_OR_CONST ZBYTE = ( st_raw_t )0u;
+    SIXTRL_STATIC_VAR st_addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
+        ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
     NS(ptr_const_cobj_index_t) index_obj = NS(CObjFlatBuffer_const_index)(
@@ -2295,22 +2310,22 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
         (  NS(CObjIndex_type_id)( index_obj ) == type_id ) &&
         (  NS(CObjIndex_begin_addr)( index_obj ) != NULL_ADDR ) &&
         (  NS(CObjIndex_size)( index_obj ) >= obj_size ) &&
-        ( obj_size > ( _size_t )0u ) && ( obj_to_store != SIXTRL_NULLPTR ) )
+        ( obj_size > ( st_size_t )0u ) && ( obj_to_store != SIXTRL_NULLPTR ) )
     {
-        typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t*          _ptr_dest_addr_t;
-        typedef SIXTRL_BUFFER_DATAPTR_DEC _raw_t*           _ptr_dest_data_t;
-        typedef SIXTRL_BUFFER_ARGPTR_DEC  _addr_t const*    _ptr_src_addr_t;
-        typedef SIXTRL_BUFFER_ARGPTR_DEC  _raw_t  const*    _ptr_src_data_t;
+        typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t*          ptr_dest_addr_t;
+        typedef SIXTRL_BUFFER_DATAPTR_DEC st_raw_t*           ptr_dest_data_t;
+        typedef SIXTRL_BUFFER_ARGPTR_DEC  st_addr_t const*    ptr_src_addr_t;
+        typedef SIXTRL_BUFFER_ARGPTR_DEC  st_raw_t  const*    ptr_src_data_t;
 
-        _addr_t const src_begin_addr = ( _addr_t )( uintptr_t )obj_to_store;
+        st_addr_t const src_begin_addr = ( st_addr_t )( uintptr_t )obj_to_store;
 
-        _addr_t const dest_begin_addr =
+        st_addr_t const dest_begin_addr =
             NS(CObjIndex_begin_addr)( index_obj );
 
-        _ptr_dest_data_t dest_begin = (
-            _ptr_dest_data_t )( uintptr_t )dest_begin_addr;
+        ptr_dest_data_t dest_begin = (
+            ptr_dest_data_t )( uintptr_t )dest_begin_addr;
 
-        _size_t const storage_obj_size =
+        st_size_t const storage_obj_size =
                 NS(CObjFlatBuffer_slot_based_size)( obj_size, slot_size );
 
         status = ( NS(cobj_status_t) )SIXTRL_COBJECTS_STATUS_SUCCESS;
@@ -2319,14 +2334,14 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
             buffer, slot_size ) );
 
         SIXTRL_ASSERT( NS(CObjIndex_begin_addr)( index_obj ) % slot_size ==
-                       ( _addr_t )0u );
+                       ( st_addr_t )0u );
 
-        if( ( num_pointers > ( _size_t )0u ) &&
+        if( ( num_pointers > ( st_size_t )0u ) &&
             ( save_ptrs != SIXTRL_NULLPTR ) )
         {
-            _size_t ii = ( _size_t )0u;
+            st_size_t ii = ( st_size_t )0u;
 
-            SIXTRL_ASSERT( src_begin_addr % slot_size == ( _addr_t )0u );
+            SIXTRL_ASSERT( src_begin_addr % slot_size == ( st_addr_t )0u );
             SIXTRL_ASSERT( offsets   != SIXTRL_NULLPTR );
             SIXTRL_ASSERT( sizes     != SIXTRL_NULLPTR );
             SIXTRL_ASSERT( counts    != SIXTRL_NULLPTR );
@@ -2338,15 +2353,15 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
 
             for( ; ii < num_pointers ; ++ii )
             {
-                _size_t const field_offset = offsets[ ii ];
+                st_size_t const field_offset = offsets[ ii ];
 
-                _ptr_dest_addr_t _ptr_dest_field_addr = ( _ptr_dest_addr_t)(
+                ptr_dest_addr_t ptr_dest_field_addr = ( ptr_dest_addr_t)(
                     uintptr_t )( dest_begin_addr + field_offset );
 
-                _ptr_src_addr_t _ptr_src_field_addr = ( _ptr_src_addr_t )(
+                ptr_src_addr_t ptr_src_field_addr = ( ptr_src_addr_t )(
                     uintptr_t )( src_begin_addr + field_offset );
 
-                if( ( ( field_offset % slot_size ) != ( _size_t )0u ) ||
+                if( ( ( field_offset % slot_size ) != ( st_size_t )0u ) ||
                     ( ( field_offset + slot_size ) > obj_size ) )
                 {
                     status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
@@ -2354,14 +2369,14 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
                 }
 
                 if( ( ( save_ptrs[ ii ] == NULL_ADDR ) ||
-                      ( *_ptr_src_field_addr == NULL_ADDR ) ) &&
-                    ( counts[ ii ] * sizes[ ii ] > ( _size_t )0u ) )
+                      ( *ptr_src_field_addr == NULL_ADDR ) ) &&
+                    ( counts[ ii ] * sizes[ ii ] > ( st_size_t )0u ) )
                 {
                     status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
                     break;
                 }
 
-                save_ptrs[ ii ] = *( _ptr_dest_field_addr );
+                save_ptrs[ ii ] = *( ptr_dest_field_addr );
             }
         }
 
@@ -2370,7 +2385,7 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
             if( storage_obj_size > obj_size )
             {
                 SIXTRACKLIB_SET_VALUES(
-                    _raw_t, dest_begin, storage_obj_size, ZBYTE );
+                    st_raw_t, dest_begin, storage_obj_size, ZBYTE );
             }
 
             status = NS(_CObjFlatBuffer_memcpy_from_argptr_to_dataptr)(
@@ -2378,16 +2393,16 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
         }
 
         if( ( status == SIXTRL_COBJECTS_STATUS_SUCCESS ) &&
-            ( num_pointers > ( _size_t )0u ) )
+            ( num_pointers > ( st_size_t )0u ) )
         {
-            _size_t const requ_storage_size =
+            st_size_t const requ_storage_size =
                 NS(CObjFlatBuffer_predict_required_num_bytes)(
                     obj_size, num_pointers, sizes, counts, slot_size );
 
-            _size_t ii = ( _size_t )0u;
+            st_size_t ii = ( st_size_t )0u;
 
             SIXTRL_ASSERT( requ_storage_size >= storage_obj_size );
-            SIXTRL_ASSERT( requ_storage_size % slot_size == ( _size_t )0u );
+            SIXTRL_ASSERT( requ_storage_size % slot_size == ( st_size_t )0u );
             SIXTRL_ASSERT( requ_storage_size >=
                 NS(CObjIndex_size)( index_obj ) );
             SIXTRL_ASSERT( save_ptrs != SIXTRL_NULLPTR );
@@ -2396,34 +2411,34 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
 
             for( ; ii < num_pointers ; ++ii )
             {
-                _size_t const field_offset = offsets[ ii ];
-                _size_t const field_size = NS(CObjFlatBuffer_slot_based_size)(
+                st_size_t const field_offset = offsets[ ii ];
+                st_size_t const field_size = NS(CObjFlatBuffer_slot_based_size)(
                     sizes[ ii ] * counts[ ii ], slot_size );
 
-                _ptr_src_addr_t _ptr_field_src_addr = ( _ptr_src_addr_t )(
+                ptr_src_addr_t ptr_field_src_addr = ( ptr_src_addr_t )(
                     uintptr_t )( src_begin_addr + field_offset );
 
-                _ptr_src_data_t _ptr_field_src = ( _ptr_src_data_t )(
-                    uintptr_t )( *_ptr_field_src_addr );
+                ptr_src_data_t ptr_field_src = ( ptr_src_data_t )(
+                    uintptr_t )( *ptr_field_src_addr );
 
-                _ptr_dest_addr_t _ptr_field_dest_addr = ( _ptr_dest_addr_t )(
+                ptr_dest_addr_t ptr_field_dest_addr = ( ptr_dest_addr_t )(
                     uintptr_t )( dest_begin_addr + field_offset );
 
-                _ptr_dest_data_t _ptr_field_dest = ( _ptr_dest_data_t )(
+                ptr_dest_data_t ptr_field_dest = ( ptr_dest_data_t )(
                     uintptr_t )save_ptrs[ ii ];
 
-                SIXTRL_ASSERT( ( field_offset % slot_size ) == ( _size_t )0u );
+                SIXTRL_ASSERT( ( field_offset % slot_size ) == ( st_size_t )0u );
                 SIXTRL_ASSERT( ( field_offset + slot_size ) <= obj_size );
 
-                *_ptr_field_dest_addr = save_ptrs[ ii ];
+                *ptr_field_dest_addr = save_ptrs[ ii ];
 
                 if( ( save_ptrs[ ii ] == NULL_ADDR ) ||
-                    ( *_ptr_field_src_addr == NULL_ADDR ) ||
-                    ( field_size == ( _size_t )0u ) )
+                    ( *ptr_field_src_addr == NULL_ADDR ) ||
+                    ( field_size == ( st_size_t )0u ) )
                 {
                     if( ( save_ptrs[ ii ] != NULL_ADDR ) ||
-                        ( *_ptr_field_src_addr != NULL_ADDR ) ||
-                        ( field_size > ( _size_t )0u ) )
+                        ( *ptr_field_src_addr != NULL_ADDR ) ||
+                        ( field_size > ( st_size_t )0u ) )
                     {
                         status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
                     }
@@ -2432,8 +2447,7 @@ NS(CObjFlatBuffer_store_obj_same_layout_parameters_from_argptr)(
                 if( status == SIXTRL_COBJECTS_STATUS_SUCCESS )
                 {
                     status = NS(_CObjFlatBuffer_memcpy_from_argptr_to_dataptr)(
-                        _ptr_field_dest, _ptr_field_src,
-                            field_size, slot_size );
+                        ptr_field_dest, ptr_field_src, field_size, slot_size );
                 }
 
                 if( status != SIXTRL_COBJECTS_STATUS_SUCCESS ) break;
@@ -2457,13 +2471,13 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_address_t)* SIXTRL_RESTRICT save_ptrs
 ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)     _size_t;
-    typedef NS(cobj_address_t)  _addr_t;
-    typedef NS(cobj_raw_t)      _raw_t;
+    typedef NS(cobj_size_t)     st_size_t;
+    typedef NS(cobj_address_t)  st_addr_t;
+    typedef NS(cobj_raw_t)      st_raw_t;
 
-    SIXTRL_STATIC_VAR _raw_t SIXTRL_CONSTEXPR_OR_CONST ZBYTE = ( _raw_t )0u;
-    SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
-        ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
+    SIXTRL_STATIC_VAR st_raw_t SIXTRL_CONSTEXPR_OR_CONST ZBYTE = ( st_raw_t )0u;
+    SIXTRL_STATIC_VAR st_addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
+        ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
     NS(ptr_const_cobj_index_t) index_obj = NS(CObjFlatBuffer_const_index)(
@@ -2476,20 +2490,20 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
         (  NS(CObjIndex_type_id)( index_obj ) == type_id ) &&
         (  NS(CObjIndex_begin_addr)( index_obj ) != NULL_ADDR ) &&
         (  NS(CObjIndex_size)( index_obj ) >= obj_size ) &&
-        ( obj_size > ( _size_t )0u ) && ( obj_to_update != SIXTRL_NULLPTR ) )
+        ( obj_size > ( st_size_t )0u ) && ( obj_to_update != SIXTRL_NULLPTR ) )
     {
-        typedef SIXTRL_BUFFER_ARGPTR_DEC _addr_t*        _ptr_dest_addr_t;
-        typedef SIXTRL_BUFFER_ARGPTR_DEC  _raw_t*        _ptr_dest_data_t;
+        typedef SIXTRL_BUFFER_ARGPTR_DEC st_addr_t*        ptr_dest_addr_t;
+        typedef SIXTRL_BUFFER_ARGPTR_DEC  st_raw_t*        ptr_dest_data_t;
 
-        typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t const* _ptr_src_addr_t;
-        typedef SIXTRL_BUFFER_DATAPTR_DEC _raw_t  const* _ptr_src_data_t;
+        typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t const* ptr_src_addr_t;
+        typedef SIXTRL_BUFFER_DATAPTR_DEC st_raw_t  const* ptr_src_data_t;
 
-        _addr_t const dest_begin_addr = ( _addr_t )( uintptr_t )obj_to_update;
+        st_addr_t const dest_begin_addr = ( st_addr_t )( uintptr_t )obj_to_update;
 
-        _ptr_dest_data_t dest_begin = (
-            _ptr_dest_data_t )( uintptr_t )dest_begin_addr;
+        ptr_dest_data_t dest_begin = (
+            ptr_dest_data_t )( uintptr_t )dest_begin_addr;
 
-        _size_t const storage_obj_size =
+        st_size_t const storage_obj_size =
                 NS(CObjFlatBuffer_slot_based_size)( obj_size, slot_size );
 
         status = ( NS(cobj_status_t) )SIXTRL_COBJECTS_STATUS_SUCCESS;
@@ -2498,12 +2512,12 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
             buffer, slot_size ) );
 
         SIXTRL_ASSERT( NS(CObjIndex_begin_addr)( index_obj ) % slot_size ==
-                       ( _addr_t )0u );
+                       ( st_addr_t )0u );
 
-        if( ( num_pointers > ( _size_t )0u ) &&
+        if( ( num_pointers > ( st_size_t )0u ) &&
             ( save_ptrs != SIXTRL_NULLPTR ) )
         {
-            _size_t ii = ( _size_t )0u;
+            st_size_t ii = ( st_size_t )0u;
 
             SIXTRL_ASSERT( ( uintptr_t )obj_to_update % slot_size ==
                            ( uintptr_t )0u );
@@ -2519,22 +2533,22 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
 
             for( ; ii < num_pointers ; ++ii )
             {
-                _size_t const field_offset = offsets[ ii ];
-                _addr_t const dest_field_addr = dest_begin_addr + field_offset;
-                _ptr_dest_addr_t _ptr_field_addr = ( _ptr_dest_addr_t)(
+                st_size_t const field_offset = offsets[ ii ];
+                st_addr_t const dest_field_addr = dest_begin_addr + field_offset;
+                ptr_dest_addr_t ptr_field_addr = ( ptr_dest_addr_t)(
                     uintptr_t )dest_field_addr;
 
-                if( ( ( field_offset % slot_size ) != ( _size_t )0u ) ||
+                if( ( ( field_offset % slot_size ) != ( st_size_t )0u ) ||
                     ( ( field_offset + slot_size ) > obj_size ) )
                 {
                     status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
                     break;
                 }
 
-                save_ptrs[ ii ] = *( _ptr_field_addr );
+                save_ptrs[ ii ] = *( ptr_field_addr );
 
                 if( ( save_ptrs[ ii ] == NULL_ADDR ) &&
-                    ( counts[ ii ] * sizes[ ii ] > ( _size_t )0u ) )
+                    ( counts[ ii ] * sizes[ ii ] > ( st_size_t )0u ) )
                 {
                     status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
                     break;
@@ -2544,33 +2558,33 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
 
         if( status == SIXTRL_COBJECTS_STATUS_SUCCESS )
         {
-            _ptr_src_data_t _src = ( _ptr_src_data_t )( uintptr_t
+            ptr_src_data_t src = ( ptr_src_data_t )( uintptr_t
                 )NS(CObjIndex_begin_addr)( index_obj );
 
             if( storage_obj_size > obj_size )
             {
                 SIXTRACKLIB_SET_VALUES(
-                    _raw_t, dest_begin, storage_obj_size, ZBYTE );
+                    st_raw_t, dest_begin, storage_obj_size, ZBYTE );
             }
 
             status = NS(_CObjFlatBuffer_memcpy_from_dataptr_to_argptr)(
-                dest_begin, _src, obj_size, slot_size );
+                dest_begin, src, obj_size, slot_size );
         }
 
         if( ( status == SIXTRL_COBJECTS_STATUS_SUCCESS ) &&
-            ( num_pointers > ( _size_t )0u ) )
+            ( num_pointers > ( st_size_t )0u ) )
         {
-            _addr_t const src_begin_addr =
+            st_addr_t const src_begin_addr =
                     NS(CObjIndex_begin_addr)( index_obj );
 
-            _size_t const requ_storage_size =
+            st_size_t const requ_storage_size =
                 NS(CObjFlatBuffer_predict_required_num_bytes)(
                     obj_size, num_pointers, sizes, counts, slot_size );
 
-            _size_t ii = ( _size_t )0u;
+            st_size_t ii = ( st_size_t )0u;
 
             SIXTRL_ASSERT( requ_storage_size >= storage_obj_size );
-            SIXTRL_ASSERT( requ_storage_size % slot_size == ( _size_t )0u );
+            SIXTRL_ASSERT( requ_storage_size % slot_size == ( st_size_t )0u );
             SIXTRL_ASSERT( requ_storage_size >=
                 NS(CObjIndex_size)( index_obj ) );
             SIXTRL_ASSERT( save_ptrs != SIXTRL_NULLPTR );
@@ -2579,36 +2593,36 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
 
             for( ; ii < num_pointers ; ++ii )
             {
-                _size_t const field_offset = offsets[ ii ];
-                _size_t const field_size = NS(CObjFlatBuffer_slot_based_size)(
+                st_size_t const field_offset = offsets[ ii ];
+                st_size_t const field_size = NS(CObjFlatBuffer_slot_based_size)(
                     sizes[ ii ] * counts[ ii ], slot_size );
 
-                _ptr_src_addr_t _ptr_field_src_addr = ( _ptr_src_addr_t )(
+                ptr_src_addr_t ptr_field_src_addr = ( ptr_src_addr_t )(
                     uintptr_t )( src_begin_addr + field_offset );
 
-                _ptr_src_data_t _ptr_field_src = ( _ptr_src_data_t )(
-                    uintptr_t )( *_ptr_field_src_addr );
+                ptr_src_data_t ptr_field_src = ( ptr_src_data_t )(
+                    uintptr_t )( *ptr_field_src_addr );
 
 
-                _addr_t const dest_field_addr = dest_begin_addr + field_offset;
-                _ptr_dest_addr_t _ptr_field_dest_addr = ( _ptr_dest_addr_t )(
+                st_addr_t const dest_field_addr = dest_begin_addr + field_offset;
+                ptr_dest_addr_t ptr_field_dest_addr = ( ptr_dest_addr_t )(
                     uintptr_t )dest_field_addr;
 
-                _ptr_dest_data_t _ptr_field_dest = ( _ptr_dest_data_t )(
+                ptr_dest_data_t ptr_field_dest = ( ptr_dest_data_t )(
                     uintptr_t )save_ptrs[ ii ];
 
-                *_ptr_field_dest_addr = save_ptrs[ ii ];
+                *ptr_field_dest_addr = save_ptrs[ ii ];
 
-                SIXTRL_ASSERT( ( field_offset % slot_size ) == ( _size_t )0u );
+                SIXTRL_ASSERT( ( field_offset % slot_size ) == ( st_size_t )0u );
                 SIXTRL_ASSERT( ( field_offset + slot_size ) <= obj_size );
 
                 if( ( save_ptrs[ ii ] == NULL_ADDR ) ||
-                    ( *_ptr_field_src_addr == NULL_ADDR ) ||
-                    ( field_size == ( _size_t )0u ) )
+                    ( *ptr_field_src_addr == NULL_ADDR ) ||
+                    ( field_size == ( st_size_t )0u ) )
                 {
                     if( ( save_ptrs[ ii ] != NULL_ADDR ) ||
-                        ( *_ptr_field_src_addr != NULL_ADDR ) ||
-                        ( field_size > ( _size_t )0u ) )
+                        ( *ptr_field_src_addr != NULL_ADDR ) ||
+                        ( field_size > ( st_size_t )0u ) )
                     {
                         status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
                     }
@@ -2617,8 +2631,7 @@ NS(CObjFlatBuffer_load_obj_same_layout_parameters_to_argptr)(
                 if( status == SIXTRL_COBJECTS_STATUS_SUCCESS )
                 {
                     status = NS(_CObjFlatBuffer_memcpy_from_dataptr_to_argptr)(
-                        _ptr_field_dest, _ptr_field_src,
-                            field_size, slot_size );
+                        ptr_field_dest, ptr_field_src, field_size, slot_size );
                 }
 
                 if( status != SIXTRL_COBJECTS_STATUS_SUCCESS ) break;
@@ -2640,29 +2653,29 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_predict_required_num_bytes)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT counts,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t) _size_t;
-    _size_t requ_num_bytes = ( _size_t )0u;
+    typedef NS(cobj_size_t) st_size_t;
+    st_size_t requ_num_bytes = ( st_size_t )0u;
 
-    if( ( slot_size > ( _size_t )0u ) && ( obj_handle_size > ( _size_t )0u ) )
+    if( ( slot_size > ( st_size_t )0u ) && ( obj_handle_size > ( st_size_t )0u ) )
     {
         requ_num_bytes = NS(CObjFlatBuffer_slot_based_size)(
             obj_handle_size, slot_size );
 
-        SIXTRL_ASSERT( requ_num_bytes > ( _size_t )0u );
-        SIXTRL_ASSERT( ( num_pointers == ( _size_t )0u ) ||
+        SIXTRL_ASSERT( requ_num_bytes > ( st_size_t )0u );
+        SIXTRL_ASSERT( ( num_pointers == ( st_size_t )0u ) ||
                        ( ( counts != SIXTRL_NULLPTR ) &&
                          ( sizes  != SIXTRL_NULLPTR ) ) );
 
-        if( num_pointers > ( _size_t )0u )
+        if( num_pointers > ( st_size_t )0u )
         {
-            for( _size_t ii = ( _size_t )0u ; ii < num_pointers ; ++ii )
+            for( st_size_t ii = ( st_size_t )0u ; ii < num_pointers ; ++ii )
             {
                 requ_num_bytes += NS(CObjFlatBuffer_slot_based_size)(
                     counts[ ii ] * sizes[ ii ], slot_size );
             }
         }
 
-        SIXTRL_ASSERT( requ_num_bytes % slot_size == ( _size_t )0u );
+        SIXTRL_ASSERT( requ_num_bytes % slot_size == ( st_size_t )0u );
     }
 
     return requ_num_bytes;
@@ -2675,12 +2688,12 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_predict_required_num_slots)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT counts,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t) _size_t;
-    _size_t requ_num_slots = ( _size_t )0u;
+    typedef NS(cobj_size_t) st_size_t;
+    st_size_t requ_num_slots = ( st_size_t )0u;
 
-    if( slot_size > ( _size_t )0u )
+    if( slot_size > ( st_size_t )0u )
     {
-        _size_t const requ_num_bytes =
+        st_size_t const requ_num_bytes =
             NS(CObjFlatBuffer_predict_required_num_bytes)( obj_handle_size,
                 num_pointers, sizes, counts, slot_size );
 
@@ -2703,22 +2716,22 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_calc_required_buffer_size)(
     NS(cobj_size_t) const max_num_garbage_ranges,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t) _size_t;
+    typedef NS(cobj_size_t) st_size_t;
 
-    _size_t const header_size =
+    st_size_t const header_size =
         NS(CObjFlatBuffer_size_header)( buffer, slot_size );
 
-    _size_t const requ_slots_size = NS(CObjFlatBuffer_calc_section_size)(
+    st_size_t const requ_slots_size = NS(CObjFlatBuffer_calc_section_size)(
         buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, max_num_slots, slot_size );
 
-    _size_t const requ_objs_size = NS(CObjFlatBuffer_calc_section_size)(
+    st_size_t const requ_objs_size = NS(CObjFlatBuffer_calc_section_size)(
         buffer, SIXTRL_CBUFFER_SECTION_ID_INDICES, max_num_objs, slot_size );
 
-    _size_t const requ_ptrs_size = NS(CObjFlatBuffer_calc_section_size)(
+    st_size_t const requ_ptrs_size = NS(CObjFlatBuffer_calc_section_size)(
         buffer, SIXTRL_CBUFFER_SECTION_ID_POINTERS,
             max_num_dataptrs, slot_size );
 
-    _size_t const requ_garbage_size = NS(CObjFlatBuffer_calc_section_size)(
+    st_size_t const requ_garbage_size = NS(CObjFlatBuffer_calc_section_size)(
         buffer, SIXTRL_CBUFFER_SECTION_ID_GARBAGE,
             max_num_garbage_ranges, slot_size );
 
@@ -2726,22 +2739,57 @@ SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_calc_required_buffer_size)(
         requ_slots_size + requ_objs_size + requ_ptrs_size + requ_garbage_size;
 }
 
+SIXTRL_INLINE NS(cobj_size_t) NS(CObjFlatBuffer_predict_required_buffer_size)(
+    NS(cobj_size_t) const max_num_objects,
+    NS(cobj_size_t) const max_num_slots,
+    NS(cobj_size_t) const max_num_dataptrs,
+    NS(cobj_size_t) const max_num_garbage_ranges,
+    NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
+{
+    typedef NS(cobj_size_t) st_size_t;
+
+    st_size_t requ_buffer_size = ( st_size_t )0;
+
+    if( slot_size > ( st_size_t )0 )
+    {
+        requ_buffer_size  = ( st_size_t )SIXTRL_CBUFFER_DEFAULT_HEADER_SIZE;
+
+        requ_buffer_size += NS(CObjFlatBuffer_calc_section_size)(
+            SIXTRL_NULLPTR, SIXTRL_CBUFFER_SECTION_ID_SLOTS,
+                max_num_slots, slot_size );
+
+        requ_buffer_size += NS(CObjFlatBuffer_calc_section_size)(
+            SIXTRL_NULLPTR, SIXTRL_CBUFFER_SECTION_ID_INDICES,
+                max_num_objects, slot_size );
+
+        requ_buffer_size += NS(CObjFlatBuffer_calc_section_size)(
+            SIXTRL_NULLPTR, SIXTRL_CBUFFER_SECTION_ID_POINTERS,
+                max_num_dataptrs, slot_size );
+
+        requ_buffer_size += NS(CObjFlatBuffer_calc_section_size)(
+            SIXTRL_NULLPTR, SIXTRL_CBUFFER_SECTION_ID_GARBAGE,
+                max_num_garbage_ranges, slot_size );
+    }
+
+    return requ_buffer_size;
+}
+
 SIXTRL_INLINE bool NS(CObjFlatBuffer_has_cbuffer_structure)(
     NS(ptr_raw_buffer_data_t) SIXTRL_RESTRICT buffer,
     NS(cobj_size_t) const buffer_capacity,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)     _size_t;
-    typedef NS(cobj_address_t)  _addr_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t* _ptr_addr_t;
+    typedef NS(cobj_size_t)     st_size_t;
+    typedef NS(cobj_address_t)  st_addr_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t* ptr_addr_t;
 
-    SIXTRL_STATIC_VAR _size_t const ZERO = ( _size_t )0u;
-    SIXTRL_STATIC_VAR _addr_t const NULL_ADDR =
-        ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
+    SIXTRL_STATIC_VAR st_size_t const ZERO = ( st_size_t )0u;
+    SIXTRL_STATIC_VAR st_addr_t const NULL_ADDR =
+        ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
 
 
     bool has_cbuffer_structure = false;
-    _ptr_addr_t header = NS(CObjFlatBuffer_ptr_header)( buffer, slot_size );
+    ptr_addr_t header = NS(CObjFlatBuffer_ptr_header)( buffer, slot_size );
 
     if( ( header != SIXTRL_NULLPTR ) &&
         ( header[ SIXTRL_CBUFFER_SECTION_ID_BASE_ADDR   ] != NULL_ADDR ) &&
@@ -2779,51 +2827,51 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_init_empty)(
     NS(cobj_size_t) const buffer_capacity,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)     _size_t;
-    typedef NS(cobj_address_t)  _addr_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t* _ptr_addr_t;
+    typedef NS(cobj_size_t)     st_size_t;
+    typedef NS(cobj_address_t)  st_addr_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t* ptr_addr_t;
 
-    SIXTRL_STATIC_VAR _size_t const ZERO = ( _size_t )0u;
+    SIXTRL_STATIC_VAR st_size_t const ZERO = ( st_size_t )0u;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
-    _ptr_addr_t header = NS(CObjFlatBuffer_ptr_header)( buffer, slot_size );
+    ptr_addr_t header = NS(CObjFlatBuffer_ptr_header)( buffer, slot_size );
 
     if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ZERO ) &&
         ( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u ) &&
         ( header != SIXTRL_NULLPTR ) )
     {
-        typedef NS(cobj_raw_t) _raw_t;
+        typedef NS(cobj_raw_t) st_raw_t;
 
-        SIXTRL_STATIC_VAR _raw_t  const ZBYTE = ( _raw_t )0u;
+        SIXTRL_STATIC_VAR st_raw_t  const ZBYTE = ( st_raw_t )0u;
 
-        _addr_t const base_addr = ( _addr_t )( uintptr_t )header;
+        st_addr_t const base_addr = ( st_addr_t )( uintptr_t )header;
 
-        _size_t const header_size =
-            ( _size_t )SIXTRL_CBUFFER_DEFAULT_HEADER_SIZE;
+        st_size_t const header_size =
+            ( st_size_t )SIXTRL_CBUFFER_DEFAULT_HEADER_SIZE;
 
-        _size_t const slots_sec_size = NS(CObjFlatBuffer_calc_section_size)(
+        st_size_t const slots_sec_size = NS(CObjFlatBuffer_calc_section_size)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, ZERO, slot_size );
 
-        _size_t const objs_sec_size = NS(CObjFlatBuffer_calc_section_size)(
+        st_size_t const objs_sec_size = NS(CObjFlatBuffer_calc_section_size)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_INDICES, ZERO, slot_size );
 
-        _size_t const ptrs_sec_size = NS(CObjFlatBuffer_calc_section_size)(
+        st_size_t const ptrs_sec_size = NS(CObjFlatBuffer_calc_section_size)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_POINTERS, ZERO, slot_size );
 
-        _size_t const garbage_sec_size = NS(CObjFlatBuffer_calc_section_size)(
+        st_size_t const garbage_sec_size = NS(CObjFlatBuffer_calc_section_size)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_GARBAGE, ZERO, slot_size );
 
-        _size_t const buffer_size = header_size + slots_sec_size +
+        st_size_t const buffer_size = header_size + slots_sec_size +
                                     objs_sec_size + ptrs_sec_size +
                                     garbage_sec_size;
 
-        _addr_t sec_begin_addr = base_addr + header_size;
-        NS(ptr_raw_buffer_data_t) _raw_header = ( NS(ptr_raw_buffer_data_t) )(
+        st_addr_t sec_begin_addr = base_addr + header_size;
+        NS(ptr_raw_buffer_data_t) raw_header = ( NS(ptr_raw_buffer_data_t) )(
             uintptr_t )base_addr;
 
         if( buffer_size > buffer_capacity ) return status;
 
-        SIXTRACKLIB_SET_VALUES( _raw_t, _raw_header, buffer_size, ZBYTE );
+        SIXTRACKLIB_SET_VALUES( st_raw_t, raw_header, buffer_size, ZBYTE );
 
         header[ SIXTRL_CBUFFER_SECTION_ID_BASE_ADDR ]   = base_addr;
         header[ SIXTRL_CBUFFER_SECTION_ID_BUFFER_SIZE ] = buffer_size;
@@ -2883,50 +2931,50 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t)* SIXTRL_RESTRICT
         ptr_requ_buffer_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)    _size_t;
-    typedef NS(cobj_raw_t)     _raw_t;
-    typedef NS(cobj_address_t) _addr_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _raw_t* _ptr_raw_t;
+    typedef NS(cobj_size_t)    st_size_t;
+    typedef NS(cobj_raw_t)     st_raw_t;
+    typedef NS(cobj_address_t) st_addr_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_raw_t* ptr_raw_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    if( ( buffer != nullptr ) && ( slot_size > ( _size_t )0u ) &&
+    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
         ( current_buffer_capacity >= SIXTRL_CBUFFER_MIN_SIZE ) )
     {
-        _size_t const cur_buffer_size =
-            ::NS(CObjFlatBuffer_size)( buffer, slot_size );
+        st_size_t const cur_buffer_size =
+            NS(CObjFlatBuffer_size)( buffer, slot_size );
 
         /* ----------------------------------------------------------------- */
         /* Since this is the realloc method, we need to get the current
          * allocation to understand howto modify the layout */
 
-        _size_t const cur_num_slots =
-            ::NS(CObjFlatBuffer_num_slots)( buffer, slot_size );
+        st_size_t const cur_num_slots =
+            NS(CObjFlatBuffer_num_slots)( buffer, slot_size );
 
-        _size_t const cur_num_objs =
-            ::NS(CObjFlatBuffer_num_objects)( buffer, slot_size );
+        st_size_t const cur_num_objs =
+            NS(CObjFlatBuffer_num_objects)( buffer, slot_size );
 
-        _size_t const cur_num_ptrs =
-            ::NS(CObjFlatBuffer_num_pointers)( buffer, slot_size );
+        st_size_t const cur_num_ptrs =
+            NS(CObjFlatBuffer_num_pointers)( buffer, slot_size );
 
-        _size_t const cur_num_garbage =
-            ::NS(CObjFlatBuffer_num_garbage_ranges)( buffer, slot_size );
+        st_size_t const cur_num_garbage =
+            NS(CObjFlatBuffer_num_garbage_ranges)( buffer, slot_size );
 
         /* ----------------------------------------------------------------- */
         /* Get the current max number of enteties per section -> maybe
          * we do not need to reallocate at all? */
 
-        _size_t const cur_max_num_slots =
-            ::NS(CObjFlatBuffer_max_num_slots)( buffer, slot_size );
+        st_size_t const cur_max_num_slots =
+            NS(CObjFlatBuffer_max_num_slots)( buffer, slot_size );
 
-        _size_t const cur_max_num_objs =
-            ::NS(CObjFlatBuffer_max_num_objects)( buffer, slot_size );
+        st_size_t const cur_max_num_objs =
+            NS(CObjFlatBuffer_max_num_objects)( buffer, slot_size );
 
-        _size_t const cur_max_num_ptrs =
-            ::NS(CObjFlatBuffer_max_num_pointers)( buffer, slot_size );
+        st_size_t const cur_max_num_ptrs =
+            NS(CObjFlatBuffer_max_num_pointers)( buffer, slot_size );
 
-        _size_t const cur_max_num_garbage =
-            ::NS(CObjFlatBuffer_max_num_garbage_ranges)( buffer, slot_size );
+        st_size_t const cur_max_num_garbage =
+            NS(CObjFlatBuffer_max_num_garbage_ranges)( buffer, slot_size );
 
         /* ----------------------------------------------------------------- */
         /* Find the actual requested number of entities for each section ->
@@ -2936,16 +2984,16 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
          * asked/required, so if you want to be more generous, ask for
          * higher numbers! */
 
-        _size_t const requ_n_slots = ( cur_num_slots <= max_n_slots )
+        st_size_t const requ_n_slots = ( cur_num_slots <= max_n_slots )
             ? max_n_slots : cur_num_slots;
 
-        _size_t const requ_n_objs = ( cur_num_objs <= max_n_objs )
+        st_size_t const requ_n_objs = ( cur_num_objs <= max_n_objs )
             ? max_n_objs : cur_num_objs;
 
-        _size_t const requ_n_ptrs = ( cur_num_ptrs <= max_n_ptrs )
+        st_size_t const requ_n_ptrs = ( cur_num_ptrs <= max_n_ptrs )
             ? max_n_ptrs : cur_num_ptrs;
 
-        _size_t const requ_n_garbage =
+        st_size_t const requ_n_garbage =
             ( cur_num_garbage <= max_n_garbage_ranges )
                 ? max_n_garbage_ranges : cur_num_garbage;
 
@@ -2954,22 +3002,22 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
          * buffer capacity in pieces to also have the partial results for the
          * new section lenghts available */
 
-        _size_t const header_size = NS(CObjFlatBuffer_size_header)(
+        st_size_t const header_size = NS(CObjFlatBuffer_size_header)(
             buffer, slot_size );
 
-        _size_t const requ_slots_size = NS(CObjFlatBuffer_calc_section_size)(
+        st_size_t const requ_slots_size = NS(CObjFlatBuffer_calc_section_size)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, requ_n_slots, slot_size );
 
-        _size_t const requ_objs_size = NS(CObjFlatBuffer_calc_section_size)(
+        st_size_t const requ_objs_size = NS(CObjFlatBuffer_calc_section_size)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_INDICES, requ_n_objs, slot_size);
 
-        _size_t const requ_ptrs_size = NS(CObjFlatBuffer_calc_section_size)(
+        st_size_t const requ_ptrs_size = NS(CObjFlatBuffer_calc_section_size)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_POINTERS,requ_n_ptrs, slot_size);
 
-        _size_t const requ_garbage_size = NS(CObjFlatBuffer_calc_section_size)(
+        st_size_t const requ_garbage_size = NS(CObjFlatBuffer_calc_section_size)(
             buffer,SIXTRL_CBUFFER_SECTION_ID_GARBAGE,requ_n_garbage,slot_size);
 
-        _size_t const requ_buffer_size = header_size + requ_slots_size +
+        st_size_t const requ_buffer_size = header_size + requ_slots_size +
                 requ_objs_size + requ_ptrs_size + requ_garbage_size;
 
         if(  ptr_requ_buffer_size != SIXTRL_NULLPTR )
@@ -3009,40 +3057,40 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
 
             /* Get the current section sizes and offsets */
 
-            _size_t const cur_slots_size =
-                ::NS(CObjFlatBuffer_size_slots)( buffer, slot_size );
+            st_size_t const cur_slots_size =
+                NS(CObjFlatBuffer_size_slots)( buffer, slot_size );
 
-            _size_t const cur_objs_size =
-                ::NS(CObjFlatBuffer_size_objects)( buffer, slot_size );
+            st_size_t const cur_objs_size =
+                NS(CObjFlatBuffer_size_objects)( buffer, slot_size );
 
-            _size_t const cur_ptrs_size =
-                ::NS(CObjFlatBuffer_size_pointers)( buffer, slot_size );
+            st_size_t const cur_ptrs_size =
+                NS(CObjFlatBuffer_size_pointers)( buffer, slot_size );
 
-            _size_t const cur_garbage_size =
-                ::NS(CObjFlatBuffer_size_garbage_ranges)( buffer, slot_size );
+            st_size_t const cur_garbage_size =
+                NS(CObjFlatBuffer_size_garbage_ranges)( buffer, slot_size );
 
             /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-            _size_t const cur_slots_off = ::NS(CObjFlatBuffer_section_offset)(
+            st_size_t const cur_slots_off = NS(CObjFlatBuffer_section_offset)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-            _size_t const cur_objs_off = ::NS(CObjFlatBuffer_section_offset)(
+            st_size_t const cur_objs_off = NS(CObjFlatBuffer_section_offset)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_INDICES, slot_size );
 
-            _size_t const cur_ptrs_off = ::NS(CObjFlatBuffer_section_offset)(
+            st_size_t const cur_ptrs_off = NS(CObjFlatBuffer_section_offset)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_POINTERS, slot_size );
 
-            _size_t const cur_garbage_off= ::NS(CObjFlatBuffer_section_offset)(
+            st_size_t const cur_garbage_off= NS(CObjFlatBuffer_section_offset)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_GARBAGE, slot_size );
 
             /* ------------------------------------------------------------- */
             /* Calculate the new offsets */
 
-            _size_t const new_slots_offset = header_size;
-            _size_t const new_objs_offset = new_slots_offset + requ_slots_size;
-            _size_t const new_ptrs_offset = new_objs_offset + requ_objs_size;
+            st_size_t const new_slots_offset = header_size;
+            st_size_t const new_objs_offset = new_slots_offset + requ_slots_size;
+            st_size_t const new_ptrs_offset = new_objs_offset + requ_objs_size;
 
-            _size_t const new_garbage_offset =
+            st_size_t const new_garbage_offset =
                 new_ptrs_offset + requ_ptrs_size;
 
             bool slots_finished   = ( new_slots_offset   == cur_slots_off   );
@@ -3058,25 +3106,25 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
             {
                 if( new_garbage_offset > cur_garbage_off )
                 {
-                    _ptr_raw_t source = buffer + cur_garbage_off;
-                    _ptr_raw_t destination = buffer + new_garbage_offset;
-                    _size_t nn_at_begin = new_garbage_offset - cur_garbage_off;
+                    ptr_raw_t source = buffer + cur_garbage_off;
+                    ptr_raw_t destination = buffer + new_garbage_offset;
+                    st_size_t nn_at_begin = new_garbage_offset - cur_garbage_off;
 
                     SIXTRACKLIB_MOVE_VALUES(
-                        _raw_t, destination, source, cur_garbage_size );
+                        st_raw_t, destination, source, cur_garbage_size );
 
                     if( nn_at_begin > cur_garbage_size )
                     {
                         nn_at_begin = cur_garbage_size;
                     }
 
-                    SIXTRACKLIB_SET_VALUES( _raw_t, source, nn_at_begin, ZERO);
+                    SIXTRACKLIB_SET_VALUES( st_raw_t, source, nn_at_begin, ZERO);
 
                     if( requ_garbage_size > cur_garbage_size )
                     {
-                        _size_t const nn= requ_garbage_size - cur_garbage_size;
+                        st_size_t const nn= requ_garbage_size - cur_garbage_size;
 
-                        SIXTRACKLIB_SET_VALUES( _raw_t,
+                        SIXTRACKLIB_SET_VALUES( st_raw_t,
                             destination + cur_garbage_size, nn, ZERO );
                     }
 
@@ -3085,11 +3133,11 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
                 else if( new_garbage_offset >=
                             ( cur_ptrs_off + cur_ptrs_size ) )
                 {
-                    _ptr_raw_t source =      buffer + cur_garbage_off;
-                    _ptr_raw_t destination = buffer + new_garbage_offset;
+                    ptr_raw_t source =      buffer + cur_garbage_off;
+                    ptr_raw_t destination = buffer + new_garbage_offset;
 
                     SIXTRACKLIB_MOVE_VALUES(
-                        _raw_t, destination, source, cur_garbage_size );
+                        st_raw_t, destination, source, cur_garbage_size );
 
                     garbage_finished = true;
                 }
@@ -3101,12 +3149,12 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
             {
                 if( new_ptrs_offset > cur_ptrs_off )
                 {
-                    _ptr_raw_t source      = buffer + cur_ptrs_off;
-                    _ptr_raw_t destination = buffer + new_ptrs_offset;
-                    _size_t    nn_at_begin = new_ptrs_offset - cur_ptrs_off;
+                    ptr_raw_t source      = buffer + cur_ptrs_off;
+                    ptr_raw_t destination = buffer + new_ptrs_offset;
+                    st_size_t    nn_at_begin = new_ptrs_offset - cur_ptrs_off;
 
                     SIXTRACKLIB_MOVE_VALUES(
-                        _raw_t, destination, source, cur_ptrs_size );
+                        st_raw_t, destination, source, cur_ptrs_size );
 
                     if( nn_at_begin > cur_ptrs_size )
                     {
@@ -3114,14 +3162,14 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
                     }
 
                     SIXTRACKLIB_SET_VALUES(
-                        _raw_t, source, nn_at_begin, ZERO );
+                        st_raw_t, source, nn_at_begin, ZERO );
 
                     if( requ_ptrs_size > cur_ptrs_size )
                     {
-                        _size_t const bytes_to_fill =
+                        st_size_t const bytes_to_fill =
                             requ_ptrs_size - cur_ptrs_size;
 
-                        SIXTRACKLIB_SET_VALUES( _raw_t,
+                        SIXTRACKLIB_SET_VALUES( st_raw_t,
                             destination + cur_ptrs_size, bytes_to_fill, ZERO );
                     }
 
@@ -3129,11 +3177,11 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
                 }
                 else if( new_ptrs_offset >= ( cur_objs_off + cur_objs_size ) )
                 {
-                    _ptr_raw_t source      = buffer + cur_ptrs_off;
-                    _ptr_raw_t destination = buffer + new_ptrs_offset;
+                    ptr_raw_t source      = buffer + cur_ptrs_off;
+                    ptr_raw_t destination = buffer + new_ptrs_offset;
 
                     SIXTRACKLIB_MOVE_VALUES(
-                        _raw_t, destination, source, cur_ptrs_size );
+                        st_raw_t, destination, source, cur_ptrs_size );
 
                     ptrs_finished = true;
                 }
@@ -3146,26 +3194,26 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
             {
                 if( new_objs_offset > cur_objs_off )
                 {
-                    _ptr_raw_t source      = buffer + cur_objs_off;
-                    _ptr_raw_t destination = buffer + new_objs_offset;
-                    _size_t nn_at_begin    = new_objs_offset - cur_objs_off;
+                    ptr_raw_t source      = buffer + cur_objs_off;
+                    ptr_raw_t destination = buffer + new_objs_offset;
+                    st_size_t nn_at_begin    = new_objs_offset - cur_objs_off;
 
                     SIXTRACKLIB_MOVE_VALUES(
-                        _raw_t, destination, source, cur_objs_size );
+                        st_raw_t, destination, source, cur_objs_size );
 
                     if( nn_at_begin > cur_objs_size )
                     {
                         nn_at_begin = cur_objs_size;
                     }
 
-                    SIXTRACKLIB_SET_VALUES( _raw_t, source, nn_at_begin, ZERO);
+                    SIXTRACKLIB_SET_VALUES( st_raw_t, source, nn_at_begin, ZERO);
 
                     if( requ_objs_size > cur_objs_size )
                     {
-                        _size_t const bytes_to_fill =
+                        st_size_t const bytes_to_fill =
                             requ_objs_size - cur_objs_size;
 
-                        SIXTRACKLIB_SET_VALUES( _raw_t,
+                        SIXTRACKLIB_SET_VALUES( st_raw_t,
                             destination + cur_objs_size, bytes_to_fill, ZERO );
                     }
 
@@ -3173,11 +3221,11 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
                 }
                 else if( new_objs_offset >= ( cur_slots_off + cur_slots_size ))
                 {
-                    _ptr_raw_t source      = buffer + cur_objs_off;
-                    _ptr_raw_t destination = buffer + new_objs_offset;
+                    ptr_raw_t source      = buffer + cur_objs_off;
+                    ptr_raw_t destination = buffer + new_objs_offset;
 
                     SIXTRACKLIB_MOVE_VALUES(
-                        _raw_t, destination, source, cur_objs_size );
+                        st_raw_t, destination, source, cur_objs_size );
 
                     objs_finished = true;
                 }
@@ -3190,11 +3238,11 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
             {
                 if( requ_slots_size > cur_slots_size )
                 {
-                    _ptr_raw_t destination = buffer + new_slots_offset;
-                    _size_t const bytes_to_fill =
+                    ptr_raw_t destination = buffer + new_slots_offset;
+                    st_size_t const bytes_to_fill =
                         requ_slots_size - cur_slots_size;
 
-                    SIXTRACKLIB_SET_VALUES( _raw_t,
+                    SIXTRACKLIB_SET_VALUES( st_raw_t,
                         destination + cur_slots_size, bytes_to_fill, ZERO );
                 }
             }
@@ -3204,28 +3252,28 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_reallocate)(
             if( ( slots_finished ) && ( ptrs_finished ) &&
                 ( objs_finished  ) && ( garbage_finished  ) )
             {
-                typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t* _ptr_addr_t;
+                typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t* ptr_addr_t;
 
-                _addr_t const begin_addr = ( _addr_t )( uintptr_t )buffer;
+                st_addr_t const begin_addr = ( st_addr_t )( uintptr_t )buffer;
 
-                _addr_t const new_slots_section_begin_addr =
-                    ( _addr_t )( uintptr_t )( begin_addr + new_slots_offset );
+                st_addr_t const new_slots_section_begin_addr =
+                    ( st_addr_t )( uintptr_t )( begin_addr + new_slots_offset );
 
-                _addr_t const new_objs_section_begin_addr =
-                    ( _addr_t )( uintptr_t )( begin_addr + new_objs_offset );
+                st_addr_t const new_objs_section_begin_addr =
+                    ( st_addr_t )( uintptr_t )( begin_addr + new_objs_offset );
 
-                _addr_t const new_dataptrs_section_begin_addr =
-                    ( _addr_t )( uintptr_t )(begin_addr + new_ptrs_offset );
+                st_addr_t const new_dataptrs_section_begin_addr =
+                    ( st_addr_t )( uintptr_t )(begin_addr + new_ptrs_offset );
 
-                _addr_t const new_garbage_section_begin_addr =
-                    ( _addr_t )( uintptr_t )(
+                st_addr_t const new_garbage_section_begin_addr =
+                    ( st_addr_t )( uintptr_t )(
                         begin_addr + new_garbage_offset );
 
-                _ptr_addr_t ptr_header = NS(CObjFlatBuffer_ptr_header)(
+                ptr_addr_t ptr_header = NS(CObjFlatBuffer_ptr_header)(
                     buffer, slot_size );
 
                 SIXTRL_ASSERT( ptr_header[ 0 ] ==
-                    ( _addr_t )( uintptr_t )buffer );
+                    ( st_addr_t )( uintptr_t )buffer );
 
                 SIXTRL_ASSERT( ptr_header[ SIXTRL_CBUFFER_SECTION_ID_SLOTS ] ==
                     new_slots_section_begin_addr );
@@ -3297,59 +3345,61 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_allocate)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t)*
             SIXTRL_RESTRICT ptr_buffer_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)                     _size_t;
-    typedef NS(cobj_address_t)                  _addr_t;
-    typedef NS(cobj_raw_t)                      _raw_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t*  _ptr_addr_t;
+    typedef NS(cobj_size_t)                     st_size_t;
+    typedef NS(cobj_address_t)                  st_addr_t;
+    typedef NS(cobj_raw_t)                      st_raw_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t*  ptr_addr_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( _size_t )0u ) &&
+    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
         ( current_buffer_capacity >= SIXTRL_CBUFFER_MIN_SIZE ) )
     {
-        _size_t const header_size =
+        st_size_t const header_size =
             NS(CObjFlatBuffer_size_header)( buffer, slot_size );
 
-        _size_t const slots_max_size = NS(CObjFlatBuffer_calc_section_size)(
-            buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, max_num_slots, slot_size);
-
-        _size_t const objs_max_size = NS(CObjFlatBuffer_calc_section_size)(
-            buffer, SIXTRL_CBUFFER_SECTION_ID_INDICES, max_num_slots,slot_size);
-
-        _size_t const ptrs_max_size = NS(CObjFlatBuffer_calc_section_size)(
-            buffer, SIXTRL_CBUFFER_SECTION_ID_POINTERS, max_num_slots,
+        st_size_t const slots_max_size = NS(CObjFlatBuffer_calc_section_size)(
+            buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, max_num_slots,
                 slot_size );
 
-        _size_t const garbage_max_size = NS(CObjFlatBuffer_calc_section_size)(
+        st_size_t const objs_max_size = NS(CObjFlatBuffer_calc_section_size)(
+            buffer, SIXTRL_CBUFFER_SECTION_ID_INDICES, max_num_objects,
+                slot_size );
+
+        st_size_t const ptrs_max_size = NS(CObjFlatBuffer_calc_section_size)(
+            buffer, SIXTRL_CBUFFER_SECTION_ID_POINTERS, max_num_pointers,
+                slot_size );
+
+        st_size_t const garbage_max_size = NS(CObjFlatBuffer_calc_section_size)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_GARBAGE, max_num_garbage_ranges,
                 slot_size );
 
-        _size_t const requ_buffer_size = header_size +
+        st_size_t const requ_buffer_size = header_size +
             slots_max_size + objs_max_size + ptrs_max_size  + garbage_max_size;
 
-        _ptr_addr_t ptr_header =
+        ptr_addr_t ptr_header =
             NS(CObjFlatBuffer_ptr_header)( buffer, slot_size );
 
         if( ( requ_buffer_size <= current_buffer_capacity ) &&
             ( ptr_header != SIXTRL_NULLPTR ) )
         {
-            SIXTRL_STATIC_VAR _raw_t SIXTRL_CONSTEXPR_OR_CONST ZBYTE =
-                ( _raw_t )0u;
+            SIXTRL_STATIC_VAR st_raw_t SIXTRL_CONSTEXPR_OR_CONST ZBYTE =
+                ( st_raw_t )0u;
 
-            _size_t const slots_offset      = header_size;
-            _size_t const objs_offset       = slots_offset + slots_max_size;
-            _size_t const ptrs_offset       = objs_offset  + objs_max_size;
-            _size_t const garbage_offset    = ptrs_offset  + ptrs_max_size;
+            st_size_t const slots_offset      = header_size;
+            st_size_t const objs_offset       = slots_offset + slots_max_size;
+            st_size_t const ptrs_offset       = objs_offset  + objs_max_size;
+            st_size_t const garbage_offset    = ptrs_offset  + ptrs_max_size;
 
-            _addr_t const buffer_begin_addr = ( _addr_t )( uintptr_t )buffer;
-            _addr_t const slots_begin_addr  = buffer_begin_addr + slots_offset;
-            _addr_t const objs_begin_addr   = buffer_begin_addr + objs_offset;
-            _addr_t const ptrs_begin_addr   = buffer_begin_addr + ptrs_offset;
-            _addr_t const garbage_begin_addr =
+            st_addr_t const buffer_begin_addr = ( st_addr_t )( uintptr_t )buffer;
+            st_addr_t const slots_begin_addr  = buffer_begin_addr + slots_offset;
+            st_addr_t const objs_begin_addr   = buffer_begin_addr + objs_offset;
+            st_addr_t const ptrs_begin_addr   = buffer_begin_addr + ptrs_offset;
+            st_addr_t const garbage_begin_addr =
                 buffer_begin_addr + garbage_offset;
 
             SIXTRACKLIB_SET_VALUES(
-                _raw_t, buffer, current_buffer_capacity, ZBYTE );
+                st_raw_t, buffer, current_buffer_capacity, ZBYTE );
 
             ptr_header[ 0 ] = buffer_begin_addr;
             ptr_header[ 1 ] = requ_buffer_size;
@@ -3373,18 +3423,16 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_allocate)(
                     slot_size );
 
             status |= NS(CObjFlatBuffer_set_section_num_entities)( buffer,
-                SIXTRL_CBUFFER_SECTION_ID_SLOTS, max_num_slots, slot_size );
+                SIXTRL_CBUFFER_SECTION_ID_SLOTS, ( st_size_t )0, slot_size );
 
             status |= NS(CObjFlatBuffer_set_section_num_entities)( buffer,
-                SIXTRL_CBUFFER_SECTION_ID_INDICES, max_num_objects, slot_size );
+                SIXTRL_CBUFFER_SECTION_ID_INDICES, ( st_size_t )0, slot_size );
 
             status |= NS(CObjFlatBuffer_set_section_num_entities)( buffer,
-                SIXTRL_CBUFFER_SECTION_ID_POINTERS, max_num_pointers,
-                    slot_size );
+                SIXTRL_CBUFFER_SECTION_ID_POINTERS, ( st_size_t )0, slot_size );
 
             status |= NS(CObjFlatBuffer_set_section_num_entities)( buffer,
-                SIXTRL_CBUFFER_SECTION_ID_GARBAGE,
-                    max_num_garbage_ranges, slot_size );
+                SIXTRL_CBUFFER_SECTION_ID_GARBAGE, ( st_size_t )0, slot_size );
         }
 
         if(  ptr_buffer_size != SIXTRL_NULLPTR )
@@ -3401,23 +3449,23 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_clear)(
     bool const set_data_to_zero,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t) _size_t;
+    typedef NS(cobj_size_t) st_size_t;
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
 
-    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( _size_t )0u ) &&
+    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
         ( !NS(CObjFlatBuffer_needs_remapping)( buffer, slot_size ) ) )
     {
-        _size_t const num_slots =
+        st_size_t const num_slots =
             NS(CObjFlatBuffer_num_slots)( buffer, slot_size );
 
-        _size_t const num_objects =
+        st_size_t const num_objects =
             NS(CObjFlatBuffer_num_objects)( buffer, slot_size );
 
-        _size_t const num_pointers =
+        st_size_t const num_pointers =
             NS(CObjFlatBuffer_num_pointers)( buffer, slot_size );
 
-        _size_t const num_garbage_ranges =
+        st_size_t const num_garbage_ranges =
             NS(CObjFlatBuffer_num_garbage_ranges)( buffer, slot_size );
 
         SIXTRL_ASSERT( NS(CObjFlatBuffer_max_num_slots)(
@@ -3434,17 +3482,17 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_clear)(
 
         if( set_data_to_zero )
         {
-            if( num_slots > ( _size_t )0u )
+            if( num_slots > ( st_size_t )0u )
             {
-                typedef NS(cobj_raw_t) _raw_t;
-                SIXTRL_STATIC_VAR _raw_t SIXTRL_CONSTEXPR_OR_CONST
-                    ZERO = ( _raw_t )0u;
+                typedef NS(cobj_raw_t) st_raw_t;
+                SIXTRL_STATIC_VAR st_raw_t SIXTRL_CONSTEXPR_OR_CONST
+                    ZERO = ( st_raw_t )0u;
 
                 NS(ptr_raw_buffer_data_t) slots_begin =
                     NS(CObjFlatBuffer_ptr_section_data_begin)(
                         buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-                _size_t const num_bytes_to_clear = num_slots * slot_size;
+                st_size_t const num_bytes_to_clear = num_slots * slot_size;
 
                 SIXTRL_ASSERT( NS(CObjFlatBuffer_section_entity_size)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size ) ==
@@ -3456,10 +3504,10 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_clear)(
                     buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size ) ) );
 
                 SIXTRACKLIB_SET_VALUES(
-                    _raw_t, slots_begin, num_bytes_to_clear, ZERO );
+                    st_raw_t, slots_begin, num_bytes_to_clear, ZERO );
             }
 
-            if( num_objects > ( _size_t )0u )
+            if( num_objects > ( st_size_t )0u )
             {
                 NS(ptr_cobj_index_t) it = NS(CObjFlatBuffer_indices_begin)(
                     buffer, slot_size );
@@ -3470,35 +3518,35 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_clear)(
                 for( ; it != end ; ++it ) NS(CObjIndex_preset)( it );
             }
 
-            if( num_pointers > ( _size_t )0u )
+            if( num_pointers > ( st_size_t )0u )
             {
-                typedef NS(cobj_address_t) _addr_t;
-                typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t* _ptr_addr_t;
+                typedef NS(cobj_address_t) st_addr_t;
+                typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t* ptr_addr_t;
 
-                SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
-                    ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
+                SIXTRL_STATIC_VAR st_addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR =
+                    ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS;
 
-                _ptr_addr_t it = ( _ptr_addr_t )( uintptr_t
+                ptr_addr_t it = ( ptr_addr_t )( uintptr_t
                     )NS(CObjFlatBuffer_section_data_begin_addr)( buffer,
                         SIXTRL_CBUFFER_SECTION_ID_POINTERS, slot_size );
 
-                _ptr_addr_t end = ( _ptr_addr_t )( uintptr_t
+                ptr_addr_t end = ( ptr_addr_t )( uintptr_t
                     )NS(CObjFlatBuffer_section_data_begin_addr)( buffer,
                         SIXTRL_CBUFFER_SECTION_ID_POINTERS, slot_size );
 
                 for( ; it != end ; ++it ) *it = NULL_ADDR;
             }
 
-            if( num_garbage_ranges > ( _size_t )0u )
+            if( num_garbage_ranges > ( st_size_t )0u )
             {
                 typedef NS(CObjGarbageRange) _garbage_t;
-                typedef SIXTRL_BUFFER_DATAPTR_DEC _garbage_t* _ptr_garbage_t;
+                typedef SIXTRL_BUFFER_DATAPTR_DEC _garbage_t* ptr_garbage_t;
 
-                _ptr_garbage_t it = ( _ptr_garbage_t )( uintptr_t
+                ptr_garbage_t it = ( ptr_garbage_t )( uintptr_t
                     )NS(CObjFlatBuffer_section_data_begin_addr)( buffer,
                         SIXTRL_CBUFFER_SECTION_ID_GARBAGE, slot_size );
 
-                _ptr_garbage_t end = ( _ptr_garbage_t )( uintptr_t
+                ptr_garbage_t end = ( ptr_garbage_t )( uintptr_t
                     )NS(CObjFlatBuffer_section_data_end_addr)( buffer,
                         SIXTRL_CBUFFER_SECTION_ID_GARBAGE, slot_size );
 
@@ -3507,16 +3555,16 @@ SIXTRL_INLINE NS(cobj_status_t) NS(CObjFlatBuffer_clear)(
         }
 
         status = NS(CObjFlatBuffer_set_section_num_entities)( buffer,
-            SIXTRL_CBUFFER_SECTION_ID_SLOTS, ( _size_t )0u, slot_size );
+            SIXTRL_CBUFFER_SECTION_ID_SLOTS, ( st_size_t )0u, slot_size );
 
         status |= NS(CObjFlatBuffer_set_section_num_entities)( buffer,
-            SIXTRL_CBUFFER_SECTION_ID_INDICES, ( _size_t )0u, slot_size );
+            SIXTRL_CBUFFER_SECTION_ID_INDICES, ( st_size_t )0u, slot_size );
 
         status |= NS(CObjFlatBuffer_set_section_num_entities)(buffer,
-            SIXTRL_CBUFFER_SECTION_ID_POINTERS, ( _size_t )0u, slot_size );
+            SIXTRL_CBUFFER_SECTION_ID_POINTERS, ( st_size_t )0u, slot_size );
 
         status |= NS(CObjFlatBuffer_set_section_num_entities)(buffer,
-            SIXTRL_CBUFFER_SECTION_ID_GARBAGE, ( _size_t )0u, slot_size );
+            SIXTRL_CBUFFER_SECTION_ID_GARBAGE, ( st_size_t )0u, slot_size );
     }
 
     return status;
@@ -3539,42 +3587,42 @@ SIXTRL_INLINE bool NS(CObjFlatBuffer_can_add_copy_of_object)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t)* SIXTRL_RESTRICT ptr_requ_n_ptrs
 ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t) _size_t;
+    typedef NS(cobj_size_t) st_size_t;
     bool can_be_added = false;
 
-    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( _size_t )0u ) &&
+    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
         ( !NS(CObjFlatBuffer_needs_remapping)( buffer, slot_size ) ) &&
-        ( obj_handle_size > ( _size_t )0u ) &&
-        ( ( num_pointers == ( _size_t )0u ) ||
-          ( ( num_pointers > ( _size_t )0u ) &&
+        ( obj_handle_size > ( st_size_t )0u ) &&
+        ( ( num_pointers == ( st_size_t )0u ) ||
+          ( ( num_pointers > ( st_size_t )0u ) &&
             ( sizes != SIXTRL_NULLPTR ) && ( counts != SIXTRL_NULLPTR ) &&
             ( sizes != counts ) ) ) )
     {
-        _size_t const cur_num_slots =
+        st_size_t const cur_num_slots =
             NS(CObjFlatBuffer_num_slots)( buffer, slot_size );
 
-        _size_t const max_num_slots =
+        st_size_t const max_num_slots =
             NS(CObjFlatBuffer_max_num_slots)( buffer, slot_size );
 
-        _size_t const req_num_slots = cur_num_slots +
+        st_size_t const req_num_slots = cur_num_slots +
             NS(CObjFlatBuffer_predict_required_num_slots)( obj_handle_size,
                 num_pointers, sizes, counts, slot_size );
 
-        _size_t const cur_num_objs =
+        st_size_t const cur_num_objs =
             NS(CObjFlatBuffer_num_objects)( buffer, slot_size );
 
-        _size_t const max_num_objs =
+        st_size_t const max_num_objs =
             NS(CObjFlatBuffer_max_num_slots)( buffer, slot_size );
 
-        _size_t const req_num_objs = cur_num_objs + ( _size_t )1u;
+        st_size_t const req_num_objs = cur_num_objs + ( st_size_t )1u;
 
-        _size_t const cur_num_ptrs =
+        st_size_t const cur_num_ptrs =
             NS(CObjFlatBuffer_num_pointers)( buffer, slot_size );
 
-        _size_t const max_num_ptrs =
+        st_size_t const max_num_ptrs =
             NS(CObjFlatBuffer_max_num_slots)( buffer, slot_size );
 
-        _size_t const req_num_ptrs = cur_num_ptrs + num_pointers;
+        st_size_t const req_num_ptrs = cur_num_ptrs + num_pointers;
 
         SIXTRL_ASSERT( cur_num_slots <= max_num_slots );
         SIXTRL_ASSERT( cur_num_objs  <= max_num_objs  );
@@ -3627,54 +3675,54 @@ SIXTRL_INLINE NS(ptr_cobj_index_t) NS(CObjFlatBuffer_add_copy_of_object)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT counts,
     bool const init_space_with_zeros ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)    _size_t;
-    typedef NS(cobj_address_t) _addr_t;
+    typedef NS(cobj_size_t)    st_size_t;
+    typedef NS(cobj_address_t) st_addr_t;
 
     NS(ptr_cobj_index_t) ptr_added_obj = SIXTRL_NULLPTR;
 
-    _addr_t const begin_addr = ( _addr_t )( uintptr_t )buffer;
+    st_addr_t const begin_addr = ( st_addr_t )( uintptr_t )buffer;
 
-    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( _size_t )0u ) &&
+    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
         ( !NS(CObjFlatBuffer_needs_remapping)( buffer, slot_size ) ) &&
         ( ( begin_addr % slot_size ) == ( uintptr_t )0u ) &&
-        ( ptr_obj_to_copy != SIXTRL_NULLPTR ) && ( obj_size > ( _size_t)0u ) &&
+        ( ptr_obj_to_copy != SIXTRL_NULLPTR ) && ( obj_size > ( st_size_t)0u ) &&
         ( type_id != ( NS(cobj_type_id_t) )SIXTRL_COBJECTS_ILLEGAL_TYPE_ID ) &&
-        ( ( num_pointers == ( _size_t )0u ) ||
-          ( ( num_pointers > ( _size_t )0u ) &&
+        ( ( num_pointers == ( st_size_t )0u ) ||
+          ( ( num_pointers > ( st_size_t )0u ) &&
             ( offsets != SIXTRL_NULLPTR ) && ( sizes != SIXTRL_NULLPTR ) &&
             ( counts  != SIXTRL_NULLPTR ) && ( sizes != counts  ) &&
             ( counts  != offsets        ) && ( sizes != offsets ) ) ) )
     {
-        _size_t const cur_num_slots =
+        st_size_t const cur_num_slots =
             NS(CObjFlatBuffer_num_slots)( buffer, slot_size );
 
-        _size_t const additional_num_slots =
+        st_size_t const additional_num_slots =
             NS(CObjFlatBuffer_predict_required_num_slots)(
                 obj_size, num_pointers, sizes, counts, slot_size );
 
-        _size_t const requ_num_slots = cur_num_slots + additional_num_slots;
+        st_size_t const requ_num_slots = cur_num_slots + additional_num_slots;
 
-        _size_t const max_num_slots =
+        st_size_t const max_num_slots =
             NS(CObjFlatBuffer_max_num_slots)( buffer, slot_size );
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        _size_t const cur_num_objs =
+        st_size_t const cur_num_objs =
             NS(CObjFlatBuffer_num_objects)( buffer, slot_size );
 
-        _size_t const requ_num_objs = cur_num_objs + ( _size_t )1u;
+        st_size_t const requ_num_objs = cur_num_objs + ( st_size_t )1u;
 
-        _size_t const max_num_objs =
+        st_size_t const max_num_objs =
             NS(CObjFlatBuffer_max_num_objects)( buffer, slot_size );
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-        _size_t const cur_num_ptrs =
+        st_size_t const cur_num_ptrs =
             NS(CObjFlatBuffer_num_pointers)( buffer, slot_size );
 
-        _size_t const requ_num_ptrs = cur_num_ptrs + num_pointers;
+        st_size_t const requ_num_ptrs = cur_num_ptrs + num_pointers;
 
-        _size_t const max_num_ptrs =
+        st_size_t const max_num_ptrs =
             NS(CObjFlatBuffer_max_num_pointers)( buffer, slot_size );
 
         NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
@@ -3691,7 +3739,7 @@ SIXTRL_INLINE NS(ptr_cobj_index_t) NS(CObjFlatBuffer_add_copy_of_object)(
             ( requ_num_objs  <= max_num_objs  ) &&
             ( requ_num_ptrs  <= max_num_ptrs  ) )
         {
-            _size_t const predicted_stored_bytes_in_slots =
+            st_size_t const predicted_stored_bytes_in_slots =
                 additional_num_slots * slot_size;
 
             SIXTRL_ASSERT( NS(CObjFlatBuffer_calc_required_buffer_size)(
@@ -3705,7 +3753,7 @@ SIXTRL_INLINE NS(ptr_cobj_index_t) NS(CObjFlatBuffer_add_copy_of_object)(
                     predicted_stored_bytes_in_slots, init_space_with_zeros );
 
             if( ( status == SIXTRL_COBJECTS_STATUS_SUCCESS ) &&
-                ( num_pointers > ( _size_t )0u ) )
+                ( num_pointers > ( st_size_t )0u ) )
             {
                 status = NS(_CObjFlatBuffer_add_copy_of_object_ptrs_part)(
                     buffer, slot_size, ptr_obj_to_copy, obj_size, num_pointers,
@@ -3745,26 +3793,26 @@ NS(_CObjFlatBuffer_memcpy_from_argptr_to_dataptr)(
     NS(cobj_size_t) const num_bytes_to_copy, NS(cobj_size_t) const slot_size
 ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t) _size_t;
+    typedef NS(cobj_size_t) st_size_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    if( ( destination != SIXTRL_NULLPTR ) && ( slot_size > ( _size_t )0u ) &&
+    if( ( destination != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
         ( ( uintptr_t )destination % slot_size == ( uintptr_t )0u ) &&
         ( source != SIXTRL_NULLPTR ) )
     {
         status = SIXTRL_COBJECTS_STATUS_SUCCESS;
 
-        if( num_bytes_to_copy > ( _size_t )0u )
+        if( num_bytes_to_copy > ( st_size_t )0u )
         {
-            #if !defined( _GPUCODE )
-                #if defined( __cplusplus )
-                typedef NS(cobj_raw_t) _raw_t;
-                typedef SIXTRL_BUFFER_ARGPTR_DEC _raw_t const* _ptr_raw_src_t;
+            #if !defined( GPUCODE )
+                #if defined( _cplusplus )
+                typedef NS(cobj_raw_t) st_raw_t;
+                typedef SIXTRL_BUFFER_ARGPTR_DEC st_raw_t const* ptr_raw_src_t;
 
-                _ptr_raw_src_t src_begin = reinterpret_cast< _ptr_raw_src_t >(
+                ptr_raw_src_t src_begin = reinterpret_cast< ptr_raw_src_t >(
                     reinterpret_cast< uintptr_t >( source ) );
-                _ptr_raw_src_t src_end = src_begin;
+                ptr_raw_src_t src_end = src_begin;
                 std::advance(  src_end, num_bytes_to_copy );
                 std::copy( src_begin, src_end, destination );
 
@@ -3773,21 +3821,21 @@ NS(_CObjFlatBuffer_memcpy_from_argptr_to_dataptr)(
 
                 #endif /* C++ */
 
-            #else /* defined( _GPUCODE ) */
-            typedef NS(cobj_raw_t) _raw_t;
-            typedef SIXTRL_BUFFER_ARGPTR_DEC _raw_t const* _ptr_raw_src_t;
-            typedef SIXTRL_BUFFER_DATAPTR_DEC _raw_t*      _ptr_raw_dest_t;
+            #else /* defined( GPUCODE ) */
+            typedef NS(cobj_raw_t) st_raw_t;
+            typedef SIXTRL_BUFFER_ARGPTR_DEC st_raw_t const* ptr_raw_src_t;
+            typedef SIXTRL_BUFFER_DATAPTR_DEC st_raw_t*      ptr_raw_dest_t;
 
-            _ptr_raw_dest_t dest_it = destination;
-            _ptr_raw_src_t  src_it  = ( _ptr_raw_src_t )( uintptr_t )source;
-            _ptr_raw_src_t  src_end = src_it + num_bytes_to_copy;
+            ptr_raw_dest_t dest_it = destination;
+            ptr_raw_src_t  src_it  = ( ptr_raw_src_t )( uintptr_t )source;
+            ptr_raw_src_t  src_end = src_it + num_bytes_to_copy;
 
             for( ; src_it != src_end ; ++src_it, ++dest_it )
             {
                 *src_it = *dest_it;
             }
 
-            #endif /* _GPUCODE ) */
+            #endif /* GPUCODE ) */
         }
     }
 
@@ -3801,31 +3849,31 @@ NS(_CObjFlatBuffer_memcpy_from_dataptr_to_argptr)(
     NS(cobj_size_t) const num_bytes_to_copy,
     NS(cobj_size_t) const slot_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t) _size_t;
+    typedef NS(cobj_size_t) st_size_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    if( ( destination != SIXTRL_NULLPTR ) && ( slot_size > ( _size_t )0u ) &&
+    if( ( destination != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
         ( source != SIXTRL_NULLPTR ) &&
         ( ( uintptr_t )source % slot_size == ( uintptr_t )0u ) )
     {
         status = SIXTRL_COBJECTS_STATUS_SUCCESS;
 
-        if( num_bytes_to_copy > ( _size_t )0u )
+        if( num_bytes_to_copy > ( st_size_t )0u )
         {
-            #if !defined( _GPUCODE )
-                #if defined( __cplusplus )
-                typedef NS(cobj_raw_t) _raw_t;
-                typedef SIXTRL_BUFFER_ARGPTR_DEC _raw_t* _ptr_raw_dest_t;
-                typedef SIXTRL_BUFFER_DATAPTR_DEC _raw_t const* _ptr_raw_src_t;
+            #if !defined( GPUCODE )
+                #if defined( _cplusplus )
+                typedef NS(cobj_raw_t) st_raw_t;
+                typedef SIXTRL_BUFFER_ARGPTR_DEC st_raw_t* ptr_raw_dest_t;
+                typedef SIXTRL_BUFFER_DATAPTR_DEC st_raw_t const* ptr_raw_src_t;
 
-                _ptr_raw_dest_t dest_begin = reinterpret_cast< _ptr_raw_dest_t
+                ptr_raw_dest_t dest_begin = reinterpret_cast< ptr_raw_dest_t
                     >( reinterpret_cast< uintptr_t >( destination ) );
 
-                _ptr_raw_src_t src_begin = reinterpret_cast< _ptr_raw_src_t >(
+                ptr_raw_src_t src_begin = reinterpret_cast< ptr_raw_src_t >(
                     reinterpret_cast< uintptr_t >( source ) );
 
-                _ptr_raw_src_t src_end = src_begin;
+                ptr_raw_src_t src_end = src_begin;
                 std::advance(  src_end, num_bytes_to_copy );
                 std::copy( src_begin, src_end, dest_begin );
 
@@ -3834,23 +3882,23 @@ NS(_CObjFlatBuffer_memcpy_from_dataptr_to_argptr)(
 
                 #endif /* C++ */
 
-            #else /* defined( _GPUCODE ) */
-            typedef NS(cobj_raw_t) _raw_t;
-            typedef SIXTRL_BUFFER_ARGPTR_DEC _raw_t const* _ptr_raw_src_t;
-            typedef SIXTRL_BUFFER_DATAPTR_DEC _raw_t*      _ptr_raw_dest_t;
+            #else /* defined( GPUCODE ) */
+            typedef NS(cobj_raw_t) st_raw_t;
+            typedef SIXTRL_BUFFER_ARGPTR_DEC st_raw_t const* ptr_raw_src_t;
+            typedef SIXTRL_BUFFER_DATAPTR_DEC st_raw_t*      ptr_raw_dest_t;
 
-            _ptr_raw_dest_t dest_it =
-                ( _ptr_raw_dest_t )( uintptr_t )destination;
+            ptr_raw_dest_t dest_it =
+                ( ptr_raw_dest_t )( uintptr_t )destination;
 
-            _ptr_raw_src_t  src_it  = source;
-            _ptr_raw_src_t  src_end = src_it + num_bytes_to_copy;
+            ptr_raw_src_t  src_it  = source;
+            ptr_raw_src_t  src_end = src_it + num_bytes_to_copy;
 
             for( ; src_it != src_end ; ++src_it, ++dest_it )
             {
                 *src_it = *dest_it;
             }
 
-            #endif /* _GPUCODE ) */
+            #endif /* GPUCODE ) */
         }
     }
 
@@ -3868,34 +3916,34 @@ NS(_CObjFlatBuffer_add_copy_of_object_obj_handle_part)(
     NS(cobj_size_t) const predicted_stored_bytes_in_slots,
     bool const init_space_with_zeros ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)     _size_t;
-    typedef NS(cobj_address_t)  _addr_t;
-    typedef NS(cobj_raw_t)      _raw_t;
-    typedef SIXTRL_BUFFER_ARGPTR_DEC    _raw_t const* _ptr_obj_src_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC   _raw_t*       _ptr_obj_dest_t;
+    typedef NS(cobj_size_t)     st_size_t;
+    typedef NS(cobj_address_t)  st_addr_t;
+    typedef NS(cobj_raw_t)      st_raw_t;
+    typedef SIXTRL_BUFFER_ARGPTR_DEC    st_raw_t const* ptr_obj_src_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC   st_raw_t*       ptr_obj_dest_t;
 
-    SIXTRL_STATIC_VAR _raw_t SIXTRL_CONSTEXPR_OR_CONST ZBYTE = ( _raw_t )0u;
+    SIXTRL_STATIC_VAR st_raw_t SIXTRL_CONSTEXPR_OR_CONST ZBYTE = ( st_raw_t )0u;
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( _size_t )0u ) &&
+    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
         ( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u ) &&
         ( !NS(CObjFlatBuffer_needs_remapping)( buffer, slot_size ) ) &&
         ( ptr_obj_to_copy != SIXTRL_NULLPTR ) &&
-        ( obj_size > ( _size_t )0u )  )
+        ( obj_size > ( st_size_t )0u )  )
     {
         /* End of current slots data -> begin of stored obj!! */
-        _addr_t const obj_addr = NS(CObjFlatBuffer_section_data_end_addr)(
+        st_addr_t const obj_addr = NS(CObjFlatBuffer_section_data_end_addr)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
-        _ptr_obj_dest_t dest = ( _ptr_obj_dest_t )( uintptr_t )obj_addr;
-        _ptr_obj_src_t  src  = ( _ptr_obj_src_t )( uintptr_t )ptr_obj_to_copy;
+        ptr_obj_dest_t dest = ( ptr_obj_dest_t )( uintptr_t )obj_addr;
+        ptr_obj_src_t  src  = ( ptr_obj_src_t )( uintptr_t )ptr_obj_to_copy;
 
         /* Perform some consistency checks to ensure that we will
          * not overwrite the boundaries between the sections ->
          * there should be no problems, so every violation here would
          * be pretty exceptional */
 
-        SIXTRL_ASSERT( obj_addr != ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS );
+        SIXTRL_ASSERT( obj_addr != ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS );
 
         SIXTRL_ASSERT( NS(CObjFlatBuffer_section_end_addr)( buffer,
             SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size ) >=
@@ -3908,7 +3956,7 @@ NS(_CObjFlatBuffer_add_copy_of_object_obj_handle_part)(
         if( init_space_with_zeros )
         {
             SIXTRACKLIB_SET_VALUES(
-                _raw_t, dest, predicted_stored_bytes_in_slots, ZBYTE );
+                st_raw_t, dest, predicted_stored_bytes_in_slots, ZBYTE );
         }
 
         /* Copy the obj handle to the begin of the slots section */
@@ -3932,28 +3980,28 @@ NS(_CObjFlatBuffer_add_copy_of_object_ptr_field_part)(
     NS(cobj_address_t) const storage_field_data_begin_addr,
     NS(cobj_size_t) const storage_field_data_size ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)                         _size_t;
-    typedef NS(cobj_address_t)                      _addr_t;
-    typedef NS(cobj_raw_t)                          _raw_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t*      _ptr_dest_addr_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _raw_t*       _ptr_dest_data_t;
-    typedef SIXTRL_BUFFER_ARGPTR_DEC _addr_t const* _ptr_target_addr_t;
-    typedef SIXTRL_BUFFER_ARGPTR_DEC _raw_t  const* _ptr_source_data_t;
+    typedef NS(cobj_size_t)                         st_size_t;
+    typedef NS(cobj_address_t)                      st_addr_t;
+    typedef NS(cobj_raw_t)                          st_raw_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t*      ptr_dest_addr_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_raw_t*       ptr_dest_data_t;
+    typedef SIXTRL_BUFFER_ARGPTR_DEC st_addr_t const* ptr_target_addr_t;
+    typedef SIXTRL_BUFFER_ARGPTR_DEC st_raw_t  const* ptr_source_data_t;
 
-    SIXTRL_STATIC_VAR _addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR = ( _addr_t
+    SIXTRL_STATIC_VAR st_addr_t SIXTRL_CONSTEXPR_OR_CONST NULL_ADDR = ( st_addr_t
         )SIXTRL_COBJECTS_NULL_ADDRESS;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
     SIXTRL_ASSERT( buffer != SIXTRL_NULLPTR );
-    SIXTRL_ASSERT( slot_size > ( _size_t )0u );
+    SIXTRL_ASSERT( slot_size > ( st_size_t )0u );
     SIXTRL_ASSERT( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u );
     SIXTRL_ASSERT( !NS(CObjFlatBuffer_needs_remapping)( buffer, slot_size ) );
     SIXTRL_ASSERT( ptr_obj_to_copy != SIXTRL_NULLPTR );
     SIXTRL_ASSERT( obj_size >= slot_size );
-    SIXTRL_ASSERT( storage_field_data_size % slot_size == ( _size_t )0u );
+    SIXTRL_ASSERT( storage_field_data_size % slot_size == ( st_size_t )0u );
     SIXTRL_ASSERT( stored_obj_begin_addr != NULL_ADDR );
-    SIXTRL_ASSERT( stored_obj_begin_addr % slot_size == ( _addr_t )0u );
+    SIXTRL_ASSERT( stored_obj_begin_addr % slot_size == ( st_addr_t )0u );
 
     /* We are not checking the field_offset_from_stored_obj_begin and assume
      * it's legal and has been checked by the calling function ->
@@ -3961,35 +4009,35 @@ NS(_CObjFlatBuffer_add_copy_of_object_ptr_field_part)(
      * which constraints to this parameter! */
 
     if( ( ptr_to_pointer_in_section != SIXTRL_NULLPTR ) &&
-        ( storage_field_data_begin_addr % slot_size == ( _addr_t )0u ) )
+        ( storage_field_data_begin_addr % slot_size == ( st_addr_t )0u ) )
     {
-        _addr_t const pointer_target_in_obj_addr =
+        st_addr_t const pointer_target_in_obj_addr =
             stored_obj_begin_addr + field_offset_from_stored_obj_begin;
 
-        _ptr_dest_addr_t ptr_pointer_target_in_obj = ( _ptr_dest_addr_t
+        ptr_dest_addr_t ptr_pointer_target_in_obj = ( ptr_dest_addr_t
             )( uintptr_t )pointer_target_in_obj_addr;
 
-        _addr_t const orig_obj_begin_addr =
-            ( _addr_t )( uintptr_t )ptr_obj_to_copy;
+        st_addr_t const orig_obj_begin_addr =
+            ( st_addr_t )( uintptr_t )ptr_obj_to_copy;
 
-        _addr_t const orig_pointer_target_in_obj_addr =
+        st_addr_t const orig_pointer_target_in_obj_addr =
             orig_obj_begin_addr + field_offset_from_stored_obj_begin;
 
-        _ptr_target_addr_t ptr_target_addr =
-            ( _ptr_target_addr_t )( uintptr_t )orig_pointer_target_in_obj_addr;
+        ptr_target_addr_t ptr_target_addr =
+            ( ptr_target_addr_t )( uintptr_t )orig_pointer_target_in_obj_addr;
 
         SIXTRL_ASSERT( pointer_target_in_obj_addr % slot_size ==
-            ( _addr_t )0u );
+            ( st_addr_t )0u );
 
         status = SIXTRL_COBJECTS_STATUS_SUCCESS;
 
         if( ( *ptr_target_addr != NULL_ADDR ) &&
-            ( storage_field_data_size > ( _size_t )0u ) )
+            ( storage_field_data_size > ( st_size_t )0u ) )
         {
-            _ptr_source_data_t field_data_src = ( _ptr_source_data_t )(
+            ptr_source_data_t field_data_src = ( ptr_source_data_t )(
                 uintptr_t )( *ptr_target_addr );
 
-            _ptr_dest_data_t field_data_dest = ( _ptr_dest_data_t )(
+            ptr_dest_data_t field_data_dest = ( ptr_dest_data_t )(
                 uintptr_t )storage_field_data_begin_addr;
 
             status = NS(_CObjFlatBuffer_memcpy_from_argptr_to_dataptr)(
@@ -4029,36 +4077,36 @@ NS(_CObjFlatBuffer_add_copy_of_object_ptrs_part)(
     SIXTRL_BUFFER_ARGPTR_DEC NS(cobj_size_t) const* SIXTRL_RESTRICT counts,
     bool const init_space_with_zeros ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)                         _size_t;
-    typedef NS(cobj_address_t)                      _addr_t;
-    typedef NS(cobj_raw_t)                          _raw_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _addr_t*      _ptr_addr_t;
+    typedef NS(cobj_size_t)                         st_size_t;
+    typedef NS(cobj_address_t)                      st_addr_t;
+    typedef NS(cobj_raw_t)                          st_raw_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_addr_t*      ptr_addr_t;
 
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    _size_t const storage_obj_size = NS(CObjFlatBuffer_slot_based_size)(
+    st_size_t const storage_obj_size = NS(CObjFlatBuffer_slot_based_size)(
         obj_size, slot_size );
 
     SIXTRL_ASSERT( buffer != SIXTRL_NULLPTR );
-    SIXTRL_ASSERT( slot_size > ( _size_t )0u );
+    SIXTRL_ASSERT( slot_size > ( st_size_t )0u );
     SIXTRL_ASSERT( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u );
     SIXTRL_ASSERT( !NS(CObjFlatBuffer_needs_remapping)( buffer, slot_size ) );
-    SIXTRL_ASSERT( storage_obj_size % slot_size == ( _size_t )0u );
-    SIXTRL_ASSERT( ( num_pointers == ( _size_t )0u ) ||
+    SIXTRL_ASSERT( storage_obj_size % slot_size == ( st_size_t )0u );
+    SIXTRL_ASSERT( ( num_pointers == ( st_size_t )0u ) ||
         ( storage_obj_size >= slot_size ) );
 
-    SIXTRL_ASSERT( ( num_pointers == ( _size_t )0u ) ||
+    SIXTRL_ASSERT( ( num_pointers == ( st_size_t )0u ) ||
         ( ( offsets != SIXTRL_NULLPTR ) && ( counts != SIXTRL_NULLPTR ) &&
           ( offsets != counts ) && ( sizes != SIXTRL_NULLPTR ) &&
           ( offsets != sizes  ) && ( sizes != counts ) ) );
 
-    if( ( num_pointers > ( _size_t )0u ) &&
+    if( ( num_pointers > ( st_size_t )0u ) &&
         ( ptr_obj_to_copy != SIXTRL_NULLPTR ) )
     {
         /* The object handle would have been added to at the end of the
          * current slots data section -> use this address as the minimum
          * address which a pointer can have */
-        _addr_t const obj_handle_addr =
+        st_addr_t const obj_handle_addr =
             NS(CObjFlatBuffer_section_data_end_addr)( buffer,
                 SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
@@ -4088,31 +4136,31 @@ NS(_CObjFlatBuffer_add_copy_of_object_ptrs_part)(
          *          to be divisble without remainder by the slot size!
          */
 
-        _size_t const max_allowed_offset = ( storage_obj_size == obj_size )
+        st_size_t const max_allowed_offset = ( storage_obj_size == obj_size )
             ? ( storage_obj_size - slot_size )
             : ( ( obj_size > slot_size )
-                    ? slot_size * ( ( obj_size / slot_size ) - ( _size_t )1 )
-                    : ( _size_t )0u );
+                    ? slot_size * ( ( obj_size / slot_size ) - ( st_size_t )1 )
+                    : ( st_size_t )0u );
 
         /* The end of the obj handle is also the begin of the area where
          * the arrays for the fields of the object are stored */
-        _addr_t storage_fields_data_addr = obj_handle_addr + storage_obj_size;
+        st_addr_t storage_fields_data_addr = obj_handle_addr + storage_obj_size;
 
         /* The number of pointers to be stored need the following number of
          * bytes on the buffer */
-        _size_t const storage_ptrs_size = NS(CObjFlatBuffer_slot_based_size)(
-                sizeof( _ptr_addr_t ) * num_pointers, slot_size );
+        st_size_t const storage_ptrs_size = NS(CObjFlatBuffer_slot_based_size)(
+                sizeof( ptr_addr_t ) * num_pointers, slot_size );
 
         /* The end of the current pointers data section is the begin address
          * for the data - pointers of this element: */
-        _addr_t ptrs_begin_addr = NS(CObjFlatBuffer_section_data_end_addr)(
+        st_addr_t ptrs_begin_addr = NS(CObjFlatBuffer_section_data_end_addr)(
             buffer, SIXTRL_CBUFFER_SECTION_ID_POINTERS, slot_size );
 
-        _ptr_addr_t out_it  = ( _ptr_addr_t )( uintptr_t )ptrs_begin_addr;
+        ptr_addr_t out_it  = ( ptr_addr_t )( uintptr_t )ptrs_begin_addr;
 
-        _size_t ii = ( _size_t )0u;
+        st_size_t ii = ( st_size_t )0u;
 
-        SIXTRL_ASSERT( ptrs_begin_addr % slot_size == ( _addr_t )0u );
+        SIXTRL_ASSERT( ptrs_begin_addr % slot_size == ( st_addr_t )0u );
         SIXTRL_ASSERT( NS(CObjFlatBuffer_section_end_addr)( buffer,
             SIXTRL_CBUFFER_SECTION_ID_POINTERS, slot_size ) >=
                 ( ptrs_begin_addr + storage_ptrs_size ) );
@@ -4123,13 +4171,13 @@ NS(_CObjFlatBuffer_add_copy_of_object_ptrs_part)(
 
         if( init_space_with_zeros )
         {
-            SIXTRL_STATIC_VAR _raw_t SIXTRL_CONSTEXPR_OR_CONST
-                ZBYTE = ( _raw_t )0u;
+            SIXTRL_STATIC_VAR st_raw_t SIXTRL_CONSTEXPR_OR_CONST
+                ZBYTE = ( st_raw_t )0u;
 
             NS(ptr_raw_buffer_data_t) dest = ( NS(ptr_raw_buffer_data_t) )(
                 uintptr_t )ptrs_begin_addr;
 
-            SIXTRACKLIB_SET_VALUES( _raw_t, dest, storage_ptrs_size, ZBYTE );
+            SIXTRACKLIB_SET_VALUES( st_raw_t, dest, storage_ptrs_size, ZBYTE );
         }
 
         for( ; ii < num_pointers ; ++ii, ++out_it )
@@ -4144,7 +4192,7 @@ NS(_CObjFlatBuffer_add_copy_of_object_ptrs_part)(
             if( offsets[ ii ] <= max_allowed_offset )
             {
                 /* NOTE: field_size == 0 is, on purpose, a valid result here */
-                _size_t const field_size = NS(CObjFlatBuffer_slot_based_size)(
+                st_size_t const field_size = NS(CObjFlatBuffer_slot_based_size)(
                     sizes[ ii ] * counts[ ii ], slot_size );
 
                 status = NS(_CObjFlatBuffer_add_copy_of_object_ptr_field_part)(
@@ -4166,7 +4214,7 @@ NS(_CObjFlatBuffer_add_copy_of_object_ptrs_part)(
             if( status != SIXTRL_COBJECTS_STATUS_SUCCESS ) break;
         }
     }
-    else if( num_pointers == ( _size_t )0u )
+    else if( num_pointers == ( st_size_t )0u )
     {
         status = SIXTRL_COBJECTS_STATUS_SUCCESS;
     }
@@ -4182,31 +4230,31 @@ NS(_CObjFlatBuffer_add_copy_of_object_index_part)(
     NS(cobj_size_t) const num_bytes_stored_in_slots,
     bool const init_space_with_zeros ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t)                             _size_t;
-    typedef NS(cobj_address_t)                          _addr_t;
-    typedef NS(cobj_raw_t)                              _raw_t;
-    typedef SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)* _ptr_index_t;
-    typedef SIXTRL_BUFFER_DATAPTR_DEC _raw_t*           _ptr_raw_t;
+    typedef NS(cobj_size_t)                             st_size_t;
+    typedef NS(cobj_address_t)                          st_addr_t;
+    typedef NS(cobj_raw_t)                              st_raw_t;
+    typedef SIXTRL_BUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)* ptr_index_t;
+    typedef SIXTRL_BUFFER_DATAPTR_DEC st_raw_t*           ptr_raw_t;
 
-    _ptr_index_t ptr_stored_index = SIXTRL_NULLPTR;
+    ptr_index_t ptr_stored_index = SIXTRL_NULLPTR;
 
-    _size_t const storage_index_size = NS(CObjFlatBuffer_slot_based_size)(
+    st_size_t const storage_index_size = NS(CObjFlatBuffer_slot_based_size)(
         sizeof( NS(CObjIndex) ), slot_size );
 
-    _addr_t const stored_obj_begin_addr =
+    st_addr_t const stored_obj_begin_addr =
         NS(CObjFlatBuffer_section_data_end_addr)( buffer,
             SIXTRL_CBUFFER_SECTION_ID_SLOTS, slot_size );
 
     SIXTRL_ASSERT( buffer != SIXTRL_NULLPTR );
-    SIXTRL_ASSERT( slot_size > ( _size_t )0u );
+    SIXTRL_ASSERT( slot_size > ( st_size_t )0u );
     SIXTRL_ASSERT( ( uintptr_t )buffer % slot_size == ( uintptr_t )0u );
     SIXTRL_ASSERT( !NS(CObjFlatBuffer_needs_remapping)( buffer, slot_size ) );
     SIXTRL_ASSERT( num_bytes_stored_in_slots >= slot_size );
-    SIXTRL_ASSERT( num_bytes_stored_in_slots % slot_size == ( _size_t )0u );
+    SIXTRL_ASSERT( num_bytes_stored_in_slots % slot_size == ( st_size_t )0u );
 
-    SIXTRL_ASSERT( stored_obj_begin_addr % slot_size == ( _addr_t )0u );
+    SIXTRL_ASSERT( stored_obj_begin_addr % slot_size == ( st_addr_t )0u );
     SIXTRL_ASSERT( stored_obj_begin_addr !=
-        ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS );
+        ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS );
 
     /* Check that the stored obj plus the amount of data stored in slots
      * still fits into the slots section */
@@ -4216,13 +4264,13 @@ NS(_CObjFlatBuffer_add_copy_of_object_index_part)(
 
     if( type_id != ( NS(cobj_type_id_t) )SIXTRL_COBJECTS_ILLEGAL_TYPE_ID )
     {
-        _addr_t const index_begin_addr =
+        st_addr_t const index_begin_addr =
             NS(CObjFlatBuffer_section_data_end_addr)( buffer,
                 SIXTRL_CBUFFER_SECTION_ID_INDICES, slot_size );
 
         SIXTRL_ASSERT( index_begin_addr !=
-            ( _addr_t )SIXTRL_COBJECTS_NULL_ADDRESS );
-        SIXTRL_ASSERT( index_begin_addr % slot_size == ( _addr_t )0u );
+            ( st_addr_t )SIXTRL_COBJECTS_NULL_ADDRESS );
+        SIXTRL_ASSERT( index_begin_addr % slot_size == ( st_addr_t )0u );
 
         /* Verify that we have enough space in the indices section to store one
         * more index object */
@@ -4232,14 +4280,14 @@ NS(_CObjFlatBuffer_add_copy_of_object_index_part)(
 
         if( init_space_with_zeros )
         {
-            SIXTRL_STATIC_VAR _raw_t SIXTRL_CONSTEXPR_OR_CONST
-                ZBYTE = ( _raw_t )0u;
+            SIXTRL_STATIC_VAR st_raw_t SIXTRL_CONSTEXPR_OR_CONST
+                ZBYTE = ( st_raw_t )0u;
 
-            _ptr_raw_t dest = ( _ptr_raw_t )( uintptr_t )index_begin_addr;
-            SIXTRACKLIB_SET_VALUES( _raw_t, dest, storage_index_size, ZBYTE );
+            ptr_raw_t dest = ( ptr_raw_t )( uintptr_t )index_begin_addr;
+            SIXTRACKLIB_SET_VALUES( st_raw_t, dest, storage_index_size, ZBYTE );
         }
 
-        ptr_stored_index = ( _ptr_index_t )( uintptr_t )index_begin_addr;
+        ptr_stored_index = ( ptr_index_t )( uintptr_t )index_begin_addr;
 
         NS(CObjIndex_preset)( ptr_stored_index );
         NS(CObjIndex_set_type_id)( ptr_stored_index, type_id );
@@ -4258,10 +4306,10 @@ NS(_CObjFlatBuffer_add_copy_of_object_update_buffer_params)(
     NS(cobj_size_t) const requ_num_objects,
     NS(cobj_size_t) const requ_num_pointers ) SIXTRL_NOEXCEPT
 {
-    typedef NS(cobj_size_t) _size_t;
+    typedef NS(cobj_size_t) st_size_t;
     NS(cobj_status_t) status = SIXTRL_COBJECTS_STATUS_GENERAL_FAILURE;
 
-    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( _size_t )0u ) &&
+    if( ( buffer != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
         ( !NS(CObjFlatBuffer_needs_remapping)( buffer, slot_size ) ) &&
         ( NS(CObjFlatBuffer_max_num_slots)( buffer, slot_size ) >=
           requ_num_slots ) &&
@@ -4270,13 +4318,13 @@ NS(_CObjFlatBuffer_add_copy_of_object_update_buffer_params)(
         ( NS(CObjFlatBuffer_max_num_pointers)( buffer, slot_size ) >=
           requ_num_pointers ) )
     {
-        _size_t const cur_num_slots =
+        st_size_t const cur_num_slots =
             NS(CObjFlatBuffer_num_slots)( buffer, slot_size );
 
-        _size_t const cur_num_objs =
+        st_size_t const cur_num_objs =
             NS(CObjFlatBuffer_num_objects)( buffer, slot_size );
 
-        _size_t const cur_num_ptrs =
+        st_size_t const cur_num_ptrs =
             NS(CObjFlatBuffer_num_pointers)( buffer, slot_size );
 
         status = NS(CObjFlatBuffer_set_section_num_entities)( buffer,
@@ -4314,8 +4362,8 @@ NS(_CObjFlatBuffer_add_copy_of_object_update_buffer_params)(
     return status;
 }
 
-#if !defined( _GPUCODE ) && defined( __cplusplus )
+#if !defined( GPUCODE ) && defined( _cplusplus )
 }
-#endif /* !defined( _GPUCODE ) && defined( __cplusplus ) */
+#endif /* !defined( GPUCODE ) && defined( _cplusplus ) */
 
 #endif /* SIXTRACKLIB_COMMON_COBJECTS_FLAT_BUFFER_C99_H__ */

@@ -29,7 +29,7 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         static SIXTRL_INLINE SIXTRL_FN cobj_status_t init_field_counts(
             SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t* SIXTRL_RESTRICT counts_begin,
-            SIXTRL_BUFFER_ARGPTR_DEC cobj_size_t const max_num_counts,
+            cobj_size_t const max_num_counts,
             SIXTRL_BUFFER_ARGPTR_DEC const E *const SIXTRL_RESTRICT
                 /* ptr */ = nullptr ) SIXTRL_NOEXCEPT
         {

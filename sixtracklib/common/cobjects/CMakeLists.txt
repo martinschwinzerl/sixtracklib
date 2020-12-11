@@ -27,7 +27,7 @@ set( SIXTRL_COMMON_COBJECTS_C99_SOURCES )
 
 set( SIXTRL_COMMON_COBJECTS_CXX_HEADERS
      cbuffer_view.hpp
-#      cbuffer.hpp
+     cbuffer.hpp
      element_pointers.hpp
      element_store_restore.hpp
      field_offsets.hpp
@@ -40,7 +40,7 @@ set( SIXTRL_COMMON_COBJECTS_CXX_HEADERS
 
 set( SIXTRL_COMMON_COBJECTS_CXX_SOURCES
      cbuffer_view.cpp
-     #cbuffer.cpp
+     cbuffer.cpp
 )
 
 
@@ -64,6 +64,26 @@ target_compile_options( sixtrack_common_cobjects_cxx PRIVATE
 set(  SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
 #     $<TARGET_OBJECTS:sixtrack_common_control_c99>
     $<TARGET_OBJECTS:sixtrack_common_cobjects_cxx> CACHE INTERNAL "" FORCE )
+
+# =============================================================================
+# python bindings:
+
+if( SIXTRACKL_ENABLE_PYTHON AND pybind11_FOUND )
+    add_library( sixtrack_py_common_cobjects OBJECT
+        python_bindings.hpp python_bindings.cpp )
+
+    target_include_directories( sixtrack_py_common_cobjects PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> )
+
+    set_target_properties( sixtrack_py_common_cobjects PROPERTIES
+        LINKER_LANGUAGE CXX POSITION_INDEPENDENT_CODE ON
+        CXX_STANDARD 11 CXX_STANDARD_REQUIRED ON )
+
+    target_link_libraries( sixtrack_py_common_cobjects PRIVATE pybind11::module )
+
+    set( SIXTRACKLIB_PYTHON_BINDINGS_LIBS ${SIXTRACKLIB_PYTHON_BINDINGS_LIBS}
+         $<TARGET_OBJECTS:sixtrack_py_common_cobjects> CACHE STRING "" FORCE )
+endif()
 
 # =============================================================================
 # Install:
