@@ -1,7 +1,7 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/cobjects/definitions.h"
-    #include "sixtracklib/testlib/common/cobjects/type_fixed_num_ptrs.h"
+    #include "sixtracklib/testlib/common/objs/type_fixed_num_ptrs.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus )

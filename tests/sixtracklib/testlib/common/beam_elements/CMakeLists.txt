@@ -1,7 +1,11 @@
 # =============================================================================
 # tests/sixtracklib/testlib/common/beam_elements/CMakeLists.txt
 
-set( SIXTRL_TESTLIB_COMMON_BEAM_ELEMENTS_CXX_HEADERS )
+set( SIXTRL_TESTLIB_COMMON_BEAM_ELEMENTS_CXX_HEADERS
+     drift.hpp
+     multipole.hpp
+)
+
 set( SIXTRL_TESTLIB_COMMON_BEAM_ELEMENTS_C99_HEADERS
      be_beamfields.h
      be_limit_rect.h

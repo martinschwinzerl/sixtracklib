@@ -4,12 +4,12 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/control/definitions.h"
-    #include "sixtracklib/common/cobjects/definitions.h"
-    #include "sixtracklib/common/cobjects/obj_base_class.hpp"
-    #include "sixtracklib/common/cobjects/element_pointers.hpp"
-    #include "sixtracklib/common/cobjects/field_offsets.hpp"
-    #include "sixtracklib/common/cobjects/field_sizes.hpp"
-    #include "sixtracklib/common/cobjects/field_counts.hpp"
+    #include "sixtracklib/common/objs/definitions.h"
+    #include "sixtracklib/common/objs/obj_base_class.hpp"
+    #include "sixtracklib/common/objs/element_pointers.hpp"
+    #include "sixtracklib/common/objs/field_offsets.hpp"
+    #include "sixtracklib/common/objs/field_sizes.hpp"
+    #include "sixtracklib/common/objs/field_counts.hpp"
     #include "sixtracklib/common/internal/obj_data_type_traits.hpp"
     #include "sixtracklib/common/internal/type_store_traits.hpp"
 

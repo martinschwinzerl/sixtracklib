@@ -11,11 +11,28 @@ set( SIXTRL_TESTLIB_COMMON_INSTALL_CXX_PATH
 
 # ------------------------------------------------------------------------------
 
+if( GTEST_FOUND )
+    set( SIXTRACKL_TESTLIB_GOOGLETEST_ENABLED 1 )
+else()
+    set( SIXTRACKL_TESTLIB_GOOGLETEST_ENABLED 0 )
+endif()
+
+set( SIXTRACKL_TESTLIB_CONFIG_H_IN
+     "${CMAKE_CURRENT_SOURCE_DIR}/config.h.template" )
+
+set( SIXTRACKL_TESTLIB_CONFIG_H_OUT "${CMAKE_CURRENT_SOURCE_DIR}/config.h" )
+
+configure_file( ${SIXTRACKL_TESTLIB_CONFIG_H_IN}
+                ${SIXTRACKL_TESTLIB_CONFIG_H_OUT} @ONLY )
+
+# ------------------------------------------------------------------------------
+
 add_subdirectory( beam_elements )
+add_subdirectory( cobjects )
+add_subdirectory( objs )
+add_subdirectory( output )
 add_subdirectory( particles )
 add_subdirectory( track )
-add_subdirectory( output )
-add_subdirectory( cobjects )
 
 # ------------------------------------------------------------------------------
 

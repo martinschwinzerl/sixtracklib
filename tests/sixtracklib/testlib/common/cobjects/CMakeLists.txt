@@ -1,14 +1,12 @@
 # ==============================================================================
 # tests/sixtracklib/testlib/common/cobjects/CMakeLists.txt
 
-set( SIXTRL_TESTLIB_COMMON_COBJECTS_C99_HEADERS
-     type_no_ptrs.h type_fixed_num_ptrs.h )
-
+set( SIXTRL_TESTLIB_COMMON_COBJECTS_C99_HEADERS )
 set( SIXTRL_TESTLIB_COMMON_COBJECTS_C99_SOURCES )
 
-# add_library( sixtrack_test_common_output_c99 OBJECT
-#              ${SIXTRL_TESTLIB_COMMON_OUTPUT_C99_HEADERS}
-#              ${SIXTRL_TESTLIB_COMMON_OUTPUT_C99_SOURCES}
+# add_library( sixtrack_test_common_cobjects_c99 OBJECT
+#              ${SIXTRL_TESTLIB_COMMON_COBJECTS_C99_HEADERS}
+#              ${SIXTRL_TESTLIB_COMMON_COBJECTS_C99_SOURCES}
 # )
 
 # target_include_directories( sixtrack_test_common_output_c99 PRIVATE
@@ -22,9 +20,14 @@ set( SIXTRL_TESTLIB_COMMON_COBJECTS_C99_SOURCES )
 # target_compile_options( sixtrack_test_common_output_c99 PRIVATE
 #         ${SIXTRACKLIB_C99_FLAGS} ${SIXOUTPUTLIB_CPU_FLAGS} )
 
-set( SIXTRL_TESTLIB_COMMON_COBJECTS_CXX_HEADERS )
+set( SIXTRL_TESTLIB_COMMON_COBJECTS_CXX_HEADERS
+      cobj_elem_traits.hpp
+      cobjects_initialiser_base.hpp
+)
+
 set( SIXTRL_TESTLIB_COMMON_COBJECTS_CXX_SOURCES
-     type_fixed_num_ptrs.cpp )
+     cobjects_initialiser_base.cpp
+)
 
 add_library( sixtrack_test_common_cobjects_cxx OBJECT
              ${SIXTRL_TESTLIB_COMMON_COBJECTS_C99_HEADERS}
@@ -48,8 +51,7 @@ target_compile_options( sixtrack_test_common_cobjects_cxx PRIVATE
 # sixoutput_test_common_output_cxx as a module for sixoutput_test:
 
 set(  SIXTRACKL_TESTLIB_LIBRARY_MODULES ${SIXTRACKL_TESTLIB_LIBRARY_MODULES}
-      $<TARGET_OBJECTS:sixtrack_test_common_cobjects_cxx>
-      CACHE INTERNAL "" FORCE )
+      $<TARGET_OBJECTS:sixtrack_test_common_cobjects_cxx> CACHE INTERNAL "" FORCE )
 
 # ==============================================================================
 # Install :
