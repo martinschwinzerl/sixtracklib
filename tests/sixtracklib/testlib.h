@@ -5,6 +5,8 @@
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/generated/modules.h"
 
+#include "sixtracklib/testlib/common/objs.h"
+
 #include "sixtracklib/testlib/common/generic_buffer_obj.h"
 #include "sixtracklib/testlib/common/gpu_kernel.h"
 #include "sixtracklib/testlib/common/random.h"

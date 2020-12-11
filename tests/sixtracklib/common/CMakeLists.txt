@@ -4,6 +4,7 @@ add_subdirectory( control )
 add_subdirectory( cobjects )
 add_subdirectory( beam_elements )
 add_subdirectory( track )
+add_subdirectory( particles )
 
 # -----------------------------------------------------------------------------
 # ---- Generate testdata:

@@ -1,3 +1,5 @@
+#include "sixtracklib/common/cobjects/cbuffer_view.hpp"
+
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -8,20 +10,22 @@
 #include <gtest/gtest.h>
 
 #include "sixtracklib/testlib.h"
+#include "sixtracklib/common/cobjects/definitions.h"
 #include "sixtracklib/testlib/common/cobjects/type_no_ptrs.h"
-#include "sixtracklib/testlib/common/cobjects/type_fixed_num_ptrs.h"
-#include "sixtracklib/common/cobjects/cbuffer_view.hpp"
+#include "sixtracklib/testlib/common/cobjects/type_no_ptrs_init.h"
+#include "sixtracklib/testlib/common/cobjects/type_const_num_ptrs.h"
+#include "sixtracklib/testlib/common/cobjects/type_const_num_ptrs_init.h"
 
 TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeNoPtrs )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
 
-    using _size_t = st::cobj_size_t;
-    using _obj_t  = st::tests::TypeNoPtrs;
+    using st_size_t = st::cobj_size_t;
+    using obj_t = st::tests::TypeNoPtrs;
 
-    _size_t const slot_size = st::CBUFFER_DEFAULT_SLOT_SIZE;
-    _size_t const ext_buffer_capacity = ::NS(CObjFlatBuffer_slot_based_size)(
-        _size_t{ 1 << 20 }, slot_size );
+    st_size_t const slot_size = st::CBUFFER_DEFAULT_SLOT_SIZE;
+    st_size_t const ext_buffer_capacity = ::NS(CObjFlatBuffer_slot_based_size)(
+        st_size_t{ 1 << 20 }, slot_size );
 
     std::vector< st::cobj_raw_t > ext_buffer(
         ext_buffer_capacity + slot_size );
@@ -39,7 +43,7 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeNoPtrs )
 
     /* --------------------------------------------------------------------- */
 
-    _obj_t orig1;
+    obj_t orig1;
 
     ASSERT_TRUE( orig1.is_convertible_to_c_api() );
     ::NS(TypeNoPtrs_preset)( orig1.as_ptr_c_api() );
@@ -52,23 +56,23 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeNoPtrs )
     ::NS(TypeNoPtrs_set_c)(  orig1.as_ptr_c_api(), 4, uint8_t{ 5 } );
     ::NS(TypeNoPtrs_set_c)(  orig1.as_ptr_c_api(), 5, uint8_t{ 8 } );
 
-    _obj_t ext_var;
+    obj_t ext_var;
     ASSERT_TRUE( ext_var.is_convertible_to_c_api() );
     ::NS(TypeNoPtrs_preset)( ext_var.as_ptr_c_api() );
 
-    _size_t required_buffer_size = _size_t{ 0 };
-    _size_t requ_num_slots = _size_t{ 0 };
-    _size_t requ_num_objs  = _size_t{ 0 };
-    _size_t requ_num_ptrs  = _size_t{ 0 };
+    st_size_t required_buffer_size = st_size_t{ 0 };
+    st_size_t requ_num_slots = st_size_t{ 0 };
+    st_size_t requ_num_objs  = st_size_t{ 0 };
+    st_size_t requ_num_ptrs  = st_size_t{ 0 };
 
-    ASSERT_FALSE( view.can_add_copy_of_object< _obj_t >(
+    ASSERT_FALSE( view.can_add_copy_of_object< obj_t >(
         &orig1, &required_buffer_size, &requ_num_slots,
             &requ_num_objs, &requ_num_ptrs ) );
 
     ASSERT_TRUE( required_buffer_size > view.size() );
     view.reallocate( requ_num_slots, requ_num_objs, requ_num_ptrs );
 
-    _obj_t* copy1 = st::CBufferView_add_copy_of_object_detail(
+    obj_t* copy1 = st::CBufferView_add_copy_of_object_detail(
         view, &orig1, &required_buffer_size, &requ_num_slots,
             &requ_num_objs, &requ_num_ptrs );
 
@@ -97,7 +101,7 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeNoPtrs )
     ASSERT_TRUE(  ext_var.c[ 4 ] != copy1->c[ 4 ] );
     ASSERT_TRUE(  ext_var.c[ 5 ] != copy1->c[ 5 ] );
 
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) ==
+    ASSERT_TRUE( view.load_object< obj_t >( 0, &ext_var ) ==
         st::COBJECTS_STATUS_SUCCESS );
 
     ASSERT_TRUE( &ext_var != copy1 );
@@ -118,15 +122,15 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeFixedNumPtrs )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
 
-    using _size_t      = st::cobj_size_t;
-    using _obj_t       = ::NS(TypeFixedNumPtrs);
+    using st_size_t      = st::cobj_size_t;
+    using obj_t       = ::NS(TypeFixedNumPtrs);
     using _prng_t      = std::mt19937_64;
     using _seed_t      = _prng_t::result_type;
     using _real_dist_t = std::uniform_real_distribution< double >;
 
-    _size_t const slot_size = st::CBUFFER_DEFAULT_SLOT_SIZE;
-    _size_t const ext_buffer_capacity = ::NS(CObjFlatBuffer_slot_based_size)(
-        _size_t{ 1 << 20 }, slot_size );
+    st_size_t const slot_size = st::CBUFFER_DEFAULT_SLOT_SIZE;
+    st_size_t const ext_buffer_capacity = ::NS(CObjFlatBuffer_slot_based_size)(
+        st_size_t{ 1 << 20 }, slot_size );
 
     std::vector< st::cobj_raw_t > ext_buffer(
         ext_buffer_capacity + slot_size );
@@ -161,7 +165,7 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeFixedNumPtrs )
     std::generate( orig1_c_values.begin(), orig1_c_values.end(),
                    c_value_generator );
 
-    _obj_t orig1;
+    obj_t orig1;
     ::NS(TypeFixedNumPtrs_preset)( &orig1 );
     ::NS(TypeFixedNumPtrs_set_a)( &orig1, double{ 42.0 } );
     ::NS(TypeFixedNumPtrs_set_num_b_values)( &orig1, orig1_b_values.size() );
@@ -173,22 +177,22 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeFixedNumPtrs )
     ::NS(TypeFixedNumPtrs_set_c_values_addr)( &orig1,
             reinterpret_cast< uintptr_t >( orig1_c_values.data() ) );
 
-    _obj_t ext_var;
+    obj_t ext_var;
     ::NS(TypeFixedNumPtrs_preset)( &ext_var );
 
-    _size_t required_buffer_size = _size_t{ 0 };
-    _size_t requ_num_slots = _size_t{ 0 };
-    _size_t requ_num_objs  = _size_t{ 0 };
-    _size_t requ_num_ptrs  = _size_t{ 0 };
+    st_size_t required_buffer_size = st_size_t{ 0 };
+    st_size_t requ_num_slots = st_size_t{ 0 };
+    st_size_t requ_num_objs  = st_size_t{ 0 };
+    st_size_t requ_num_ptrs  = st_size_t{ 0 };
 
-    ASSERT_FALSE( view.can_add_copy_of_object< _obj_t >(
+    ASSERT_FALSE( view.can_add_copy_of_object< obj_t >(
         &orig1, &required_buffer_size, &requ_num_slots,
             &requ_num_objs, &requ_num_ptrs ) );
 
     ASSERT_TRUE( required_buffer_size > view.size() );
     view.reallocate( requ_num_slots, requ_num_objs, requ_num_ptrs );
 
-    _obj_t* copy1 = st::CBufferView_add_copy_of_object_detail(
+    obj_t* copy1 = st::CBufferView_add_copy_of_object_detail(
         view, &orig1, &required_buffer_size, &requ_num_slots,
             &requ_num_objs, &requ_num_ptrs );
 
@@ -243,9 +247,9 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeFixedNumPtrs )
     /* Can't load because ext_var has no fields and no way to store the
      * data from copy1 */
 
-    static_assert( st::CObjElem_has_const_num_ptrs< _obj_t >(), "Has C-API ptrs" );
+    static_assert( st::CObjElem_has_const_num_ptrs< obj_t >(), "Has C-API ptrs" );
 
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) !=
+    ASSERT_TRUE( view.load_object< obj_t >( 0, &ext_var ) !=
         st::COBJECTS_STATUS_SUCCESS );
 
     ASSERT_TRUE( &ext_var   != copy1 );
@@ -273,7 +277,7 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeFixedNumPtrs )
     ASSERT_TRUE(  ext_var.num_c_values  ==
                   ::NS(TypeFixedNumPtrs_num_c_values)( copy1 ) );
 
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) !=
+    ASSERT_TRUE( view.load_object< obj_t >( 0, &ext_var ) !=
         st::COBJECTS_STATUS_SUCCESS );
     ASSERT_TRUE( ext_var.a != copy1->a );
 
@@ -298,7 +302,7 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeFixedNumPtrs )
     ::NS(TypeFixedNumPtrs_set_c_values_addr)( &ext_var,
         reinterpret_cast< uintptr_t >( ext_var_c_values.data() ) );
 
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) !=
+    ASSERT_TRUE( view.load_object< obj_t >( 0, &ext_var ) !=
         st::COBJECTS_STATUS_SUCCESS );
     ASSERT_TRUE( ext_var.a != copy1->a );
 
@@ -328,7 +332,7 @@ TEST( CxxCommonCObjectsCBufferViewLoadObjectsTests, BasicUsageTypeFixedNumPtrs )
     ASSERT_TRUE( ::NS(TypeFixedNumPtrs_const_c_values_begin)( copy1 ) !=
                  ::NS(TypeFixedNumPtrs_const_c_values_begin)( &ext_var ) );
 
-    ASSERT_TRUE( view.load_object< _obj_t >( 0, &ext_var ) ==
+    ASSERT_TRUE( view.load_object< obj_t >( 0, &ext_var ) ==
         st::COBJECTS_STATUS_SUCCESS );
 
     ASSERT_TRUE( &ext_var   != copy1 );
