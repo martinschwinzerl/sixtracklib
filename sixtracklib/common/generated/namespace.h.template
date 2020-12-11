@@ -4,6 +4,14 @@
 /* ------------------------------------------------------------------------- */
 /* C99 Namespace */
 
+#if !defined( SIXTRL_C99_NAMESPACE_MACRO_PREFIX )
+    #define SIXTRL_C99_NAMESPACE_MACRO_PREFIX "NS("
+#endif /* !defined( SIXTRL_C99_NAMESPACE_MACRO_PREFIX ) */
+
+#if !defined( SIXTRL_C99_NAMESPACE_MACRO_POSTFIX )
+    #define SIXTRL_C99_NAMESPACE_MACRO_POSTFIX ")"
+#endif /* !defined( SIXTRL_C99_NAMESPACE_MACRO_POSTFIX ) */
+
 #if !defined( SIXTRL_C99_NAMESPACE )
     #define SIXTRL_C99_NAMESPACE @SIXTRL_GENERATED_C99_NAMESPACE@
 #endif /* !defined( SIXTRL_C99_NAMESPACE ) */
@@ -15,6 +23,10 @@
 #if !defined( SIXTRL_C99_NAMESPACE_PREFIX_STR )
     #define SIXTRL_C99_NAMESPACE_PREFIX_STR "@SIXTRL_GENERATED_C99_NAMESPACE@"
 #endif /* !defined( SIXTRL_C99_NAMESPACE_PREFIX_STR ) */
+
+#if !defined( SIXTRL_C99_NAMESPACE_POSTFIX_STR )
+    #define SIXTRL_C99_NAMESPACE_POSTFIX_STR ""
+#endif /* !defined( SIXTRL_C99_NAMESPACE_POSTFIX_STR ) */
 
 /* ------------------------------------------------------------------------- */
 /* C++ Namespace */

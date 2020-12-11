@@ -4,7 +4,12 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/buffer/buffer_type.h"
+    #include "sixtracklib/common/internal/buffer_main_defines.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
+
+#if !defined( SIXTRL_TRACK_CONFIG_ARGPTR_DEC )
+    #define SIXTRL_TRACK_CONFIG_ARGPTR_DEC SIXTRL_DATAPTR_DEC
+#endif /* !defined( SIXTRL_TRACK_CONFIG_ARGPTR_DEC ) */
 
 /* ------------------------------------------------------------------------- */
 
@@ -33,6 +38,8 @@ extern "C" {
 #endif /* defined( __cplusplus ) && ( !defined( _GPUCODE ) */
 
 typedef SIXTRL_INT32_T              NS(track_status_t);
+typedef SIXTRL_UINT64_T             NS(track_config_flags_t);
+typedef SIXTRL_REAL_T               NS(track_limit_t);
 
 #if !defined( _GPUCODE )
 typedef SIXTRL_UINT16_T             NS(track_job_io_flag_t);

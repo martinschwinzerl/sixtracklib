@@ -15,11 +15,13 @@ typedef SIXTRL_UINT64_T       NS(arch_size_t);
 typedef SIXTRL_UINT64_T       NS(arch_debugging_t);
 typedef SIXTRL_UINT32_T       NS(arch_kernel_id_t);
 typedef SIXTRL_UINT32_T       NS(arch_program_id_t);
+typedef SIXTRL_UINT64_T       NS(arch_address_t);
 
 typedef NS(arch_status_t)     NS(ctrl_status_t);
 typedef NS(arch_size_t)       NS(ctrl_size_t);
 typedef NS(arch_kernel_id_t)  NS(ctrl_kernel_id_t);
 typedef NS(arch_program_id_t) NS(ctrl_program_id_t);
+typedef NS(arch_address_t)    NS(ctrl_address_t);
 
 typedef SIXTRL_INT64_T        NS(node_platform_id_t);
 typedef SIXTRL_INT64_T        NS(node_device_id_t);
@@ -227,6 +229,7 @@ namespace SIXTRL_CXX_NAMESPACE
     typedef ::NS(ctrl_size_t)         ctrl_size_t;
     typedef ::NS(ctrl_kernel_id_t)    ctrl_kernel_id_t;
     typedef ::NS(ctrl_program_id_t)   ctrl_program_id_t;
+    typedef ::NS(ctrl_address_t)      ctrl_address_t;
 
     typedef ::NS(arch_status_t)       arch_status_t;
     typedef ::NS(arch_id_t)           arch_id_t;
@@ -234,6 +237,7 @@ namespace SIXTRL_CXX_NAMESPACE
     typedef ::NS(arch_debugging_t)    arch_debugging_t;
     typedef ::NS(arch_kernel_id_t)    arch_kernel_id_t;
     typedef ::NS(arch_program_id_t)   arch_program_id_t;
+    typedef ::NS(arch_address_t)      arch_address_t;
 
     typedef ::NS(node_platform_id_t)  node_platform_id_t;
     typedef ::NS(node_device_id_t)    node_device_id_t;
