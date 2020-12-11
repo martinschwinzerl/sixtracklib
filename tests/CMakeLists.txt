@@ -15,3 +15,8 @@ endif()
 if( SIXTRACKL_ENABLE_TIMING_TESTS )
     add_subdirectory( benchmark )
 endif()
+
+# Enable tests of the code generation library
+if( SIXTRACKL_BUILD_CODE_GENERATOR )
+    add_subdirectory( libcodegen )
+endif()

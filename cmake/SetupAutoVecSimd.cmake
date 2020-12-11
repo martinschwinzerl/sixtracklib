@@ -13,11 +13,13 @@ if( NOT  SIXTRACKL_CMAKE_SETUP_AUTOVEC_SIMD_FINISHED )
         #TODO: Handle this in a more generic fashion for compilers different
         #      than gcc
 
-        set( SIXTRACKLIB_CPU_FLAGS ${SIXTRACKLIB_CPU_FLAGS}
-             -ftree-vectorize -ftree-vectorizer-verbose=6
-             -fopt-info-loop
-             -fno-fast-math
-             --param vect-max-version-for-alias-checks=150 )
+        if( CMAKE_C_COMPILER_ID STREQUAL "GNU" )
+            set( SIXTRACKLIB_CPU_FLAGS ${SIXTRACKLIB_CPU_FLAGS}
+                 -ftree-vectorize -ftree-vectorizer-verbose=6
+                 -fopt-info-loop
+                 -fno-fast-math
+                 --param vect-max-version-for-alias-checks=150 )
+        endif()
 
         set( SIXTRACKLIB_ENABLE_MODULE_AUTOVEC_SIMD 1 )
         set( PY_SIXTRL_MODULE_VALUE "True" )

@@ -27,10 +27,10 @@ option( SIXTRACKL_ENABLE_PYTHON       "Enable Python bindings"             ON  )
 # ------------------------------------------------------------------------------
 # ---- Program logistic options:
 
-option( SIXTRACKL_BUILD_TOOLS            "Build sixtracklib tools"        OFF )
-option( SIXTRACKL_BUILD_EXAMPLES         "Build sixtracklib examples"     OFF )
-option( SIXTRACKL_ENABLE_PROGRAMM_TESTS  "Enable programmatic unit-tests" OFF )
-option( SIXTRACKL_ENABLE_BENCHMARK_TESTS "Enable benchmark tests"         OFF )
+option( SIXTRACKL_BUILD_TOOLS            "Build sixtracklib tools"         OFF )
+option( SIXTRACKL_BUILD_EXAMPLES         "Build sixtracklib examples"      OFF )
+option( SIXTRACKL_ENABLE_PROGRAMM_TESTS  "Enable programmatic unit-tests"  OFF )
+option( SIXTRACKL_ENABLE_BENCHMARK_TESTS "Enable benchmark tests"          OFF )
 
 # ------------------------------------------------------------------------------
 # CPU/System architecture settings:
@@ -55,6 +55,15 @@ option( SIXTRACKL_ENABLE_APERTURE_CHECK   "Enable xy - aperture check" ON )
 
 # ==============================================================================
 # ====  Detailed settings:
+
+# ------------------------------------------------------------------------------
+# ---- SixTrackLib code generator options:
+
+# The code-generator is only required if you plan to substantially extend
+# SixTrackLib and requires LLVM, clang, libtooling >= 6.0
+option( SIXTRACKL_BUILD_CODE_GENERATOR "Build sixtracklib codegenerator" OFF )
+set( LLVM_CONFIG_PATH "" CACHE STRING
+     "Path to the directory containing the llvm-config executable" FORCE )
 
 # ------------------------------------------------------------------------------
 # ---- SixTrackLib detailed features settings:
