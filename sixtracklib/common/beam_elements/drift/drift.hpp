@@ -1,70 +1,92 @@
-#ifndef SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_CXX_HPP__
-#define SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_CXX_HPP__
+#ifndef SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_DRIFT_CXX_HPP__
+#define SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_DRIFT_CXX_HPP__
 
 #if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/cobjects/definitions.h"
     #include "sixtracklib/common/beam_elements/drift/definitions.h"
     #include "sixtracklib/common/beam_elements/drift/drift.h"
-    #include "sixtracklib/common/beam_elements/drift/drift_data.hpp"
+    #include "sixtracklib/common/internal/type_store_traits.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus )
 
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/internal/obj_base_class.hpp"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
-
 namespace SIXTRL_CXX_NAMESPACE
 {
-    template< class ObjData, SIXTRL_CXX_NAMESPACE::store_backend_t StoreT >
-    class TDriftImpl : public ObjDataStorageInterfaceBase<
-        ObjData, StoreT, SIXTRL_CXX_NAMESPACE::TDriftImpl< ObjData, StoreT > >
+    template< class R, arch_size_t RAlign =
+        SIXTRL_CXX_NAMESPACE::Type_storage_align< R >() >
+    struct SIXTRL_ANNOTATE_COBJECT SIXTRL_ANNOTATE_ELEM_OBJ
+    SIXTRL_ANNOTATE_ELEM_OBJ_API_NAME( Drift )
+    SIXTRL_ANNOTATE_ELEM_OBJ_DEC( "SIXTRL_BE_ARGPTR_DEC" )
+    TDrift
     {
-        public:
-        typedef typename DriftTraits< ObjData >::real_t real_t;
+        R                       length SIXTRL_ALIGN( RAlign )
+                                SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
 
-        typedef typename TypeMethodParamTraits< real_t >::const_argument_type
-                real_arg_t;
-
-        typedef typename TypeMethodParamTraits< real_t >::const_existing_type
-                real_const_existing_t;
+        be_drift_track_type_t   track_type SIXTRL_ALIGN( 8 )
+                                SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE(
+                                    SIXTRL_BE_DRIFT_TRACK_TYPE_SIMPLE );
     };
 
-    /* ---------------------------------------------------------------------- */
+    /* ********************************************************************* */
+    /* Specializations for TDrift: */
+    /* ********************************************************************* */
 
-    template< class E, store_backend_t St >
-    SIXTRL_INLINE SIXTRL_FN typename TDriftImpl< E, St >::real_const_existing_t
-    Drift_length( SIXTRL_BE_ARGPTR_DEC const TDriftImpl< E, St > *const
-            SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT
+    template< class R, arch_size_t RAlign >
+    struct ObjDataBeamElementsTraits< TDrift< R, RAlign > >
     {
-        SIXTRL_ASSERT( drift != SIXTRL_NULLPTR );
-        return drift->length;
-    }
+        static constexpr bool is_beam_element = true;
+    };
 
-    template< class E, store_backend_t St >
-    SIXTRL_INLINE SIXTRL_FN void Drift_set_length(
-        SIXTRL_BE_ARGPTR_DEC TDriftImpl< E, St >* SIXTRL_RESTRICT drift,
-        typename TDriftImpl< E, St >::real_arg_t length ) SIXTRL_NOEXCEPT
+    template< class R, arch_size_t RAlign >
+    constexpr bool ObjDataBeamElementsTraits<
+        TDrift< R, RAlign > >::is_beam_element;
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    template< class R, arch_size_t RAlign >
+    struct ObjDataDriftTraits< TDrift< R, RAlign > >
     {
-        SIXTRL_ASSERT( drift != SIXTRL_NULLPTR );
-        drift->length = length;
-    }
-}
+        static constexpr bool is_type = true;
+        static constexpr be_drift_impl_t implementation =
+            SIXTRL_CXX_NAMESPACE::BE_DRIFT_IMPL_DEFAULT;
+    };
 
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/cobjects/obj_base_class.hpp"
-    #include "sixtracklib/common/beam_elements/drift/storage_cobjects.h"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
+    template< class R, arch_size_t RAlign >
+    constexpr bool ObjDataDriftTraits< TDrift< R, RAlign > >::is_type;
 
-namespace SIXTRL_CXX_NAMESPACE
-{
-    template< class R,
-        arch_size_t RAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align< R >() >
-    using TDrift = TDriftImpl< DriftData< R, RAlign >, STORAGE_BE_COBJECTS >;
+    template< class R, arch_size_t RAlign >
+    constexpr be_drift_impl_t ObjDataDriftTraits<
+        TDrift< R, RAlign > >::implementation;
 
-    typedef TDriftImpl< CDriftEquivData, STORAGE_BE_COBJECTS > Drift;
-    typedef TDriftImpl< ::NS(Drift),     STORAGE_BE_COBJECTS > CDrift;
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    template< class R, arch_size_t RAlign >
+    struct DriftTraits< TDrift< R, RAlign > >
+    {
+        typedef typename TypeMethodParamTraits< R >::value_type real_t;
+        static constexpr arch_size_t real_alignment = RAlign;
+    };
+
+    template< class R, arch_size_t RAlign >
+    constexpr arch_size_t DriftTraits< TDrift< R,RAlign > >::real_alignment;
+
+    /* ********************************************************************* */
+    /* Create an equivalency between the ::NS(Drift) type and the
+     * corresponding specialization of the TDrift template */
+    /* ********************************************************************* */
+
+    typedef TDrift< DriftTraits< ::NS(Drift) >::real_t,
+                    DriftTraits< ::NS(Drift) >::real_alignment > Drift;
+
+    template<> struct ObjDataCApiTypeTraits< Drift >
+    {
+        static_assert(
+            SIXTRL_CXX_NAMESPACE::ObjData_can_be_equivalent_to_c_api_type<
+                Drift, ::NS(Drift) >(),
+            "Drift and ::NS(Drift) are not equivalent C-Api types" );
+
+        typedef ::NS(Drift) c_api_t;
+    };
 }
 
 #endif /* __cplusplus */
-#endif /* SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_CXX_HPP__ */
+#endif /* SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_DRIFT_CXX_HPP__ */

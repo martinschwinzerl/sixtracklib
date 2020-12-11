@@ -1,400 +1,123 @@
-#ifndef SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_CXX_HPP__
-#define SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_CXX_HPP__
+#ifndef SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_MULTIPOLE_CXX_HPP__
+#define SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_MULTIPOLE_CXX_HPP__
 
 #if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/cobjects/definitions.h"
     #include "sixtracklib/common/beam_elements/multipole/definitions.h"
     #include "sixtracklib/common/beam_elements/multipole/multipole.h"
-    #include "sixtracklib/common/beam_elements/multipole/multipole_data.hpp"
-    #include "sixtracklib/common/internal/math_factorial.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus )
-
-#if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
-    #include <cstddef>
-    #include <cstdlib>
-    #include <cmath>
-    #include <memory>
-#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
-
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/internal/obj_base_class.hpp"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
-
-namespace SIXTRL_CXX_NAMESPACE
-{
-    template< class ObjData, store_backend_t StoreT >
-    class TMultipoleImpl : public ObjDataStorageInterfaceBase<
-        ObjData, StoreT, TMultipoleImpl< ObjData, StoreT > >
-    {
-        public:
-
-        typedef typename MultipoleTraits< ObjData >::real_t         real_t;
-        typedef typename MultipoleTraits< ObjData >::order_t        order_t;
-        typedef typename MultipoleTraits< ObjData >::address_t      address_t;
-
-        typedef typename TypeMethodParamTraits< real_t >::const_argument_type
-                real_arg_t;
-
-        typedef typename TypeMethodParamTraits< real_t >::const_existing_type
-                real_const_existing_t;
-
-        typedef typename TypeMethodParamTraits< order_t >::const_argument_type
-                order_arg_t;
-
-        typedef typename TypeMethodParamTraits< order_t >::const_existing_type
-                order_const_existing_t;
-
-        typedef typename TypeMethodParamTraits< address_t >::const_argument_type
-                address_arg_t;
-
-        typedef typename TypeMethodParamTraits< address_t>::const_existing_type
-                address_const_existing_t;
-
-        typedef SIXTRL_BE_DATAPTR_DEC real_t const* ptr_const_bal_t;
-        typedef SIXTRL_BE_DATAPTR_DEC real_t*       ptr_bal_t;
-
-        order_t num_bal_values() const SIXTRL_NOEXCEPT
-        {
-            return order_t{ 2 } * this->order + order_t{ 2 };
-        }
-
-        ptr_const_bal_t bal_values_begin() const SIXTRL_NOEXCEPT
-        {
-            return reinterpret_cast< ptr_const_bal_t >( static_cast<
-                uintptr_t >( this->bal_addr ) );
-        }
-
-        ptr_const_bal_t bal_values_end()   const SIXTRL_NOEXCEPT
-        {
-            ptr_const_bal_t ptr_end = this->bal_values_begin();
-
-            if( ptr_end != nullptr )
-            {
-                ptr_end = ptr_end + this->num_bal_values();
-            }
-
-            return ptr_end;
-        }
-
-        ptr_bal_t const_bal_values_begin() SIXTRL_NOEXCEPT
-        {
-            typedef TMultipoleImpl< ObjData, StoreT > _this_t;
-            return static_cast< _this_t const& >( *this ).bal_values_begin();
-        }
-
-        ptr_bal_t const_bal_values_end()   SIXTRL_NOEXCEPT
-        {
-            typedef TMultipoleImpl< ObjData, StoreT > _this_t;
-            return static_cast< _this_t const& >( *this ).bal_values_end();
-        }
-
-        ptr_bal_t bal_values_begin() SIXTRL_NOEXCEPT
-        {
-            return const_cast< ptr_bal_t >( this->const_bal_values_begin() );
-        }
-
-        ptr_bal_t bal_values_end() SIXTRL_NOEXCEPT
-        {
-            return const_cast< ptr_bal_t >( this->const_bal_values_end() );
-        }
-
-        real_const_existing_t bal( order_t const ii ) const SIXTRL_NOEXCEPT
-        {
-            order_t const num_bal_values = this->num_bal_values();
-            ptr_const_bal_t ptr_begin = this->bal_values_begin();
-
-            return ( ( ptr_begin != nullptr ) && ( ii < num_bal_values ) )
-                        ? ptr_begin[ ii ] : real_t{ 0 };
-        }
-
-        void set_bal( order_t const ii, real_arg_t bal_value ) SIXTRL_NOEXCEPT
-        {
-            order_t const num_bal_values = this->num_bal_values();
-            ptr_bal_t ptr_begin = this->bal_values_begin();
-
-            if( ( ptr_begin != nullptr ) && ( ii < num_bal_values ) )
-            {
-                ptr_begin[ ii ] = bal_value;
-            }
-        }
-
-        real_t knl( order_t const ii ) const SIXTRL_NOEXCEPT
-        {
-            namespace st = SIXTRL_CXX_NAMESPACE;
-            return this->bal( ii ) *
-                st::Calc_factorial< real_t, order_t >( ii );
-        }
-
-        real_t ksl( order_t const ii ) const SIXTRL_NOEXCEPT
-        {
-            namespace st = SIXTRL_CXX_NAMESPACE;
-            return this->bal( ii ) *
-                st::Calc_factorial< real_t, order_t >( ii );
-        }
-
-        void set_knl( order_t const ii, real_arg_t knl_value )
-        {
-            namespace st = SIXTRL_CXX_NAMESPACE;
-            this->set_bal( order_t{ 2 } * ii,
-                knl_value * st::Calc_inv_factorial< real_t, order_t >( ii ) );
-        }
-
-        void set_ksl( order_t const ii, real_arg_t ksl_value )
-        {
-            namespace st = SIXTRL_CXX_NAMESPACE;
-            this->set_bal( order_t{ 2 } * ii + order_t{ 1 },
-                ksl_value * st::Calc_inv_factorial< real_t, order_t >( ii ) );
-        }
-    };
-
-    /* --------------------------------------------------------------------- */
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::order_const_existing_t Multipole_order(
-        SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St >
-            *const SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->order;
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    void Multipole_set_order(
-        SIXTRL_BE_ARGPTR_DEC TMultipoleImpl< E, St >* SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::order_arg_t order ) SIXTRL_NOEXCEPT
-    {
-        if( mpole != nullptr ) mpole->order = order;
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::order_t Multipole_num_bal_values(
-        SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St > *const
-            SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->num_bal_values();
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::real_const_existing_t Multipole_length(
-        SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St >
-            *const SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->length;
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    void Multipole_set_length(
-        SIXTRL_BE_ARGPTR_DEC TMultipoleImpl< E, St >* SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::real_arg_t length ) SIXTRL_NOEXCEPT
-    {
-        if( mpole != nullptr ) mpole->length = length;
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::real_const_existing_t Multipole_hxl(
-        SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St >
-            *const SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->hxl;
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    void Multipole_set_hxl(
-        SIXTRL_BE_ARGPTR_DEC TMultipoleImpl< E, St >* SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::real_arg_t hxl ) SIXTRL_NOEXCEPT
-    {
-        if( mpole != nullptr ) mpole->hxl = hxl;
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::real_const_existing_t Multipole_hyl(
-        SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St >
-            *const SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->hyl;
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    void Multipole_set_hyl(
-        SIXTRL_BE_ARGPTR_DEC TMultipoleImpl< E, St >* SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::real_arg_t hyl ) SIXTRL_NOEXCEPT
-    {
-        if( mpole != nullptr ) mpole->hyl = hyl;
-    }
-
-    /* --------------------------------------------------------------------- */
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::address_const_existing_t
-    Multipole_bal_addr( SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St >
-            *const SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->bal_addr;
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    void Multipole_set_bal_addr(
-        SIXTRL_BE_ARGPTR_DEC TMultipoleImpl< E, St >* SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::address_arg_t bal_addr
-    ) SIXTRL_NOEXCEPT
-    {
-        if( mpole != nullptr ) mpole->bal_addr = bal_addr;
-    }
-
-    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::ptr_const_bal_t
-    Multipole_bal_values_begin( SIXTRL_BE_ARGPTR_DEC const
-        TMultipoleImpl< E, St > *const SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->bal_values_begin();
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::ptr_const_bal_t
-    Multipole_const_bal_values_begin(
-        SIXTRL_BE_ARGPTR_DEC TMultipoleImpl< E, St >* SIXTRL_RESTRICT mpole
-    ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->const_bal_values_begin();
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::ptr_bal_t
-    Multipole_bal_values_begin( SIXTRL_BE_ARGPTR_DEC TMultipoleImpl< E, St >*
-        SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->bal_values_begin();
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::ptr_const_bal_t
-    Multipole_bal_values_end( SIXTRL_BE_ARGPTR_DEC const
-        TMultipoleImpl< E, St > *const SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->bal_values_end();
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::ptr_const_bal_t
-    Multipole_const_bal_values_end(
-        SIXTRL_BE_ARGPTR_DEC TMultipoleImpl< E, St >* SIXTRL_RESTRICT mpole
-    ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->const_bal_values_end();
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::ptr_bal_t
-    Multipole_bal_values_end( SIXTRL_BE_ARGPTR_DEC TMultipoleImpl< E, St >*
-        SIXTRL_RESTRICT mpole ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->bal_values_end();
-    }
-
-    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::real_const_existing_t
-    Multipole_bal( SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St > *const
-            SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::order_arg_t ii ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->bal( ii );
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::real_const_existing_t
-    Multipole_knl(
-        SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St > *const
-            SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::order_arg_t ii ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->knl( ii );
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN
-    typename TMultipoleImpl< E, St >::real_const_existing_t
-    Multipole_ksl(
-        SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St > *const
-            SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::order_arg_t ii ) SIXTRL_NOEXCEPT
-    {
-        SIXTRL_ASSERT( mpole != nullptr );
-        return mpole->ksl( ii );
-    }
-
-    /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN void
-    Multipole_set_bal( SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St >
-            *const SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::order_arg_t ii,
-        typename TMultipoleImpl< E, St >::real_arg_t bal_val ) SIXTRL_NOEXCEPT
-    {
-        if( mpole != nullptr ) mpole->set_bal( ii, bal_val );
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN void
-    Multipole_set_knl( SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St >
-            *const SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::order_arg_t ii,
-        typename TMultipoleImpl< E, St >::real_arg_t knl_val ) SIXTRL_NOEXCEPT
-    {
-        if( mpole != nullptr ) mpole->set_knl( ii, knl_val );
-    }
-
-    template< class E, store_backend_t St > SIXTRL_INLINE SIXTRL_FN void
-    Multipole_set_ksl( SIXTRL_BE_ARGPTR_DEC const TMultipoleImpl< E, St >
-            *const SIXTRL_RESTRICT mpole,
-        typename TMultipoleImpl< E, St >::order_arg_t ii,
-        typename TMultipoleImpl< E, St >::real_arg_t ksl_val ) SIXTRL_NOEXCEPT
-    {
-        if( mpole != nullptr ) mpole->set_ksl( ii, ksl_val );
-    }
-
-}
-
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/cobjects/obj_base_class.hpp"
-    #include "sixtracklib/common/beam_elements/multipole/storage_cobjects.h"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
 {
     template< class R, class O,
         arch_size_t RAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align< R >(),
-        arch_size_t OAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align< O >(),
-        arch_size_t AddrAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align<
-            be_address_t >() >
-    using TMultipole = TMultipoleImpl<
-        MultipoleData< R, O, RAlign, OAlign, AddrAlign >, STORAGE_BE_COBJECTS>;
+        arch_size_t OAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align< O >() >
+    struct SIXTRL_ANNOTATE_COBJECT SIXTRL_ANNOTATE_ELEM_OBJ
+    SIXTRL_ANNOTATE_ELEM_OBJ_DEC( "SIXTRL_BE_ARGPTR_DEC" )
+    TMultipole
+    {
+        O order  SIXTRL_ALIGN( OAlign )
+                 SIXTRL_ANNOTATE_ELEM_FIELD_REQU_INIT
+                 SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
 
-    typedef TMultipoleImpl<CMultipoleEquivData, STORAGE_BE_COBJECTS> Multipole;
-    typedef TMultipoleImpl<::NS(Multipole), STORAGE_BE_COBJECTS>    CMultipole;
+        R length SIXTRL_ALIGN( RAlign )
+                 SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
+
+        R hxl    SIXTRL_ALIGN( RAlign )
+                 SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
+
+        R hyl    SIXTRL_ALIGN( RAlign )
+                 SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
+
+        be_address_t bal_addr SIXTRL_ALIGN( RAlign )
+            SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 )
+            SIXTRL_ANNOTATE_ELEM_FIELD_POINTER
+            SIXTRL_ANNOTATE_ELEM_FIELD_POINTER_API_NAME( bal )
+            SIXTRL_ANNOTATE_ELEM_FIELD_POINTER_DEC( "SIXTRL_BE_DATAPTR_DEC" )
+            SIXTRL_ANNOTATE_ELEM_FIELD_POINTER_TYPE( R )
+            SIXTRL_ANNOTATE_ELEM_FIELD_POINTER_LENGTH( capacity );
+
+        O bal_capacity SIXTRL_ALIGN( OAlign )
+            SIXTRL_ANNOTATE_ELEM_FIELD_CONST
+            SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 2 );
+    };
+
+    /* ********************************************************************* */
+    /* Specializations for TMultipole: */
+    /* ********************************************************************* */
+
+    template< class R, class O, arch_size_t RAlign, arch_size_t OAlign >
+    struct ObjDataBeamElementsTraits< TMultipole< R, O, RAlign, OAlign > >
+    {
+        static constexpr bool is_beam_element = true;
+    };
+
+    template< class R, class O, arch_size_t RAlign, arch_size_t OAlign >
+    constexpr bool ObjDataBeamElementsTraits< TMultipole<
+        R, O, RAlign, OAlign > >::is_beam_element;
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    template< class R, class O, arch_size_t RAlign, arch_size_t OAlign >
+    struct ObjDataMultipoleTraits< TMultipole< R, O, RAlign, OAlign > >
+    {
+        static constexpr bool is_type = true;
+        static constexpr be_multipole_impl_t implementation =
+            SIXTRL_CXX_NAMESPACE::BE_MULTIPOLE_IMPL_DEFAULT;
+    };
+
+    template< class R, class O, arch_size_t RAlign, arch_size_t OAlign >
+    constexpr bool ObjDataMultipoleTraits<
+        TMultipole< R, O, RAlign, OAlign > >::is_type;
+
+    template< class R, class O, arch_size_t RAlign, arch_size_t OAlign >
+    constexpr be_multipole_impl_t ObjDataMultipoleTraits<
+        TMultipole< R, O, RAlign, OAlign > >::implementation;
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    template< class R, class O, arch_size_t RAlign, arch_size_t OAlign >
+    struct MultipoleTraits< TMultipole< R, O, RAlign, OAlign > >
+    {
+        typedef typename TypeMethodParamTraits< R >::value_type real_t;
+        typedef typename TypeMethodParamTraits< O >::value_type order_t;
+
+        static constexpr arch_size_t real_alignment = RAlign;
+        static constexpr arch_size_t order_alignment =
+            SIXTRL_CXX_NAMESPACE::Type_storage_align< order_t >();
+    };
+
+    template< class R, class O, arch_size_t RAlign, arch_size_t OAlign >
+    constexpr arch_size_t MultipoleTraits<
+        TMultipole< R, O, RAlign, OAlign > >::real_alignment;
+
+    template< class R, class O, arch_size_t RAlign, arch_size_t OAlign >
+    constexpr arch_size_t MultipoleTraits<
+        TMultipole< R, O, RAlign, OAlign > >::order_alignment;
+
+    /* ********************************************************************* *
+     * Create an equivalency between the ::NS(Multipole) type and the        *
+     * corresponding specialization of the TMultipole template               *
+     * ********************************************************************* */
+
+    typedef TMultipole<
+        MultipoleTraits< ::NS(Multipole) >::real_t,
+        MultipoleTraits< ::NS(Multipole) >::order_t,
+        MultipoleTraits< ::NS(Multipole) >::real_alignment,
+        MultipoleTraits< ::NS(Multipole) >::order_alignment > Multipole;
+
+    template<> struct ObjDataCApiTypeTraits< Multipole >
+    {
+        static_assert(
+            SIXTRL_CXX_NAMESPACE::ObjData_can_be_equivalent_to_c_api_type<
+            Multipole, ::NS(Multipole) >(),
+            "CMultipoleEquivData and ::NS(Multipole) "
+            "are not equivalent C-Api types" );
+
+        typedef ::NS(Multipole) c_api_t;
+    };
 }
 
 #endif /* __cplusplus */
-#endif /* SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_CXX_HPP__ */
+#endif /* SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_MULTIPOLE_CXX_HPP__ */

@@ -1,82 +1,47 @@
-#ifndef SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_C99_H__
-#define SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_C99_H__
+#ifndef SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_MULTIPOLE_H__
+#define SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_MULTIPOLE_H__
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/beam_elements/multipole/definitions.h"
     #include "sixtracklib/common/internal/obj_c_api_traits.hpp"
+    #include "sixtracklib/common/internal/type_annotations.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( __GPUCODE ) && defined( __cplusplus )
 extern "C" {
 #endif /* !defined( __GPUCODE ) && defined( __cplusplus ) */
 
-typedef struct NS(Multipole)
+typedef struct
+SIXTRL_ANNOTATE_COBJECT SIXTRL_ANNOTATE_ELEM_OBJ
+SIXTRL_ANNOTATE_ELEM_OBJ_DEC( "SIXTRL_BE_ARGPTR_DEC" )
+NS(Multipole)
 {
-    NS(be_order_t)   order    SIXTRL_ALIGN( 8 );
-    NS(be_real_t)    length   SIXTRL_ALIGN( 8 );
-    NS(be_real_t)    hxl      SIXTRL_ALIGN( 8 );
-    NS(be_real_t)    hyl      SIXTRL_ALIGN( 8 );
-    NS(be_address_t) bal_addr SIXTRL_ALIGN( 8 );
+    NS(be_order_t)   order    SIXTRL_ALIGN( 8 )
+        SIXTRL_ANNOTATE_ELEM_FIELD_REQU_INIT
+        SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
+
+    NS(be_real_t)    length   SIXTRL_ALIGN( 8 )
+        SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
+
+    NS(be_real_t)    hxl      SIXTRL_ALIGN( 8 )
+        SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
+
+    NS(be_real_t)    hyl      SIXTRL_ALIGN( 8 )
+        SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
+
+    NS(be_address_t) bal_addr SIXTRL_ALIGN( 8 )
+        SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 )
+        SIXTRL_ANNOTATE_ELEM_FIELD_POINTER
+        SIXTRL_ANNOTATE_ELEM_FIELD_POINTER_API_NAME( bal )
+        SIXTRL_ANNOTATE_ELEM_FIELD_POINTER_DEC( "SIXTRL_BE_DATAPTR_DEC" )
+        SIXTRL_ANNOTATE_ELEM_FIELD_POINTER_TYPE( NS(be_real_t) )
+        SIXTRL_ANNOTATE_ELEM_FIELD_POINTER_LENGTH( capacity );
+
+    NS(be_order_t) bal_capacity SIXTRL_ALIGN( 8 )
+        SIXTRL_ANNOTATE_ELEM_FIELD_CONST
+        SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 2 );
 }
 NS(Multipole);
-
-SIXTRL_STATIC SIXTRL_FN NS(be_order_t) NS(Multipole_order)(
-    SIXTRL_BE_ARGPTR_DEC const NS(Multipole) *const
-        SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN NS(be_order_t) NS(Multipole_bal_length)(
-    SIXTRL_BE_ARGPTR_DEC const NS(Multipole) *const
-        SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN NS(be_real_t) NS(Multipole_length)(
-    SIXTRL_BE_ARGPTR_DEC const NS(Multipole) *const
-        SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN NS(be_real_t) NS(Multipole_hxl)(
-    SIXTRL_BE_ARGPTR_DEC const NS(Multipole) *const
-        SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN NS(be_real_t) NS(Multipole_hyl)(
-    SIXTRL_BE_ARGPTR_DEC const NS(Multipole) *const
-        SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN NS(buffer_addr_t) NS(Multipole_bal_addr)(
-    SIXTRL_BE_ARGPTR_DEC const NS(Multipole) *const
-        SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_DATAPTR_DEC NS(be_real_t) const*
-NS(Multipole_const_bal)( SIXTRL_BE_ARGPTR_DEC const NS(Multipole) *const
-    SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT;
-
-/* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
-
-SIXTRL_STATIC SIXTRL_FN void NS(Multipole_set_order)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_order_t) const order ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN void NS(Multipole_set_bal_length)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_order_t) const bal_length ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN void NS(Multipole_set_length)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_real_t) const length ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN void NS(Multipole_set_hxl)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_real_t) const hxl ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN void NS(Multipole_set_hyl)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_real_t) const hyl ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN void NS(Multipole_set_bal_addr)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(buffer_addr_t) const bal_addr ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_DATAPTR_DEC
-NS(be_real_t)* NS(Multipole_bal)( SIXTRL_BE_ARGPTR_DEC NS(Multipole)*
-    SIXTRL_RESTRICT multipole) SIXTRL_NOEXCEPT;
 
 #if !defined( __GPUCODE ) && defined( __cplusplus )
 }
@@ -85,154 +50,38 @@ NS(be_real_t)* NS(Multipole_bal)( SIXTRL_BE_ARGPTR_DEC NS(Multipole)*
 #if defined( __cplusplus )
 namespace SIXTRL_CXX_NAMESPACE
 {
-    template<> struct ObjDataCApiTypeTraits< ::NS(Multipole) >
+    template<> struct ObjDataBeamElementsTraits< ::NS(Multipole) >
     {
-        typedef ::NS(Multipole) c_api_t;
+        static constexpr bool is_beam_element = true;
     };
+
+    template<> struct ObjDataMultipoleTraits< ::NS(Multipole) >
+    {
+        static constexpr bool is_type = true;
+        static constexpr be_multipole_impl_t implementation =
+            SIXTRL_CXX_NAMESPACE::BE_MULTIPOLE_IMPL_DEFAULT;
+    };
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
     template<> struct MultipoleTraits< ::NS(Multipole) >
     {
         typedef ::NS(be_real_t)     real_t;
         typedef ::NS(be_order_t)    order_t;
-        typedef ::NS(be_address_t)  address_t;
 
         static constexpr arch_size_t real_alignment =
             SIXTRL_CXX_NAMESPACE::Type_storage_align< real_t >();
 
         static constexpr arch_size_t order_alignment =
             SIXTRL_CXX_NAMESPACE::Type_storage_align< order_t >();
-
-        static constexpr arch_size_t address_alignment =
-            SIXTRL_CXX_NAMESPACE::Type_storage_align< order_t >();
     };
 
-    constexpr arch_size_t MultipoleTraits< ::NS(Multipole) >::real_alignment;
-    constexpr arch_size_t MultipoleTraits< ::NS(Multipole) >::order_alignment;
-    constexpr arch_size_t MultipoleTraits< ::NS(Multipole)>::address_alignment;
+    template<> struct ObjDataCApiTypeTraits< ::NS(Multipole) >
+    {
+        typedef ::NS(Multipole) c_api_t;
+    };
+
+    typedef ::NS(Multipole) CMultipole;
 }
-
-#endif /* defined( __cplusplus ) */
-
-/* ------------------------------------------------------------------------- */
-
-#if !defined( __GPUCODE ) && defined( __cplusplus )
-extern "C" {
-#endif /* !defined( __GPUCODE ) && defined( __cplusplus ) */
-
-SIXTRL_INLINE NS(be_order_t) NS(Multipole_order)( SIXTRL_BE_ARGPTR_DEC const
-    NS(Multipole) *const SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    return multipole->order;
-}
-
-SIXTRL_INLINE NS(be_order_t) NS(Multipole_bal_length)( SIXTRL_BE_ARGPTR_DEC
-    const NS(Multipole) *const SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    SIXTRL_ASSERT( multipole->order >= 0 );
-    return 2 * ( multipole->order + 1 );
-}
-
-SIXTRL_INLINE NS(be_real_t) NS(Multipole_length)( SIXTRL_BE_ARGPTR_DEC const
-    NS(Multipole) *const SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    return multipole->length;
-}
-
-SIXTRL_INLINE NS(be_real_t) NS(Multipole_hxl)( SIXTRL_BE_ARGPTR_DEC const
-    NS(Multipole) *const SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    return multipole->hxl;
-}
-
-SIXTRL_INLINE NS(be_real_t) NS(Multipole_hyl)( SIXTRL_BE_ARGPTR_DEC const
-    NS(Multipole) *const SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    return multipole->hyl;
-}
-
-SIXTRL_INLINE NS(buffer_addr_t) NS(Multipole_bal_addr)( SIXTRL_BE_ARGPTR_DEC
-    const NS(Multipole) *const SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    return multipole->bal_addr;
-}
-
-SIXTRL_INLINE SIXTRL_BE_DATAPTR_DEC NS(be_real_t) const*
-NS(Multipole_const_bal)( SIXTRL_BE_ARGPTR_DEC const NS(Multipole) *const
-    SIXTRL_RESTRICT multipole ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    return ( SIXTRL_BE_DATAPTR_DEC NS(be_real_t) const* )( uintptr_t
-        )NS(Multipole_bal_addr)( multipole );
-}
-
-/* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
-
-SIXTRL_INLINE void NS(Multipole_set_order)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_order_t) const order ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    multipole->order = order;
-}
-
-SIXTRL_INLINE void NS(Multipole_set_bal_length)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_order_t) const bal_length ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    SIXTRL_ASSERT( ( bal_length > 0 ) && ( ( bal_length % 2 ) == 0 ) );
-    multipole->order = ( bal_length / 2 ) - 1;
-}
-
-SIXTRL_INLINE void NS(Multipole_set_length)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_real_t) const length ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    multipole->length = length;
-}
-
-SIXTRL_INLINE void NS(Multipole_set_hxl)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_real_t) const hxl ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    multipole->hxl = hxl;
-}
-
-SIXTRL_INLINE void NS(Multipole_set_hyl)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(be_real_t) const hyl ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    multipole->hyl = hyl;
-}
-
-SIXTRL_INLINE void NS(Multipole_set_bal_addr)(
-    SIXTRL_BE_ARGPTR_DEC NS(Multipole)* SIXTRL_RESTRICT multipole,
-    NS(buffer_addr_t) const bal_addr ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    multipole->bal_addr = bal_addr;
-}
-
-SIXTRL_INLINE SIXTRL_BE_DATAPTR_DEC
-NS(be_real_t)* NS(Multipole_bal)( SIXTRL_BE_ARGPTR_DEC NS(Multipole)*
-    SIXTRL_RESTRICT multipole) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( multipole != SIXTRL_NULLPTR );
-    return ( SIXTRL_BE_DATAPTR_DEC NS(be_real_t)* )( uintptr_t
-        )multipole->bal_addr;
-}
-
-#if !defined( __GPUCODE ) && defined( __cplusplus )
-}
-#endif /* !defined( __GPUCODE ) && defined( __cplusplus ) */
-
-#endif /* SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_C99_H__ */
+#endif /* C++ */
+#endif /* SIXTRACKLIB_COMMON_BEAM_ELEMENTS_MULTIPOLE_MULTIPOLE_H__ */

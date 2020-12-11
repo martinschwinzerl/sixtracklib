@@ -1,31 +1,27 @@
-#ifndef SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_C99_H__
-#define SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_C99_H__
+#ifndef SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_DRIFT_H__
+#define SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_DRIFT_H__
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/beam_elements/drift/definitions.h"
     #include "sixtracklib/common/internal/obj_c_api_traits.hpp"
+    #include "sixtracklib/common/internal/type_annotations.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( __GPUCODE ) && defined( __cplusplus )
 extern "C" {
 #endif /* !defined( __GPUCODE ) && defined( __cplusplus ) */
 
-typedef struct NS(Drift)
+typedef struct SIXTRL_ANNOTATE_COBJECT SIXTRL_ANNOTATE_ELEM_OBJ
+SIXTRL_ANNOTATE_ELEM_OBJ_DEC( "SIXTRL_BE_ARGPTR_DEC" ) NS(Drift)
 {
-    NS(be_real_t) length SIXTRL_ALIGN( 8 );
+    NS(be_real_t)               length SIXTRL_ALIGN( 8 )
+                                SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
+
+    NS(be_drift_track_type_t)   track_type SIXTRL_ALIGN( 8 )
+                                SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE(
+                                    SIXTRL_BE_DRIFT_TRACK_TYPE_SIMPLE );
 }
 NS(Drift);
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(Drift)*
-NS(Drift_preset)( SIXTRL_BE_ARGPTR_DEC NS(Drift)*
-    SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN NS(be_real_t) NS(Drift_length)( SIXTRL_BE_ARGPTR_DEC
-    const NS(Drift) *const SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN void NS(Drift_set_length)(
-    SIXTRL_BE_ARGPTR_DEC NS(Drift)* SIXTRL_RESTRICT drift,
-    NS(be_real_t) const length ) SIXTRL_NOEXCEPT;
 
 #if !defined( __GPUCODE ) && defined( __cplusplus )
 }
@@ -34,47 +30,32 @@ SIXTRL_STATIC SIXTRL_FN void NS(Drift_set_length)(
 #if defined( __cplusplus )
 namespace SIXTRL_CXX_NAMESPACE
 {
+    template<> struct ObjDataBeamElementsTraits< ::NS(Drift) >
+    {
+        static constexpr bool is_beam_element = true;
+    };
+
+    template<> struct ObjDataDriftTraits< ::NS(Drift) >
+    {
+        static constexpr bool is_type = true;
+        static constexpr be_drift_impl_t implementation =
+                            SIXTRL_CXX_NAMESPACE::BE_DRIFT_IMPL_DEFAULT;
+    };
+
+    template<> struct DriftTraits< ::NS(Drift) >
+    {
+        typedef be_real_t real_t;
+
+        static constexpr arch_size_t real_alignment =
+            SIXTRL_CXX_NAMESPACE::Type_storage_align< real_t >();
+    };
+
     template<> struct ObjDataCApiTypeTraits< ::NS(Drift) >
     {
         typedef ::NS(Drift) c_api_t;
     };
+
+    typedef ::NS(Drift) CDrift;
 }
 #endif /* C++ */
-
-/* ------------------------------------------------------------------------- */
-
-#if !defined( __GPUCODE ) && defined( __cplusplus )
-extern "C" {
-#endif /* !defined( __GPUCODE ) && defined( __cplusplus ) */
-
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_preset)(
-    SIXTRL_BE_ARGPTR_DEC NS(Drift)* SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT
-{
-    if( drift != SIXTRL_NULLPTR )
-    {
-        drift->length = ( NS(be_real_t) )0.0;
-    }
-
-    return drift;
-}
-
-SIXTRL_INLINE NS(be_real_t) NS(Drift_length)( SIXTRL_BE_ARGPTR_DEC const
-    NS(Drift) *const SIXTRL_RESTRICT drift ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( drift != SIXTRL_NULLPTR );
-    return drift->length;
-}
-
-SIXTRL_INLINE void NS(Drift_set_length)(
-    SIXTRL_BE_ARGPTR_DEC NS(Drift)* SIXTRL_RESTRICT drift,
-    NS(be_real_t) const length ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_ASSERT( drift != SIXTRL_NULLPTR );
-    drift->length = length;
-}
-
-#if !defined( __GPUCODE ) && defined( __cplusplus )
-}
-#endif /* !defined( __GPUCODE ) && defined( __cplusplus ) */
-
-#endif /* SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_C99_H__ */
+#endif /* SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_DRIFT_H__ */

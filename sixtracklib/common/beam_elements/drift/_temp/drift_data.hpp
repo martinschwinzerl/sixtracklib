@@ -4,6 +4,7 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/beam_elements/drift/definitions.h"
     #include "sixtracklib/common/beam_elements/drift/drift.h"
+    #include "sixtracklib/common/beam_elements/drift/drift_data.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus )
@@ -12,14 +13,42 @@ namespace SIXTRL_CXX_NAMESPACE
 {
     template< class R,
         arch_size_t RAlign = SIXTRL_CXX_NAMESPACE::Type_storage_align< R >() >
-    struct DriftData
+    struct
+    SIXTRL_ANNOTATE_COBJECT SIXTRL_ANNOTATE_ELEM_OBJ
+    SIXTRL_ANNOTATE_ELEM_OBJ_DEC( "SIXTRL_BE_ARGPTR_DEC" )
+    SIXTRL_ANNOTATE_ELEM_OBJ_API_NAME( "Drift" )
+    DriftData
     {
-        R length SIXTRL_ALIGN( RAlign );
+        R length SIXTRL_ALIGN( RAlign )
+                 SIXTRL_ANNOTATE_ELEM_FIELD_DEFAULT_VALUE( 0 );
     };
 
     /* ********************************************************************* */
     /* Specializations for DriftData: */
     /* ********************************************************************* */
+
+    template< class R, arch_size_t RAlign >
+    struct ObjDataBeamElementsTraits< DriftData< R, RAlign > >
+    {
+        static constexpr bool is_beam_element = true;
+    };
+
+    template< class R, arch_size_t RAlign >
+    constexpr bool ObjDataBeamElementsTraits<
+        DriftData< R, RAlign > >::is_beam_element;
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    template< class R, arch_size_t RAlign >
+    struct ObjDataDriftTraits< DriftData< R, RAlign > >
+    {
+        static constexpr bool is_drift = true;
+    };
+
+    template< class R, arch_size_t RAlign >
+    constexpr bool ObjDataDriftTraits< DriftData< R, RAlign > >::is_drift;
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
     template< class R, arch_size_t RAlign >
     struct DriftTraits< DriftData< R, RAlign > >
@@ -36,8 +65,8 @@ namespace SIXTRL_CXX_NAMESPACE
      * corresponding specialization of the DriftData template */
     /* ********************************************************************* */
 
-    typedef DriftData< typename DriftTraits< ::NS(Drift) >::real_t,
-                                DriftTraits< ::NS(Drift) >::real_alignment >
+    typedef DriftData< DriftTraits< ::NS(Drift) >::real_t,
+                       DriftTraits< ::NS(Drift) >::real_alignment >
             CDriftEquivData;
 
     template<> struct ObjDataCApiTypeTraits< CDriftEquivData >
@@ -52,5 +81,4 @@ namespace SIXTRL_CXX_NAMESPACE
 }
 
 #endif /* __cplusplus */
-
 #endif /* SIXTRACKLIB_COMMON_BEAM_ELEMENTS_DRIFT_DATA_CXX_HPP__ */
