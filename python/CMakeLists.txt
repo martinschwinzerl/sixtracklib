@@ -7,6 +7,8 @@ endif()
 add_subdirectory( sixtracklib )
 add_subdirectory( sixtracklib_test )
 
+add_subdirectory( pysixtracklib )
+
 set( PYTHON_SIXTRACKLIB_SHARED_LIB      ${PY_SIXTRACKLIB_SHARED_LIB}  )
 set( PYTHON_SIXTRACKLIB_TEST_SHARED_LIB ${PY_SIXTRACKLIB_TEST_SHARED_LIB} )
 set( SETUP_PY_IN_PATH   "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.template" )

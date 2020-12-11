@@ -156,6 +156,13 @@ endif()
 include( SetupCuda )
 
 # ------------------------------------------------------------------------------
+# LLVM, Clang, libtooling:
+
+if( SIXTRACKL_BUILD_CODE_GENERATOR )
+    include( SetupLLVM )
+endif()
+
+# ------------------------------------------------------------------------------
 # Namespace handling:
 
 set( SIXTRACKLIB_NAMESPACE_FLAGS )
@@ -170,6 +177,13 @@ if( SIXTRACKL_CXX_NAMESPACE )
           "SIXTRL_NAMESPACE=${SIXTRACKL_CXX_NAMESPACE}" )
 endif()
 
+# ------------------------------------------------------------------------------
+# Prepare python bindings
+
+if( SIXTRACKL_ENABLE_PYTHON AND pybind11_FOUND )
+    set( SIXTRACKLIB_PYTHON_BINDINGS_LIBS CACHE STRING "" FORCE )
+endif()
+
 # ==============================================================================
 # sixtracklib: C/C++ library ; sixtracklib python bindings
 
@@ -179,7 +193,7 @@ add_subdirectory( sixtracklib )
 # ------------------------------------------------------------------------------
 # Add tools
 
-if( SIXTRACKL_BUILD_TOOLS )
+if( SIXTRACKL_BUILD_TOOLS OR SIXTRACKL_BUILD_CODE_GENERATOR )
     add_subdirectory( tools )
 endif()
 
