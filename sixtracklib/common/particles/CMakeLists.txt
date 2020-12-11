@@ -4,8 +4,20 @@
 set( SIXTRL_COMMON_PARTICLES_C99_HEADERS
      definitions.h
      particles_addr.h
-     particle.h
-     storage_cobjects.h
+     particle_unit.h
+     particle_unit_api.h
+     particle_unit_derived_api.h
+     particle_unit_cobjects_api.h
+     particle_unit_compare.h
+     particle_unit_convert.h
+     particle_set.h
+     particle_set_helper_api.h
+     particle_set_api.h
+     particle_set_init.h
+     particle_set_convert.h
+     particle_set_compare.h
+     particle_set_cobjects_api.h
+     particle_set_particle_api.h
 )
 
 set( SIXTRL_COMMON_PARTICLES_C99_SOURCES
@@ -32,12 +44,18 @@ target_compile_options( sixtrack_common_particles_c99 PRIVATE
 # -----------------------------------------------------------------------------
 
 set( SIXTRL_COMMON_PARTICLES_CXX_HEADERS
-     particle.hpp
-     particle_data.hpp
-     particles_addr.hpp )
+     particle_unit.hpp
+     particle_set.hpp
+     particle_set_vector.hpp
+     particles_addr.hpp
+)
 
 set( SIXTRL_COMMON_PARTICLES_CXX_SOURCES
-     storage_cobjects.cpp )
+     particle_unit.cpp
+     particle_unit_cobjects_api.cpp
+     particle_set.cpp
+     particle_set_cobjects_api.cpp
+ )
 
 
 add_library( sixtrack_common_particles_cxx OBJECT
@@ -62,6 +80,27 @@ set(  SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
     $<TARGET_OBJECTS:sixtrack_common_particles_c99>
     $<TARGET_OBJECTS:sixtrack_common_particles_cxx>
     CACHE INTERNAL "" FORCE )
+
+# =============================================================================
+# python bindings:
+
+if( SIXTRACKL_ENABLE_PYTHON AND pybind11_FOUND )
+    add_library( sixtrack_py_common_particles OBJECT
+                 python_bindings.hpp python_bindings.cpp )
+
+    target_include_directories( sixtrack_py_common_particles PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> )
+
+    set_target_properties( sixtrack_py_common_particles PROPERTIES
+        LINKER_LANGUAGE CXX POSITION_INDEPENDENT_CODE ON
+        CXX_STANDARD 11 CXX_STANDARD_REQUIRED ON )
+
+    target_link_libraries( sixtrack_py_common_particles
+        PRIVATE pybind11::module )
+
+    set( SIXTRACKLIB_PYTHON_BINDINGS_LIBS ${SIXTRACKLIB_PYTHON_BINDINGS_LIBS}
+         $<TARGET_OBJECTS:sixtrack_py_common_particles> CACHE STRING "" FORCE )
+endif()
 
 # ==============================================================================
 # Handle install:
