@@ -11,89 +11,194 @@
     #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/internal/obj_store_traits.hpp"
     #include "sixtracklib/common/internal/obj_illegal_type.h"
+    #include "sixtracklib/common/internal/compiler_attributes.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
 {
-    template< class Source, class Dest, store_backend_t SourceStoreT,
-              store_backend_t DestStoreT = SourceStoreT >
+    template< class SrcT, class DstT, store_backend_t SrcStoreT,
+              store_backend_t DstStoreT, typename SFINALE_Enabled = void >
     struct ObjDataAllowConversionTraits
     {
-        static SIXTRL_FN constexpr bool allow() SIXTRL_NOEXCEPT
+        SIXTRL_STATIC SIXTRL_FN constexpr bool allow() SIXTRL_NOEXCEPT
         {
             return false;
         }
     };
 
-    template< class Source, class Dest,
-              store_backend_t SourceStoreT, store_backend_t DestStoreT >
-    static SIXTRL_FN constexpr bool ObjData_allow_conversion() SIXTRL_NOEXCEPT
+    template< class SrcT, class DstT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t SrcStoreT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t DstStoreT >
+    static SIXTRL_FN constexpr bool
+    ObjData_allow_type_conversion() SIXTRL_NOEXCEPT
     {
-        return ObjDataAllowConversionTraits<
-            Source, Dest, SourceStoreT, DestStoreT >::allow();
+        return SIXTRL_CXX_NAMESPACE::ObjDataAllowConversionTraits<
+            SrcT, DstT, SrcStoreT, DstStoreT >::allow();
     }
 
-    template< class Source, class Dest,
-              store_backend_t SourceStoreT, store_backend_t DestStoreT >
-    static SIXTRL_FN constexpr bool
-    ObjData_not_allow_conversion() SIXTRL_NOEXCEPT
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    template< class SrcT, class DstT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t SrcStoreT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t DstStoreT,
+              typename SFINAE_Enabled = void >
+    struct ObjDataConversionTypesRequireNoPrepareTraits
     {
-        return !ObjDataAllowConversionTraits<
-            Source, Dest, SourceStoreT, DestStoreT >::allow();
+        static_assert( SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
+            SrcT, DstT, SrcStoreT, DstStoreT >(), "Illegal conversion" );
+
+        static constexpr bool requires_no_prepare = true;
+    };
+
+    template< class SrcT, class DstT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t SrcStoreT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t DstStoreT,
+              typename SFINAE_Enabled >
+    constexpr bool ObjDataConversionTypesRequireNoPrepareTraits< SrcT, DstT,
+        SrcStoreT, DstStoreT, SFINAE_Enabled >::requires_no_prepare;
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    template< class SrcT, class DstT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t SrcStoreT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t DstStoreT >
+    static SIXTRL_FN constexpr bool
+    ObjData_type_conversion_requ_no_prepare() SIXTRL_NOEXCEPT
+    {
+        return
+        SIXTRL_CXX_NAMESPACE::ObjDataConversionTypesRequireNoPrepareTraits<
+            SrcT, DstT, SrcStoreT, DstStoreT >::requires_no_prepare;
+    }
+
+    template< class SrcT, class DstT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t SrcStoreT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t DstStoreT >
+    static SIXTRL_FN constexpr bool
+    ObjData_type_conversion_can_requ_prepare() SIXTRL_NOEXCEPT
+    {
+        return
+        !SIXTRL_CXX_NAMESPACE::ObjDataConversionTypesRequireNoPrepareTraits<
+            SrcT, DstT, SrcStoreT, DstStoreT >::requires_no_prepare;
     }
 
     /* ---------------------------------------------------------------------- */
 
-    template< class Source, class Dest,
-              store_backend_t SrcStoreT, store_backend_t DstStoreT >
-    struct ObjDataConversionPrepare
-    {
-        template< class S = Source, class D = Dest >
-        static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-            !SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
-                S, D, SrcStoreT, DstStoreT >(),
-            SIXTRL_CXX_NAMESPACE::arch_status_t >::type
-        prepare(
-            SIXTRL_ARGPTR_DEC D* SIXTRL_RESTRICT /* ptr_dest */,
-            SIXTRL_ARGPTR_DEC const S *const SIXTRL_RESTRICT /* ptr_src */
-        ) SIXTRL_NOEXCEPT
-        {
-            return SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
-        }
-
-        template< class S = Source, class D = Dest >
-        static SIXTRL_INLINE SIXTRL_FN typename std::enable_if<
-            SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
-                S, D, SrcStoreT, DstStoreT >(),
-            SIXTRL_CXX_NAMESPACE::arch_status_t >::type
-        prepare(
-            SIXTRL_ARGPTR_DEC D* SIXTRL_RESTRICT /* ptr_dest */,
-            SIXTRL_ARGPTR_DEC const S *const SIXTRL_RESTRICT /* ptr_src */
-        ) SIXTRL_NOEXCEPT
-        {
-            /* Default: Nothing to prepare, return success */
-            return SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS;
-        }
-    };
-
-    template< class Source, class Dest,
-              store_backend_t SrcStoreT, store_backend_t DstStoreT >
+    template< class SrcT, class DstT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t SrcStoreT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t DstStoreT,
+              typename SFINAE_Enabled = void >
     struct ObjDataConverter
     {
-        static_assert( SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
-            Source, Dest, SrcStoreT, DstStoreT >(),
+        static_assert( SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
+            SrcT, DstT, SrcStoreT, DstStoreT >(),
             "Only allowed for types that are allowed to be converted -> "
             "specialze ObjDataAllowConversionTraits<> first for this "
             "conversion!" );
 
-        static SIXTRL_FN arch_status_t convert(
-            SIXTRL_ARGPTR_DEC Dest* SIXTRL_RESTRICT /* ptr_dest */,
-            SIXTRL_ARGPTR_DEC const Source *const SIXTRL_RESTRICT /* ptr_src */
-        ) SIXTRL_NOEXCEPT
+        SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN bool requires_prepare(
+            SIXTRL_ARGPTR_DEC const DstT *const
+                SIXTRL_RESTRICT SIXTRL_UNUSED( dst ),
+            SIXTRL_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT
+                SIXTRL_UNUSED( src ) ) SIXTRL_NOEXCEPT
+        {
+            return SIXTRL_CXX_NAMESPACE::ObjData_type_conversion_can_requ_prepare<
+                SrcT, DstT, SrcStoreT, DstStoreT >();
+        }
+
+        SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN SIXTRL_CXX_NAMESPACE::arch_status_t
+        prepare( SIXTRL_ARGPTR_DEC DstT* SIXTRL_RESTRICT SIXTRL_UNUSED( dst ),
+                 SIXTRL_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT
+                    SIXTRL_UNUSED( src ) ) SIXTRL_NOEXCEPT
         {
             return SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
         }
+
+        SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN bool
+        allow( SIXTRL_ARGPTR_DEC const DstT *const SIXTRL_RESTRICT
+                    SIXTRL_UNUSED( dst ),
+               SIXTRL_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT
+                   SIXTRL_UNUSED( src ) ) SIXTRL_NOEXCEPT
+        {
+            return false;
+        }
+
+        template< typename... Args >
+        SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN
+        SIXTRL_CXX_NAMESPACE::arch_status_t attempt_conversion(
+            SIXTRL_ARGPTR_DEC DstT* SIXTRL_RESTRICT SIXTRL_UNUSED( dst ),
+            SIXTRL_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT
+                SIXTRL_UNUSED( src ),
+            Args&&... SIXTRL_UNUSED( additional_args ) ) SIXTRL_NOEXCEPT
+        {
+            return SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+        }
+
+        template< typename... Args >
+        SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN
+        SIXTRL_CXX_NAMESPACE::arch_status_t perform(
+            SIXTRL_ARGPTR_DEC DstT* SIXTRL_RESTRICT dst,
+            SIXTRL_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT src,
+            Args&&... conv_paramters ) SIXTRL_NOEXCEPT
+        {
+            namespace st = SIXTRL_CXX_NAMESPACE;
+            using this_t = st::ObjDataConverter<
+                SrcT, DstT, SrcStoreT, DstStoreT >;
+
+            st::arch_status_t status = this_t::attempt_conversion(
+                dst, src, std::forward< Args >( conv_paramters )... );
+
+            if( ( status != st::ARCH_STATUS_SUCCESS ) &&
+                ( this_t::requires_prepare( dst, src ) ) )
+            {
+                status = this_t::prepare( dst, src );
+
+                if( status == st::ARCH_STATUS_SUCCESS )
+                {
+                    status = this_t::attempt_conversion(
+                        dst, src, std::forward< Args >( conv_paramters )... );
+                }
+            }
+
+            return status;
+        }
     };
+
+    /* --------------------------------------------------------------------- */
+
+    template< class E,
+              SIXTRL_CXX_NAMESPACE::store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t DstStoreT = SrcStoreT >
+    SIXTRL_STATIC SIXTRL_FN constexpr
+    bool ObjData_allow_type_copy() SIXTRL_NOEXCEPT
+    {
+        return SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
+            E, E, SrcStoreT, DstStoreT >();
+    }
+
+    template< class E,
+              SIXTRL_CXX_NAMESPACE::store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t DstStoreT = SrcStoreT >
+    SIXTRL_STATIC SIXTRL_FN constexpr
+    bool ObjData_type_copy_requ_no_prepare() SIXTRL_NOEXCEPT
+    {
+        return SIXTRL_CXX_NAMESPACE::ObjData_type_conversion_requ_no_prepare<
+            E, E, SrcStoreT, DstStoreT >();
+    }
+
+    template< class E,
+              SIXTRL_CXX_NAMESPACE::store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT,
+              SIXTRL_CXX_NAMESPACE::store_backend_t DstStoreT = SrcStoreT >
+    SIXTRL_STATIC SIXTRL_FN constexpr
+    bool ObjData_type_copy_can_requ_prepare() SIXTRL_NOEXCEPT
+    {
+        return SIXTRL_CXX_NAMESPACE::ObjData_type_conversion_can_requ_prepare<
+            E, E, SrcStoreT, DstStoreT >();
+    }
+
+
 }
 
 #endif /* C++ */

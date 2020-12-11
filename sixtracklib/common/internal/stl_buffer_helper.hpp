@@ -39,6 +39,12 @@ namespace SIXTRL_CXX_NAMESPACE
         std::vector< T, Allocator >& SIXTRL_RESTRICT_REF vector,
         IncrementPred increment_fn );
 
+    template< typename T, class Allocator >
+    SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_CXX_NAMESPACE::arch_status_t
+    Vector_sorted_remove_key(
+        std::vector< T, Allocator >& SIXTRL_RESTRICT_REF vector,
+        T const& SIXTRL_RESTRICT_REF key );
+
     /* --------------------------------------------------------------------- */
 
     template< typename Key, typename Value, class Cmp, class Allocator >
@@ -70,12 +76,6 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_STATIC SIXTRL_HOST_FN bool Map_ordered_vec_empty(
         std::map< Key, std::vector< T, VecAlloc >, Cmp, Alloc > const&
             SIXTRL_RESTRICT_REF map, Key const& SIXTRL_RESTRICT_REF key );
-
-    template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
-    SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_CXX_NAMESPACE::arch_size_t
-    Map_ordered_vec_size( std::map< Key, std::vector< T, VecAlloc >,
-            Cmp, Alloc > const& SIXTRL_RESTRICT_REF map,
-        Key const& SIXTRL_RESTRICT_REF key );
 
     template< typename Key, typename T, class Cmp, class Alloc, class VecAlloc>
     SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_CXX_NAMESPACE::arch_size_t
@@ -338,6 +338,33 @@ namespace SIXTRL_CXX_NAMESPACE
             vector.emplace_back( increment_fn( T{} ) );
         }
     }
+
+    template< typename T, class Allocator >
+    SIXTRL_CXX_NAMESPACE::arch_status_t Vector_sorted_remove_key(
+        std::vector< T, Allocator >& SIXTRL_RESTRICT_REF vector,
+        T const& SIXTRL_RESTRICT_REF key )
+    {
+        SIXTRL_CXX_NAMESPACE::arch_status_t status =
+            SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+
+        if( ( !vector.empty() ) &&
+            ( std::is_sorted( vector.begin(), vector.end() ) ) )
+        {
+            auto it = std::lower_bound( vector.begin(), vector.end(),
+                key );
+
+            if( it != vector.end() )
+            {
+                vector.erase( it );
+                status = SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS;
+            }
+        }
+
+        return status;
+    }
+
+    /* --------------------------------------------------------------------- */
+
 
     template< typename Key, typename Value, class Cmp, class Allocator >
     SIXTRL_INLINE bool Map_has_key(

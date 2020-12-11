@@ -23,6 +23,29 @@
     #endif
 #endif /* SIXTRL_PARTICLE_DATAPTR_DEC */
 
+#if !defined( SIXTRL_PARTICLE_SET_ARGPTR_DEC )
+    #define   SIXTRL_PARTICLE_SET_ARGPTR_DEC_UNDEF
+    #if defined( SIXTRL_BUFFER_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLE_SET_ARGPTR_DEC SIXTRL_BUFFER_DATAPTR_DEC
+    #elif defined( SIXTRL_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLE_SET_ARGPTR_DEC SIXTRL_DATAPTR_DEC
+    #else
+        #define  SIXTRL_PARTICLE_SET_ARGPTR_DEC
+    #endif
+#endif /* SIXTRL_PARTICLE_ARGPTR_DEC */
+
+#if !defined( SIXTRL_PARTICLE_SET_DATAPTR_DEC )
+    #define   SIXTRL_PARTICLE_SET_DATAPTR_DEC_UNDEF
+    #if defined( SIXTRL_BUFFER_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLE_SET_DATAPTR_DEC SIXTRL_BUFFER_DATAPTR_DEC
+    #elif defined( SIXTRL_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLE_SET_DATAPTR_DEC SIXTRL_DATAPTR_DEC
+    #else
+        #define  SIXTRL_PARTICLE_SET_DATAPTR_DEC
+    #endif
+#endif /* SIXTRL_PARTICLE_SET_DATAPTR_DEC */
+
+
 #endif /* SIXTRACKLIB_COMMON_INTERNAL_PARTICLES_DEFINES_H__ */
 
 /* end: sixtracklib/common/internal/particles_defines.h */

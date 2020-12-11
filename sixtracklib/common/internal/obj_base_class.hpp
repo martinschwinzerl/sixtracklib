@@ -225,7 +225,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 DstObjData, DstStoreT, DstDerived > *const SIXTRL_RESTRICT
                     /* ptr_dest */ = nullptr ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
                 ObjData, ObjDataStorageInterfaceBase< DstObjData, DstStoreT,
                     DstDerived >, StoreT, DstStoreT >();
         }
@@ -235,7 +235,7 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ARGPTR_DEC const DstObjData *const SIXTRL_RESTRICT
                 /* ptr_dest */ = nullptr ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
                 ObjData, DstObjData, StoreT, DstStoreT >();
         }
 
@@ -246,7 +246,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 SrcObjData, SrcStoreT, SrcDerived > *const SIXTRL_RESTRICT
                     /* ptr_src */ = nullptr ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
                 ObjDataStorageInterfaceBase< SrcObjData, SrcStoreT, SrcDerived >
                     , ObjData, SrcStoreT, StoreT >();
         }
@@ -256,50 +256,43 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_ARGPTR_DEC const SrcObjData *const SIXTRL_RESTRICT
                 /* ptr_src */ = nullptr ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ObjData_allow_conversion<
+            return SIXTRL_CXX_NAMESPACE::ObjData_allow_type_conversion<
                 SrcObjData, ObjData, SrcStoreT, StoreT >();
         }
 
         /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
-        template< class DstObjData, store_backend_t DstStoreT = StoreT >
+        template< class DstT, store_backend_t DstStoreT = StoreT,
+                  typename... Args >
         SIXTRL_INLINE SIXTRL_FN arch_status_t convert_to(
-            SIXTRL_ARGPTR_DEC DstObjData* SIXTRL_RESTRICT ptr_dest )
+            SIXTRL_ARGPTR_DEC DstT* SIXTRL_RESTRICT ptr_dest,
+            Args&&... conv_parameters )
         {
             namespace st = SIXTRL_CXX_NAMESPACE;
+            typedef ObjData SrcT;
             st::arch_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
 
-            if( ( allow_conversion_to< DstObjData, DstStoreT >( ptr_dest ) ) &&
-                ( this->as_ptr_data() != nullptr ) )
+            if( st::ObjDataConverter< SrcT, DstT, StoreT, DstStoreT
+                    >::allow( ptr_dest, this->as_ptr_const_data() ) )
             {
-                status = st::ObjDataConversionPrepare< ObjData, DstObjData,
-                    StoreT, DstStoreT >::prepare( ptr_dest, this->as_ptr_data() );
+                status = st::ARCH_STATUS_SUCCESS;
+
+                if( st::ObjDataConverter< SrcT, DstT,
+                        StoreT, DstStoreT >::requires_prepare(
+                            ptr_dest, this->as_ptr_const_data() ) )
+                {
+                    status = st::ObjDataConverter< SrcT, DstT,
+                        StoreT, DstStoreT >::prepare(
+                            ptr_dest, this->as_ptr_const_data() );
+                }
 
                 if( status == st::ARCH_STATUS_SUCCESS )
                 {
-                    status = st::ObjDataConverter< ObjData, DstObjData,
-                        StoreT, DstStoreT >::convert(
-                            ptr_dest, this->as_ptr_data );
+                    status = st::ObjDataConverter< SrcT, DstT, StoreT,
+                        DstStoreT >::convert( ptr_dest,
+                            this->as_ptr_const_data(),
+                            std::forward< Args >( conv_parameters )... );
                 }
-            }
-
-            return status;
-        }
-
-        template< class DstObjData, store_backend_t DstStoreT,
-                  class DstDerived >
-        SIXTRL_INLINE SIXTRL_FN arch_status_t convert_to(
-            SIXTRL_ARGPTR_DEC ObjDataStorageInterfaceBase< DstObjData,
-                DstStoreT, DstDerived >* SIXTRL_RESTRICT ptr_dest )
-        {
-            namespace st = SIXTRL_CXX_NAMESPACE;
-            st::arch_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-            if( ( ptr_dest != nullptr ) &&
-                ( ptr_dest->as_ptr_data() != nullptr ) )
-            {
-                status = this->convert_to< DstObjData, DstStoreT >(
-                    ptr_dest->as_ptr_data() );
             }
 
             return status;
@@ -307,52 +300,39 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /*  -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- */
 
-        template< class SrcObjData,
-                  store_backend_t SrcStoreT = STORAGE_BE_COBJECTS >
+        template< class SrcT, store_backend_t SrcStoreT =
+                  SIXTRL_CXX_NAMESPACE::STORAGE_BE_DEFAULT, typename... Args >
         SIXTRL_INLINE SIXTRL_FN arch_status_t convert_from(
-            SIXTRL_ARGPTR_DEC const SrcObjData *const SIXTRL_RESTRICT ptr_src )
+            SIXTRL_ARGPTR_DEC const SrcT *const SIXTRL_RESTRICT ptr_src,
+            Args&&... conv_parameters )
         {
             namespace st = SIXTRL_CXX_NAMESPACE;
             st::arch_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+            typedef ObjData DstT;
 
-            if( ( allow_conversion_from< SrcObjData, SrcStoreT >( ptr_src ) ) &&
-                ( this->as_ptr_data() != nullptr ) )
+            if( st::ObjDataConverter< SrcT, DstT, SrcStoreT, StoreT
+                    >::allow( this->as_ptr_data(), ptr_src ) )
             {
-                status = st::ObjDataConversionPrepare< SrcObjData, ObjData,
-                    SrcStoreT, StoreT >::prepare(
-                        this->as_ptr_data(), ptr_src );
+                status = st::ARCH_STATUS_SUCCESS;
+
+                if( st::ObjDataConverter< SrcT, DstT, SrcStoreT,
+                        StoreT >::requires_prepare(
+                            this->as_ptr_data(), ptr_src ) )
+                {
+                    status = st::ObjDataConverter< SrcT, DstT, SrcStoreT, StoreT
+                        >::prepare( this->as_ptr_data(), ptr_src );
+                }
 
                 if( status == st::ARCH_STATUS_SUCCESS )
                 {
-                    status = st::ObjDataConverter< SrcObjData, ObjData,
-                        SrcStoreT, StoreT >::convert(
-                            this->as_ptr_data(), ptr_src );
+                    status = st::ObjDataConverter< SrcT, DstT, SrcStoreT,
+                        StoreT >::convert( this->as_ptr_data(), ptr_src(),
+                            std::forward< Args >( conv_parameters )... );
                 }
             }
 
             return status;
         }
-
-        template< class SrcObjData, store_backend_t SrcStoreT,
-                  class SrcDerived >
-        SIXTRL_INLINE SIXTRL_FN arch_status_t convert_from(
-            SIXTRL_ARGPTR_DEC const ObjDataStorageInterfaceBase<
-                SrcObjData, SrcStoreT, SrcDerived > *const
-                    SIXTRL_RESTRICT ptr_src )
-        {
-            namespace st = SIXTRL_CXX_NAMESPACE;
-            st::arch_status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-            if( ( ptr_src != nullptr ) &&
-                ( ptr_src->as_ptr_data() != nullptr ) )
-            {
-                status = this->convert_from< SrcObjData, SrcStoreT >(
-                    ptr_src->as_ptr_data() );
-            }
-
-            return status;
-        }
-
     };
 
     template< class Derived,

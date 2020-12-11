@@ -1,5 +1,5 @@
 set( SIXTRL_COMMON_INTERNAL_C99_SOURCES )
-set( SIXTRL_COMMON_INTERNAL_C99_HEADERS
+set( SIXTRL_COMMON_INTERNAL_HEADERS
     beam_elements_defines.h
     beam_elements_undef.h
     buffer_garbage_defines.h
@@ -8,19 +8,23 @@ set( SIXTRL_COMMON_INTERNAL_C99_HEADERS
     buffer_main_undef.h
     buffer_object_defines.h
     buffer_object_undef.h
+    math_arithmetic.h
+    math_constants.h
+    math_factorial.h
+    math_functions.h
+    math_qguass.h
     namespace_defines.h
     namespace_undef.h
     objects_type_id.h
+    obj_addr_based_pointer_field.h
     particles_defines.h
     particles_undef.h
+    physics_constants.h
     tools.h
 )
 
-
 # add_library( sixtrack_common_internal OBJECT
-#     ${SIXTRL_COMMON_INTERNAL_C99_HEADERS}
-#     ${SIXTRL_COMMON_INTERNAL_C99_SOURCES}
-# )
+#     ${SIXTRL_COMMON_INTERNAL_HEADERS} ${SIXTRL_COMMON_INTERNAL_C99_SOURCES} )
 
 # target_include_directories( sixtrack_common_internal PRIVATE
 #     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
@@ -43,17 +47,20 @@ set( SIXTRL_COMMON_INTERNAL_CXX_HEADERS
      obj_base_class.hpp
      stl_buffer_helper.hpp
      track_job_base.h
+     type_arithmetic_helpers.hpp
      type_comparison_helpers.hpp
      type_store_traits.hpp
+     type_random_traits.hpp
 )
 
 set( SIXTRL_COMMON_INTERNAL_CXX_SOURCES
+     type_random_traits.cpp
      track_job_base.cpp track_job.cpp track_job_cpu.cpp )
 
 add_library( sixtrack_common_internal_cxx OBJECT
     ${SIXTRL_COMMON_INTERNAL_CXX_HEADERS}
     ${SIXTRL_COMMON_INTERNAL_CXX_SOURCES}
-    ${SIXTRL_COMMON_INTERNAL_C99_HEADERS}
+    ${SIXTRL_COMMON_INTERNAL_HEADERS}
 )
 
 target_include_directories( sixtrack_common_internal_cxx PRIVATE
@@ -75,8 +82,8 @@ set(  SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
 # -----------------------------------------------------------------------------
 # install :
 
-if( SIXTRL_COMMON_INTERNAL_C99_HEADERS )
-    install( FILES ${SIXTRL_COMMON_INTERNAL_C99_HEADERS}
+if( SIXTRL_COMMON_INTERNAL_HEADERS )
+    install( FILES ${SIXTRL_COMMON_INTERNAL_HEADERS}
              DESTINATION "${SIXTRL_COMMON_C99_INSTALL_PREFIX}/internal" )
 endif()
 

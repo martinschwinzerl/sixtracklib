@@ -32,6 +32,36 @@
 
 typedef SIXTRL_UINT32_T NS(store_backend_t);
 
+#if !defined( SIXTRL_STORAGE_BE_NONE )
+    #define SIXTRL_STORAGE_BE_NONE 0u
+#endif /* !defined( SIXTRL_STORAGE_BE_NONE ) */
+
+#if !defined( SIXTRL_STORAGE_BE_COBJECTS )
+    #define SIXTRL_STORAGE_BE_COBJECTS 1u
+#endif /* !defined( SIXTRL_STORAGE_BE_COBJECTS ) */
+
+#if !defined( SIXTRL_STORAGE_BE_ILLEGAL )
+    #define SIXTRL_STORAGE_BE_ILLEGAL 0xffffffff
+#endif /* !defined( SIXTRL_STORAGE_BE_ILLEGAL ) */
+
+#if !defined( SIXTRL_STORAGE_BE_DEFAULT )
+    #define SIXTRL_STORAGE_BE_DEFAULT SIXTRL_STORAGE_BE_NONE
+#endif /* SIXTRL_STORAGE_BE_DEFAULT */
+
+#if !defined( _GPUCODE )
+    SIXTRL_STATIC_VAR NS(store_backend_t) const NS(STORAGE_BE_NONE) =
+        ( NS(store_backend_t) )SIXTRL_STORAGE_BE_NONE;
+
+    SIXTRL_STATIC_VAR NS(store_backend_t) const NS(STORAGE_BE_COBJECTS) =
+        ( NS(store_backend_t) )SIXTRL_STORAGE_BE_COBJECTS;
+
+    SIXTRL_STATIC_VAR NS(store_backend_t) const NS(STORAGE_BE_ILLEGAL) =
+        ( NS(store_backend_t) )SIXTRL_STORAGE_BE_ILLEGAL;
+
+    SIXTRL_STATIC_VAR NS(store_backend_t) const NS(STORAGE_BE_DEFAULT) =
+        ( NS(store_backend_t) ) SIXTRL_STORAGE_BE_DEFAULT;
+#endif /* Host */
+
 #if defined( __cplusplus )
 
 /* ************************************************************************* */
@@ -68,13 +98,42 @@ namespace SIXTRL_CXX_NAMESPACE
 
     typedef ::NS(store_backend_t) store_backend_t;
 
+    static constexpr store_backend_t STORAGE_BE_COBJECTS =
+        static_cast< store_backend_t >( SIXTRL_STORAGE_BE_COBJECTS );
+
     static constexpr store_backend_t STORAGE_BE_ILLEGAL =
-        static_cast< store_backend_t >( 0xffffffff );
+        static_cast< store_backend_t >( SIXTRL_STORAGE_BE_ILLEGAL );
+
+    static constexpr store_backend_t STORAGE_BE_DEFAULT =
+        static_cast< store_backend_t >( SIXTRL_STORAGE_BE_DEFAULT );
 
     template< store_backend_t StoreT >
     struct StorageBackendTraits
     {
         typedef int32_t type_id_t;
+    };
+
+    /* ********************************************************************* */
+
+    template< class E, store_backend_t StoreT = STORAGE_BE_DEFAULT,
+              typename Enabled = void >
+    struct ObjDataInitialiser
+    {
+        SIXTRL_STATIC SIXTRL_FN void preset(
+            SIXTRL_ARGPTR_DEC E* SIXTRL_RESTRICT /* obj */ ) SIXTRL_NOEXCEPT
+        {
+            return;
+        }
+
+        template< typename... Args >
+        SIXTRL_STATIC SIXTRL_FN constexpr arch_status_t init(
+            SIXTRL_ARGPTR_DEC E* SIXTRL_RESTRICT /* obj */,
+            Args&&... /* args */ ) SIXTRL_NOEXCEPT
+        {
+            return ( StoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL )
+                ? SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS
+                : SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+        }
     };
 
     /* ===================================================================== */
@@ -98,16 +157,17 @@ namespace SIXTRL_CXX_NAMESPACE
     /* Provide a predicate for checking whether a given ObjData can be
      * stored in a given storage backend */
 
-    template< class ObjData, store_backend_t StoreT >
+    template< class E, store_backend_t StoreT >
     static SIXTRL_FN constexpr
     bool ObjData_allow_direct_storage() SIXTRL_NOEXCEPT
     {
-        return
-            SIXTRL_CXX_NAMESPACE::ObjDataTypeId_is_legal<
-                ObjData,typename StorageBackendTraits< StoreT>::type_id_t >() &&
-           !SIXTRL_CXX_NAMESPACE::ObjData_is_specific_illegal_type<
-                ObjData >() &&
-            ObjDataDirectStorageTraits< ObjData, StoreT >::CanStore();
+        return (
+        ( StoreT != SIXTRL_CXX_NAMESPACE::STORAGE_BE_ILLEGAL ) &&
+        ( SIXTRL_CXX_NAMESPACE::ObjDataTypeId_is_legal< E,
+                typename StorageBackendTraits< StoreT >::type_id_t >() ) &&
+        ( !SIXTRL_CXX_NAMESPACE::ObjData_is_specific_illegal_type< E >() ) &&
+        ( SIXTRL_CXX_NAMESPACE::ObjData_is_c_api_type< E >() ||
+          SIXTRL_CXX_NAMESPACE::ObjData_has_equivalent_c_api_type< E >() ) );
     }
 }
 

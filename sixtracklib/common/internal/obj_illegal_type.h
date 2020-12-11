@@ -6,7 +6,9 @@
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
-    #include <type_traits>
+    #if defined( __cplusplus )
+        #include <type_traits>
+    #endif /* C++ */
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
 #if defined( __cplusplus )
