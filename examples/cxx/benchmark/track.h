@@ -106,14 +106,15 @@ SIXTRL_INLINE void NS(Drift_track_single_particle)(
     typedef SIXTRL_REAL_T real_t;
     real_t const xp = p->px * p->rpp;
     real_t const yp = p->py * p->rpp;
+    real_t const d_zeta = p->rvv - ( ( real_t )1.0 + ( xp * xp + yp * yp ) / 2.0 );
 
     SIXTRL_ASSERT( p->beta0 >  ( real_t )0. );
     SIXTRL_ASSERT( p->beta0 <= ( real_t )1. );
 
+    p->s    += drift->length;
     p->x    += drift->length * xp;
     p->y    += drift->length * yp;
-    p->zeta += drift->length * ( p->rvv - ( real_t )1.0 +
-        ( real_t )0.5 * ( xp * xp + yp * yp ) );
+    p->zeta += drift->length * d_zeta;
 }
 
 SIXTRL_INLINE void NS(DriftExact_track_single_particle)(
@@ -153,6 +154,9 @@ SIXTRL_INLINE void NS(Multipole_track_single_particle)(
     real_t dpx = NS(Multipole_bal)( mp, index_x );
     real_t dpy = NS(Multipole_bal)( mp, index_y );
 
+    real_t const hxl = NS(Multipole_hxl)( mp );
+    real_t const hyl = NS(Multipole_hyl)( mp );
+
     SIXTRL_ASSERT( p->state == ( index_t )1 );
     SIXTRL_ASSERT( p  != SIXTRL_NULLPTR );
     SIXTRL_ASSERT( mp != SIXTRL_NULLPTR );
@@ -172,15 +176,15 @@ SIXTRL_INLINE void NS(Multipole_track_single_particle)(
     dpx = -p->chi * dpx;
     dpy =  p->chi * dpy;
 
-    if( ( mp->hxl > ( real_t )0. ) || ( mp->hyl > ( real_t )0. ) ||
-        ( mp->hxl < ( real_t )0. ) || ( mp->hyl < ( real_t )0. ) )
+    if( ( hxl > ( real_t )0. ) || ( hyl > ( real_t )0. ) ||
+        ( hxl < ( real_t )0. ) || ( hyl < ( real_t )0. ) )
     {
-        real_t const hxlx = p->x * mp->hxl;
-        real_t const hyly = p->y * mp->hyl;
+        real_t const hxlx = p->x * hxl;
+        real_t const hyly = p->y * hyl;
 
         p->zeta += p->chi * ( hyly - hxlx );
-        dpx += mp->hxl + mp->hxl * p->delta;
-        dpy -= mp->hyl + mp->hyl * p->delta;
+        dpx += hxl + hxl * p->delta;
+        dpy -= hyl + hyl * p->delta;
 
         if( mp->length > ( real_t )0 )
         {
@@ -295,7 +299,7 @@ SIXTRL_INLINE void NS(SCCoasting_track_single_particle)(
     SIXTRL_ARGPTR_DEC real_t Gy;
 
     real_t fact_kick = elem->number_of_particles * elem->length * p->chi *
-        p->charge_ratio * p->charge0 * p->charge0 * NS(PhysConst_charge0_si)() *
+        p->charge_ratio * p->q0 * p->q0 * NS(PhysConst_charge0_si)() *
             NS(PhysConst_charge0_si)() * ( ( real_t )1. - p->beta0 * p->beta0 );
 
     SIXTRL_ASSERT( p != SIXTRL_NULLPTR );
@@ -359,6 +363,12 @@ SIXTRL_STATIC SIXTRL_FN void NS(Track_single_particle_dispatcher)(
     SIXTRL_ASSERT( begin_addr != ( address_t )0u );
     SIXTRL_ASSERT( pbuffer != SIXTRL_NULLPTR );
     SIXTRL_ASSERT( elements_buffer != SIXTRL_NULLPTR );
+
+    if( p->particle_id == 0 )
+    {
+        printf( "x = %f, y = %f, at_element=%d, at_turn=%d\r\n", p->x, p->y,
+                ( int )p->at_element_id, ( int )p->at_turn );
+    }
 
     switch( NS(Object_get_type_id)( be_obj ) )
     {
@@ -483,7 +493,7 @@ SIXTRL_STATIC SIXTRL_FN void NS(Track_single_particle_dispatcher)(
             break;
         }
 
-        case NS(OBJECT_TYPE_LIMIT_DIPEDGE):
+        case NS(OBJECT_TYPE_DIPEDGE):
         {
             typedef SIXTRL_BE_ARGPTR_DEC NS(DipoleEdge) const* ptr_to_belem_t;
             ptr_to_belem_t belem = ( ptr_to_belem_t )( uintptr_t )begin_addr;
