@@ -88,6 +88,22 @@ namespace SIXTRL_CXX_NAMESPACE
         value_type sin_z SIXTRL_ALIGN( 8 );
     };
 
+    template< typename T > struct ObjectTypeTraits< TSRotation< T > >
+    {
+        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
+        {
+            return ::NS(OBJECT_TYPE_SROTATION);
+        }
+    };
+
+    template<> struct ObjectTypeTraits< ::NS(SRotation) >
+    {
+        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
+        {
+            return ::NS(OBJECT_TYPE_SROTATION);
+        }
+    };
+
     /* --------------------------------------------------------------------- */
 
     template< typename T >
@@ -192,9 +208,18 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_FN void setAngleDeg( value_type const a_deg ) SIXTRL_NOEXCEPT;
     };
 
+    using SRotation = TSRotation< SIXTRL_REAL_T >;
+
+    template<> struct ObjectTypeTraits< SIXTRL_CXX_NAMESPACE::SRotation >
+    {
+        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
+        {
+            return ::NS(OBJECT_TYPE_SROTATION);
+        }
+    };
+
     /* --------------------------------------------------------------------- */
 
-    using SRotation = TSRotation< SIXTRL_REAL_T >;
 
     SIXTRL_ARGPTR_DEC SRotation* SRotation_new( Buffer& buffer );
 

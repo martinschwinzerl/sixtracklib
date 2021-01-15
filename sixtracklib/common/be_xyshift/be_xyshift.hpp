@@ -81,6 +81,22 @@ namespace SIXTRL_CXX_NAMESPACE
         value_type dy SIXTRL_ALIGN( 8 );
     };
 
+    template< typename T > struct ObjectTypeTraits< TXYShift< T > >
+    {
+        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
+        {
+            return ::NS(OBJECT_TYPE_XYSHIFT);
+        }
+    };
+
+    template<> struct ObjectTypeTraits< ::NS(XYShift) >
+    {
+        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
+        {
+            return ::NS(OBJECT_TYPE_XYSHIFT);
+        }
+    };
+
     template< typename T >
     SIXTRL_ARGPTR_DEC TXYShift< T >* TXYShift_new( Buffer& buffer );
 
@@ -102,7 +118,6 @@ namespace SIXTRL_CXX_NAMESPACE
     /* ===================================================================== *
      * ====  Specialization TXYShift< SIXTRL_REAL_T > :
      * ===================================================================== */
-
 
     template<> struct TXYShift< SIXTRL_REAL_T > : public ::NS(XYShift)
     {
@@ -165,6 +180,14 @@ namespace SIXTRL_CXX_NAMESPACE
     };
 
     using XYShift = TXYShift< SIXTRL_REAL_T >;
+
+    template<> struct ObjectTypeTraits< SIXTRL_CXX_NAMESPACE::XYShift >
+    {
+        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
+        {
+            return ::NS(OBJECT_TYPE_XYSHIFT);
+        }
+    };
 
     SIXTRL_ARGPTR_DEC XYShift* XYShift_new( Buffer& buffer );
 

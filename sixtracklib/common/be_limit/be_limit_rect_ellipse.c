@@ -28,6 +28,19 @@ NS(object_type_id_t) NS(LimitRectEllipse_type_id_ext)( void ) SIXTRL_NOEXCEPT
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) const*
+NS(LimitRectEllipse_const_from_buffer)(
+    SIXTRL_BUFFER_ARGPTR_DEC const NS(Buffer) *const SIXTRL_RESTRICT buffer,
+    NS(buffer_size_t) const index ) SIXTRL_NOEXCEPT {
+    return NS(LimitRectEllipse_const_from_obj_index)(
+        NS(Buffer_get_const_object)( buffer, index ) ); }
+
+SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)* NS(LimitRectEllipse_from_buffer)(
+    SIXTRL_BUFFER_ARGPTR_DEC NS(Buffer)* SIXTRL_RESTRICT buffer,
+    NS(buffer_size_t) const index ) SIXTRL_NOEXCEPT {
+    return NS(LimitRectEllipse_from_obj_index)(
+        NS(Buffer_get_object)( buffer, index ) ); }
+
 NS(arch_status_t) NS(LimitRectEllipse_attributes_offsets)(
     SIXTRL_ARGPTR_DEC NS(buffer_size_t)* SIXTRL_RESTRICT offsets,
     NS(buffer_size_t) const max_num_offsets,

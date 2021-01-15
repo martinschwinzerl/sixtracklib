@@ -81,6 +81,22 @@ namespace SIXTRL_CXX_NAMESPACE
         value_type lag       SIXTRL_ALIGN( 8 );
     };
 
+    template< typename T > struct ObjectTypeTraits< TCavity< T > >
+    {
+        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
+        {
+            return ::NS(OBJECT_TYPE_CAVITY);
+        }
+    };
+
+    template<> struct ObjectTypeTraits< ::NS(Cavity) >
+    {
+        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
+        {
+            return ::NS(OBJECT_TYPE_CAVITY);
+        }
+    };
+
     /* ----------------------------------------------------------------- */
 
     template< typename T >
@@ -190,6 +206,14 @@ namespace SIXTRL_CXX_NAMESPACE
     /* --------------------------------------------------------------------- */
 
     using Cavity = TCavity< SIXTRL_REAL_T >;
+
+    template<> struct ObjectTypeTraits< SIXTRL_CXX_NAMESPACE::Cavity >
+    {
+        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
+        {
+            return ::NS(OBJECT_TYPE_CAVITY);
+        }
+    };
 
     SIXTRL_ARGPTR_DEC Cavity* Cavity_new( Buffer& SIXTRL_RESTRICT_REF buffer );
 
@@ -434,14 +458,6 @@ namespace SIXTRL_CXX_NAMESPACE
             orig.getVoltage(), orig.getFrequency(), orig.getLag() );
     }
 
-    template< typename T > struct ObjectTypeTraits< TCavity< T > >
-    {
-        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
-        {
-            return NS(OBJECT_TYPE_CAVITY);
-        }
-    };
-
     /* ===================================================================== *
      * ====  Specialization TCavity< SIXTRL_REAL_T > :
      * ===================================================================== */
@@ -596,26 +612,7 @@ namespace SIXTRL_CXX_NAMESPACE
         return Cavity_add( ptr_buffer,
            orig.getVoltage(), orig.getFrequency(), orig.getLag() );
     }
-
-    template<> struct ObjectTypeTraits< Cavity >
-    {
-        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
-        {
-            return NS(OBJECT_TYPE_CAVITY);
-        }
-    };
-
-    template<> struct ObjectTypeTraits< ::NS(Cavity) >
-    {
-        SIXTRL_STATIC SIXTRL_INLINE object_type_id_t Type() SIXTRL_NOEXCEPT
-        {
-            return NS(OBJECT_TYPE_CAVITY);
-        }
-    };
 }
 
 #endif /* defined( __cplusplus ) */
-
 #endif /* CXX_SIXTRACKLIB_COMMON_BE_CAVITY_BEAM_ELEMENT_BE_CAVITY_HPP__ */
-
-/* end: sixtracklib/common/be_cavity/be_cavity.hpp */
