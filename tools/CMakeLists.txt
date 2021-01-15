@@ -35,6 +35,30 @@ add_executable(
 
 list( APPEND TOOLS_C99_TARGETS dump_cbuffer )
 
+# ----------------------------------------------------------------------------
+# cbuffer_lattice_to_flat_array:
+
+set( TOOLS_CBUFFER_TO_FLAT_ARRAY_HEADERS )
+set( TOOLS_CBUFFER_TO_FLAT_ARRAY_SOURCES cbuffer_lattice_to_flat_array.cpp )
+
+add_executable( cbuffer_lattice_to_flat_array
+    ${TOOLS_CBUFFER_TO_FLAT_ARRAY_HEADERS}
+    ${TOOLS_CBUFFER_TO_FLAT_ARRAY_SOURCES} )
+
+list( APPEND TOOLS_CXX_TARGETS cbuffer_lattice_to_flat_array )
+
+# ----------------------------------------------------------------------------
+# cbuffer_particles_to_flat_array:
+
+set( TOOLS_CBUFFER_TO_PARTICLES_HEADERS )
+set( TOOLS_CBUFFER_TO_PARTICLES_SOURCES cbuffer_particles_to_flat_array.cpp )
+
+add_executable( cbuffer_particles_to_flat_array
+    ${TOOLS_CBUFFER_TO_PARTICLES_HEADERS}
+    ${TOOLS_CBUFFER_TO_PARTICLES_SOURCES} )
+
+list( APPEND TOOLS_CXX_TARGETS cbuffer_particles_to_flat_array )
+
 # ============================================================================
 # set properties for all tools:
 
@@ -51,6 +75,17 @@ if( TOOLS_C99_TARGETS )
                   APPEND PROPERTY COMPILE_OPTIONS ${TOOLS_COMPILE_OPTIONS} )
 
     set_property( TARGET ${TOOLS_C99_TARGETS} PROPERTY
+                  LINK_LIBRARIES ${TOOLS_LINK_LIBRARIES} )
+endif()
+
+if( TOOLS_CXX_TARGETS )
+    set_property( TARGET ${TOOLS_CXX_TARGETS} PROPERTY CXX_STANDARD 11 )
+    set_property( TARGET ${TOOLS_CXX_TARGETS} PROPERTY CXX_STANDARD_REQUIRED ON )
+    set_property( TARGET ${TOOLS_CXX_TARGETS}
+                  APPEND PROPERTY COMPILE_OPTIONS ${SIXTRACKLIB_CPU_FLAGS}
+                  ${SIXTRACKLIB_CXX_FLAGS} ${SIXTRACKL_CXX_AUTOVEC_FLAGS} )
+
+    set_property( TARGET ${TOOLS_CXX_TARGETS} PROPERTY
                   LINK_LIBRARIES ${TOOLS_LINK_LIBRARIES} )
 endif()
 
