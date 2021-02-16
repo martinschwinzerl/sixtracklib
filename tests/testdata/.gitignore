@@ -1,7 +1,0 @@
-*.bin
-*.txt
-*.generated
-* /
-!generators/
-!CMakeLists.txt
-!.gitignore
