@@ -772,7 +772,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using   ptr_t = typename _this_t::value_type*;
 
         return const_cast< ptr_t >( static_cast< _this_t const& >(
-            *this ).begin() );
+            *this ).end() );
     }
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -1226,7 +1226,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using   ptr_t = _this_t::value_type*;
 
         return const_cast< ptr_t >( static_cast< _this_t const& >(
-            *this ).begin() );
+            *this ).end() );
     }
 
     template< typename CPtr > SIXTRL_INLINE CPtr
