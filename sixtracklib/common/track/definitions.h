@@ -3,11 +3,41 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/cobjects/definitions.h"
+    #include "sixtracklib/common/beam_elements/definitions.h"
+    #include "sixtracklib/common/particles/definitions.h"
+    #include "sixtracklib/common/track/cobj_type_ids_undef.h"
+    #include "sixtracklib/common/track/cobj_type_ids.h"
     #include "sixtracklib/common/generated/config.h"
-    #include "sixtracklib/common/buffer/buffer_type.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 /* ------------------------------------------------------------------------- */
+
+#if !defined( SIXTRL_TRACK_ARGPTR_DEC )
+    #define SIXTRL_TRACK_ARGPTR_DEC_UNDEF
+    #if defined( SIXTRL_BUFFER_DATAPTR_ARGPTR_DEC )
+        #define  SIXTRL_TRACK_ARGPTR_DEC SIXTRL_BUFFER_DATAPTR_ARGPTR_DEC
+    #elif defined( SIXTRL_ARGPTR_DEC )
+        #define  SIXTRL_TRACK_ARGPTR_DEC SIXTRL_ARGPTR_DEC
+    #else /* defined( SIXTRL_ARGPTR_DEC ) */
+        #define  SIXTRL_TRACK_ARGPTR_DEC
+    #endif /* defined( SIXTRL_ARGPTR_DEC ) */
+#endif /* !defined( SIXTRL_TRACK_ARGPTR_DEC ) */
+
+#if !defined( SIXTRL_TRACK_DATAPTR_DEC )
+    #define SIXTRL_TRACK_DATAPTR_DEC_UNDEF
+    #if defined( SIXTRL_BUFFER_DATAPTR_ARGPTR_DEC )
+        #define  SIXTRL_TRACK_ARGPTR_DEC SIXTRL_BUFFER_DATAPTR_ARGPTR_DEC
+    #elif defined( SIXTRL_DATAPTR_DEC )
+        #define  SIXTRL_TRACK_DATAPTR_DEC SIXTRL_DATAPTR_DEC
+    #else /* defined( SIXTRL_DATAPTR_DEC ) */
+        #define  SIXTRL_TRACK_DATAPTR_DEC
+    #endif /* defined( SIXTRL_DATAPTR_DEC ) */
+#endif /* !defined( SIXTRL_TRACK_DATAPTR_DEC ) */
+
+#if !defined( SIXTRL_TRACK_ILLEGAL_OBJ_INDEX )
+    #define SIXTRL_TRACK_ILLEGAL_OBJ_INDEX 0x7FFFFFFFFFFFFFFE
+#endif /* !defined( SIXTRL_TRACK_ILLEGAL_OBJ_INDEX ) */
 
 #if !defined( SIXTRL_TRACK_SUCCESS )
     #define SIXTRL_TRACK_SUCCESS 0
@@ -21,18 +51,26 @@
 extern "C" {
 #endif /* defined( __cplusplus ) && ( !defined( _GPUCODE ) */
 
-typedef SIXTRL_INT32_T              NS(track_status_t);
+typedef SIXTRL_UINT64_TYPE      NS(track_flags_type);
+typedef SIXTRL_INT32_TYPE       NS(track_status_t);
 
 #if !defined( _GPUCODE )
-typedef SIXTRL_UINT16_T             NS(track_job_io_flag_t);
-typedef SIXTRL_UINT16_T             NS(track_job_clear_flag_t);
 
-typedef NS(buffer_size_t)           NS(track_job_size_t);
-typedef SIXTRL_INT64_T              NS(track_job_type_t);
-typedef NS(track_job_io_flag_t)     NS(track_job_collect_flag_t);
-typedef NS(track_job_io_flag_t)     NS(track_job_push_flag_t);
+SIXTRL_STATIC_VAR NS(size_type) const NS(TRACK_ILLEGAL_OBJ_INDEX) =
+    ( NS(size_type) )SIXTRL_TRACK_ILLEGAL_OBJ_INDEX;
+
+
+typedef SIXTRL_UINT16_TYPE      NS(track_job_io_flag_t);
+typedef SIXTRL_UINT16_TYPE      NS(track_job_clear_flag_t);
+
+typedef NS(cobj_size_type)      NS(track_job_size_t);
+typedef SIXTRL_INT64_TYPE       NS(track_job_type_t);
+typedef NS(track_job_io_flag_t) NS(track_job_collect_flag_t);
+typedef NS(track_job_io_flag_t) NS(track_job_push_flag_t);
 
 /* ------------------------------------------------------------------------- */
+
+
 
 SIXTRL_STATIC_VAR NS(track_status_t) const
     NS(TRACK_SUCCESS) = ( NS(track_status_t) )0u;
@@ -122,6 +160,9 @@ namespace SIXTRL_CXX_NAMESPACE
     SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST track_status_t
         TRACK_STATUS_GENERAL_FAILURE = static_cast< track_status_t >( -1 );
 
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST ::NS(size_type)
+        TRACK_ILLEGAL_OBJ_INDEX = ::NS(size_type){
+            SIXTRL_TRACK_ILLEGAL_OBJ_INDEX };
 }
 #endif /* defined( __cplusplus )  */
 
