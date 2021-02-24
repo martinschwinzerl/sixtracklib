@@ -1,299 +1,460 @@
-#include "sixtracklib/common/control/node_id.h"
+#if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/control/node_id.h"
+    #include "sixtracklib/common/backends/backends.h"
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#include <cstddef>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include <string>
-#include <sstream>
-#include <ostream>
+#if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
+    #include <cstdio>
+    #include <cstring>
+    #include <iostream>
+    #include <regex>
+    #include <sstream>
+#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
-#include "sixtracklib/common/definitions.h"
-#include "sixtracklib/common/control/definitions.h"
-
-namespace st = SIXTRL_CXX_NAMESPACE;
-
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 namespace SIXTRL_CXX_NAMESPACE
 {
-    using _this_t = st::NodeId;
+    namespace { namespace st = SIXTRL_CXX_NAMESPACE; }
 
-    NodeId::NodeId(
-        NodeId::platform_id_t const platform_id,
-        NodeId::device_id_t const device_id,
-        NodeId::index_t const node_index ) SIXTRL_NOEXCEPT :
-        m_platform_id( platform_id ),
-        m_device_id( device_id ),
-        m_node_index( node_index )
+    constexpr st::NodeId::platform_id_type  st::NodeId::ILLEGAL_PLATFORM_ID;
+    constexpr st::NodeId::device_id_type    st::NodeId::ILLEGAL_DEVICE_ID;
+    constexpr st::NodeId::index_type        st::NodeId::ILLEGAL_INDEX;
+    constexpr st::NodeId::str_format_type   st::NodeId::DEFAULT_STR_FORMAT;
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+    NodeId::status_type NodeId::DECODE_NODE_ID_STR(
+        std::string const& SIXTRL_RESTRICT_REF node_id_str,
+        NodeId::str_format_type str_format,
+        NodeId::platform_id_type* SIXTRL_RESTRICT ptr_platform_id,
+        NodeId::device_id_type*   SIXTRL_RESTRICT ptr_device_id,
+        NodeId::backend_id_type*  SIXTRL_RESTRICT ptr_backend_id )
     {
+        st::status_type status = st::STATUS_GENERAL_FAILURE;
+        if( ( str_format == st::NODE_ID_STR_FORMAT_ILLEGAL ) ||
+            ( str_format == st::NODE_ID_STR_FORMAT_AUTO ) )
+              str_format =  st::NodeId::GET_STR_FORMAT_TYPE( node_id_str );
 
-    }
-
-    NodeId::NodeId( std::string const& SIXTRL_RESTRICT_REF id_str ) :
-        m_platform_id( NodeId::ILLEGAL_PLATFORM_ID ),
-        m_device_id( NodeId::ILLEGAL_DEVICE_ID ),
-        m_node_index( NodeId::UNDEFINED_INDEX )
-    {
-        this->fromString( id_str );
-    }
-
-    NodeId::NodeId( const char *const SIXTRL_RESTRICT id_str ) :
-        m_platform_id( NodeId::ILLEGAL_PLATFORM_ID ),
-        m_device_id( NodeId::ILLEGAL_DEVICE_ID ),
-        m_node_index( NodeId::UNDEFINED_INDEX)
-    {
-        this->fromString( id_str );
-    }
-
-    bool NodeId::valid() const SIXTRL_NOEXCEPT
-    {
-        return ( ( this->m_platform_id != NodeId::ILLEGAL_PLATFORM_ID ) &&
-                 ( this->m_device_id != NodeId::ILLEGAL_DEVICE_ID ) );
-    }
-
-    NodeId::platform_id_t NodeId::platformId() const SIXTRL_NOEXCEPT
-    {
-        return this->m_platform_id;
-    }
-
-    NodeId::device_id_t NodeId::deviceId() const SIXTRL_NOEXCEPT
-    {
-        return this->m_device_id;
-    }
-
-    bool NodeId::hasIndex() const SIXTRL_NOEXCEPT
-    {
-        return ( this->m_node_index != NodeId::UNDEFINED_INDEX);
-    }
-
-    NodeId::index_t NodeId::index() const SIXTRL_NOEXCEPT
-    {
-        return this->m_node_index;
-    }
-
-    void NodeId::setPlatformId(
-        NodeId::platform_id_t const id ) SIXTRL_NOEXCEPT
-    {
-        this->m_platform_id = id;
-    }
-
-    void NodeId::setDeviceId(
-        NodeId::device_id_t const id ) SIXTRL_NOEXCEPT
-    {
-        this->m_device_id = id;
-    }
-
-    void NodeId::setIndex( NodeId::index_t const index ) SIXTRL_NOEXCEPT
-    {
-        this->m_node_index = index;
-    }
-
-    std::string NodeId::toString() const
-    {
-        std::ostringstream a2str;
-
-        if( this->valid() )
+        if( ( !node_id_str.empty() ) &&
+            ( str_format != st::NODE_ID_STR_FORMAT_ILLEGAL ) )
         {
-            a2str << *this;
+            using backend_id_type  = NodeId::backend_id_type;
+            using platform_id_type = NodeId::platform_id_type;
+            using device_id_type   = NodeId::device_id_type;
+
+            backend_id_type backend_id   = st::BACKEND_ID_NONE;
+            device_id_type device_id     = st::NodeId::ILLEGAL_DEVICE_ID;
+            platform_id_type platform_id = st::NodeId::ILLEGAL_PLATFORM_ID;
+
+            switch( str_format )
+            {
+                case st::NODE_ID_STR_FORMAT_BACKEND_STR:
+                {
+                    std::ostringstream a2str;
+                    a2str << st::Backends_backend_str_regex( false )
+                          << "\\:([0-9]+)\\.([0-9]+)";
+
+                    std::regex const RE( a2str.str() );
+                    std::smatch matched_parts;
+
+                    if( std::regex_match( node_id_str, matched_parts, RE ) )
+                    {
+                        st::size_type const nn = matched_parts.size();
+                        if( nn == st::size_type{ 4 } )
+                        {
+                            backend_id = st::Backends_id_by_string(
+                                std::ssub_match( matched_parts[ 1 ] ).str() );
+
+                            platform_id = std::stoi(
+                                std::ssub_match( matched_parts[ 2 ] ).str() );
+
+                            device_id = std::stoi(
+                                std::ssub_match( matched_parts[ 3 ] ).str() );
+
+                            if( backend_id != st::BACKEND_ID_NONE )
+                            {
+                                status = st::STATUS_SUCCESS;
+                            }
+                        }
+                    }
+
+                    break;
+                }
+
+                case st::NODE_ID_STR_FORMAT_BACKEND_ID:
+                {
+                    std::ostringstream a2str;
+                    a2str << st::Backends_backend_id_regex( false )
+                          << "\\:([0-9]+)\\.([0-9]+)";
+
+                    std::regex const RE( a2str.str() );
+                    std::smatch matched_parts;
+
+                    if( std::regex_match( node_id_str, matched_parts, RE ) )
+                    {
+                        st::size_type const nn = matched_parts.size();
+                        if( nn == st::size_type{ 4 } )
+                        {
+                            backend_id = std::stoi(
+                                std::ssub_match( matched_parts[ 1 ] ).str() );
+
+                            platform_id = std::stoi(
+                                std::ssub_match( matched_parts[ 2 ] ).str() );
+
+                            device_id = std::stoi(
+                                std::ssub_match( matched_parts[ 3 ] ).str() );
+
+                            if( backend_id != st::BACKEND_ID_NONE )
+                            {
+                                status = st::STATUS_SUCCESS;
+                            }
+                        }
+                    }
+
+                    break;
+                }
+
+                case st::NODE_ID_STR_FORMAT_MINIMAL:
+                {
+                    std::regex const RE( "([0-9]+)\\.([0-9]+)" );
+                    std::smatch matched_parts;
+
+                    if( std::regex_match( node_id_str, matched_parts, RE ) )
+                    {
+                        st::size_type const nn = matched_parts.size();
+                        if( nn == st::size_type{ 3 } )
+                        {
+                            platform_id = std::stoi(
+                                std::ssub_match( matched_parts[ 2 ] ).str() );
+
+                            device_id = std::stoi(
+                                std::ssub_match( matched_parts[ 3 ] ).str() );
+
+                            status = st::STATUS_SUCCESS;
+                        }
+                    }
+
+                    break;
+                }
+
+                default:
+                {
+                    status = st::STATUS_GENERAL_FAILURE;
+                }
+            };
+
+            if( status == st::STATUS_SUCCESS )
+            {
+                if( ptr_platform_id != nullptr ) *ptr_platform_id = platform_id;
+                if( ptr_device_id   != nullptr ) *ptr_device_id   = device_id;
+                if( ptr_backend_id  != nullptr ) *ptr_backend_id  = backend_id;
+            }
         }
 
-        return a2str.str();
+        return status;
     }
 
-    NodeId::status_t NodeId::toString( char* SIXTRL_RESTRICT node_id_str,
-        NodeId::size_type const node_id_str_capacity ) const SIXTRL_NOEXCEPT
+    NodeId::str_format_type NodeId::GET_STR_FORMAT_TYPE(
+        std::string const& SIXTRL_RESTRICT_REF node_id_str,
+        NodeId::backend_id_type* ptr_backend_id )
     {
-        NodeId::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        NodeId::str_format_type format = st::NODE_ID_STR_FORMAT_ILLEGAL;
 
-        if( ( node_id_str != nullptr ) &&
-            ( node_id_str_capacity > NodeId::size_type{ 0 } ) )
+        if( !node_id_str.empty() )
         {
-            std::memset( node_id_str, static_cast< int >( '\0' ),
-                         node_id_str_capacity );
-        }
+            std::regex const MINIMAL_REGEX = std::regex( "([0-9]+)\\.([0-9]+)" );
 
-        if( this->valid() )
-        {
             std::ostringstream a2str;
-            a2str << *this;
+            a2str << st::Backends_backend_id_regex( false );
+            a2str << "\\:([0-9]+)\\.([0-9]+)";
+            std::regex const BACKEND_ID_REGEX = std::regex( a2str.str() );
 
-            std::string const str( a2str.str() );
+            a2str.str( "" );
+            a2str << st::Backends_backend_str_regex( false );
+            a2str << "\\:([0-9]+)\\.([0-9]+)";
 
-            if( str.size() < node_id_str_capacity )
+            std::regex const BACKEND_STR_REGEX = std::regex( a2str.str() );
+
+            if( std::regex_match( node_id_str, BACKEND_STR_REGEX ) )
             {
-                std::copy( str.begin(), str.end(), node_id_str );
-                status = st::ARCH_STATUS_SUCCESS;
+                format = st::NODE_ID_STR_FORMAT_BACKEND_STR;
+            }
+            else if( std::regex_match( node_id_str, BACKEND_ID_REGEX ) )
+            {
+                format = st::NODE_ID_STR_FORMAT_BACKEND_ID;
+            }
+            else if( std::regex_match( node_id_str, MINIMAL_REGEX ) )
+            {
+                format = st::NODE_ID_STR_FORMAT_MINIMAL;
             }
         }
 
-        return status;
+        return format;
     }
 
-    NodeId::status_t NodeId::to_string( char* SIXTRL_RESTRICT node_id_str,
-        _this_t::size_type const node_id_str_capacity,
-        _this_t::arch_id_t const arch_id,
-        _this_t::str_format_t const format ) const SIXTRL_NOEXCEPT
+    status_type NodeId::from_string(
+        std::string const& SIXTRL_RESTRICT_REF node_id_str,
+        NodeId::str_format_type format, NodeId::backend_id_type* ptr_backend_id )
     {
-        _this_t::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
+        if( format == st::NODE_ID_STR_FORMAT_AUTO )
+            format = NodeId::GET_STR_FORMAT_TYPE( node_id_str );
 
-        if( ( node_id_str != nullptr ) &&
-            ( node_id_str_capacity > _this_t::size_type{ 0 } ) &&
-            ( format != st::NODE_ID_STR_FORMAT_ILLEGAL ) &&
-            ( this->valid() ) )
+        return NodeId::DECODE_NODE_ID_STR( node_id_str, format,
+            &this->m_platform_id, &this->m_device_id, ptr_backend_id );
+    }
+
+    NodeId::status_type NodeId::to_stream( std::ostream& ostr,
+        NodeId::str_format_type const format,
+        NodeId::backend_id_type backend_id ) const
+    {
+        NodeId::status_type status = st::STATUS_GENERAL_FAILURE;
+        if( !this->is_legal() ) return status;
+
+        if( backend_id == st::NODE_ID_STR_FORMAT_AUTO )
+            backend_id =  st::NODE_ID_STR_FORMAT_DEFAULT;
+
+        switch( format )
         {
-            int ret = int{ 0 };
-            _this_t::size_type const nn =
-                node_id_str_capacity - _this_t::size_type{ 1 };
-
-            if( format == st::NODE_ID_STR_FORMAT_NOARCH )
+            case st::NODE_ID_STR_FORMAT_MINIMAL:
             {
-                ret = std::snprintf( node_id_str, nn, "%d.%d",
-                    static_cast< int >( this->platformId() ),
-                    static_cast< int >( this->deviceId() ) );
+                ostr << this->platform_id() << "." << this->device_id();
+                status = st::STATUS_SUCCESS;
+                break;
             }
-            else if( ( arch_id != st::ARCHITECTURE_ILLEGAL ) &&
-                     ( arch_id != st::ARCHITECTURE_NONE ) )
+
+            case st::NODE_ID_STR_FORMAT_BACKEND_ID:
             {
-                if( format == st::NODE_ID_STR_FORMAT_ARCHID )
+                if( backend_id != st::BACKEND_ID_NONE )
                 {
-                    ret = std::snprintf( node_id_str, nn, "%u:%d.%d",
-                        static_cast< unsigned >( arch_id ),
-                        static_cast< int >( this->platformId() ),
-                        static_cast< int >( this->deviceId() ) );
-
+                    ostr << backend_id << ":"
+                         << this->platform_id() << "." << this->device_id();
+                    status = st::STATUS_SUCCESS;
                 }
-                else if( format == st::NODE_ID_STR_FORMAT_ARCHSTR )
-                {
-                    char TEMP_ARCH_NAME[ 32 ] =
-                    {
-                        '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
-                        '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
-                        '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
-                        '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'
-                    };
 
-                    if( arch_id == st::ARCHITECTURE_CPU )
-                    {
-                        strncpy( TEMP_ARCH_NAME,
-                                 SIXTRL_ARCHITECTURE_CPU_STR, 31 );
-                    }
-                    else if( arch_id == st::ARCHITECTURE_OPENCL )
-                    {
-                        strncpy( TEMP_ARCH_NAME,
-                                 SIXTRL_ARCHITECTURE_OPENCL_STR, 31 );
-                    }
-                    else if( arch_id == st::ARCHITECTURE_CUDA )
-                    {
-                        strncpy( TEMP_ARCH_NAME,
-                                 SIXTRL_ARCHITECTURE_CUDA_STR, 31 );
-                    }
-
-                    if( std::strlen( TEMP_ARCH_NAME ) > 0u )
-                    {
-                        ret = std::snprintf( node_id_str, nn, "%s:%d.%d",
-                            TEMP_ARCH_NAME,
-                            static_cast< int >( this->platformId() ),
-                            static_cast< int >( this->deviceId() ) );
-                    }
-                }
+                break;
             }
 
-            if( ( ret > 0 ) && ( ret <= static_cast< int >( nn ) ) )
+            case st::NODE_ID_STR_FORMAT_BACKEND_STR:
             {
-                status = st::ARCH_STATUS_SUCCESS;
+                if( backend_id != st::BACKEND_ID_NONE )
+                {
+                    st::Backends_string_to_stream( ostr, backend_id );
+                    ostr << ":" << this->platform_id() << "."
+                                << this->device_id();
+
+                    status = st::STATUS_SUCCESS;
+                }
+
+                break;
             }
-        }
+
+            default:
+            {
+                status = st::STATUS_GENERAL_FAILURE;
+            }
+        };
 
         return status;
     }
 
-    NodeId::status_t NodeId::fromString(
-        std::string const& SIXTRL_RESTRICT_REF id_str ) SIXTRL_NOEXCEPT
-    {
-        return ( !id_str.empty() ) ? this->fromString( id_str.c_str() )
-            : st::ARCH_STATUS_GENERAL_FAILURE;
-    }
-
-    NodeId::status_t NodeId::fromString(
-        const char *const SIXTRL_RESTRICT id_str ) SIXTRL_NOEXCEPT
-    {
-        NodeId::status_t status = st::ARCH_STATUS_GENERAL_FAILURE;
-
-        if( ( id_str != nullptr ) &&
-            ( std::strlen( id_str ) > NodeId::size_type{ 0 } ) )
-        {
-            long long int temp_platform_id = NodeId::ILLEGAL_PLATFORM_ID;
-            long long int temp_device_id   = NodeId::ILLEGAL_DEVICE_ID;
-
-            int const ret = std::sscanf( id_str, "%lld.%lld",
-                &temp_platform_id, &temp_device_id );
-
-            if( ( ret == int{ 2 }  ) &&
-                ( temp_platform_id != NodeId::ILLEGAL_PLATFORM_ID ) &&
-                ( temp_device_id   != NodeId::ILLEGAL_DEVICE_ID ) )
-            {
-                this->setPlatformId( temp_platform_id );
-                this->setDeviceId( temp_device_id );
-                status = st::ARCH_STATUS_SUCCESS;
-            }
-        }
-
-        return status;
-    }
-
-    bool NodeId::operator<(
+    NodeId::cmp_result_type NodeId::compare(
         NodeId const& SIXTRL_RESTRICT_REF rhs ) const SIXTRL_NOEXCEPT
     {
-        return ( ( this->m_platform_id < rhs.m_platform_id ) ||
-                 ( ( this->m_platform_id == rhs.m_platform_id ) &&
-                   ( this->m_device_id < rhs.m_device_id ) ) );
-    }
+        using cmp_result_t = st::NodeId::cmp_result_type;
+        cmp_result_t result = cmp_result_t{ 0 };
 
-    void NodeId::clear() SIXTRL_NOEXCEPT
-    {
-        this->m_platform_id = NodeId::ILLEGAL_PLATFORM_ID;
-        this->m_device_id   = NodeId::ILLEGAL_DEVICE_ID;
-        this->m_node_index  = NodeId::UNDEFINED_INDEX;
-    }
-
-    void NodeId::reset(
-        NodeId::platform_id_t const platform_id,
-        NodeId::device_id_t const device_id,
-        NodeId::index_t const node_index ) SIXTRL_NOEXCEPT
-    {
-        this->m_platform_id = platform_id;
-        this->m_device_id = device_id;
-        this->m_node_index = node_index;
-    }
-
-    std::ostream& operator<<( std::ostream& SIXTRL_RESTRICT_REF output,
-        st::NodeId const& SIXTRL_RESTRICT_REF node_id )
-    {
-        output << node_id.platformId() << "." << node_id.deviceId();
-        return output;
-    }
-
-    int compareNodeIds( st::NodeId const& SIXTRL_RESTRICT_REF lhs,
-                        st::NodeId const& SIXTRL_RESTRICT_REF rhs )
-    {
-        return ( lhs < rhs ) ? -1 : ( rhs < lhs ) ? +1 : 0;
-    }
-
-    void printNodeId( ::FILE* SIXTRL_RESTRICT fp,
-        st::NodeId const& SIXTRL_RESTRICT_REF node_id )
-    {
-        if( fp != nullptr )
+        if( this != &rhs )
         {
-            std::ostringstream a2str;
-            a2str << node_id;
-            std::string const str( a2str.str() );
-            int const ret = fprintf( fp, "%s", str.c_str() );
+            if( this->m_platform_id != rhs.m_platform_id )
+            {
+                result = ( this->m_platform_id > rhs.m_platform_id )
+                    ? cmp_result_t{ +1 } : cmp_result_t{ -1 };
+            }
 
-            SIXTRL_ASSERT( ret >= 0 );
-            ( void )ret;
+            if( ( result == cmp_result_t{ 0 } ) &&
+                ( this->m_device_id != rhs.m_device_id ) )
+            {
+                result = ( this->m_device_id > rhs.m_device_id )
+                    ? cmp_result_t{ +1 } : cmp_result_t{ -1 };
+            }
+
+            if( ( result == cmp_result_t{ 0 } ) &&
+                ( this->m_node_index != rhs.m_node_index ) )
+            {
+                result = ( this->m_node_index > rhs.m_node_index )
+                    ? cmp_result_t{ +1 } : cmp_result_t{ -1 };
+            }
         }
 
-        return;
+        return result;
     }
 }
 
-/* end: sixtracklib/common/control/node_id.cpp */
+SIXTRL_ARGPTR_DEC ::NS(NodeId)* NS(NodeId_create)( void ) {
+    return new SIXTRL_CXX_NAMESPACE::NodeId(); }
+
+void NS(NodeId_delete)( SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node ) {
+    delete node; }
+
+SIXTRL_ARGPTR_DEC ::NS(NodeId)* NS(NodeId_new)(
+    ::NS(node_platform_id_type) const platform_id,
+    ::NS(node_device_id_type) const device_id ) {
+    return new SIXTRL_CXX_NAMESPACE::NodeId( platform_id, device_id ); }
+
+SIXTRL_ARGPTR_DEC ::NS(NodeId)* NS(NodeId_new_from_string)(
+    char const* SIXTRL_RESTRICT node_id_str ) {
+    return new SIXTRL_CXX_NAMESPACE::NodeId( node_id_str ); }
+
+SIXTRL_ARGPTR_DEC ::NS(NodeId)* NS(NodeId_new_detailed)(
+    ::NS(node_platform_id_type) const platform_id,
+    ::NS(node_device_id_type) const device_id,
+    ::NS(node_index_type) const index ) {
+    return new SIXTRL_CXX_NAMESPACE::NodeId( platform_id, device_id, index ); }
+
+SIXTRL_ARGPTR_DEC ::NS(NodeId)* NS(NodeId_preset)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node_id ) {
+    if( node_id != nullptr ) node_id->clear();
+    return node_id; }
+
+bool NS(NodeId_is_legal)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node ) {
+    return ( ( node != nullptr ) && ( node->is_legal() ) ); }
+
+::NS(node_platform_id_type) NS(NodeId_platform_id)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node ) {
+    return ( node != nullptr )
+        ? node->platform_id()
+        : SIXTRL_CXX_NAMESPACE::NodeId::ILLEGAL_PLATFORM_ID; }
+
+::NS(node_device_id_type) NS(NodeId_device_id)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node ) {
+    return ( node != nullptr )
+        ? node->platform_id()
+        : SIXTRL_CXX_NAMESPACE::NodeId::ILLEGAL_DEVICE_ID; }
+
+bool NS(NodeId_has_node_index)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node ) {
+    return ( ( node != nullptr ) && ( node->has_index() ) ); }
+
+NS(node_index_type) NS(NodeId_node_index)(
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node ) {
+    return ( node != nullptr )
+        ? node->index()
+        : SIXTRL_CXX_NAMESPACE::NodeId::ILLEGAL_INDEX; }
+
+/* ------------------------------------------------------------------------- */
+
+void NS(NodeId_clear)( SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node ) {
+    if( node != nullptr ) node->clear(); }
+
+void NS(NodeId_reset)( SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    ::NS(node_platform_id_type) const platform_id,
+    ::NS(node_device_id_type) const device_id,
+    ::NS(node_index_type) const index ) {
+    if( node != nullptr ) node->reset( platform_id, device_id, index ); }
+
+/* ------------------------------------------------------------------------- */
+
+void NS(NodeId_set_platform_id)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    ::NS(node_platform_id_type) const platform_id ) {
+    if( node != nullptr ) node->set_platform_id( platform_id ); }
+
+void NS(NodeId_set_device_id)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    ::NS(node_device_id_type) const device_id ) {
+    if( node != nullptr ) node->set_device_id( device_id ); }
+
+void NS(NodeId_set_index)( SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    ::NS(node_index_type) const node_index ) {
+    if( node != nullptr ) node->set_index( node_index ); }
+
+/* ------------------------------------------------------------------------- */
+
+::NS(status_type) NS(NodeId_to_string)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    SIXTRL_ARGPTR_DEC char* SIXTRL_RESTRICT node_id_str,
+    ::NS(size_type) const node_id_str_capacity ) {
+    return ( node != nullptr )
+        ? node->to_string( node_id_str, node_id_str_capacity,
+            ::NS(NODE_ID_STR_FORMAT_MINIMAL) )
+        : ::NS(STATUS_GENERAL_FAILURE); }
+
+::NS(status_type) NS(NodeId_to_string_detailed)(
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node,
+    SIXTRL_ARGPTR_DEC char* SIXTRL_RESTRICT node_id_str,
+    ::NS(size_type) const node_id_str_capacity,
+    ::NS(backend_id_type) const backend_id ) {
+    return ( node != nullptr )
+        ? node->to_string( node_id_str, node_id_str_capacity, backend_id )
+        : ::NS(STATUS_GENERAL_FAILURE); }
+
+::NS(status_type) NS(NodeId_from_string)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    SIXTRL_ARGPTR_DEC const char *const SIXTRL_RESTRICT node_id_str ) {
+    return ( node != nullptr )
+        ? node->from_string( node_id_str )
+        : ::NS(STATUS_GENERAL_FAILURE); }
+
+::NS(status_type) NS(NodeId_from_string)(
+    SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
+    SIXTRL_ARGPTR_DEC const char *const SIXTRL_RESTRICT node_id_str,
+    SIXTRL_ARGPTR_DEC ::NS(backend_id_type)* SIXTRL_RESTRICT ptr_backend_id ) {
+    return ( node != nullptr )
+        ? node->from_string(
+            node_id_str, ::NS(NODE_ID_STR_FORMAT_AUTO), ptr_backend_id )
+        : ::NS(STATUS_GENERAL_FAILURE); }
+
+/* ------------------------------------------------------------------------- */
+
+::NS(cmp_result_type) NS(NodeId_compare)(
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT lhs,
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT rhs ) {
+    ::NS(cmp_result_type) result = ::NS(cmp_result_type){ 1 };
+    SIXTRL_ASSERT( ( lhs != SIXTRL_NULLPTR ) || ( rhs != SIXTRL_NULLPTR ) );
+    if( ( lhs != rhs ) && ( lhs != nullptr ) && ( rhs != nullptr ) )
+    {
+        result = lhs->compare( *rhs );
+    }
+    else if( ( lhs != rhs ) && ( rhs != nullptr ) )
+    {
+        result = ::NS(cmp_result_type){ -1 };
+    }
+    else if( lhs == rhs )
+    {
+        result = ::NS(cmp_result_type){ 0 };
+    }
+
+    return result;
+}
+
+bool NS(NodeId_are_equal)(
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT lhs,
+    SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT rhs ) {
+    return ( ( lhs == rhs ) ||
+             ( ( lhs != nullptr ) && ( rhs != nullptr ) &&
+               ( ::NS(cmp_result_type){ 0 } == lhs->compare( *rhs ) ) ) ); }
+
+/* ------------------------------------------------------------------------- */
+
+void NS(NodeId_print_out)( SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const
+    SIXTRL_RESTRICT node_id ) {
+    if( node_id != nullptr ) node_id->to_stream(
+        std::cout, ::NS(NODE_ID_STR_FORMAT_MINIMAL) ); }
+
+void NS(NodeId_print)( ::FILE* SIXTRL_RESTRICT output,
+    SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node_id ) {
+    namespace st = SIXTRL_CXX_NAMESPACE;
+    if( ( node_id != nullptr ) && ( output != nullptr ) )
+    {
+        std::ostringstream a2str;
+        if( st::STATUS_SUCCESS == node_id->to_stream(
+                a2str, ::NS(NODE_ID_STR_FORMAT_MINIMAL) ) )
+        {
+            std::string const temp = a2str.str();
+            std::fprintf( output, "%s", temp.c_str() );
+        }
+    }
+}
+
+#endif /* C++, Host */
