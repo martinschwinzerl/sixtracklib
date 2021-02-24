@@ -1,34 +1,180 @@
-#ifndef SIXTRACKLIB_COMMON_INTERNAL_TYPE_COMPARISON_HELPERS_CXX_HPP__
-#define SIXTRACKLIB_COMMON_INTERNAL_TYPE_COMPARISON_HELPERS_CXX_HPP__
-
-#if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
-    #if defined( __cplusplus )
-        #include <cstdlib>
-        #include <iterator>
-        #include <limits>
-        #include <type_traits>
-    #else /* C++ */
-        #include <stdint.h>
-        #include <limits.h>
-        #include <stdbool.h>
-    #endif /* C++ */
-#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
+#ifndef SIXTRACKLIB_COMMON_INTERNAL_TYPE_COMPARISON_HELPERS_H__
+#define SIXTRACKLIB_COMMON_INTERNAL_TYPE_COMPARISON_HELPERS_H__
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/definitions.h"
-    #include "sixtracklib/common/internal/buffer_main_defines.h"
-    #include "sixtracklib/common/internal/compiler_attributes.h"
-    #include "sixtracklib/common/control/definitions.h"
+    #include "sixtracklib/common/cobjects/definitions.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#if defined( __cplusplus )
+#if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
+    #if !defined( __cplusplus )
+        #include <limits.h>
+        #include <stdbool.h>
+    #endif /* C++ */
 
+    #if defined( __cplusplus )
+        #include <iterator>
+        #include <limits>
+        #include <type_traits>
+    #endif /* C++ */
+#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
+
+#if !defined( SIXTRL_REAL_TYPE_EPS )
+    #define SIXTRL_REAL_TYPE_EPS 2.22e-16
+#endif /* !defined( SIXTRL_REAL_TYPE_EPS ) */
+
+#if !defined( SIXTRL_FLOAT_TYPE_EPS )
+    #define SIXTRL_FLOAT_TYPE_EPS 1.19e-07f
+#endif /* !defined( SIXTRL_FLOAT_TYPE_EPS ) */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+extern "C" {
+#endif /* C++, Host */
+
+typedef int NS(cmp_result_type);
+
+#if !defined( _GPUCODE )
+
+SIXTRL_STATIC SIXTRL_CONSTEXPR_OR_CONST SIXTRL_REAL_TYPE NS(REAL_TYPE_EPS) =
+    ( SIXTRL_REAL_TYPE )SIXTRL_REAL_TYPE_EPS;
+
+SIXTRL_STATIC SIXTRL_CONSTEXPR_OR_CONST SIXTRL_FLOAT_TYPE NS(FLOAT_TYPE_EPS) =
+    ( SIXTRL_FLOAT_TYPE )SIXTRL_FLOAT_TYPE_EPS;
+
+#endif /* !defined( _GPUCODE ) */
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_less)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_less_or_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_not_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_more_or_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_more)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_less)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_less_or_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_not_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_more_or_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_more)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+/* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_less)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_less_or_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_not_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_more_or_equal)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_more)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_is_close)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs,
+    SIXTRL_REAL_TYPE const rel_tol, SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_are_close)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs,
+    SIXTRL_REAL_TYPE const rel_tol, SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_are_close)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs,
+    SIXTRL_REAL_TYPE const rel_tol, SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT;
+
+/* --------------------------------------------------------------------- */
+
+SIXTRL_STATIC SIXTRL_FN NS(cmp_result_type)
+NS(Type_value_comp_result)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(cmp_result_type)
+NS(Type_value_comp_result_with_tolerances)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs,
+    SIXTRL_REAL_TYPE const rel_tol,
+    SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(cmp_result_type) NS(Type_value_comp_result_for_range)(
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT lhs_it,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT lhs_end,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT rhs_it
+) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(cmp_result_type)
+NS(Type_value_comp_result_with_tolerances_for_range)(
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT lhs_it,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT lhs_end,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT rhs_it,
+    SIXTRL_REAL_TYPE const rel_tol,
+    SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT;
+
+/* --------------------------------------------------------------------- */
+
+SIXTRL_STATIC SIXTRL_FN NS(cmp_result_type)
+NS(Type_value_comp_result_int64)(
+    SIXTRL_INT64_TYPE const lhs, SIXTRL_INT64_TYPE const rhs ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(cmp_result_type)
+NS(Type_value_comp_result_int64_for_range)(
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_INT64_TYPE const* SIXTRL_RESTRICT lhs_it,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_INT64_TYPE const* SIXTRL_RESTRICT lhs_end,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_INT64_TYPE const* SIXTRL_RESTRICT rhs_it
+) SIXTRL_NOEXCEPT;
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+}
+#endif /* C++, Host */
+
+#if defined( __cplusplus )
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/internal/type_store_traits.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
 {
+    #if !defined( _GPUCODE )
+    SIXTRL_STATIC SIXTRL_CONSTEXPR_OR_CONST SIXTRL_REAL_TYPE REAL_TYPE_EPS =
+        static_cast< SIXTRL_REAL_TYPE >( SIXTRL_REAL_TYPE_EPS );
+
+    SIXTRL_STATIC SIXTRL_CONSTEXPR_OR_CONST SIXTRL_FLOAT_TYPE FLOAT_TYPE_EPS =
+        static_cast< SIXTRL_FLOAT_TYPE >( SIXTRL_FLOAT_TYPE_EPS );
+    #endif /* !defined( _GPUCODE ) */
+
+    /* ********************************************************************** */
+
     template< typename T >
     struct TypeCompLogicTypeTraits
     {
@@ -580,14 +726,14 @@ namespace SIXTRL_CXX_NAMESPACE
               typename SFINAE_Enable = void >
     struct ObjDataDiffHelper
     {
-        SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN arch_status_t calculate(
+        SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN status_type calculate(
             SIXTRL_ARGPTR_DEC DiffT* SIXTRL_RESTRICT SIXTRL_UNUSED( diff ),
             SIXTRL_ARGPTR_DEC const LhsT *const SIXTRL_RESTRICT
                 SIXTRL_UNUSED( lhs ),
             SIXTRL_ARGPTR_DEC const RhsT *const SIXTRL_RESTRICT
                 SIXTRL_UNUSED( rhs ) ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+            return SIXTRL_CXX_NAMESPACE::STATUS_GENERAL_FAILURE;
         }
     };
 
@@ -618,119 +764,6 @@ namespace SIXTRL_CXX_NAMESPACE
 }
 #endif /* C++ */
 
-#if defined( __cplusplus ) && !defined( _GPUCODE )
-extern "C" {
-#endif /* C++, Host */
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_less)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_less_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_not_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_more_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_more)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-/* ------------------------------------------------------------------------- */
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_less)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_less_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_not_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_more_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_more)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-/* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_less)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_less_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_not_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_more_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_more)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-/* ------------------------------------------------------------------------- */
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_is_close)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_all_are_close)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN bool NS(Type_comp_any_are_close)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT;
-
-/* --------------------------------------------------------------------- */
-
-SIXTRL_STATIC SIXTRL_FN int NS(Type_value_comp_result)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN int NS(Type_value_comp_result_with_tolerances)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN int NS(Type_value_comp_result_for_range)(
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT lhs_it,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT lhs_end,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT rhs_it
-) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN int
-NS(Type_value_comp_result_with_tolerances_for_range)(
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT lhs_it,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT lhs_end,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT rhs_it,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT;
-
-/* --------------------------------------------------------------------- */
-
-SIXTRL_STATIC SIXTRL_FN int NS(Type_value_comp_result_int64)(
-    SIXTRL_INT64_T const lhs, SIXTRL_INT64_T const rhs ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN int NS(Type_value_comp_result_int64_for_range)(
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_INT64_T const* SIXTRL_RESTRICT lhs_it,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_INT64_T const* SIXTRL_RESTRICT lhs_end,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_INT64_T const* SIXTRL_RESTRICT rhs_it
-) SIXTRL_NOEXCEPT;
-
-#if defined( __cplusplus ) && !defined( _GPUCODE )
-}
-#endif /* C++, Host */
-
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
@@ -739,37 +772,37 @@ extern "C" {
 #endif /* C++, Host */
 
 SIXTRL_INLINE bool NS(Type_comp_less)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs < rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_less_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs <= rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs == rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_not_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs != rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_more_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs >= rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_more)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs > rhs );
 }
@@ -777,37 +810,37 @@ SIXTRL_INLINE bool NS(Type_comp_more)(
 /* ------------------------------------------------------------------------- */
 
 SIXTRL_INLINE bool NS(Type_comp_all_less)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs < rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_all_less_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs <= rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_all_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs == rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_all_not_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs != rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_all_more_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs >= rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_all_more)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs > rhs );
 }
@@ -815,37 +848,37 @@ SIXTRL_INLINE bool NS(Type_comp_all_more)(
 /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- - */
 
 SIXTRL_INLINE bool NS(Type_comp_any_less)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs < rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_any_less_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs <= rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_any_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs == rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_any_not_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs != rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_any_more_or_equal)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs >= rhs );
 }
 
 SIXTRL_INLINE bool NS(Type_comp_any_more)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     return ( lhs > rhs );
 }
@@ -853,55 +886,48 @@ SIXTRL_INLINE bool NS(Type_comp_any_more)(
 /* ------------------------------------------------------------------------- */
 
 SIXTRL_INLINE bool NS(Type_comp_is_close)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_REAL_T const diff = ( lhs >= rhs ) ? lhs - rhs : rhs - lhs;
-    SIXTRL_REAL_T cmp_value = ( rhs >= ( SIXTRL_REAL_T )0 ) ? rhs : -rhs;
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs,
+    SIXTRL_REAL_TYPE const rel_tol,
+    SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT {
+    SIXTRL_REAL_TYPE const diff = ( lhs >= rhs ) ? lhs - rhs : rhs - lhs;
+    SIXTRL_REAL_TYPE cmp_value = ( rhs >= ( SIXTRL_REAL_TYPE )0 ) ? rhs : -rhs;
     cmp_value *= rel_tol;
     cmp_value += abs_tol;
-
-    return ( diff <= cmp_value );
-}
+    return ( diff <= cmp_value ); }
 
 SIXTRL_INLINE bool NS(Type_comp_all_are_close)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT
-{
-    return NS(Type_comp_is_close)( lhs, rhs, rel_tol, abs_tol );
-}
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs,
+    SIXTRL_REAL_TYPE const rel_tol,
+    SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT {
+    return NS(Type_comp_is_close)( lhs, rhs, rel_tol, abs_tol ); }
 
 SIXTRL_INLINE bool NS(Type_comp_any_are_close)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT
-{
-    return NS(Type_comp_is_close)( lhs, rhs, rel_tol, abs_tol );
-}
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs,
+    SIXTRL_REAL_TYPE const rel_tol,
+    SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT {
+    return NS(Type_comp_is_close)( lhs, rhs, rel_tol, abs_tol ); }
 
 /* --------------------------------------------------------------------- */
 
-SIXTRL_INLINE int NS(Type_value_comp_result)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
-{
+SIXTRL_INLINE NS(cmp_result_type) NS(Type_value_comp_result)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT {
     return ( NS(Type_comp_equal)( lhs, rhs ) )
-        ? 0 : ( ( NS(Type_comp_more)( lhs, rhs ) ) ? +1 : -1 );
-}
+        ? 0 : ( ( NS(Type_comp_more)( lhs, rhs ) ) ? +1 : -1 ); }
 
-SIXTRL_INLINE int NS(Type_value_comp_result_with_tolerances)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT
-{
+SIXTRL_INLINE NS(cmp_result_type) NS(Type_value_comp_result_with_tolerances)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs,
+    SIXTRL_REAL_TYPE const rel_tol,
+    SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT {
     return ( NS(Type_comp_is_close)( lhs, rhs, rel_tol, abs_tol ) )
-        ? 0 : ( ( NS(Type_comp_more)( lhs, rhs ) ) ? +1 : -1 );
-}
+        ? 0 : ( ( NS(Type_comp_more)( lhs, rhs ) ) ? +1 : -1 ); }
 
-SIXTRL_INLINE int NS(Type_value_comp_result_for_range)(
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT lhs_it,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT lhs_end,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT rhs_it
+SIXTRL_INLINE NS(cmp_result_type) NS(Type_value_comp_result_for_range)(
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT lhs_it,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT lhs_end,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT rhs_it
 ) SIXTRL_NOEXCEPT
 {
-    int cmp_result = 0;
+    NS(cmp_result_type) cmp_result = 0;
 
     SIXTRL_ASSERT( lhs_it != SIXTRL_NULLPTR );
     SIXTRL_ASSERT( rhs_it != SIXTRL_NULLPTR );
@@ -915,13 +941,14 @@ SIXTRL_INLINE int NS(Type_value_comp_result_for_range)(
     return cmp_result;
 }
 
-SIXTRL_INLINE int NS(Type_value_comp_result_with_tolerances_for_range)(
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT lhs_it,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT lhs_end,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_REAL_T const* SIXTRL_RESTRICT rhs_it,
-    SIXTRL_REAL_T const rel_tol, SIXTRL_REAL_T const abs_tol ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE NS(cmp_result_type)
+NS(Type_value_comp_result_with_tolerances_for_range)(
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT lhs_it,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT lhs_end,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_REAL_TYPE const* SIXTRL_RESTRICT rhs_it,
+    SIXTRL_REAL_TYPE const rel_tol, SIXTRL_REAL_TYPE const abs_tol ) SIXTRL_NOEXCEPT
 {
-    int cmp_result = 0;
+    NS(cmp_result_type) cmp_result = 0;
 
     SIXTRL_ASSERT( lhs_it != SIXTRL_NULLPTR );
     SIXTRL_ASSERT( rhs_it != SIXTRL_NULLPTR );
@@ -938,19 +965,17 @@ SIXTRL_INLINE int NS(Type_value_comp_result_with_tolerances_for_range)(
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_INLINE int NS(Type_value_comp_result_int64)(
-    SIXTRL_INT64_T const lhs, SIXTRL_INT64_T const rhs ) SIXTRL_NOEXCEPT
-{
-    return ( lhs == rhs ) ? 0 : ( lhs > rhs ) ? +1 : -1;
-}
+SIXTRL_INLINE NS(cmp_result_type) NS(Type_value_comp_result_int64)(
+    SIXTRL_INT64_TYPE const lhs, SIXTRL_INT64_TYPE const rhs ) SIXTRL_NOEXCEPT {
+    return ( lhs == rhs ) ? 0 : ( lhs > rhs ) ? +1 : -1; }
 
-SIXTRL_INLINE int NS(Type_value_comp_result_int64_for_range)(
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_INT64_T const* SIXTRL_RESTRICT lhs_it,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_INT64_T const* SIXTRL_RESTRICT lhs_end,
-    SIXTRL_BUFFER_DATAPTR_DEC SIXTRL_INT64_T const* SIXTRL_RESTRICT rhs_it
+SIXTRL_INLINE NS(cmp_result_type) NS(Type_value_comp_result_int64_for_range)(
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_INT64_TYPE const* SIXTRL_RESTRICT lhs_it,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_INT64_TYPE const* SIXTRL_RESTRICT lhs_end,
+    SIXTRL_CBUFFER_DATAPTR_DEC SIXTRL_INT64_TYPE const* SIXTRL_RESTRICT rhs_it
 ) SIXTRL_NOEXCEPT
 {
-    int cmp_result = 0;
+    NS(cmp_result_type) cmp_result = 0;
 
     SIXTRL_ASSERT( lhs_it != SIXTRL_NULLPTR );
     SIXTRL_ASSERT( rhs_it != SIXTRL_NULLPTR );
@@ -967,5 +992,4 @@ SIXTRL_INLINE int NS(Type_value_comp_result_int64_for_range)(
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
 #endif /* C++, Host */
-
-#endif /* SIXTRACKLIB_COMMON_INTERNAL_TYPE_COMPARISON_HELPERS_CXX_HPP__ */
+#endif /* SIXTRACKLIB_COMMON_INTERNAL_TYPE_COMPARISON_HELPERS_H__ */
