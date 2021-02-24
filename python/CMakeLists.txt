@@ -1,37 +1,6 @@
-# python/CMakeLists.txt
-
-if( NOT PYTHONINTERP_FOUND )
-    message( FATAL_ERROR "Python interpreter not found -> stopping" )
-endif()
+message( STATUS "---- processing python/CMakeLists.txt" )
 
 add_subdirectory( sixtracklib )
-add_subdirectory( sixtracklib_test )
 
-set( PYTHON_SIXTRACKLIB_SHARED_LIB      ${PY_SIXTRACKLIB_SHARED_LIB}  )
-set( PYTHON_SIXTRACKLIB_TEST_SHARED_LIB ${PY_SIXTRACKLIB_TEST_SHARED_LIB} )
-set( SETUP_PY_IN_PATH   "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.template" )
-set( SETUP_PY_OUT_PATH  "${CMAKE_CURRENT_SOURCE_DIR}/setup.py" )
 
-configure_file( ${SETUP_PY_IN_PATH} ${SETUP_PY_OUT_PATH} @ONLY )
 
-# ==============================================================================
-# Install:
-
-if( SIXTRACKL_INSTALL_PYSIXTRACKLIB )
-    set( PYSIXTRACKLIB_INSTALL_STAMP
-         "${CMAKE_BINARY_DIR}/python/sixtracklib/sixtracklib.stamp" )
-
-    add_custom_command( OUTPUT ${PYSIXTRACKLIB_INSTALL_STAMP}
-                        COMMAND ${PYTHON_EXECUTABLE} ${SETUP_PY_OUT_PATH} build
-                        COMMAND ${CMAKE_COMMAND} -E touch ${PYSIXTRACKLIB_INSTALL_STAMP}
-    )
-
-    add_custom_target( sixtracklib ALL DEPENDS
-                       ${PYSIXTRACKLIB_INSTALL_STAMP} )
-
-    install( CODE
-            "execute_process( COMMAND ${PYTHON_EXECUTABLE}
-                                      ${SETUP_PY_OUT_PATH} install )" )
-endif()
-
-# end: python/CMakeLists.txt

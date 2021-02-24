@@ -1,7 +1,0 @@
-config.py
-
-libsixtracklib*.so.*
-libsixtracklib*.dll*
-libsixtracklib*.lib*
-
-.gitignore

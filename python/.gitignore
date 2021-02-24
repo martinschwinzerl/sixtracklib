@@ -1,8 +1,0 @@
-setup.py
-__pycache__/
-dist/
-build/
-*.egg-info/
-
-sixtracklib/__pycache__/
-

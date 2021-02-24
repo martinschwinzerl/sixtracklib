@@ -1,44 +1,39 @@
-# python/sixtracklib/CMakeLists.txt
+message( STATUS "---- processing python/CMakeLists.txt" )
 
-# ------------------------------------------------------------------------------
-# Generate config.py
-
-set( PYTHON_SIXTRACKLIB_SHARED_LIB  ${PY_SIXTRACKLIB_SHARED_LIB}  )
-
-string( REPLACE ";" "\r\n" PYTHON_SIXTRACKLIB_MODULES_STR
-        "${PY_SIXTRACKLIB_MODULES_STR}" )
-
-set( PYTHON_SIXTRL_C99_NAMESPACE_STR ${PY_SIXTRL_C99_NAMESPACE_STR} )
-set( PYTHON_SIXTRL_CXX_NAMESPACE_STR ${PY_SIXTRL_CXX_NAMESPACE_STR} )
-
-set( PYTHON_SIXTRL_C99_NAMESPACE_PREFIX_STR
-     ${PY_SIXTRL_C99_NAMESPACE_PREFIX_STR} )
-
-set( PYTHON_SIXTRL_CXX_NAMESPACE_PREFIX_STR
-     ${PY_SIXTRL_CXX_NAMESPACE_PREFIX_STR} )
-
-set( PYTHON_SIXTRL_ENABLE_APERTURE_CHECK ${PY_SIXTRL_ENABLE_APERTURE_CHECK} )
-set( PYTHON_SIXTRL_APERTURE_X_LIMIT ${PY_SIXTRL_APERTURE_X_LIMIT} )
-set( PYTHON_SIXTRL_APERTURE_Y_LIMIT ${PY_SIXTRL_APERTURE_Y_LIMIT} )
-
-set( SIXTRL_PY_IN_FILE  config.py.template )
-set( SIXTRL_PY_OUT_FILE "${CMAKE_CURRENT_SOURCE_DIR}/config.py" )
-
-configure_file( ${SIXTRL_PY_IN_FILE} ${SIXTRL_PY_OUT_FILE} @ONLY )
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Install
-
-set( SIXTRL_PY_INSTALL_PATH
-     "${CMAKE_INSTALL_PREFIX}/python/sixtracklib/config.py" )
-
-install( CODE
-    "${SIXTRL_TRACK_FEATURES_INSTALL_STR}
-     ${SIXTRL_APERTURE_CHECK_FEATURES_INSTALL_STR}
-
-     message( STATUS \"Generating: ${SIXTRL_PY_INSTALL_PATH}\" )
-     configure_file( \"${SIXTRL_PY_IN_FILE}\" \"${SIXTRL_PY_INSTALL_PATH}\"
-     @ONLY ) "
+set( SIXTRL_PY_WRAPPER_HEADERS
+    _wrapper/tl/optional.hpp
+    _wrapper/cxx11_optional.h
+    _wrapper/buffer_protocol.h
+    _wrapper/init_helper.h
+    _wrapper/testlib.h
+    _wrapper/demotrack.h
+    _wrapper/common.h
+    _wrapper/common_belements.h
+    _wrapper/common_cobjects.h
+    _wrapper/common_internal.h
+    _wrapper/common_particles.h
 )
 
-# end: python/sixtracklib/CMakeLists.txt
+set( SIXTRL_PY_WRAPPER_SOURCES
+    _wrapper/sixtracklib_wrapper.cpp
+    _wrapper/buffer_protocol.cpp
+    _wrapper/init_helper.cpp
+    _wrapper/testlib.cpp
+    _wrapper/demotrack.cpp
+    _wrapper/common.cpp
+    _wrapper/common_belements.cpp
+    _wrapper/common_cobjects.cpp
+    _wrapper/common_internal.cpp
+    _wrapper/common_particles.cpp )
+
+if( SIXTRACKL_PYBIND_ALWAYS_BUILD_WRAPPER OR _SKBUILD )
+    pybind11_add_module( _wrapper MODULE THIN_LTO OPT_SIZE
+        ${SIXTRL_PY_WRAPPER_HEADERS} ${SIXTRL_PY_WRAPPER_SOURCES} )
+
+    target_include_directories( _wrapper
+        PRIVATE $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> )
+
+    target_link_libraries( _wrapper PRIVATE sixtrack_static )
+
+    install( TARGETS _wrapper LIBRARY DESTINATION . )
+endif()
