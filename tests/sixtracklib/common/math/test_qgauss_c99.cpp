@@ -8,7 +8,6 @@
 #include <limits>
 
 #include <gtest/gtest.h>
-#include "sixtracklib/testlib.h"
 
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/control/definitions.h"
@@ -35,7 +34,7 @@ namespace SIXTRL_CXX_NAMESPACE
 TEST( C99CommonMathQGaussian, QGaussianDist )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
-    using real_t = SIXTRL_REAL_T;
+    using real_t = SIXTRL_REAL_TYPE;
 
     real_t const q0 = ( real_t )1.0;
     real_t const sigma_0 = 2.5;

@@ -11,12 +11,10 @@
 
 #include "sixtracklib/common/definitions.h"
 #include "sixtracklib/common/internal/math_constants.h"
-#include "sixtracklib/testlib.h"
 
 TEST( C99MathInterpolLinear, BasicUsage )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
-
     std::size_t const NUM_PARTICLES = std::size_t{ 10 };
     std::vector< double > phi_abscissa(  NUM_PARTICLES, double{ 0 } );
     std::vector< double > cos_phi( NUM_PARTICLES, double{ 0 } );
@@ -35,13 +33,13 @@ TEST( C99MathInterpolLinear, BasicUsage )
 
     ASSERT_TRUE( NS(Math_interpol_prepare_equ)( cos_phi_derivative.data(),
         nullptr, cos_phi.data(), phi0, d_phi, phi_abscissa.size(),
-            NS(MATH_INTERPOL_LINEAR) ) == st::ARCH_STATUS_SUCCESS );
+            NS(MATH_INTERPOL_LINEAR) ) == st::STATUS_SUCCESS );
 
     std::vector< double > temp_values( 6 * NUM_PARTICLES, double{ 0 } );
 
     ASSERT_TRUE( NS(Math_interpol_prepare_equ)( cos_phi_derivative.data(),
         temp_values.data(), cos_phi.data(), phi0, d_phi, phi_abscissa.size(),
-            NS(MATH_INTERPOL_CUBIC) ) == st::ARCH_STATUS_SUCCESS );
+            NS(MATH_INTERPOL_CUBIC) ) == st::STATUS_SUCCESS );
 
     double phi = phi0;
     double const d = double{ 1e-4 };
@@ -66,5 +64,3 @@ TEST( C99MathInterpolLinear, BasicUsage )
         phi += d;
     }
 }
-
-/* end: tests/sixtracklib/common/control/test_node_id_c99.cpp */

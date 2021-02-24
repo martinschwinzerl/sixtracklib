@@ -1,168 +1,68 @@
-# ==============================================================================
-# sixtracklib/tests/sixtracklib/common/track/CMakeLists.txt
-
 if( GTEST_FOUND )
     set( UNIT_TEST_TARGETS )
     set( SIXTRACKL_TEST_LIBRARIES ${SIXTRACKL_TEST_LIBRARIES}
          ${SIXTRACKL_GTEST_LIBRARIES} )
 
     # ==========================================================================
-    # test_track_job_cpu_setup_cxx:
+    # test_track_compare_sixtrack_common_c99:
 
-    add_executable( test_track_job_cpu_setup_cxx test_track_job_setup_cxx.cpp )
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_job_cpu_setup_cxx )
-    add_test( CXX_Cpu_CpuTrackJobSetupTests test_track_job_cpu_setup_cxx )
+    add_executable( test_track_compare_sixtrack_common_c99
+        test_track_compare_sixtrack_c99.cpp )
 
-    # --------------------------------------------------------------------------
-    # test_track_job_cpu_setup_c99:
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+        test_track_compare_sixtrack_common_c99 )
 
-    add_executable( test_track_job_cpu_setup_c99 test_track_job_setup_c99.cpp )
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_track_job_cpu_setup_c99 )
-    add_test( C99_Cpu_CpuTrackJobSetupTests test_track_job_cpu_setup_c99 )
+    add_test( C99_Common_Track_Compare_SixTrack
+        test_track_compare_sixtrack_common_c99 )
 
     # ==========================================================================
-    # test_track_job_cpu_stored_buffer_cxx:
+    # test_track_compare_sixtrack_view_common_c99:
 
-    add_executable( test_track_job_cpu_stored_buffer_cxx
-                    test_track_job_cpu_stored_buffer_cxx.cpp )
-
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_stored_buffer_cxx )
-
-    add_test( CXX_Cpu_CpuTrackJob_StoredBufferTests
-              test_track_job_cpu_stored_buffer_cxx )
-
-    # --------------------------------------------------------------------------
-    # test_track_job_cpu_stored_buffer_c99:
-
-    add_executable( test_track_job_cpu_stored_buffer_c99
-        test_track_job_cpu_stored_buffer_c99.cpp )
+    add_executable( test_track_compare_sixtrack_view_common_c99
+        test_track_compare_sixtrack_c99.cpp )
 
     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-            test_track_job_cpu_stored_buffer_c99 )
+        test_track_compare_sixtrack_view_common_c99 )
 
-    add_test( C99_Cpu_CpuTrackJob_StoredBufferTests
-              test_track_job_cpu_stored_buffer_c99 )
+    target_compile_definitions( test_track_compare_sixtrack_view_common_c99
+        PRIVATE -DSIXTRL_USE_SINGLE_PARTICLE_ADAPTER=1 )
+
+    add_test( C99_Common_Track_Compare_SixTrack_View
+        test_track_compare_sixtrack_view_common_c99 )
 
     # ==========================================================================
-    # test_track_job_cpu_assign_address_item_cxx:
+    # test_track_compare_pysixtrack_common_c99:
 
-    add_executable( test_track_job_cpu_assign_address_item_cxx
-                    test_track_job_cpu_assign_address_item_cxx.cpp )
-
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_assign_address_item_cxx )
-
-    add_test( CXX_Cpu_CpuTrackJob_AssignAddressItemTests
-              test_track_job_cpu_assign_address_item_cxx )
-
-    # --------------------------------------------------------------------------
-    # test_track_job_cpu_assign_address_item_c99:
-
-    add_executable( test_track_job_cpu_assign_address_item_c99
-                    test_track_job_cpu_assign_address_item_c99.cpp )
+    add_executable( test_track_compare_pysixtrack_common_c99
+        test_track_compare_pysixtrack_c99.cpp )
 
     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-            test_track_job_cpu_assign_address_item_c99 )
+        test_track_compare_pysixtrack_common_c99 )
 
-    add_test( C99_Cpu_CpuTrackJob_AssignAddressItemTests
-              test_track_job_cpu_assign_address_item_c99 )
+    target_compile_definitions( test_track_compare_pysixtrack_common_c99
+        PRIVATE -DSIXTRL_TRACK_SPACECHARGE=2 )
+
+    add_test( C99_Common_Track_Compare_PySixTrack
+        test_track_compare_pysixtrack_common_c99 )
 
     # ==========================================================================
-    # test_track_job_cpu_fetch_particle_addr_cxx:
+    # test_track_compare_pysixtrack_common_c99:
 
-    add_executable( test_track_job_cpu_fetch_particle_addr_cxx
-                    test_track_job_fetch_particle_addr_cxx.cpp )
-
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_fetch_particle_addr_cxx )
-
-    add_test( CXX_Cpu_CpuTrackJobFetchParticleAddrTests
-              test_track_job_cpu_fetch_particle_addr_cxx )
-
-    # --------------------------------------------------------------------------
-    # test_track_job_cpu_fetch_particle_addr_c99:
-
-    add_executable( test_track_job_cpu_fetch_particle_addr_c99
-                    test_track_job_fetch_particle_addr_c99.cpp )
+    add_executable( test_track_compare_pysixtrack_view_common_c99
+        test_track_compare_pysixtrack_c99.cpp )
 
     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_fetch_particle_addr_c99 )
+        test_track_compare_pysixtrack_view_common_c99 )
 
-    add_test( C99_Cpu_CpuTrackJobFetchParticleAddrTests
-              test_track_job_cpu_fetch_particle_addr_c99 )
+    target_compile_definitions( test_track_compare_pysixtrack_view_common_c99
+        PRIVATE -DSIXTRL_USE_SINGLE_PARTICLE_ADAPTER=1 )
 
-    # ==========================================================================
-    # test_track_job_cpu_track_until_cxx:
+    target_compile_definitions( test_track_compare_pysixtrack_view_common_c99
+        PRIVATE -DSIXTRL_TRACK_SPACECHARGE=2 )
 
-    add_executable( test_track_job_cpu_track_until_cxx
-                    test_track_job_track_until_cxx.cpp )
+    add_test( C99_Common_Track_Compare_PySixTrack_View
+        test_track_compare_pysixtrack_view_common_c99 )
 
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_track_until_cxx )
-
-    add_test( CXX_Cpu_CpuTrackJobTrackUntilTests
-        test_track_job_cpu_track_until_cxx )
-
-    # --------------------------------------------------------------------------
-    # test_track_job_cpu_track_until_c99:
-
-    add_executable( test_track_job_cpu_track_until_c99
-                    test_track_job_track_until_c99.cpp )
-
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_track_until_c99 )
-
-    add_test( C99_Cpu_CpuTrackJobTrackUntilTests
-              test_track_job_cpu_track_until_c99 )
-
-    # ==========================================================================
-    # test_track_job_cpu_track_line_cxx:
-
-    add_executable( test_track_job_cpu_track_line_cxx
-                    test_track_job_track_line_cxx.cpp )
-
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_track_line_cxx )
-
-    add_test( CXX_Cpu_CpuTrackJobTrackLineTests
-              test_track_job_cpu_track_line_cxx )
-
-    # --------------------------------------------------------------------------
-    # test_track_job_cpu_track_line_c99:
-
-    add_executable( test_track_job_cpu_track_line_c99
-                    test_track_job_track_line_c99.cpp )
-
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_track_line_c99 )
-
-    add_test( C99_Cpu_CpuTrackJobTrackLineTests
-              test_track_job_cpu_track_line_c99 )
-
-    # ==========================================================================
-    # test_track_job_cpu_track_elem_by_elem_cxx:
-
-    add_executable( test_track_job_cpu_track_elem_by_elem_cxx
-                    test_track_job_track_elem_by_elem_cxx.cpp )
-
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_track_elem_by_elem_cxx )
-
-    add_test( CXX_Cpu_CpuTrackJobTrackElemByElemTests
-              test_track_job_cpu_track_elem_by_elem_cxx )
-
-    # --------------------------------------------------------------------------
-    # test_track_job_cpu_track_elem_by_elem_c99:
-
-    add_executable( test_track_job_cpu_track_elem_by_elem_c99
-                    test_track_job_track_elem_by_elem_c99.cpp )
-
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-         test_track_job_cpu_track_elem_by_elem_c99 )
-
-    add_test( C99_Cpu_CpuTrackJobTrackElemByElemTests
-              test_track_job_cpu_track_elem_by_elem_c99 )
 endif()
 
 if( UNIT_TEST_TARGETS )
@@ -186,5 +86,3 @@ if( UNIT_TEST_TARGETS )
                       APPEND PROPERTY COMPILE_OPTIONS
                       ${SIXTRACKLIB_CXX_FLAGS} ${SIXTRACKLIB_CPU_FLAGS} )
 endif()
-
-# end: sixtracklib/tests/sixtracklib/common/track/CMakeLists.txt
