@@ -8,14 +8,6 @@ set( SIXTRACKL_COMMON_GENERATED_HEADERS )
 # modules.h is a header file with pre-defined constants, allownig the user
 # of the library to query which modules are present in from C/C++ code
 
-if( SIXTRACKL_ENABLE_MANUAL_SIMD )
-    set( SIXTRACKL_ENABLE_MODULE_SIMD 1 )
-    set( PY_SIXTRACKL_MODULE_SIMD "True" )
-else()
-    set( SIXTRACKL_ENABLE_MODULE_SIMD 0 )
-    set( PY_SIXTRACKL_MODULE_SIMD "False" )
-endif()
-
 if( SIXTRACKL_ENABLE_OPENCL )
     set( SIXTRACKL_ENABLE_MODULE_OPENCL 1 )
     set( PY_SIXTRACKL_MODULE_OPENCL "True" )
@@ -33,16 +25,6 @@ else()
     set( PY_SIXTRACKL_MODULE_CUDA "False" )
 endif()
 
-
-if( SIXTRACKL_ENABLE_MPFR4 )
-    set( SIXTRACKL_ENABLE_MODULE_MPFR4 1 )
-    set( PY_SIXTRACKL_MODULE_MPFRA "True" )
-else()
-    set( SIXTRACKL_ENABLE_MODULE_MPFR4 0 )
-    set( PY_SIXTRACKL_MODULE_MPFRA "False" )
-endif()
-
-
 set( MODULES_H_IN_PATH  "${CMAKE_CURRENT_SOURCE_DIR}/modules.h.template" )
 set( MODULES_H_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/modules.h" )
 
@@ -56,10 +38,8 @@ set(   SIXTRACKL_COMMON_GENERATED_HEADERS
 if( SIXTRACKL_ENABLE_PYTHON )
     set( PY_SIXTRACKLIB_MODULES_STR
         "SIXTRACKLIB_MODULES = {}"
-        "SIXTRACKLIB_MODULES[\"simd\"]   = ${PY_SIXTRACKL_MODULE_SIMD}"
         "SIXTRACKLIB_MODULES[\"opencl\"] = ${PY_SIXTRACKL_MODULE_OPENCL}"
         "SIXTRACKLIB_MODULES[\"cuda\"]   = ${PY_SIXTRACKL_MODULE_CUDA}"
-        "SIXTRACKLIB_MODULES[\"mpfr4\"]  = ${PY_SIXTRACKL_MODULE_MPFRA}"
          CACHE INTERNAL "" FORCE )
 endif()
 
@@ -71,9 +51,7 @@ set( MODULES_H_INSTALL_PATH
 
 set( MODULES_ENABLE_DISABLE_INFO
     "set( SIXTRACKL_ENABLE_MODULE_OPENCL ${SIXTRACKL_ENABLE_MODULE_OPENCL} )
-     set( SIXTRACKL_ENABLE_MODULE_CUDA   ${SIXTRACKL_ENABLE_MODULE_CUDA}   )
-     set( SIXTRACKL_ENABLE_MODULE_SIMD   ${SIXTRACKL_ENABLE_MODULE_SIMD}   )
-     set( SIXTRACKL_ENABLE_MODULE_MPFR4  ${SIXTRACKL_ENABLE_MODULE_MPFR4}  )" )
+     set( SIXTRACKL_ENABLE_MODULE_CUDA   ${SIXTRACKL_ENABLE_MODULE_CUDA}   )" )
 
 install( CODE "
     ${MODULES_ENABLE_DISABLE_INFO}
@@ -92,7 +70,7 @@ install( CODE "
 #       macro in common/generated/path.h as a prefix for
 #       filename and directory paths!
 
-set( SIXTRACKLIB_BASE_DIR     "${CMAKE_SOURCE_DIR}/" )
+set( SIXTRACKLIB_BASE_DIR    "${CMAKE_SOURCE_DIR}/"   )
 set( SIXTRACKLIB_INCLUDE_DIR  ${SIXTRACKLIB_BASE_DIR} )
 
 set( PATH_H_IN_PATH  "${CMAKE_CURRENT_SOURCE_DIR}/path.h.template" )
@@ -137,6 +115,7 @@ set( CONFIG_H_INSTALL_PATH
 
 install( CODE "${SIXTRL_TRACK_FEATURES_INSTALL_STR}
                ${SIXTRL_APERTURE_CHECK_FEATURES_INSTALL_STR}
+               ${SIXTRL_AUX_FEATURES_INSTALL_STR}
                message( STATUS \"Generating: ${CONFIG_H_INSTALL_PATH}\" )
                configure_file( \"${CONFIG_H_IN_PATH}\" \"${CONFIG_H_INSTALL_PATH}\" @ONLY ) " )
 
