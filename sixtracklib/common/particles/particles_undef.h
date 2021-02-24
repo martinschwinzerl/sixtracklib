@@ -1,0 +1,46 @@
+#ifndef SIXTRACKLIB_COMMON_PARTICLES_PARTICLES_UNDEF_H__
+#define SIXTRACKLIB_COMMON_PARTICLES_PARTICLES_UNDEF_H__
+
+#if defined( SIXTRL_PARTICLE_ARGPTR_DEC ) && \
+    defined( SIXTRL_PARTICLE_ARGPTR_DEC_UNDEF )
+    #undef SIXTRL_PARTICLE_ARGPTR_DEC_UNDEF
+    #undef SIXTRL_PARTICLE_ARGPTR_DEC
+#endif /* defined( SIXTRL_PARTICLE_ARGPTR_DEC_UNDEF ) */
+
+#if defined( SIXTRL_PARTICLE_DATAPTR_DEC ) && \
+    defined( SIXTRL_PARTICLE_DATAPTR_DEC_UNDEF )
+    #undef SIXTRL_PARTICLE_DATAPTR_DEC_UNDEF
+    #undef SIXTRL_PARTICLE_DATAPTR_DEC
+#endif /* defined( SIXTRL_PARTICLE_DATAPTR_DEC_UNDEF ) */
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+#if defined( SIXTRL_PARTICLES_ARGPTR_DEC ) && \
+    defined( SIXTRL_PARTICLES_ARGPTR_DEC_UNDEF )
+    #undef SIXTRL_PARTICLES_ARGPTR_DEC_UNDEF
+    #undef SIXTRL_PARTICLES_ARGPTR_DEC
+#endif /* defined( SIXTRL_PARTICLES_ARGPTR_DEC_UNDEF ) */
+
+#if defined( SIXTRL_PARTICLES_DATAPTR_DEC ) && \
+    defined( SIXTRL_PARTICLES_DATAPTR_DEC_UNDEF )
+    #undef SIXTRL_PARTICLES_DATAPTR_DEC_UNDEF
+    #undef SIXTRL_PARTICLES_DATAPTR_DEC
+#endif /* defined( SIXTRL_PARTICLES_DATAPTR_DEC_UNDEF ) */
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+#if defined( SIXTRL_PARTICLES_ADDR_ARGPTR_DEC ) && \
+    defined( SIXTRL_PARTICLES_ADDR_ARGPTR_DEC_UNDEF )
+    #undef SIXTRL_PARTICLES_ADDR_ARGPTR_DEC_UNDEF
+    #undef SIXTRL_PARTICLES_ADDR_ARGPTR_DEC
+#endif /* defined( SIXTRL_PARTICLES_ADDR_ARGPTR_DEC_UNDEF ) */
+
+#if defined( SIXTRL_PARTICLES_ADDR_DATAPTR_DEC ) && \
+    defined( SIXTRL_PARTICLES_ADDR_DATAPTR_DEC_UNDEF )
+    #undef SIXTRL_PARTICLES_ADDR_DATAPTR_DEC_UNDEF
+    #undef SIXTRL_PARTICLES_ADDR_DATAPTR_DEC
+#endif /* defined( SIXTRL_PARTICLES_ADDR_DATAPTR_DEC_UNDEF ) */
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+#endif /* SIXTRACKLIB_COMMON_PARTICLES_PARTICLES_UNDEF_H__ */
