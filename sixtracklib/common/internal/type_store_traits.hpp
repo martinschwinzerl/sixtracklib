@@ -1,6 +1,10 @@
 #ifndef SIXTRACKLIB_COMMON_INTERNAL_TYPE_STORE_TRAITS_CXX_HPP__
 #define SIXTRACKLIB_COMMON_INTERNAL_TYPE_STORE_TRAITS_CXX_HPP__
 
+#if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/definitions.h"
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
+
 #if defined( __cplusplus )
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
@@ -14,11 +18,6 @@
         #include <string>
     #endif /* !defined( _GPUCODE ) */
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
-
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/definitions.h"
-    #include "sixtracklib/common/control/definitions.h"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
 {
@@ -58,8 +57,11 @@ namespace SIXTRL_CXX_NAMESPACE
     template< typename T >
     struct TypeDimensionalityTraits
     {
-        static constexpr arch_size_t min_dimension = arch_size_t{ 1 };
-        static constexpr arch_size_t max_dimension = arch_size_t{ 1 };
+        static constexpr SIXTRL_CXX_NAMESPACE::size_type min_dimension =
+            SIXTRL_CXX_NAMESPACE::size_type{ 1 };
+
+        static constexpr SIXTRL_CXX_NAMESPACE::size_type max_dimension =
+            SIXTRL_CXX_NAMESPACE::size_type{ 1 };
     };
 
     template< typename T >
@@ -67,7 +69,7 @@ namespace SIXTRL_CXX_NAMESPACE
     Type_consistent_dimensionality() SIXTRL_NOEXCEPT
     {
         return ( ( TypeDimensionalityTraits< T >::min_dimension >
-                   arch_size_t{ 0 } ) &&
+                   SIXTRL_CXX_NAMESPACE::size_type{ 0 } ) &&
                  ( TypeDimensionalityTraits< T >::min_dimension <=
                    TypeDimensionalityTraits< T >::max_dimension ) );
     }
@@ -93,13 +95,15 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     template< typename T >
-    static SIXTRL_FN constexpr arch_size_t Type_min_dimension() SIXTRL_NOEXCEPT
+    static SIXTRL_FN constexpr SIXTRL_CXX_NAMESPACE::size_type
+    Type_min_dimension() SIXTRL_NOEXCEPT
     {
         return TypeDimensionalityTraits< T >::min_dimension;
     }
 
     template< typename T >
-    static SIXTRL_FN constexpr arch_size_t Type_max_dimension() SIXTRL_NOEXCEPT
+    static SIXTRL_FN constexpr SIXTRL_CXX_NAMESPACE::size_type
+    Type_max_dimension() SIXTRL_NOEXCEPT
     {
         return TypeDimensionalityTraits< T >::max_dimension;
     }
@@ -111,7 +115,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ( SIXTRL_CXX_NAMESPACE::Type_consistent_dimensionality< T >() ) &&
             ( SIXTRL_CXX_NAMESPACE::Type_has_fixed_dimensionality< T >() ) &&
             ( TypeDimensionalityTraits< T >::min_dimension ==
-              arch_size_t{ 1 } ) );
+              SIXTRL_CXX_NAMESPACE::size_type{ 1 } ) );
     }
 
     template< typename T >
@@ -121,7 +125,7 @@ namespace SIXTRL_CXX_NAMESPACE
             ( SIXTRL_CXX_NAMESPACE::Type_consistent_dimensionality<T>() ) &&
             ( ( SIXTRL_CXX_NAMESPACE::Type_has_variable_dimensionality<T>() ) ||
               ( TypeDimensionalityTraits< T >::max_dimension >
-                arch_size_t{ 1 } ) ) );
+                SIXTRL_CXX_NAMESPACE::size_type{ 1 } ) ) );
     }
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -129,20 +133,21 @@ namespace SIXTRL_CXX_NAMESPACE
     template< typename T >
     struct TypeDimensionalityHelper
     {
-        static arch_size_t dimension( typename TypeMethodParamTraits< T
+        static SIXTRL_CXX_NAMESPACE::size_type
+        dimension( typename TypeMethodParamTraits< T
             >::const_pointer SIXTRL_RESTRICT /* ptr */ ) SIXTRL_NOEXCEPT
         {
             return
                 ( SIXTRL_CXX_NAMESPACE::Type_consistent_dimensionality< T >() )
                     ? SIXTRL_CXX_NAMESPACE::Type_max_dimension< T >()
-                    : arch_size_t{ 0 };
+                    : SIXTRL_CXX_NAMESPACE::size_type{ 0 };
         }
     };
 
     template< typename T >
     static SIXTRL_FN typename std::enable_if<
         !SIXTRL_CXX_NAMESPACE::Type_consistent_dimensionality< T >(),
-        arch_size_t >::type
+        SIXTRL_CXX_NAMESPACE::size_type >::type
     Type_dimensionality( typename TypeMethodParamTraits< T >::const_pointer
             /* ptr */ = nullptr ) SIXTRL_NOEXCEPT
     {
@@ -150,14 +155,14 @@ namespace SIXTRL_CXX_NAMESPACE
             SIXTRL_CXX_NAMESPACE::Type_consistent_dimensionality< T >(),
             "Inconsistent dimensionality traits for type T" );
 
-        return arch_size_t{ 0 };
+        return SIXTRL_CXX_NAMESPACE::size_type{ 0 };
     }
 
     template< typename T >
     static SIXTRL_FN constexpr typename std::enable_if<
         SIXTRL_CXX_NAMESPACE::Type_consistent_dimensionality< T >() &&
         SIXTRL_CXX_NAMESPACE::Type_has_fixed_dimensionality< T >(),
-        arch_size_t >::type
+        SIXTRL_CXX_NAMESPACE::size_type >::type
     Type_dimensionality( typename TypeMethodParamTraits< T >::const_pointer
             /* ptr */ = nullptr ) SIXTRL_NOEXCEPT
     {
@@ -168,7 +173,7 @@ namespace SIXTRL_CXX_NAMESPACE
     static SIXTRL_FN constexpr typename std::enable_if<
         SIXTRL_CXX_NAMESPACE::Type_consistent_dimensionality< T >() &&
         SIXTRL_CXX_NAMESPACE::Type_has_variable_dimensionality< T >(),
-        arch_size_t >::type
+        SIXTRL_CXX_NAMESPACE::size_type >::type
     Type_dimensionality( typename TypeMethodParamTraits< T >::const_pointer
             ptr = nullptr ) SIXTRL_NOEXCEPT
     {
@@ -188,7 +193,7 @@ namespace SIXTRL_CXX_NAMESPACE
     template< typename T >
     struct TypeStorageAlignTraits
     {
-        static SIXTRL_FN constexpr SIXTRL_CXX_NAMESPACE::arch_size_t
+        static SIXTRL_FN constexpr SIXTRL_CXX_NAMESPACE::size_type
         Alignment() SIXTRL_NOEXCEPT
         {
             #if !defined( SIXTRL_ALIGN_NUM )
@@ -197,9 +202,9 @@ namespace SIXTRL_CXX_NAMESPACE
             #endif /* SIXTRL_ALIGN_NUM  */
 
             return ( alignof( T ) <= SIXTRL_ALIGN_NUM )
-                ? static_cast< SIXTRL_CXX_NAMESPACE::arch_size_t >(
+                ? static_cast< SIXTRL_CXX_NAMESPACE::size_type >(
                     SIXTRL_ALIGN_NUM )
-                : static_cast< SIXTRL_CXX_NAMESPACE::arch_size_t >(
+                : static_cast< SIXTRL_CXX_NAMESPACE::size_type >(
                     ( ( alignof( T ) / SIXTRL_ALIGN_NUM ) +
                       ( ( ( alignof( T ) % SIXTRL_ALIGN_NUM ) == 0u ) ? 0 : 1 )
                     ) * SIXTRL_ALIGN_NUM );
@@ -216,7 +221,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     template< typename T >
     static SIXTRL_FN constexpr
-    SIXTRL_CXX_NAMESPACE::arch_size_t Type_storage_align() SIXTRL_NOEXCEPT
+    SIXTRL_CXX_NAMESPACE::size_type Type_storage_align() SIXTRL_NOEXCEPT
     {
         return SIXTRL_CXX_NAMESPACE::TypeStorageAlignTraits< T >::Alignment();
     }
@@ -248,13 +253,13 @@ namespace SIXTRL_CXX_NAMESPACE
             return false;
         }
 
-        static SIXTRL_FN constexpr arch_status_t assign(
+        static SIXTRL_FN constexpr SIXTRL_CXX_NAMESPACE::status_type assign(
             SIXTRL_ARGPTR_DEC typename TypeMethodParamTraits<
                 Dest >::ref_argument_type /*destination*/,
             SIXTRL_ARGPTR_DEC typename TypeMethodParamTraits<
                 Source >::const_argument_type /*source*/ ) SIXTRL_NOEXCEPT
         {
-            return SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+            return SIXTRL_CXX_NAMESPACE::STATUS_GENERAL_FAILURE;
         }
     };
 
@@ -267,14 +272,14 @@ namespace SIXTRL_CXX_NAMESPACE
             return true;
         }
 
-        static SIXTRL_FN arch_status_t assign(
+        static SIXTRL_FN SIXTRL_CXX_NAMESPACE::status_type assign(
             SIXTRL_ARGPTR_DEC typename TypeMethodParamTraits<
                 Dest >::ref_argument_type destination,
             SIXTRL_ARGPTR_DEC typename TypeMethodParamTraits<
                 Source >::const_argument_type source ) SIXTRL_NOEXCEPT
         {
             destination = source;
-            return SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS;
+            return SIXTRL_CXX_NAMESPACE::STATUS_SUCCESS;
         }
     };
 
@@ -288,14 +293,14 @@ namespace SIXTRL_CXX_NAMESPACE
             return true;
         }
 
-        static SIXTRL_FN arch_status_t assign(
+        static SIXTRL_FN SIXTRL_CXX_NAMESPACE::status_type assign(
             SIXTRL_ARGPTR_DEC typename TypeMethodParamTraits<
                 Dest >::ref_argument_type destination,
             SIXTRL_ARGPTR_DEC typename TypeMethodParamTraits<
                 Source >::const_argument_type source ) SIXTRL_NOEXCEPT
         {
             destination = source;
-            return SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS;
+            return SIXTRL_CXX_NAMESPACE::STATUS_SUCCESS;
         }
     };
 
@@ -309,7 +314,8 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     template< class Source, class Dest >
-    static SIXTRL_INLINE SIXTRL_FN arch_status_t Types_perform_assignment(
+    static SIXTRL_INLINE SIXTRL_FN SIXTRL_CXX_NAMESPACE::status_type
+    Types_perform_assignment(
         SIXTRL_ARGPTR_DEC typename TypeMethodParamTraits< Dest
             >::ref_argument_type destination,
         SIXTRL_ARGPTR_DEC typename TypeMethodParamTraits< Source
@@ -321,7 +327,8 @@ namespace SIXTRL_CXX_NAMESPACE
 
     #if !defined( __CUDACC__ )
     template< class SrcIter, class DstIter >
-    static SIXTRL_FN arch_status_t Types_perform_assignment_for_range(
+    static SIXTRL_FN SIXTRL_CXX_NAMESPACE::status_type
+    Types_perform_assignment_for_range(
         SrcIter src_it, SrcIter src_end, DstIter dest_it )
     {
         typedef typename std::iterator_traits<
@@ -331,7 +338,8 @@ namespace SIXTRL_CXX_NAMESPACE
             DstIter >::value_type dest_value_t;
     #else /* Cuda */
     template< class T >
-    static SIXTRL_FN arch_status_t Types_perform_assignment_for_range(
+    static SIXTRL_FN SIXTRL_CXX_NAMESPACE::status_type
+    Types_perform_assignment_for_range(
         T const* SIXTRL_RESTRICT src_it, T const* SIXTRL_RESTRICT src_end,
         T* SIXTRL_RESTRICT dest_it )
     {
@@ -339,28 +347,26 @@ namespace SIXTRL_CXX_NAMESPACE
         typedef T dest_value_t;
     #endif /* Cuda */
 
-        arch_status_t success = ( src_it != src_end )
-            ? SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS
-            : SIXTRL_CXX_NAMESPACE::ARCH_STATUS_GENERAL_FAILURE;
+        SIXTRL_CXX_NAMESPACE::status_type success = ( src_it != src_end )
+            ? SIXTRL_CXX_NAMESPACE::STATUS_SUCCESS
+            : SIXTRL_CXX_NAMESPACE::STATUS_GENERAL_FAILURE;
 
         for( ; src_it != src_end ; ++src_it, ++dest_it )
         {
             success = TypePerformAssignmentHelper<
                 src_value_t, dest_value_t >::assign( *dest_it, *src_it );
 
-            if( success != SIXTRL_CXX_NAMESPACE::ARCH_STATUS_SUCCESS )
-            {
-                break;
-            }
+            if( success != SIXTRL_CXX_NAMESPACE::STATUS_SUCCESS ) break;
         }
 
         return success;
     }
 
     template< class SrcIter, class DstIter >
-    static SIXTRL_FN arch_status_t Types_perform_assignment_for_range(
+    static SIXTRL_FN SIXTRL_CXX_NAMESPACE::status_type
+    Types_perform_assignment_for_range(
         SrcIter src_begin, DstIter dest_begin,
-        arch_size_t const num_items_to_assign )
+        SIXTRL_CXX_NAMESPACE::size_type const num_items_to_assign )
     {
         SrcIter src_end = src_begin;
         #if !defined( __CUDACC__ )
@@ -621,5 +627,4 @@ namespace SIXTRL_CXX_NAMESPACE
 }
 
 #endif /* defined( __cplusplus ) */
-
 #endif /* SIXTRACKLIB_COMMON_INTERNAL_TYPE_STORE_TRAITS_CXX_HPP__ */

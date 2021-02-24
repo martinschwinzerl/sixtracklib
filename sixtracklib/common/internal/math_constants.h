@@ -1,25 +1,20 @@
 #ifndef SIXTRACKLIB_COMMON_INTERNAL_MATH_CONSTANTS_H__
 #define SIXTRACKLIB_COMMON_INTERNAL_MATH_CONSTANTS_H__
 
+#if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/particles/definitions.h"
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
+
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
     #if defined( __cplusplus )
-        #include <cstddef>
         #include <cstdint>
-        #include <cstdlib>
         #include <cmath>
         #include <type_traits>
     #else /* defined( __cplusplus ) */
-        #include <stddef.h>
         #include <stdint.h>
-        #include <stdlib.h>
         #include <math.h>
     #endif /* defined( __cplusplus ) */
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
-
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/definitions.h"
-    #include "sixtracklib/common/particles/definitions.h"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_MATH_CONST_PI )
     #define SIXTRL_MATH_CONST_PI \
@@ -44,7 +39,7 @@
 #if defined( __cplusplus )
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/internal/type_store_traits.hpp"
-    #include "sixtracklib/common/internal/type_comparison_helpers.hpp"
+    #include "sixtracklib/common/internal/type_comparison_helpers.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 namespace SIXTRL_CXX_NAMESPACE
@@ -150,15 +145,15 @@ SIXTRL_STATIC SIXTRL_INLINE SIXTRL_FN R NS(MathConst_sqrt_pi)()
 extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(MathConst_pi)( void ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(MathConst_pi)( void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
 NS(MathConst_deg2rad)( void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
     NS(MathConst_rad2deg)( void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
     NS(MathConst_sqrt_pi)( void ) SIXTRL_NOEXCEPT;
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -173,24 +168,24 @@ SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
 extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(MathConst_pi)( void ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(MathConst_pi)( void ) SIXTRL_NOEXCEPT
 {
-    return ( SIXTRL_REAL_T )SIXTRL_MATH_CONST_PI;
+    return ( SIXTRL_REAL_TYPE )SIXTRL_MATH_CONST_PI;
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(MathConst_deg2rad)( void ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(MathConst_deg2rad)( void ) SIXTRL_NOEXCEPT
 {
-    return ( SIXTRL_REAL_T )SIXTRL_MATH_CONST_DEG2RAD;
+    return ( SIXTRL_REAL_TYPE )SIXTRL_MATH_CONST_DEG2RAD;
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(MathConst_rad2deg)( void ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(MathConst_rad2deg)( void ) SIXTRL_NOEXCEPT
 {
-    return ( SIXTRL_REAL_T )SIXTRL_MATH_CONST_RAD2DEG;
+    return ( SIXTRL_REAL_TYPE )SIXTRL_MATH_CONST_RAD2DEG;
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(MathConst_sqrt_pi)( void ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(MathConst_sqrt_pi)( void ) SIXTRL_NOEXCEPT
 {
-    return ( SIXTRL_REAL_T )SIXTRL_MATH_CONST_SQRT_PI;
+    return ( SIXTRL_REAL_TYPE )SIXTRL_MATH_CONST_SQRT_PI;
 }
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )

@@ -29,7 +29,6 @@
     #endif /* defined( __cplusplus ) */
 
     #include "sixtracklib/common/buffer.h"
-    #include "sixtracklib/common/definitions.h"
     #include "sixtracklib/common/buffer/assign_address_item.h"
     #include "sixtracklib/common/buffer/assign_address_item_kernel_impl.h"
     #include "sixtracklib/common/particles.h"

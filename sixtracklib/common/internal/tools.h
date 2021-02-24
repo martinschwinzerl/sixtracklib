@@ -1,73 +1,57 @@
 #ifndef SIXTRACKLIB_COMMON_INTERNAL_TOOLS_H__
 #define SIXTRACKLIB_COMMON_INTERNAL_TOOLS_H__
 
-#if !defined( _GPUCODE )
-#include "sixtracklib/common/definitions.h"
+#if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/definitions.h"
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
+#if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
+    #include <stdbool.h>
+#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
-#if defined( __cplusplus )
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 extern "C" {
-#endif /* defined( __cplusplus ) */
+#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
-#endif /* _GPUCODE */
+SIXTRL_STATIC SIXTRL_FN SIXTRL_UINT64_TYPE NS(greatest_common_divisor)(
+    SIXTRL_UINT64_TYPE a, SIXTRL_UINT64_TYPE b ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_UINT64_T NS(greatest_common_divisor)(
-    SIXTRL_UINT64_T a, SIXTRL_UINT64_T b );
+SIXTRL_STATIC SIXTRL_FN SIXTRL_UINT64_TYPE NS(least_common_multiple)(
+    SIXTRL_UINT64_TYPE a, SIXTRL_UINT64_TYPE b ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_UINT64_T NS(least_common_multiple)(
-    SIXTRL_UINT64_T a, SIXTRL_UINT64_T b );
+SIXTRL_STATIC SIXTRL_FN SIXTRL_INT64_TYPE NS(sign_int64)(
+    SIXTRL_INT64_TYPE const a ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_INT64_T NS(sign_int64)( SIXTRL_INT64_T const a );
 
-/* ------------------------------------------------------------------------- */
+/* ************************************************************************** */
+/* ************************************************************************** */
 
-SIXTRL_INLINE SIXTRL_UINT64_T NS(greatest_common_divisor)(
-    SIXTRL_UINT64_T a, SIXTRL_UINT64_T b )
-{
-    static SIXTRL_UINT64_T const ZERO = ( SIXTRL_UINT64_T )0u;
-
-    while( ( a != ZERO ) && ( b != ZERO ) )
-    {
-        if( a == ZERO ) return b;
+SIXTRL_INLINE SIXTRL_UINT64_TYPE NS(greatest_common_divisor)(
+    SIXTRL_UINT64_TYPE a, SIXTRL_UINT64_TYPE b ) SIXTRL_NOEXCEPT {
+    while( ( a != ( SIXTRL_UINT64_TYPE )0u ) &&
+           ( b != ( SIXTRL_UINT64_TYPE )0u ) ) {
+        if( a == ( SIXTRL_UINT64_TYPE )0u ) return b;
         b %= a;
 
-        if( b == ZERO ) return a;
-        a %= b;
-    }
-
-    return ( a > b ) ? a : b;
-}
+        if( b == ( SIXTRL_UINT64_TYPE )0u ) return a;
+        a %= b; }
+    return ( a > b ) ? a : b; }
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_INLINE SIXTRL_UINT64_T NS(least_common_multiple)(
-    SIXTRL_UINT64_T a, SIXTRL_UINT64_T b )
-{
-    static SIXTRL_UINT64_T const ZERO = ( SIXTRL_UINT64_T )0u;
-    SIXTRL_UINT64_T const gcd = NS(greatest_common_divisor)( a, b );
-
-    return ( gcd != ZERO ) ? ( ( a * b ) / gcd ) : ( ZERO );
-}
+SIXTRL_INLINE SIXTRL_UINT64_TYPE NS(least_common_multiple)(
+    SIXTRL_UINT64_TYPE a, SIXTRL_UINT64_TYPE b ) SIXTRL_NOEXCEPT {
+    SIXTRL_UINT64_TYPE const gcd = NS(greatest_common_divisor)( a, b );
+    return ( gcd != ( SIXTRL_UINT64_TYPE )0u )
+        ? ( ( a * b ) / gcd ) : ( SIXTRL_UINT64_TYPE )0u; }
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_INLINE SIXTRL_INT64_T NS(sign_int64)( SIXTRL_INT64_T const x )
-{
-    return ( x > 0 ) - ( x < 0 );
+SIXTRL_INLINE SIXTRL_INT64_TYPE NS(sign_int64)(
+    SIXTRL_INT64_TYPE const val ) SIXTRL_NOEXCEPT {
+        return ( val > 0 ) - ( val < 0 ); }
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 }
-
-#if !defined( _GPUCODE )
-
-#if defined( __cplusplus )
-}
-#endif /* defined( __cplusplus ) */
-
-#endif /* #if !defined( _GPUCODE ) */
-
+#endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 #endif /* SIXTRACKLIB_COMMON_INTERNAL_TOOLS_H__ */
-
-/*end: sixtracklib/common/details/tools.h */

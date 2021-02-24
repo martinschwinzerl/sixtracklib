@@ -72,7 +72,7 @@ namespace SIXTRL_CXX_NAMESPACE
 #endif /* C++ */
 
 #if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/internal/type_comparison_helpers.hpp"
+    #include "sixtracklib/common/internal/type_comparison_helpers.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if defined( __cplusplus )
@@ -676,58 +676,58 @@ typename SIXTRL_CXX_NAMESPACE::TypeMethodParamTraits< T >::value_type NS(min)(
 extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(sin)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(sin)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(asin)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(asin)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(cos)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(cos)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(acos)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(acos)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(tan)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(tan)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(atan2)( SIXTRL_REAL_T const y, SIXTRL_REAL_T const x ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(atan2)( SIXTRL_REAL_TYPE const y, SIXTRL_REAL_TYPE const x ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(sqrt)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(sqrt)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(exp)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(exp)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(log)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(log)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(gamma)(
-    SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(gamma)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(sign)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(sign)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(abs)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(abs)( SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(pow)( SIXTRL_REAL_T const base, SIXTRL_REAL_T const n ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(pow)( SIXTRL_REAL_TYPE const base, SIXTRL_REAL_TYPE const n ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(pow_positive_base)( SIXTRL_REAL_T const base,
-                       SIXTRL_REAL_T const n ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(pow_positive_base)( SIXTRL_REAL_TYPE const base,
+                       SIXTRL_REAL_TYPE const n ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(pow_int_exp)( SIXTRL_REAL_T const base,
-                 SIXTRL_INT64_T const n ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(pow_int_exp)( SIXTRL_REAL_TYPE const base,
+                 SIXTRL_INT64_TYPE const n ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(min)( SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(min)( SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T
-NS(max)( SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE
+NS(max)( SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT;
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
@@ -736,13 +736,12 @@ NS(max)( SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT;
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
-
-
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(sin)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(sin)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::sin;
@@ -751,18 +750,20 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(sin)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
     return sin( arg );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(asin)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(asin)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::asin;
     #endif /* Host, ADL */
 
-    SIXTRL_ASSERT( ( arg >= ( SIXTRL_REAL_T )-1 ) &&
-                   ( arg <= ( SIXTRL_REAL_T )+1 ) );
+    SIXTRL_ASSERT( ( arg >= ( SIXTRL_REAL_TYPE )-1 ) &&
+                   ( arg <= ( SIXTRL_REAL_TYPE )+1 ) );
     return asin( arg );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(cos)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(cos)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::cos;
@@ -771,18 +772,20 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(cos)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
     return cos( arg );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(acos)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(acos)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::acos;
     #endif /* Host, ADL */
 
-    SIXTRL_ASSERT( ( arg >= ( SIXTRL_REAL_T )-1 ) &&
-                   ( arg <= ( SIXTRL_REAL_T )+1 ) );
+    SIXTRL_ASSERT( ( arg >= ( SIXTRL_REAL_TYPE )-1 ) &&
+                   ( arg <= ( SIXTRL_REAL_TYPE )+1 ) );
     return acos( arg );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(tan)( SIXTRL_REAL_T const x ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(tan)(
+    SIXTRL_REAL_TYPE const x ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::tan;
@@ -790,8 +793,8 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(tan)( SIXTRL_REAL_T const x ) SIXTRL_NOEXCEPT
     return tan( x );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(atan2)(
-    SIXTRL_REAL_T const y, SIXTRL_REAL_T const x ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(atan2)(
+    SIXTRL_REAL_TYPE const y, SIXTRL_REAL_TYPE const x ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::atan2;
@@ -799,16 +802,18 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(atan2)(
     return atan2( y, x );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(sqrt)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(sqrt)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::sqrt;
     #endif /* Host, ADL */
-    SIXTRL_ASSERT( arg >= ( SIXTRL_REAL_T )0 );
+    SIXTRL_ASSERT( arg >= ( SIXTRL_REAL_TYPE )0 );
     return sqrt( arg );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(exp)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(exp)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::exp;
@@ -816,37 +821,43 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(exp)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
     return exp( arg );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(log)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(log)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::log;
     #endif /* ADL / Host */
 
-    SIXTRL_ASSERT( arg > ( SIXTRL_REAL_T )0 );
+    SIXTRL_ASSERT( arg > ( SIXTRL_REAL_TYPE )0 );
     return log( arg );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(gamma)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(gamma)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::tgamma;
     #endif /* ADL / Host */
 
     #if !defined( _GPUCODE )
-    SIXTRL_ASSERT( ( SIXTRL_REAL_T )171.7 >= arg );
-    SIXTRL_ASSERT( ( SIXTRL_REAL_T )1 / DBL_MAX <= arg );
+    SIXTRL_ASSERT( ( SIXTRL_REAL_TYPE )171.7 >= arg );
+    SIXTRL_ASSERT( ( SIXTRL_REAL_TYPE )1 / DBL_MAX <= arg );
     #endif /* _GPUCODE */
 
     return tgamma( arg );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(sign)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(sign)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
-    typedef SIXTRL_REAL_T real_t;
-    return ( arg >= ( real_t )0 ) ? ( ( real_t )1 ) : ( ( real_t )-1 );
+    typedef SIXTRL_REAL_TYPE real_type;
+    /* return ( arg >= ( real_t )0 ) ? ( ( real_t )1 ) : ( ( real_t )-1 ); */
+    return  ( ( real_type )( arg > ( real_type )0.0 ) ) -
+            ( ( real_type )( arg < ( real_type )0.0 ) );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(abs)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(abs)(
+    SIXTRL_REAL_TYPE const arg ) SIXTRL_NOEXCEPT
 {
     #if defined( _GPUCODE )
     return fabs( arg );
@@ -854,13 +865,13 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(abs)( SIXTRL_REAL_T const arg ) SIXTRL_NOEXCEPT
     using std::fabs; /* ADL */
     return fabs( arg );
     #else
-    typedef SIXTRL_REAL_T real_t;
+    typedef SIXTRL_REAL_TYPE real_t;
     return ( arg >= ( real_t )0 ) ? arg : -arg;
     #endif
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(pow)(
-    SIXTRL_REAL_T const base, SIXTRL_REAL_T const n ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(pow)(
+    SIXTRL_REAL_TYPE const base, SIXTRL_REAL_TYPE const n ) SIXTRL_NOEXCEPT
 {
     #if defined( __cplusplus ) && !defined( _GPUCODE ) /* ADL */
     using std::pow;
@@ -869,8 +880,8 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(pow)(
     return pow( base, n );
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(pow_positive_base)(
-    SIXTRL_REAL_T const base, SIXTRL_REAL_T const n ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(pow_positive_base)(
+    SIXTRL_REAL_TYPE const base, SIXTRL_REAL_TYPE const n ) SIXTRL_NOEXCEPT
 {
     #if defined( _GPUCODE ) && defined( __OPENCL_VERSION__ )
     return powr( base, n );
@@ -882,8 +893,8 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(pow_positive_base)(
     #endif
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(pow_int_exp)( SIXTRL_REAL_T const base,
-                 SIXTRL_INT64_T const n ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(pow_int_exp)( SIXTRL_REAL_TYPE const base,
+                 SIXTRL_INT64_TYPE const n ) SIXTRL_NOEXCEPT
 {
     #if defined( _GPUCODE ) && defined( __OPENCL_VERSION__ )
         return pown( base, n );
@@ -896,8 +907,8 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(pow_int_exp)( SIXTRL_REAL_T const base,
         #if !defined( _GPUCODE ) && defined( __cplusplus ) /* ADL */
         using std::llabs;
         #endif /* ADL / Host */
-        typedef SIXTRL_REAL_T real_t;
-        typedef SIXTRL_INT64_T int_t;
+        typedef SIXTRL_REAL_TYPE real_t;
+        typedef SIXTRL_INT64_TYPE int_t;
 
         real_t result;
         int_t const pos_exp = llabs( n );
@@ -977,8 +988,8 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(pow_int_exp)( SIXTRL_REAL_T const base,
         #endif
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(min)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(min)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     #if defined( _GPUCODE )
     return min( lhs, rhs );
@@ -990,8 +1001,8 @@ SIXTRL_INLINE SIXTRL_REAL_T NS(min)(
     #endif /* _GPUCODE */
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(max)(
-    SIXTRL_REAL_T const lhs, SIXTRL_REAL_T const rhs ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(max)(
+    SIXTRL_REAL_TYPE const lhs, SIXTRL_REAL_TYPE const rhs ) SIXTRL_NOEXCEPT
 {
     #if defined( _GPUCODE )
     return max( lhs, rhs );

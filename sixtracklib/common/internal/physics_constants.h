@@ -1,6 +1,13 @@
 #ifndef SIXTRACKLIB_COMMON_INTERNAL_PHYSICS_CONSTANTS_H__
 #define SIXTRACKLIB_COMMON_INTERNAL_PHYSICS_CONSTANTS_H__
 
+#if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/definitions.h"
+    #include "sixtracklib/common/particles/definitions.h"
+    #include "sixtracklib/common/internal/type_comparison_helpers.h"
+    #include "sixtracklib/common/internal/type_store_traits.hpp"
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
+
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
     #if defined( __cplusplus )
         #include <cstddef>
@@ -297,37 +304,37 @@ NS(PhysConst_charge0)( typename SIXTRL_CXX_NAMESPACE::TypeMethodParamTraits<
 extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_clight)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_clight)(
     void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_epsilon0)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_epsilon0)(
     void )  SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_mu0)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_mu0)(
     void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_charge0_si)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_charge0_si)(
     void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_charge0)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_charge0)(
     void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_mass_atomic_si)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_mass_atomic_si)(
     void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_mass_atomic_ev)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_mass_atomic_ev)(
     void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_mass_proton_si)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_mass_proton_si)(
     void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_mass_proton_ev)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_mass_proton_ev)(
     void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_mass_electron_si)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_mass_electron_si)(
     void ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_mass_electron_ev)(
+SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_TYPE NS(PhysConst_mass_electron_ev)(
     void ) SIXTRL_NOEXCEPT;
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -342,60 +349,46 @@ SIXTRL_STATIC SIXTRL_FN SIXTRL_REAL_T NS(PhysConst_mass_electron_ev)(
 extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_clight)( void ) SIXTRL_NOEXCEPT
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_clight)( void ) SIXTRL_NOEXCEPT {
+    return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_CLIGHT; }
+
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_epsilon0)( void )  SIXTRL_NOEXCEPT
 {
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_CLIGHT;
+    return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_EPSILON0;
 }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_epsilon0)( void )  SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_EPSILON0;
-}
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_mu0)( void ) SIXTRL_NOEXCEPT {
+    return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_MU0; }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_mu0)( void ) SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_MU0;
-}
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_charge0_si)( void ) SIXTRL_NOEXCEPT {
+    return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_CHARGE0_SI; }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_charge0_si)( void ) SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_CHARGE0_SI;
-}
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_charge0)( void ) SIXTRL_NOEXCEPT {
+    return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_CHARGE0; }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_charge0)( void ) SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_CHARGE0;
-}
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_mass_atomic_si)(
+    void ) SIXTRL_NOEXCEPT { return (
+        SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_MASS_ATOMIC_SI; }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_mass_atomic_si)( void ) SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_MASS_ATOMIC_SI;
-}
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_mass_atomic_ev)(
+    void ) SIXTRL_NOEXCEPT {
+        return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_MASS_ATOMIC_EV; }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_mass_atomic_ev)( void ) SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_MASS_ATOMIC_EV;
-}
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_mass_proton_si)(
+    void ) SIXTRL_NOEXCEPT {
+        return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_MASS_PROTON_SI; }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_mass_proton_si)( void ) SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_MASS_PROTON_SI;
-}
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_mass_proton_ev)(
+    void ) SIXTRL_NOEXCEPT {
+        return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_MASS_PROTON_EV; }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_mass_proton_ev)( void ) SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_MASS_PROTON_EV;
-}
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_mass_electron_si)(
+    void ) SIXTRL_NOEXCEPT {
+        return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_MASS_ELECTRON_SI; }
 
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_mass_electron_si)( void ) SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_MASS_ELECTRON_SI;
-}
-
-SIXTRL_INLINE SIXTRL_REAL_T NS(PhysConst_mass_electron_ev)( void ) SIXTRL_NOEXCEPT
-{
-    return ( SIXTRL_REAL_T )SIXTRL_PHYS_CONST_MASS_ELECTRON_EV;
-}
+SIXTRL_INLINE SIXTRL_REAL_TYPE NS(PhysConst_mass_electron_ev)(
+    void ) SIXTRL_NOEXCEPT {
+        return ( SIXTRL_REAL_TYPE )SIXTRL_PHYS_CONST_MASS_ELECTRON_EV; }
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
 }
