@@ -1,11 +1,9 @@
 set( SIXTRL_COMMON_INTERNAL_C99_SOURCES math_qgauss.c )
 
-set( SIXTRL_COMMON_INTERNAL_C99_HEADERS beam_elements_defines.h
-    beam_elements_undef.h buffer_garbage_defines.h buffer_garbage_undef.h
-    buffer_main_defines.h buffer_main_undef.h buffer_object_defines.h
-    buffer_object_undef.h math_constants.h math_factorial.h math_functions.h
+set( SIXTRL_COMMON_INTERNAL_C99_HEADERS
+    math_constants.h math_factorial.h math_functions.h
     math_interpol.h math_qgauss.h namespace_defines.h namespace_undef.h
-    objects_type_id.h particles_defines.h particles_undef.h tools.h )
+    tools.h type_comparison_helpers.h )
 
 add_library( sixtrack_common_internal OBJECT
     ${SIXTRL_COMMON_INTERNAL_C99_HEADERS}
@@ -24,9 +22,13 @@ target_compile_options( sixtrack_common_internal PRIVATE
 
 # ------------------------------------------------------------------------------
 
-set( SIXTRL_COMMON_INTERNAL_CXX_HEADERS track_job_base.h )
-set( SIXTRL_COMMON_INTERNAL_CXX_SOURCES
-     track_job_base.cpp track_job.cpp track_job_cpu.cpp )
+set( SIXTRL_COMMON_INTERNAL_CXX_HEADERS file_tools.h
+#     track_job_base.h
+)
+
+set( SIXTRL_COMMON_INTERNAL_CXX_SOURCES file_tools.cpp
+#      track_job_base.cpp track_job.cpp track_job_cpu.cpp
+)
 
 add_library( sixtrack_common_internal_cxx OBJECT
     ${SIXTRL_COMMON_INTERNAL_CXX_HEADERS}
