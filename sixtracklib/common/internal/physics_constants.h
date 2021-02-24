@@ -23,25 +23,19 @@
     #endif /* defined( __cplusplus ) */
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
 
-#if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/definitions.h"
-    #include "sixtracklib/common/particles/definitions.h"
-    #include "sixtracklib/common/internal/compiler_attributes.h"
-    #include "sixtracklib/common/internal/type_store_traits.hpp"
-    #include "sixtracklib/common/internal/type_comparison_helpers.hpp"
-#endif /* !defined( SIXTRL_NO_INCLUDES ) */
+/* SOURCE: https://physics.nist.gov/cuu/Constants/index.html
+ * Revision 2018 values */
 
 #if !defined( SIXTRL_PHYS_CONST_CLIGHT )
     #define SIXTRL_PHYS_CONST_CLIGHT 299792458.0
 #endif /* SIXTRL_PHYS_CONST_CLIGHT */
 
 #if !defined( SIXTRL_PHYS_CONST_EPSILON0 )
-    #define SIXTRL_PHYS_CONST_EPSILON0 8.854187817620e-12
+    #define SIXTRL_PHYS_CONST_EPSILON0 8.8541878128e-12
 #endif /* SIXTRL_PHYS_CONST_EPSILON0 */
 
 #if !defined( SIXTRL_PHYS_CONST_MU0 )
-    #define SIXTRL_PHYS_CONST_MU0 \
-        1.25663706143591729538505735331180115367886775975004232839e-6
+    #define SIXTRL_PHYS_CONST_MU0 1.25663706212e-6
 #endif /* SIXTRL_PHYS_CONST_MU0 */
 
 #if !defined( SIXTRL_PHYS_CONST_MASS_ATOMIC_SI )
