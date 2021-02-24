@@ -1,49 +1,172 @@
 #ifndef SIXTRACKLIB_COMMON_PARTICLES_DEFINITIONS_H__
 #define SIXTRACKLIB_COMMON_PARTICLES_DEFINITIONS_H__
 
-#if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
-    #include <stddef.h>
-    #include <stdlib.h>
-#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
-
 #if !defined( SIXTRL_NO_INCLUDES )
-    #include "sixtracklib/common/definitions.h"
-    #include "sixtracklib/common/internal/particles_defines.h"
-    #include "sixtracklib/common/buffer/buffer_type.h"
+    #include "sixtracklib/common/cobjects/definitions.h"
+    #include "sixtracklib/common/particles/cobj_type_ids_undef.h"
+    #include "sixtracklib/common/particles/cobj_type_ids.h"
+    #include "sixtracklib/common/generated/config.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#if defined( __cplusplus ) && !defined( _GPUCODE ) && !defined( __CUDA_ARCH__ )
+#if !defined( SIXTRL_PARTICLE_ARGPTR_DEC )
+    #define   SIXTRL_PARTICLE_ARGPTR_DEC_UNDEF
+    #if defined( SIXTRL_BUFFER_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLE_ARGPTR_DEC SIXTRL_BUFFER_DATAPTR_DEC
+    #elif defined( SIXTRL_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLE_ARGPTR_DEC SIXTRL_DATAPTR_DEC
+    #else
+        #define  SIXTRL_PARTICLE_ARGPTR_DEC
+    #endif
+#endif /* SIXTRL_PARTICLE_ARGPTR_DEC */
+
+#if !defined( SIXTRL_PARTICLE_DATAPTR_DEC )
+    #define   SIXTRL_PARTICLE_DATAPTR_DEC_UNDEF
+    #if defined( SIXTRL_PARTICLE_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLE_DATAPTR_DEC SIXTRL_BUFFER_DATAPTR_DEC
+    #elif defined( SIXTRL_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLE_DATAPTR_DEC SIXTRL_DATAPTR_DEC
+    #else
+        #define  SIXTRL_PARTICLE_DATAPTR_DEC
+    #endif
+#endif /* SIXTRL_PARTICLE_DATAPTR_DEC */
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+
+#if !defined( SIXTRL_PARTICLES_ARGPTR_DEC )
+    #define   SIXTRL_PARTICLES_ARGPTR_DEC_UNDEF
+    #if defined( SIXTRL_BUFFER_SET_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLES_ARGPTR_DEC SIXTRL_BUFFER_DATAPTR_DEC
+    #elif defined( SIXTRL_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLES_ARGPTR_DEC SIXTRL_DATAPTR_DEC
+    #else
+        #define  SIXTRL_PARTICLES_ARGPTR_DEC
+    #endif
+#endif /* SIXTRL_PARTICLES_ARGPTR_DEC */
+
+#if !defined( SIXTRL_PARTICLES_DATAPTR_DEC )
+    #define   SIXTRL_PARTICLES_DATAPTR_DEC_UNDEF
+    #if defined( SIXTRL_BUFFER_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLES_DATAPTR_DEC SIXTRL_BUFFER_DATAPTR_DEC
+    #elif defined( SIXTRL_DATAPTR_DEC )
+        #define  SIXTRL_PARTICLES_DATAPTR_DEC SIXTRL_DATAPTR_DEC
+    #else
+        #define  SIXTRL_PARTICLES_DATAPTR_DEC
+    #endif
+#endif /* SIXTRL_PARTICLES_DATAPTR_DEC */
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
+
+#if !defined( SIXTRL_PARTICLES_ADDR_ARGPTR_DEC )
+    #define SIXTRL_PARTICLES_ADDR_ARGPTR_DEC_UNDEF
+    #if defined( SIXTRL_BUFFER_DATAPTR_DEC )
+        #define SIXTRL_PARTICLES_ADDR_ARGPTR_DEC SIXTRL_BUFFER_DATAPTR_DEC
+    #elif defined( SIXTRL_DATAPTR_DEC )
+        #define SIXTRL_PARTICLES_ADDR_ARGPTR_DEC SIXTRL_DATAPTR_DEC
+    #else
+        #define SIXTRL_PARTICLES_ADDR_ARGPTR_DEC
+    #endif /* defined( SIXTRL_BUFFER_DATAPTR_DEC ) */
+#endif /* SIXTRL_PARTICLE_SET_DATAPTR_DEC */
+
+#if !defined( SIXTRL_PARTICLES_ADDR_DATAPTR_DEC )
+    #define SIXTRL_PARTICLES_ADDR_DATAPTR_DEC_UNDEF
+    #if defined( SIXTRL_BUFFER_DATAPTR_DEC )
+        #define SIXTRL_PARTICLES_ADDR_DATAPTR_DEC SIXTRL_BUFFER_DATAPTR_DEC
+    #elif defined( SIXTRL_DATAPTR_DEC )
+        #define SIXTRL_PARTICLES_ADDR_DATAPTR_DEC SIXTRL_DATAPTR_DEC
+    #else
+        #define SIXTRL_PARTICLES_ADDR_DATAPTR_DEC
+    #endif /* defined( SIXTRL_BUFFER_DATAPTR_DEC ) */
+#endif /* SIXTRL_PARTICLES_SET_DATAPTR_DEC */
+
+/* -------------------------------------------------------------------------- */
+
+#if !defined( SIXTRL_PARTICLE_MIN_LEGAL_ID )
+    #define SIXTRL_PARTICLE_MIN_LEGAL_ID  0
+#endif /* !defined( SIXTRL_PARTICLE_MIN_LEGAL_ID ) */
+
+#if !defined( SIXTRL_PARTICLE_MAX_LEGAL_ID )
+    #define SIXTRL_PARTICLE_MAX_LEGAL_ID 9223372036854775806
+#endif /* !defined( SIXTRL_PARTICLE_MAX_LEGAL_ID ) */
+
+#if !defined( SIXTRL_PARTICLE_ILLEGAL_ID )
+    #define SIXTRL_PARTICLE_ILLEGAL_ID 9223372036854775807
+#endif /* !defined( SIXTRL_PARTICLE_ILLEGAL_ID ) */
+
+#if !defined( SIXTRL_PARTICLE_MIN_LEGAL_AT_ELEMENT )
+    #define SIXTRL_PARTICLE_MIN_LEGAL_AT_ELEMENT 0
+#endif /* !defined( SIXTRL_PARTICLE_MIN_LEGAL_AT_ELEMENT ) */
+
+#if !defined( SIXTRL_PARTICLE_MAX_LEGAL_AT_ELEMENT )
+    #define SIXTRL_PARTICLE_MAX_LEGAL_AT_ELEMENT 9223372036854775806
+#endif /* !defined( SIXTRL_PARTICLE_MAX_LEGAL_AT_ELEMENT ) */
+
+#if !defined( SIXTRL_PARTICLE_ILLEGAL_AT_ELEMENT )
+    #define SIXTRL_PARTICLE_ILLEGAL_AT_ELEMENT 9223372036854775807
+#endif /* !defined( SIXTRL_PARTICLE_ILLEGAL_AT_ELEMENT ) */
+
+#if !defined( SIXTRL_PARTICLE_MIN_LEGAL_AT_TURN )
+    #define SIXTRL_PARTICLE_MIN_LEGAL_AT_TURN 0
+#endif /* !defined( SIXTRL_PARTICLE_MIN_LEGAL_AT_TURN ) */
+
+#if !defined( SIXTRL_PARTICLE_MAX_LEGAL_AT_TURN )
+    #define SIXTRL_PARTICLE_MAX_LEGAL_AT_TURN 9223372036854775806
+#endif /* !defined( SIXTRL_PARTICLE_MAX_LEGAL_AT_TURN ) */
+
+#if !defined( SIXTRL_PARTICLE_ILLEGAL_AT_TURN )
+    #define SIXTRL_PARTICLE_ILLEGAL_AT_TURN  9223372036854775807
+#endif /* !defined( SIXTRL_PARTICLE_ILLEGAL_AT_TURN ) */
+
+/* -------------------------------------------------------------------------- */
+
+#if !defined( SIXTRL_COBJECTS_TYPE_ID_PARTICLES )
+    #define SIXTRL_COBJECTS_TYPE_ID_PARTICLES \
+        ( SIXTRL_COBJECTS_TYPE_ID_MINIMUM + 2 )
+#endif /* !defined( SIXTRL_COBJECTS_TYPE_ID_PARTICLES ) */
+
+#if !defined( SIXTRL_PARTICLES_NUM_REAL_DATAPTRS )
+    #define SIXTRL_PARTICLES_NUM_REAL_DATAPTRS 17
+#endif /* !defined( SIXTRL_PARTICLES_NUM_REAL_DATAPTRS ) */
+
+#if !defined( SIXTRL_PARTICLES_NUM_INDEX_DATAPTRS )
+    #define SIXTRL_PARTICLES_NUM_INDEX_DATAPTRS 4
+#endif /* !defined( SIXTRL_PARTICLES_NUM_INDEX_DATAPTRS ) */
+
+#if !defined( SIXTRL_PARTICLES_NUM_DATAPTRS )
+    #define SIXTRL_PARTICLES_NUM_DATAPTRS 21
+#endif /* !defined( SIXTRL_PARTICLES_NUM_DATAPTRS ) */
+
+#if defined( __cplusplus ) && !defined( _GPUCODE )
 extern "C" {
 #endif /* C++, Host  */
 
-/* ========================================================================= */
+typedef SIXTRL_INT64_TYPE     NS(particle_index_type);
+typedef SIXTRL_REAL_TYPE      NS(particle_real_type);
+typedef SIXTRL_INT64_TYPE     NS(particles_num_type);
+typedef NS(address_type)      NS(particles_addr_type);
+typedef NS(address_diff_type) NS(particles_addr_diff_type);
 
-typedef SIXTRL_INT64_T  NS(particle_index_t);
-typedef SIXTRL_REAL_T   NS(particle_real_t);
-typedef SIXTRL_INT64_T  NS(particle_num_elements_t);
+typedef SIXTRL_PARTICLES_DATAPTR_DEC NS(particle_real_type)*
+        NS(particles_real_pointer);
 
-typedef SIXTRL_PARTICLE_DATAPTR_DEC NS(particle_real_t)*
-        NS(particle_real_ptr_t);
+typedef SIXTRL_PARTICLES_DATAPTR_DEC NS(particle_real_type) const*
+        NS(particles_real_const_pointer);
 
-typedef SIXTRL_PARTICLE_DATAPTR_DEC NS(particle_real_t) const*
-        NS(particle_real_const_ptr_t);
+typedef SIXTRL_PARTICLES_DATAPTR_DEC NS(particle_index_type)*
+        NS(particles_index_pointer);
 
-typedef SIXTRL_PARTICLE_DATAPTR_DEC NS(particle_index_t)*
-        NS(particle_index_ptr_t);
-
-typedef SIXTRL_PARTICLE_DATAPTR_DEC NS(particle_index_t) const*
-        NS(particle_index_const_ptr_t);
+typedef SIXTRL_PARTICLES_DATAPTR_DEC NS(particle_index_type) const*
+        NS(particles_index_const_pointer);
 
 #if !defined( _GPUCODE )
 
-SIXTRL_STATIC_VAR NS(buffer_size_t) const
-    NS(PARTICLES_NUM_INDEX_DATAPTRS) = ( NS(buffer_size_t) )4u;
+SIXTRL_STATIC_VAR NS(size_type) const
+    NS(PARTICLES_NUM_INDEX_DATAPTRS) = ( NS(size_type) )4u;
 
-SIXTRL_STATIC_VAR NS(buffer_size_t) const
-    NS(PARTICLES_NUM_REAL_DATAPTRS) = ( NS(buffer_size_t) )17u;
+SIXTRL_STATIC_VAR NS(size_type) const
+    NS(PARTICLES_NUM_REAL_DATAPTRS) = ( NS(size_type) )17u;
 
-SIXTRL_STATIC_VAR NS(buffer_size_t) const
-    NS(PARTICLES_NUM_DATAPTRS) = ( NS(buffer_size_t) )21u;
+SIXTRL_STATIC_VAR NS(size_type) const
+    NS(PARTICLES_NUM_DATAPTRS) = ( NS(size_type) )21u;
 
 #else /* defined( _GPUCODE ) */
 
@@ -57,37 +180,49 @@ NS(ParticlesGlobalConstantsEnum);
 
 #endif /* !defined( _GPUCODE ) */
 
-
-#if defined( __cplusplus ) && !defined( _GPUCODE ) && !defined( __CUDA_ARCH__ )
+typedef enum
+{
+    NS(PARTICLE_INIT_MODE_CHARGE0_MASS0_BETA0) = 0,
+    NS(PARTICLE_INIT_MODE_CHARGE0_MASS0_GAMMA0) = 1,
+    NS(PARTICLE_INIT_MODE_CHARGE0_MASS0_P0C) = 2,
+    NS(PARTICLE_INIT_MODE_DEFAULT) = 0
 }
+NS(ParticleInitModeEnum);
 
+#if defined( __cplusplus ) && !defined( _GPUCODE )
+}
+#endif /* C++, Host  */
+
+#if defined( __cplusplus )
 namespace SIXTRL_CXX_NAMESPACE
 {
-    typedef ::NS(particle_index_t)              particle_index_t;
-    typedef ::NS(particle_real_t)               particle_real_t;
-    typedef ::NS(particle_num_elements_t)       particle_num_elements_t;
+    typedef ::NS(particle_index_type)           particle_index_type;
+    typedef ::NS(particle_real_type)            particle_real_type;
+    typedef ::NS(particles_num_type)            particles_num_type;
 
-    typedef ::NS(particle_real_ptr_t)           particle_real_ptr_t;
-    typedef ::NS(particle_real_const_ptr_t)     particle_real_const_ptr_t;
+    typedef ::NS(particles_real_pointer)        particles_real_pointer;
+    typedef ::NS(particles_real_const_pointer)  particles_real_const_pointer;
 
-    typedef ::NS(particle_index_ptr_t)          particle_index_ptr_t;
-    typedef ::NS(particle_index_const_ptr_t)    particle_index_const_ptr_t;
+    typedef ::NS(particles_index_pointer)       particles_index_ptr_t;
+    typedef ::NS(particles_index_const_pointer) particles_index_const_ptr_t;
+    typedef ::NS(particles_addr_type)           particles_addr_type;
+    typedef ::NS(particles_addr_diff_type)      particles_addr_diff_type;
 
     /* --------------------------------------------------------------------- */
 
-    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST ::NS(buffer_size_t)
-        PARTICLES_NUM_INDEX_DATAPTRS = static_cast< ::NS(buffer_size_t) >(
+    #if !defined( _GPUCODE )
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST ::NS(size_type)
+        PARTICLES_NUM_INDEX_DATAPTRS = static_cast< ::NS(size_type) >(
             ::NS(PARTICLES_NUM_INDEX_DATAPTRS) );
 
-    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST ::NS(buffer_size_t)
-        PARTICLES_NUM_REAL_DATAPTRS = static_cast< ::NS(buffer_size_t) >(
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST ::NS(size_type)
+        PARTICLES_NUM_REAL_DATAPTRS = static_cast< ::NS(size_type) >(
             ::NS(PARTICLES_NUM_REAL_DATAPTRS) );
 
-    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST ::NS(buffer_size_t)
-        PARTICLES_NUM_DATAPTRS = static_cast< ::NS(buffer_size_t) >(
+    SIXTRL_STATIC_VAR SIXTRL_CONSTEXPR_OR_CONST ::NS(size_type)
+        PARTICLES_NUM_DATAPTRS = static_cast< ::NS(size_type) >(
             ::NS(PARTICLES_NUM_DATAPTRS) );
+    #endif /* Host */
 }
-
-#endif /* C++, Host  */
+#endif /* C++ */
 #endif /* SIXTRACKLIB_COMMON_PARTICLES_DEFINITIONS_H__ */
-/* end: sixtracklib/common/particles/definitions.h */
