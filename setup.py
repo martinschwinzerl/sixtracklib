@@ -19,6 +19,6 @@ setup(
     url='https://github.com/SixTrack/sixtracklib',
     zip_safe=False,
     cmake_install_dir="python/sixtracklib",
-    install_requires=['numpy', 'scipy', 'cobjects>=0.0.4','pysixtrack>=0.0.6','sixtracktools>=0.0.2'],
+    install_requires=['numpy', 'scipy', 'toml', 'cobjects>=0.0.4','pysixtrack>=0.0.6','sixtracktools>=0.0.2'],
     cmake_args=['-DCMAKE_BUILD_TYPE=Debug',]
 )
