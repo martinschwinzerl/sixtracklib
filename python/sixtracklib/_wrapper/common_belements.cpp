@@ -743,6 +743,34 @@ namespace python
         py::arg( "r21" ) = ::NS(DipoleEdge_default_r21)(),
         py::arg( "r43" ) = ::NS(DipoleEdge_default_r43)() );
 
+        obj.def( py::init( []( cbuffer_view_type& cbuffer,
+            real_type const h, real_type const e1, real_type const hgap,
+            real_type const fint )
+        {
+            real_type const corr = real_type{ 2. } * h * hgap * fint;
+            real_type const r21 = +h * NS(tan)( e1 );
+            real_type const cos_e1 = NS(cos)( e1 );
+            real_type const sin_e1 = NS(sin)( e1 );
+
+            if( ::NS(abs)( cos_e1 ) <
+                std::numeric_limits< real_type >::epsilon() )
+            {
+                throw std::runtime_error( "cos( e1 ) is too close to 0.0" );
+            }
+
+            real_type const r43 = -h * NS(tan)( e1 - ( corr / cos_e1 ) *
+                ( real_type{ 1. } + sin_e1 * sin_e1 ) );
+
+            return std::unique_ptr< dipedge_t, py::nodelete >(
+                ::NS(DipoleEdge_cbuffer_add)( cbuffer.as_c_api(), r21, r43 ) );
+        } ),
+        "default constructor, store instance on a CBufferView/CBuffer",
+        py::arg( "cbuffer" ),
+        py::arg( "h" ),
+        py::arg_v( "e1",   real_type{ 0. }, "Face angle [rad]" ),
+        py::arg_v( "hgap", real_type{ 0. }, "Equivalent gap [m]" ),
+        py::arg_v( "fint", real_type{ 0. }, "Fringe integral" ) );
+
         /* ----------------------------------------------------------------- */
 
         obj.def_static( "GET",
