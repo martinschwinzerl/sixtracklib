@@ -144,9 +144,13 @@ namespace python
             "that anything other than slot_size == 8 will probably not work "
             "here",
             py::arg( "ext_flat_buffer" ),
-            py::arg( "slot_size" ) = size_type{ 8u },
+            py::arg( "slot_size" ) = view_t::DEFAULT_SLOT_SIZE,
             py::arg( "flags" ) = view_t::FLAGS_VIEW_DEFAULT );
 
+
+        obj.def_property_readonly_static( "DEFAULT_SLOT_SIZE",
+            []( py::object /* */ ) -> size_type {
+                return view_t::DEFAULT_SLOT_SIZE; }, "get default slot size" );
 
         obj.def_static( "MIN_BUFFER_SIZE", &view_t::MIN_BUFFER_SIZE,
             "calculate the minimum admissible buffer size for a given slot size",
