@@ -240,6 +240,14 @@ void InitHelper_testlib_cobj_test_no_ptrs( stpy::InitHelper& root )
         "to the actual handle size",
         py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(CObjTestNoPtrs_cobj_reserved_handle_size)(
+                    slot_size ) / slot_size; },
+                py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
     obj.def( "cobj_required_num_bytes",
         []( elem_type const& self, size_type const slot_size ) {
             return ::NS(CObjTestNoPtrs_cobj_required_num_bytes)(
@@ -531,6 +539,23 @@ void InitHelper_testlib_cobj_test_dataptrs( stpy::InitHelper& root )
         "for a given slot size. For most types, this should be identical "
         "to the actual handle size",
         py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
+    obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+        []( uint_type b_capacity, uint_type c_capacity,
+            size_type const slot_size ) {
+            if( slot_size == size_type{ 0 } )
+                throw std::runtime_error( "slot_size == 0" );
+
+            elem_type elem;
+            ::NS(CObjTestDataptrs_clear)( &elem );
+            ::NS(CObjTestDataptrs_set_b_capacity)( &elem, b_capacity );
+            ::NS(CObjTestDataptrs_set_b_length)( &elem, b_capacity );
+            ::NS(CObjTestDataptrs_set_c_capacity)( &elem, c_capacity );
+            ::NS(CObjTestDataptrs_set_c_length)( &elem, c_capacity );
+            return ::NS(CObjTestDataptrs_cobj_required_num_bytes)(
+                &elem, slot_size ) / slot_size; },
+            py::arg( "b_capacity" ), py::arg( "c_capacity" ),
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
     obj.def( "cobj_required_num_bytes",
         []( elem_type const& self, size_type const slot_size ) {

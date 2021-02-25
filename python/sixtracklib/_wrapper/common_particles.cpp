@@ -396,6 +396,14 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(Particle_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( particle_t const& self, size_type const slot_size ) {
                 return ::NS(Particle_cobj_required_num_bytes)(
@@ -1689,6 +1697,25 @@ namespace python
             "Calculate the reserved handle size of the type in bytes "
             "for a given slot size. For most types, this should be identical "
             "to the actual handle size",
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( npart_type const max_num_particles, size_type const slot_size )
+            {
+                if( max_num_particles < npart_type{ 0 } )
+                    throw std::runtime_error( "max_num_particles < 0" );
+
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+
+                particle_set_t elem;
+                ::NS(Particles_clear)( &elem );
+                ::NS(Particles_set_max_num_particles)( &elem, max_num_particles );
+                ::NS(Particles_set_num_particles)( &elem, max_num_particles );
+
+                return ::NS(Particles_cobj_required_num_bytes)(
+                    &elem, slot_size ) / slot_size; },
+            py::arg( "max_num_particles" ),
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
         obj.def( "cobj_required_num_bytes",

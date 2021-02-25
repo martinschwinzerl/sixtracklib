@@ -241,6 +241,14 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(SCCoasting_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( elem_type const& self, size_type const slot_size ) {
             return ::NS(SCCoasting_cobj_required_num_bytes)( &self, slot_size ); },
@@ -522,6 +530,14 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(SCQGaussProfile_cobj_reserved_handle_size)(
+                    slot_size ) / slot_size; },
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( elem_type const& self, size_type const slot_size ) {
             return ::NS(SCQGaussProfile_cobj_required_num_bytes)(
@@ -678,6 +694,14 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(Cavity_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( cavity_t const& self, size_type const slot_size ) {
             return ::NS(Cavity_cobj_required_num_bytes)( &self, slot_size ); },
@@ -805,6 +829,14 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(DipoleEdge_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( dipedge_t const& self, size_type const slot_size ) {
             return ::NS(DipoleEdge_cobj_required_num_bytes)( &self, slot_size ); },
@@ -920,6 +952,14 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(Drift_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( drift_t const& self, size_type const slot_size ) {
             return ::NS(Drift_cobj_required_num_bytes)( &self, slot_size ); },
@@ -1031,6 +1071,14 @@ namespace python
             "Calculate the reserved handle size of the type in bytes "
             "for a given slot size. For most types, this should be identical "
             "to the actual handle size",
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(DriftExact_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
         obj.def( "cobj_required_num_bytes",
@@ -1167,6 +1215,14 @@ namespace python
             "Calculate the reserved handle size of the type in bytes "
             "for a given slot size. For most types, this should be identical "
             "to the actual handle size",
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(EndTracking_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
         obj.def( "cobj_required_num_bytes",
@@ -1325,6 +1381,14 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(LimitRect_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( limit_rect_t const& self, size_type const slot_size ) {
             return ::NS(LimitRect_cobj_required_num_bytes)( &self, slot_size ); },
@@ -1463,6 +1527,14 @@ namespace python
             "Calculate the reserved handle size of the type in bytes "
             "for a given slot size. For most types, this should be identical "
             "to the actual handle size",
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(LimitEllipse_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
         obj.def( "cobj_required_num_bytes",
@@ -1620,6 +1692,14 @@ namespace python
             "Calculate the reserved handle size of the type in bytes "
             "for a given slot size. For most types, this should be identical "
             "to the actual handle size",
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(LimitRectEllipse_cobj_reserved_handle_size)(
+                    slot_size ) / slot_size; },
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
         obj.def( "cobj_required_num_bytes",
@@ -1801,6 +1881,14 @@ namespace python
             "Calculate the reserved handle size of the type in bytes "
             "for a given slot size. For most types, this should be identical "
             "to the actual handle size",
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(Monitor_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
         obj.def( "cobj_required_num_bytes",
@@ -2355,6 +2443,22 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( order_type const max_order, size_type const slot_size ) {
+                if( max_order < order_type{ 0 } )
+                    throw std::runtime_error( "max_order < 0" );
+
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+
+                multipole_t elem;
+                ::NS(Multipole_clear)( &elem );
+                ::NS(Multipole_set_max_order)( &elem, max_order );
+                ::NS(Multipole_set_order)( &elem, max_order );
+                return ::NS(Multipole_cobj_required_num_bytes)(
+                    &elem, slot_size ) / slot_size; }, py::arg( "max_order" ),
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( multipole_t const& self, size_type const slot_size ) {
             return ::NS(Multipole_cobj_required_num_bytes)( &self, slot_size ); },
@@ -2751,6 +2855,22 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( order_type const max_order, size_type const slot_size ) {
+                if( max_order < order_type{ 0 } )
+                    throw std::runtime_error( "max_order < 0" );
+
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+
+                rf_multipole_t elem;
+                ::NS(RFMultipole_clear)( &elem );
+                ::NS(RFMultipole_set_max_order)( &elem, max_order );
+                ::NS(RFMultipole_set_order)( &elem, max_order );
+                return ::NS(RFMultipole_cobj_required_num_bytes)(
+                    &elem, slot_size ) / slot_size; }, py::arg( "max_order" ),
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( rf_multipole_t const& self, size_type const slot_size ) {
             return ::NS(RFMultipole_cobj_required_num_bytes)( &self, slot_size ); },
@@ -2920,6 +3040,14 @@ namespace python
             "to the actual handle size",
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(SRotation_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
         obj.def( "cobj_required_num_bytes",
             []( srotation_t const& self, size_type const slot_size ) {
             return ::NS(SRotation_cobj_required_num_bytes)( &self, slot_size ); },
@@ -3039,6 +3167,14 @@ namespace python
             "Calculate the reserved handle size of the type in bytes "
             "for a given slot size. For most types, this should be identical "
             "to the actual handle size",
+            py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
+
+        obj.def_static( "COBJ_REQUIRED_NUM_SLOTS",
+            []( size_type const slot_size ) {
+                if( slot_size == size_type{ 0 } )
+                    throw std::runtime_error( "slot_size == 0" );
+                return ::NS(XYShift_cobj_reserved_handle_size)( slot_size )
+                    / slot_size; },
             py::arg( "slot_size" ) = st::CBUFFER_DEFAULT_SLOT_SIZE );
 
         obj.def( "cobj_required_num_bytes",
