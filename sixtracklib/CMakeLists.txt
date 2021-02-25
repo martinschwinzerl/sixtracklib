@@ -17,6 +17,9 @@ message( STATUS "---- processing sixtracklib/CMakeLists.txt" )
 set( SIXTRACKL_LINK_LIBRARIES  "" CACHE INTERNAL "" FORCE )
 set( SIXTRACKL_LIBRARY_MODULES "" CACHE INTERNAL "" FORCE )
 
+set( SIXTRL_PYTHON_BINDINGS_MODULES )
+set( SIXTRL_TESTLIB_PYTHON_BINDINGS_MODULES )
+
 # ------------------------------------------------------------------------------
 
 set( SIXTRACKLIB_C99_INSTALL_PREFIX
@@ -53,11 +56,11 @@ add_subdirectory( common )
 # ------------------------------------------------------------------------------
 
 if( SIXTRACKL_ENABLE_OPENCL )
-    add_subdirectory( opencl )
+#     add_subdirectory( opencl )
 endif()
 
 if( SIXTRACKL_ENABLE_CUDA )
-    add_subdirectory( cuda )
+#     add_subdirectory( cuda )
 endif()
 
 # ------------------------------------------------------------------------------
@@ -103,46 +106,51 @@ target_compile_options( sixtrack PRIVATE
     ${SIXTRACKL_C99_AUTOVEC_FLAGS} )
 
 # ------------------------------------------------------------------------------
-# provide a copy of the library to the python module if it is defined!
 
-if( SIXTRACKL_ENABLE_PYTHON )
+set( SIXTRACKL_LINK_LIBRARIES ${SIXTRACKL_LINK_LIBRARIES} m )
 
-    set( DEST_PATH "${CMAKE_SOURCE_DIR}/python/sixtracklib" )
+add_library( sixtrack_static STATIC
+             ${SIXTRACKLIB_C99_HEADERS}
+             ${SIXTRACKL_LOCAL_C99_HEADERS}
+             ${SIXTRACKLIB_CXX_HEADERS}
+             ${SIXTRACKL_LOCAL_CXX_HEADERS}
+             ${SIXTRACKL_LIBRARY_MODULES}
+)
 
-    if( EXISTS ${DEST_PATH} )
-
-        get_target_property( OUT_LIB_NAME_PREFIX  sixtrack PREFIX )
-        get_target_property( OUT_LIB_NAME sixtrack LIBRARY_OUTPUT_NAME )
-        get_target_property( OUT_LIB_NAME_POSTFIX sixtrack RELEASE_POSTFIX )
-
-        if(  NOT OUT_LIB_NAME_PREFIX )
-            set( OUT_LIB_NAME_PREFIX "lib" )
-        endif()
-
-
-        if(  NOT OUT_LIB_NAME_POSTFIX )
-            set( OUT_LIB_NAME_POSTFIX ".so" )
-        endif()
-
-        if(  NOT OUT_LIB_NAME )
-            set( OUT_LIB_NAME "sixtrack" )
-        endif()
-
-        set( LIB_NAME
-             "${OUT_LIB_NAME_PREFIX}${OUT_LIB_NAME}${OUT_LIB_NAME_POSTFIX}" )
-
-        set( IN_PATH   $<TARGET_FILE:sixtrack> )
-        set( DEST_PATH "${DEST_PATH}/${LIB_NAME}" )
-
-        message( STATUS "------ python: providing a copy of "
-                        "library to ${DEST_PATH}" )
-
-        set( PY_SIXTRACKLIB_SHARED_LIB ${LIB_NAME} CACHE INTERNAL "" FORCE )
-
-        add_custom_command( TARGET sixtrack POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy ${IN_PATH} ${DEST_PATH} )
-    endif()
+if( SIXTRACKL_LINK_LIBRARIES )
+    target_link_libraries( sixtrack_static ${SIXTRACKL_LINK_LIBRARIES} )
 endif()
+
+target_include_directories( sixtrack_static
+    PUBLIC $<INSTALL_INTERFACE:include>
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> )
+
+if( TARGET sixtrack_cuda_host )
+    target_include_directories( sixtrack_static
+        PUBLIC $<BUILD_INTERFACE:${SIXTRACKL_CUDA_INCLUDE_DIRS}> )
+endif()
+
+if( TARGET sixtrack_opencl )
+    target_include_directories( sixtrack_static
+        PUBLIC $<BUILD_INTERFACE:${SIXTRL_OPENCL_INCLUDE_DIRS}> )
+endif()
+
+set_target_properties( sixtrack_static PROPERTIES
+    LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON C_STANDARD 99
+    DEBUG_POSTFIX d C_STANDARD_REQUIRED ON )
+
+if( TARGET sixtrack_cuda_device )
+    set_target_properties( sixtrack_static PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON )
+endif()
+
+target_compile_options( sixtrack_static PRIVATE
+    ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS}
+    ${SIXTRACKL_C99_AUTOVEC_FLAGS} )
+
+# ==============================================================================
+# testlib:
+
+add_subdirectory( testlib )
 
 # ------------------------------------------------------------------------------
 # install :
