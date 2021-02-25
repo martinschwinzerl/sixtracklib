@@ -3360,9 +3360,9 @@ namespace python
                 size_type const cur_slot_idx ) -> int
             {
                 throw std::runtime_error( "demotrack support disabled" );
-                return ::NS(DEMOTRACK_BEAM_ELEMENT_UNKNOWN); } );
+                return 0; } );
 
-        root.m_def( "Demotrack_belems_convert",
+        root.m.def( "Demotrack_belems_convert",
             []( st::CBufferView const& cbuffer ) {
                 throw std::runtime_error( "demotrack support disabled" );
                 return nullptr; } );

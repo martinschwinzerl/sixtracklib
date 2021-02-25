@@ -148,9 +148,9 @@ if(  NOT SETUP_SIXTRL_FEATURES_FINISHED )
     # -------------------------------------------------------------------------
     # Aperture check features:
 
-    if( DEFINED SIXTRACKL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH )
+    if( DEFINED SIXTRACKL_APERTURE_COND_MIN_DRIFT_LENGTH )
         set( SIXTRL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH_VALUE
-                "${SIXTRACKL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH}" )
+                "${SIXTRACKL_APERTURE_COND_MIN_DRIFT_LENGTH}" )
     else()
         set( SIXTRL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH_VALUE "0.0" )
     endif()
@@ -189,12 +189,10 @@ if(  NOT SETUP_SIXTRL_FEATURES_FINISHED )
     set_property( CACHE SIXTRACKL_APERTURE_Y_LIMIT_VALUE PROPERTY HELPSTRING
                   "Global aperture check limit for y [m]" )
 
-    set_property( CACHE SIXTRACKL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH
-                  PROPERTY HELPSTRING
+    set_property( CACHE SIXTRACKL_APERTURE_COND_MIN_DRIFT_LENGTH PROPERTY HELPSTRING
         "Perform conditional aperture checks for Drift and DriftExact elements with lengths larger than this [m]" )
 
-    set_property( CACHE SIXTRACKL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH
-                  PROPERTY ADVANCED )
+    set_property( CACHE SIXTRACKL_APERTURE_COND_MIN_DRIFT_LENGTH PROPERTY ADVANCED )
 
     set( SIXTRL_APERTURE_CHECK_FEATURES_INSTALL_STR
          "set( SIXTRL_GLOBAL_APERATURE_CHECK_ALWAYS_VALUE
