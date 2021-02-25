@@ -114,13 +114,15 @@ message( STATUS "---- cmake_module_path: ${CMAKE_MODULE_PATH}" )
 # Setup language bindings - we have to be first to pull in python (if needed)
 # to prevent any module picking a python version we do not wish to support:
 
-include(CheckLanguage)
-
 include( SetupGit )
 include( SetupFeatures )
 include( SetupC99 )
 include( SetupCxx )
 include( SetupPython )
+
+if( SIXTRACKL_ENABLE_PYTHON )
+    include( SetupPybind11 )
+endif()
 
 # ------------------------------------------------------------------------------
 # Unit-testing:
@@ -183,6 +185,9 @@ endif()
 # ==============================================================================
 # sixtracklib: C/C++ library ; sixtracklib python bindings
 
+set( SIXTRL_ALL_PYTHON_BINDINGS_MODULES )
+set( SIXTRL_TESTLIB_ALL_PYTHON_BINDINGS_MODULES )
+
 add_subdirectory( external )
 add_subdirectory( sixtracklib )
 
@@ -190,13 +195,14 @@ add_subdirectory( sixtracklib )
 # Add tools
 
 if( SIXTRACKL_BUILD_TOOLS )
-    add_subdirectory( tools )
+#     add_subdirectory( tools )
 endif()
 
 # ------------------------------------------------------------------------------
 # Add sixtracklib Python 3.x bindings
 
 if( SIXTRACKL_ENABLE_PYTHON )
+#     add_subdirectory( python )
     add_subdirectory( python )
 endif()
 
@@ -212,7 +218,9 @@ endif()
 
 if( SIXTRACKL_ENABLE_PROGRAMM_TESTS OR SIXTRACKL_ENABLE_BENCHMARK_TESTS OR
     SIXTRACKL_BUILD_EXAMPLES OR SIXTRACKL_BUILD_TOOLS )
-    add_subdirectory( tests )
+    if( NOT SKBUILD )
+        add_subdirectory( tests )
+    endif()
 endif()
 
 # ------------------------------------------------------------------------------
