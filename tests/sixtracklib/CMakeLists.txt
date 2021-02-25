@@ -44,19 +44,3 @@ if( SIXTRACKL_ENABLE_PROGRAMM_TESTS )
     endif()
 
 endif()
-
-# ==============================================================================
-# Install:
-
-install( FILES testlib.h
-         DESTINATION "${SIXTRL_TESTLIB_INSTALL_C99_PREFIX}/testlib" )
-
-if( SIXTRACKL_ENABLE_CXX )
-
-    install( FILES testlib.hpp
-             DESTINATION "${SIXTRL_TESTLIB_INSTALL_CXX_PREFIX}/testlib" )
-
-endif()
-
-# end: tests/sixtracklib/CMakeLists.txt
-
