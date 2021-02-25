@@ -29,9 +29,8 @@ void InitHelper_demotrack( stpy::InitHelper& root )
 
     #if defined( SIXTRL_DEMOTRACK_ENABLED ) && ( SIXTRL_DEMOTRACK_ENABLED == 1 )
     m.def( "Demotrack_enabled", []() { return true; } );
-
     #else
-    m.def( "Demotrack_disabled", []() { return true; } );
+    m.def( "Demotrack_enabled", []() { return false; } );
     #endif /* SIXTRL_DEMOTRACK_ENABLED */
 }
 
