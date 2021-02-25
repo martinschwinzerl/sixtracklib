@@ -2051,7 +2051,9 @@ namespace python
 
     void InitHelper_common_particles_demotrack( stpy::InitHelper& root )
     {
-        using dt_particle_type  = ::NS(DemotrackParticle);
+        #if defined( SIXTRL_DEMOTRACK_ENABLED ) && \
+                   ( SIXTRL_DEMOTRACK_ENABLED == 1 )
+
         using particle_type     = ::NS(Particle);
         using particle_set_type = ::NS(Particles);
         using npart_type        = ::NS(particles_num_type);
@@ -2059,13 +2061,10 @@ namespace python
         using status_type       = ::NS(status_type);
         using uint_type         = SIXTRL_UINT64_TYPE;
         using real_type         = ::NS(particle_real_type);
-//         using cbuffer_view_type = st::CBufferView;
 
+        using dt_particle_type  = ::NS(DemotrackParticle);
         using py_array_dt_particle_t = py::array_t<
             dt_particle_type, py::array::c_style | py::array::forcecast >;
-
-        #if defined( SIXTRL_DEMOTRACK_ENABLED ) && \
-                   ( SIXTRL_DEMOTRACK_ENABLED == 1 )
 
         auto& obj = root.demotrack_particle_type;
 
@@ -2346,6 +2345,10 @@ namespace python
 
         obj.def( "clear", []( dt_particle_type& self ) -> status_type
             { return ::NS(Demotrack_particle_clear)( &self ); } );
+
+        #else  /* !defined( SIXTRL_DEMOTRACK_ENABLED ) */
+
+        ( void )root;
 
         #endif /* defined( SIXTRL_DEMOTRACK_ENABLED ) */
     }
