@@ -75,6 +75,16 @@ set( SIXTRACKL_VERSION_STR "0.1.0" )
 # ==============================================================================
 # handle dependencies and external libraries/toolkits:
 
+include(CheckLanguage)
+
+ check_language( CXX )
+if( CMAKE_CXX_COMPILER )
+    set( SIXTRACKL_ENABLE_CXX ON )
+    message( STATUS "---- enabled CXX language" )
+else()
+    message( FATAL_ERROR "---- CXX language not available!" )
+endif()
+
 # ------------------------------------------------------------------------------
 # These two abstract lists contain the name of the modules that are know to
 # SixTrackLib and "1" and "0" for representing the enabled and disabled state
