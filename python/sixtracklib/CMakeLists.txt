@@ -26,7 +26,7 @@ set( SIXTRL_PY_WRAPPER_SOURCES
     _wrapper/common_internal.cpp
     _wrapper/common_particles.cpp )
 
-if( SIXTRACKL_PYBIND_ALWAYS_BUILD_WRAPPER OR _SKBUILD )
+if( SIXTRACKL_PYBIND_ALWAYS_BUILD_WRAPPER OR SKBUILD )
     pybind11_add_module( _wrapper MODULE THIN_LTO OPT_SIZE
         ${SIXTRL_PY_WRAPPER_HEADERS} ${SIXTRL_PY_WRAPPER_SOURCES} )
 
