@@ -28,9 +28,9 @@ TEST( C99CommonTrackCompareSixTrack, CompareLhcNoBB )
     static real_type const REL_TOLERANCE = real_type{ 0. };
 
     std::ostringstream path;
-    path << ::NS(PATH_TO_BASE_DIR) << "/tests/testdata/lhc_no_bb";
+    path << ::NS(PATH_TO_BASE_DIR) << "tests/testdata/lhc_no_bb/";
     std::string const path_to_testdata_dir = path.str();
-    path << "/cobj_lattice.bin";
+    path << "cobj_lattice.bin";
 
     st::CBuffer lattice( path.str() );
     ASSERT_TRUE( !lattice.needs_remapping() );
@@ -38,7 +38,7 @@ TEST( C99CommonTrackCompareSixTrack, CompareLhcNoBB )
     ASSERT_TRUE( lattice.as_c_api() != nullptr );
 
     path.str( "" );
-    path << path_to_testdata_dir << "/cobj_particles_sixtrack.bin";
+    path << path_to_testdata_dir << "cobj_particles_sixtrack.bin";
     st::CBuffer cmp_buffer( path.str() );
     ASSERT_TRUE( !cmp_buffer.needs_remapping() );
     ASSERT_TRUE(  cmp_buffer.num_objects() > st_size_t{ 0 } );

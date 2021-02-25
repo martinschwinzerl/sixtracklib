@@ -16,7 +16,7 @@
 #include "sixtracklib/common/generated/path.h"
 
 #include "sixtracklib/testlib.h"
-/*
+
 TEST( C99CommonTrackCompareElemByElem, CompareLhcNoBB )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
@@ -28,9 +28,9 @@ TEST( C99CommonTrackCompareElemByElem, CompareLhcNoBB )
     static real_type const REL_TOLERANCE = real_type{ 0. };
 
     std::ostringstream path;
-    path << ::NS(PATH_TO_BASE_DIR) << "/tests/testdata/lhc_no_bb";
+    path << ::NS(PATH_TO_BASE_DIR) << "tests/testdata/lhc_no_bb/";
     std::string const path_to_testdata_dir = path.str();
-    path << "/cobj_lattice.bin";
+    path << "cobj_lattice.bin";
 
     st::CBuffer lattice( path.str() );
     ASSERT_TRUE( !lattice.needs_remapping() );
@@ -38,7 +38,7 @@ TEST( C99CommonTrackCompareElemByElem, CompareLhcNoBB )
     ASSERT_TRUE( lattice.as_c_api() != nullptr );
 
     path.str( "" );
-    path << path_to_testdata_dir << "/cobj_elem_by_elem_pysixtrack.bin";
+    path << path_to_testdata_dir << "cobj_particles_elem_by_elem_pysixtrack.bin";
     st::CBuffer cmp_buffer( path.str() );
     ASSERT_TRUE( !cmp_buffer.needs_remapping() );
     ASSERT_TRUE(  cmp_buffer.num_objects() > st_size_t{ 0 } );
@@ -94,7 +94,7 @@ TEST( C99CommonTrackCompareElemByElem, CompareLhcNoBB )
             pset_cmp, pset_track, REL_TOLERANCE, ABS_TOLERANCE ) );
     }
 
-    // Test non-happy path
+    /* Test non-happy path */
 
     auto const changed_sequ_idx =
         ( track_pbuffer.num_objects() > st_size_t{ 2 } )
@@ -117,7 +117,7 @@ TEST( C99CommonTrackCompareElemByElem, CompareLhcNoBB )
     ASSERT_TRUE( first_fail_elem_idx == changed_sequ_idx );
     ASSERT_TRUE( first_fail_pset_idx == NUM_PARTICLES -1 );
 }
-*/
+
 
 TEST( C99CommonTrackCompareElemByElem, CompareSIS100Coasting )
 {
@@ -130,9 +130,9 @@ TEST( C99CommonTrackCompareElemByElem, CompareSIS100Coasting )
     static real_type const REL_TOLERANCE = real_type{ 0. };
 
     std::ostringstream path;
-    path << ::NS(PATH_TO_BASE_DIR) << "/tests/testdata/sis100_coasting";
+    path << ::NS(PATH_TO_BASE_DIR) << "tests/testdata/sis100_coasting/";
     std::string const path_to_testdata_dir = path.str();
-    path << "/cobj_lattice.bin";
+    path << "cobj_lattice.bin";
 
     st::CBuffer lattice( path.str() );
     ASSERT_TRUE( !lattice.needs_remapping() );
@@ -140,7 +140,7 @@ TEST( C99CommonTrackCompareElemByElem, CompareSIS100Coasting )
     ASSERT_TRUE( lattice.as_c_api() != nullptr );
 
     path.str( "" );
-    path << path_to_testdata_dir << "/cobj_elem_by_elem_pysixtrack.bin";
+    path << path_to_testdata_dir << "cobj_particles_elem_by_elem_pysixtrack.bin";
     st::CBuffer cmp_buffer( path.str() );
     ASSERT_TRUE( !cmp_buffer.needs_remapping() );
     ASSERT_TRUE(  cmp_buffer.num_objects() > st_size_t{ 0 } );
