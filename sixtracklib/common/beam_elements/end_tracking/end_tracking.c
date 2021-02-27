@@ -42,6 +42,16 @@ NS(status_type) NS(EndTracking_clear_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(EndTracking)* SIXTRL_RESTRICT elem ) SIXTRL_NOEXCEPT
 { return NS(EndTracking_clear)( elem ); }
 
+NS(status_type) NS(v)(
+    SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT lattice_buffer,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element,
+    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT ptr_eot_marker_index
+) SIXTRL_NOEXCEPT {
+    return NS(EndTracking_terminate_lattice_with_eot_marker_cbuffer)(
+        lattice_buffer, line_start_index, line_start_at_element,
+            ptr_eot_marker_index ); }
+
 bool NS(EndTracking_cobj_can_be_added)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_buffer_size,

@@ -111,6 +111,87 @@ SIXTRL_STATIC SIXTRL_FN NS(status_type) NS(EndTracking_copy)(
 
 /* ------------------------------------------------------------------------- */
 
+SIXTRL_STATIC SIXTRL_FN bool NS(EndTracking_is_legal_marker_in_lattice_cobj)(
+    SIXTRL_BE_ARGPTR_DEC const NS(EndTracking) *const SIXTRL_RESTRICT marker,
+    NS(size_type) const marker_index, NS(size_type) const num_elems_in_lattice,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+    SIXTRL_BE_ARGPTR_DEC const NS(EndTracking) *const SIXTRL_RESTRICT marker,
+    NS(size_type) const eot_marker_index, NS(size_type) const nelems_in_lattice,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(size_type)
+NS(EndTracking_find_next_eot_marker_index_in_lattice_cobj)(
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC struct NS(CObjIndex) const*
+        SIXTRL_RESTRICT lattice_begin,
+    NS(size_type) const num_elements_in_lattice,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN bool
+NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC struct NS(CObjIndex) const*
+        SIXTRL_RESTRICT lattice_begin,
+    NS(size_type) const num_elements_in_lattice,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element ) SIXTRL_NOEXCEPT;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_STATIC SIXTRL_FN NS(size_type)
+NS(EndTracking_num_legal_markers_in_lattice_cobj)(
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC struct NS(CObjIndex) const*
+        SIXTRL_RESTRICT lattice_begin,
+    NS(size_type) const num_elements_in_lattice,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(size_type)
+NS(EndTracking_get_legal_marker_indices_from_lattice_cobj)(
+    NS(size_type) const max_num_indices,
+    SIXTRL_ARGPTR_DEC NS(size_type)* SIXTRL_RESTRICT indices_begin,
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC struct NS(CObjIndex) const*
+        SIXTRL_RESTRICT lattice_begin,
+    NS(size_type) const num_elements_in_lattice,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element ) SIXTRL_NOEXCEPT;
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_STATIC SIXTRL_FN NS(status_type)
+NS(EndTracking_terminate_lattice_with_eot_marker_cobj_flat_buffer)(
+    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT lattice_buffer,
+    NS(cobj_size_type) const lattice_buffer_capacity,
+    NS(cobj_size_type) const slot_size, NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element,
+    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT ptr_eot_marker_index
+) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(status_type)
+NS(EndTracking_terminate_lattice_with_eot_marker_cbuffer)(
+    SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT lattice_buffer,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element,
+    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT ptr_eot_marker_index
+) SIXTRL_NOEXCEPT;
+
+#if !defined( _GPUCODE )
+
+SIXTRL_EXTERN SIXTRL_HOST_FN NS(status_type)
+NS(EndTracking_terminate_lattice_with_eot_marker_cbuffer_ext)(
+    SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT lattice_buffer,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element,
+    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT ptr_eot_marker_index
+) SIXTRL_NOEXCEPT;
+
+#endif /* !defined( _GPUCODE ) */
+
+/* ------------------------------------------------------------------------- */
+
 SIXTRL_STATIC SIXTRL_FN bool NS(CObjIndex_is_end_tracking)(
     SIXTRL_CBUFFER_OBJ_ARGPTR_DEC const struct NS(CObjIndex) *const
         SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
@@ -432,6 +513,435 @@ SIXTRL_INLINE NS(status_type) NS(EndTracking_copy)(
         }
     }
     return status; }
+
+/* ------------------------------------------------------------------------- */
+
+SIXTRL_INLINE bool NS(EndTracking_is_legal_marker_in_lattice_cobj)(
+    SIXTRL_BE_ARGPTR_DEC const NS(EndTracking) *const SIXTRL_RESTRICT m,
+    NS(size_type) const marker_index,
+    NS(size_type) const nelem_in_lattice, NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_elem ) SIXTRL_NOEXCEPT
+{
+    typedef NS(particle_index_type) index_type;
+
+    bool is_legal = false;
+
+    if( ( m != SIXTRL_NULLPTR ) && ( marker_index >= line_start_index ) &&
+        ( marker_index < nelem_in_lattice ) &&
+        ( line_start_at_elem >= (
+            index_type )SIXTRL_PARTICLE_MIN_LEGAL_AT_ELEMENT ) &&
+        ( line_start_at_elem + ( index_type )(
+            nelem_in_lattice - line_start_index ) < ( index_type
+                )SIXTRL_PARTICLE_MAX_LEGAL_AT_ELEMENT ) )
+    {
+        is_legal  = ( NS(EndTracking_next_buffer_idx)( m ) < nelem_in_lattice );
+        is_legal &= ( NS(EndTracking_next_at_element)( m ) < (
+            line_start_at_elem +  ( index_type )( nelem_in_lattice -
+                line_start_index ) ) );
+
+        if( ( is_legal ) && ( NS(EndTracking_ends_turn)( m ) ) )
+        {
+            is_legal &= ( NS(EndTracking_next_buffer_idx)( m ) >=
+                          line_start_index );
+
+            is_legal &= ( NS(EndTracking_next_at_element)( m ) >=
+                          line_start_at_elem );
+
+            is_legal &= ( NS(EndTracking_next_buffer_idx)( m ) != marker_index );
+
+            is_legal &= (
+                ( NS(EndTracking_next_buffer_idx)( m ) - line_start_index ) ==
+                ( NS(size_type) )( NS(EndTracking_next_at_element)( m ) -
+                                   line_start_at_elem ) );
+        }
+        else if( is_legal )
+        {
+            is_legal &= ( NS(EndTracking_next_buffer_idx)( m ) > marker_index );
+            is_legal &= ( NS(EndTracking_next_at_element)( m ) >
+                ( index_type )( line_start_at_elem + (
+                    marker_index - line_start_index ) ) );
+        }
+    }
+
+    return is_legal;
+}
+
+SIXTRL_INLINE bool NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+    SIXTRL_BE_ARGPTR_DEC const NS(EndTracking) *const SIXTRL_RESTRICT marker,
+    NS(size_type) const eot_marker_index,
+    NS(size_type) const nelems_in_lattice, NS(size_type) const line_start_idx,
+    NS(particle_index_type) const line_start_at_elem ) SIXTRL_NOEXCEPT
+{
+    return ( ( NS(EndTracking_is_legal_marker_in_lattice_cobj)( marker,
+                eot_marker_index, nelems_in_lattice, line_start_idx,
+                    line_start_at_elem ) ) &&
+             ( NS(EndTracking_ends_turn)( marker ) ) );
+}
+
+SIXTRL_INLINE NS(size_type)
+NS(EndTracking_find_next_eot_marker_index_in_lattice_cobj)(
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC NS(CObjIndex) const* SIXTRL_RESTRICT lattice,
+    NS(size_type) const nelems_in_lattice, NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_elem ) SIXTRL_NOEXCEPT
+{
+    typedef NS(particle_index_type) index_type;
+    NS(size_type) index = nelems_in_lattice;
+
+    if( ( lattice != SIXTRL_NULLPTR ) &&
+        ( nelems_in_lattice > ( NS(size_type) )0 ) &&
+        ( line_start_index <= nelems_in_lattice ) &&
+        ( line_start_at_elem >= ( (
+            index_type )SIXTRL_PARTICLE_MIN_LEGAL_AT_ELEMENT + (
+            index_type )line_start_index ) ) &&
+        ( line_start_at_elem + ( index_type )( nelems_in_lattice -
+            line_start_index ) < ( index_type
+                )SIXTRL_PARTICLE_MAX_LEGAL_AT_ELEMENT ) )
+    {
+        index = line_start_index;
+
+        for( ; index < nelems_in_lattice ; ++index ) {
+            if( NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+                    NS(EndTracking_const_from_cobj_index)( &lattice[ index ] ),
+                        index, nelems_in_lattice, line_start_index,
+                            line_start_at_elem ) ) break;
+        }
+    }
+
+    return index;
+}
+
+SIXTRL_INLINE bool
+NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC NS(CObjIndex) const* SIXTRL_RESTRICT lattice,
+    NS(size_type) const nelems_in_lattice, NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_elem ) SIXTRL_NOEXCEPT
+{
+    NS(size_type) index = line_start_index;
+
+    bool has_no_illegal = (
+        ( lattice != SIXTRL_NULLPTR ) &&
+        ( nelems_in_lattice > ( NS(size_type) )0u ) &&
+        ( nelems_in_lattice >= index ) );
+
+    while( ( has_no_illegal ) && ( nelems_in_lattice > index ) )
+    {
+        if( NS(CObjIndex_is_end_tracking)( &lattice[ index ] ) ) {
+            has_no_illegal &= NS(EndTracking_is_legal_marker_in_lattice_cobj)(
+                NS(EndTracking_const_from_cobj_index)( &lattice[ index ] ),
+                    index, nelems_in_lattice, line_start_index,
+                        line_start_at_elem ); }
+        ++index;
+    }
+
+    return has_no_illegal;
+}
+
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_INLINE NS(size_type) NS(EndTracking_num_legal_markers_in_lattice_cobj)(
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC struct NS(CObjIndex) const*
+        SIXTRL_RESTRICT lattice,
+    NS(size_type) const num_elements_in_lattice,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_elem ) SIXTRL_NOEXCEPT
+{
+    NS(size_type) num_markers = ( NS(size_type) )0u;
+
+    if( ( lattice != SIXTRL_NULLPTR ) &&
+        ( num_elements_in_lattice >= line_start_index ) &&
+        ( line_start_index >= ( NS(size_type) )0u ) &&
+        ( line_start_at_elem >= (
+            ( ( NS(particle_index_type) )SIXTRL_PARTICLE_MIN_LEGAL_AT_ELEMENT ) +
+            ( ( NS(particle_index_type) )line_start_index ) ) ) )
+    {
+        NS(size_type) ii = line_start_index;
+
+        for( ; ii < num_elements_in_lattice ; ++ii )
+        {
+            if( ( NS(CObjIndex_is_end_tracking)( &lattice[ ii ] ) ) &&
+                ( NS(EndTracking_is_legal_marker_in_lattice_cobj)(
+                    NS(EndTracking_const_from_cobj_index)( &lattice[ ii ] ),
+                        ii, num_elements_in_lattice, line_start_index,
+                            line_start_at_elem ) ) )
+            {
+                ++num_markers;
+            }
+        }
+    }
+
+    return num_markers;
+}
+
+SIXTRL_INLINE NS(size_type)
+NS(EndTracking_get_legal_marker_indices_from_lattice_cobj)(
+    NS(size_type) const max_num_indices,
+    SIXTRL_ARGPTR_DEC NS(size_type)* SIXTRL_RESTRICT indices_begin,
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC NS(CObjIndex) const* SIXTRL_RESTRICT lattice,
+    NS(size_type) const num_elements_in_lattice,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_elem ) SIXTRL_NOEXCEPT
+{
+    NS(size_type) num_markers = ( NS(size_type) )0u;
+
+    if( ( lattice != SIXTRL_NULLPTR ) &&
+        ( ( indices_begin != SIXTRL_NULLPTR ) ||
+          ( max_num_indices > ( NS(size_type) )0u ) ) &&
+        ( num_elements_in_lattice >= line_start_index ) &&
+        ( line_start_index >= ( NS(size_type) )0u ) &&
+        ( line_start_at_elem >= (
+            ( ( NS(particle_index_type) )SIXTRL_PARTICLE_MIN_LEGAL_AT_ELEMENT ) +
+            ( ( NS(particle_index_type) )line_start_index ) ) ) )
+    {
+        NS(size_type) ii = line_start_index;
+
+        for( ; ii < num_elements_in_lattice ; ++ii )
+        {
+            if( ( NS(CObjIndex_is_end_tracking)( &lattice[ ii ] ) ) &&
+                ( NS(EndTracking_is_legal_marker_in_lattice_cobj)(
+                    NS(EndTracking_const_from_cobj_index)( &lattice[ ii ] ),
+                        ii, num_elements_in_lattice, line_start_index,
+                            line_start_at_elem ) ) )
+            {
+                if( num_markers < max_num_indices )
+                {
+                    indices_begin[ num_markers ] = ii;
+                }
+
+                ++num_markers;
+            }
+        }
+    }
+
+    return num_markers;
+}
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
+SIXTRL_INLINE NS(status_type)
+NS(EndTracking_terminate_lattice_with_eot_marker_cbuffer)(
+    SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT lattice_buffer,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element,
+    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT ptr_eot_marker_index
+) SIXTRL_NOEXCEPT
+{
+    typedef NS(size_type) st_size_t;
+    NS(status_type) status = ( NS(status_type) )SIXTRL_STATUS_GENERAL_FAILURE;
+
+    st_size_t eot_idx = NS(CBuffer_num_objects)( lattice_buffer );
+
+    if( ( lattice_buffer != SIXTRL_NULLPTR ) &&
+        ( !NS(CBuffer_needs_remapping)( lattice_buffer ) ) &&
+        ( line_start_index <= NS(CBuffer_num_objects)( lattice_buffer ) ) &&
+        ( NS(CBuffer_num_objects)( lattice_buffer ) > ( st_size_t )0u ) &&
+        ( NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+            NS(CBuffer_const_objects_begin)( lattice_buffer ),
+            NS(CBuffer_num_objects)( lattice_buffer ), line_start_index,
+                line_start_at_element ) ) )
+    {
+        SIXTRL_CBUFFER_OBJ_ARGPTR_DEC NS(CObjIndex) const* lattice =
+            NS(CBuffer_const_objects_begin)( lattice_buffer );
+
+        st_size_t nelems_in_lattice = NS(CBuffer_num_objects)( lattice_buffer );
+
+        if( !NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+            NS(CBuffer_const_objects_begin)( lattice_buffer ), nelems_in_lattice,
+                line_start_index, line_start_at_element ) )
+        {
+            if(  ptr_eot_marker_index != SIXTRL_NULLPTR )
+                *ptr_eot_marker_index = nelems_in_lattice;
+
+            return status;
+        }
+
+        eot_idx = NS(EndTracking_find_next_eot_marker_index_in_lattice_cobj)(
+            lattice, nelems_in_lattice, line_start_index, line_start_at_element);
+
+        if( eot_idx >= nelems_in_lattice )
+        {
+            eot_idx = nelems_in_lattice;
+
+            SIXTRL_BE_ARGPTR_DEC NS(EndTracking)* eot_marker =
+                NS(EndTracking_cbuffer_add)( lattice_buffer,
+                    line_start_at_element, line_start_index, true );
+
+            if( eot_marker != SIXTRL_NULLPTR )
+            {
+                nelems_in_lattice = NS(CBuffer_num_objects)( lattice_buffer );
+
+                SIXTRL_ASSERT( eot_marker == NS(EndTracking_const_from_cbuffer)(
+                    lattice_buffer, eot_idx ) );
+
+                SIXTRL_ASSERT( NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+                    eot_marker, eot_idx, nelems_in_lattice, line_start_index,
+                        line_start_at_element ) );
+
+                SIXTRL_ASSERT( eot_idx ==
+                    NS(EndTracking_find_next_eot_marker_index_in_lattice_cobj)(
+                        NS(CBuffer_const_objects_begin)( lattice_buffer ),
+                            nelems_in_lattice, line_start_index,
+                                line_start_at_element ) );
+            }
+        }
+
+        SIXTRL_ASSERT( NS(CBuffer_num_objects)(
+            lattice_buffer ) == nelems_in_lattice );
+
+        if( eot_idx < nelems_in_lattice )
+        {
+            SIXTRL_ASSERT(
+                NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+                    NS(CBuffer_const_objects_begin)( lattice_buffer ),
+                        nelems_in_lattice, line_start_index,
+                            line_start_at_element ) );
+
+            status = ( NS(status_type) )SIXTRL_STATUS_SUCCESS;
+        }
+
+        if( ptr_eot_marker_index != SIXTRL_NULLPTR )
+        {
+            *ptr_eot_marker_index = eot_idx;
+        }
+    }
+
+    return status;
+}
+
+SIXTRL_INLINE NS(status_type)
+NS(EndTracking_terminate_lattice_with_eot_marker_cobj_flat_buffer)(
+    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT lattice_buffer,
+    NS(cobj_size_type) const lbuffer_capacity,
+    NS(cobj_size_type) const slot_size,
+    NS(cobj_size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element,
+    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* ptr_eot_marker_index ) SIXTRL_NOEXCEPT
+{
+    typedef NS(cobj_size_type) st_size_t;
+
+    NS(status_type) status = ( NS(status_type) )SIXTRL_STATUS_GENERAL_FAILURE;
+    st_size_t eot_idx = NS(CObjFlatBuffer_num_objects)(
+        lattice_buffer, slot_size );
+
+    if( ( lattice_buffer != SIXTRL_NULLPTR ) && ( slot_size > ( st_size_t )0u ) &&
+        ( lbuffer_capacity >= NS(CObjFlatBuffer_min_buffer_size)( slot_size ) ) &&
+        ( NS(CObjFlatBuffer_has_cbuffer_structure)(
+            lattice_buffer, lbuffer_capacity, slot_size ) ) &&
+        ( !NS(CObjFlatBuffer_needs_remapping)( lattice_buffer, slot_size ) ) &&
+        (  NS(CObjFlatBuffer_size)( lattice_buffer, slot_size ) <=
+           lbuffer_capacity ) &&
+        ( NS(CObjFlatBuffer_num_objects)( lattice_buffer, slot_size ) >=
+          line_start_index ) )
+    {
+        SIXTRL_CBUFFER_OBJ_ARGPTR_DEC NS(CObjIndex) const* lattice =
+            NS(CObjFlatBuffer_const_indices_begin)( lattice_buffer, slot_size );
+
+        st_size_t nelems_in_lattice = NS(CObjFlatBuffer_num_objects)(
+            lattice_buffer, slot_size );
+
+        eot_idx = nelems_in_lattice;
+
+        if( !NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+                lattice, nelems_in_lattice, line_start_index,
+                    line_start_at_element ) )
+        {
+            if(  ptr_eot_marker_index != SIXTRL_NULLPTR )
+                *ptr_eot_marker_index = eot_idx;
+
+            return status;
+        }
+
+        eot_idx = NS(EndTracking_find_next_eot_marker_index_in_lattice_cobj)(
+            lattice, nelems_in_lattice, line_start_index,
+                line_start_at_element );
+
+        if( eot_idx >= nelems_in_lattice )
+        {
+            SIXTRL_ARGPTR_DEC st_size_t requ_n_slots = ( st_size_t )0u;
+            SIXTRL_ARGPTR_DEC st_size_t requ_n_objs  = ( st_size_t )0u;
+            SIXTRL_ARGPTR_DEC st_size_t requ_n_ptrs  = ( st_size_t )0u;
+            SIXTRL_ARGPTR_DEC st_size_t requ_buffer_size = ( st_size_t )0u;
+
+            if( ( !NS(EndTracking_cobj_flat_buffer_can_be_added)(
+                    lattice_buffer, slot_size, &requ_buffer_size,
+                        &requ_n_slots, &requ_n_objs, &requ_n_ptrs ) ) &&
+                ( requ_buffer_size < lbuffer_capacity ) )
+            {
+                status = NS(CObjFlatBuffer_reallocate)( lattice_buffer,
+                    lbuffer_capacity, slot_size, requ_n_slots, requ_n_objs,
+                        requ_n_ptrs, NS(CObjFlatBuffer_num_garbage_ranges)(
+                            lattice_buffer, slot_size ), &requ_buffer_size );
+
+                SIXTRL_ASSERT(
+                    ( status != ( NS(status_type) )SIXTRL_STATUS_SUCCESS ) ||
+                    ( ( requ_buffer_size <= lbuffer_capacity ) &&
+                      ( NS(EndTracking_cobj_flat_buffer_can_be_added)(
+                          lattice_buffer, slot_size, SIXTRL_NULLPTR,
+                            SIXTRL_NULLPTR, SIXTRL_NULLPTR, SIXTRL_NULLPTR ) ) )
+                );
+
+                status = ( NS(status_type) )SIXTRL_STATUS_GENERAL_FAILURE;
+            }
+
+            SIXTRL_ASSERT( nelems_in_lattice == NS(CObjFlatBuffer_num_objects)(
+                lattice_buffer, slot_size ) );
+
+            if( NS(EndTracking_cobj_flat_buffer_can_be_added)( lattice_buffer,
+                    slot_size, SIXTRL_NULLPTR, SIXTRL_NULLPTR, SIXTRL_NULLPTR,
+                        SIXTRL_NULLPTR ) )
+            {
+                eot_idx = nelems_in_lattice;
+
+                SIXTRL_BE_ARGPTR_DEC NS(EndTracking)* eot_marker =
+                    NS(EndTracking_cobj_flat_buffer_add)( lattice_buffer,
+                        slot_size, line_start_at_element, line_start_index,
+                            true );
+
+                if( eot_marker != SIXTRL_NULLPTR )
+                {
+                    nelems_in_lattice = NS(CObjFlatBuffer_num_objects)(
+                        lattice_buffer, slot_size );
+
+                    SIXTRL_ASSERT( NS(EndTracking_const_from_cobj_flat_buffer)(
+                        lattice_buffer, eot_idx, slot_size ) == eot_marker );
+
+                    SIXTRL_ASSERT(
+                        NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+                            eot_marker, eot_idx, nelems_in_lattice,
+                                line_start_index, line_start_at_element ) );
+
+                    SIXTRL_ASSERT( eot_idx ==
+                        NS(EndTracking_find_next_eot_marker_index_in_lattice_cobj)(
+                            NS(CObjFlatBuffer_const_indices_begin)(
+                                lattice_buffer, slot_size ),
+                                    nelems_in_lattice, line_start_index,
+                                        line_start_at_element ) );
+                }
+            }
+        }
+
+        SIXTRL_ASSERT( NS(CObjFlatBuffer_num_objects)(
+            lattice_buffer, slot_size ) == nelems_in_lattice );
+
+        if( eot_idx < nelems_in_lattice )
+        {
+            SIXTRL_ASSERT(
+                NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+                    NS(CObjFlatBuffer_const_indices_begin)( lattice_buffer,
+                        slot_size ), nelems_in_lattice, line_start_index,
+                            line_start_at_element ) );
+
+            status = ( NS(status_type) )SIXTRL_STATUS_SUCCESS;
+        }
+
+        if( ptr_eot_marker_index != SIXTRL_NULLPTR )
+        {
+            *ptr_eot_marker_index = eot_idx;
+        }
+    }
+
+    return status;
+}
 
 /* ------------------------------------------------------------------------- */
 
