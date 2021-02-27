@@ -6,7 +6,9 @@
 
 #include <gtest/gtest.h>
 
-#include "sixtracklib/common/beam_elements/cavity/cavity.h"
+#include "sixtracklib/common/beam_elements/end_tracking/end_tracking.h"
+#include "sixtracklib/common/beam_elements/drift/drift.h"
+
 #include "sixtracklib/common/cobjects/cobj_type_traits.h"
 #include "sixtracklib/common/cobjects/cbuffer.h"
 #include "sixtracklib/common/cobjects/cbuffer.hpp"
@@ -518,4 +520,161 @@ TEST( C99CommonBeamElementsEndTracking, CObjectsStoreAndRestore )
     /* cleanup */
 
     NS(CBuffer_delete)( c99_buffer );
+}
+
+TEST( C99CommonBeamElementsEndTracking, Logic )
+{
+    namespace st = SIXTRL_CXX_NAMESPACE;
+
+    using marker_type = ::NS(EndTracking);
+    using size_type   = ::NS(cobj_size_type);
+    using index_type  = ::NS(particle_index_type);
+
+    st::CBuffer end_marker_buf;
+
+    ::NS(Drift_cbuffer_new)( end_marker_buf.as_c_api() );
+    ::NS(Drift_cbuffer_new)( end_marker_buf.as_c_api() );
+    ::NS(Drift_cbuffer_new)( end_marker_buf.as_c_api() );
+    ::NS(Drift_cbuffer_new)( end_marker_buf.as_c_api() );
+    ::NS(Drift_cbuffer_new)( end_marker_buf.as_c_api() );
+
+    size_type eot_mrk_idx = end_marker_buf.num_objects();
+    ::NS(EndTracking_cbuffer_add)( end_marker_buf.as_c_api(),
+        index_type{ 0 }, size_type{ 0 }, true );
+
+    ::NS(Drift_cbuffer_new)( end_marker_buf.as_c_api() );
+
+    auto eot_marker = end_marker_buf.get_const_object<
+        marker_type >( eot_mrk_idx );
+
+    ASSERT_TRUE( eot_marker != nullptr );
+    ASSERT_TRUE( ::NS(EndTracking_ends_turn)( eot_marker ) );
+    ASSERT_TRUE( ::NS(EndTracking_next_at_element)( eot_marker ) == 0 );
+    ASSERT_TRUE( ::NS(EndTracking_next_buffer_idx)( eot_marker ) == 0u );
+    ASSERT_TRUE( ::NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+        end_marker_buf.const_indices_begin(), end_marker_buf.num_objects(),
+            0u, 0 ) );
+    ASSERT_TRUE( ::NS(EndTracking_is_legal_marker_in_lattice_cobj)(
+        eot_marker, eot_mrk_idx, end_marker_buf.num_objects(), 0u, 0 ) );
+
+    ASSERT_TRUE( ::NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+        eot_marker, eot_mrk_idx, end_marker_buf.num_objects(), 0u, 0 ) );
+
+    ASSERT_FALSE( ::NS(EndTracking_is_legal_marker_in_lattice_cobj)(
+        eot_marker, eot_mrk_idx, end_marker_buf.num_objects(), 2u, 2 ) );
+
+    ASSERT_FALSE( ::NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+        eot_marker, eot_mrk_idx, end_marker_buf.num_objects(), 2u, 2 ) );
+
+    ASSERT_TRUE( ::NS(EndTracking_find_next_eot_marker_index_in_lattice_cobj)(
+        end_marker_buf.const_indices_begin(), end_marker_buf.num_objects(),
+            size_type{ 0 }, index_type{ 0 } ) == eot_mrk_idx );
+
+    /* --------------------------------------------------------------------- */
+
+    std::vector< size_type > marker_indices( 4, size_type{ 0 } );
+    marker_indices.clear();
+
+    st::CBuffer all_markers_buf;
+
+    marker_indices.push_back( all_markers_buf.num_objects() );
+    ::NS(EndTracking_cbuffer_add)( all_markers_buf.as_c_api(),
+            index_type{ 1 }, size_type{ 1 }, false );
+
+    ::NS(Drift_cbuffer_new)( all_markers_buf.as_c_api() );
+    marker_indices.push_back( all_markers_buf.num_objects() );
+    ::NS(EndTracking_cbuffer_add)( all_markers_buf.as_c_api(),
+            index_type{ 3 }, size_type{ 3 }, false );
+
+    ::NS(Drift_cbuffer_new)( all_markers_buf.as_c_api() );
+    ::NS(Drift_cbuffer_new)( all_markers_buf.as_c_api() );
+    marker_indices.push_back( all_markers_buf.num_objects() );
+    ::NS(EndTracking_cbuffer_add)( all_markers_buf.as_c_api(),
+            index_type{ 6 }, size_type{ 6 }, false );
+
+    marker_indices.push_back( all_markers_buf.num_objects() );
+    ::NS(EndTracking_cbuffer_add)( all_markers_buf.as_c_api(),
+            index_type{ 7 }, size_type{ 7 }, false );
+
+    ::NS(Drift_cbuffer_new)( all_markers_buf.as_c_api() );
+    ::NS(Drift_cbuffer_new)( all_markers_buf.as_c_api() );
+
+    for( auto const int_mrk_idx : marker_indices )
+    {
+        auto int_marker = all_markers_buf.get_const_object<
+            marker_type >( int_mrk_idx );
+
+        ASSERT_TRUE( int_marker != nullptr );
+        ASSERT_TRUE( !::NS(EndTracking_ends_turn)( int_marker ) );
+        ASSERT_TRUE(  ::NS(EndTracking_next_at_element)( int_marker ) ==
+                        static_cast< index_type >( int_mrk_idx + 1 ) );
+
+        ASSERT_TRUE(  ::NS(EndTracking_next_buffer_idx)( int_marker ) ==
+                        int_mrk_idx + size_type{ 1 } );
+
+        ASSERT_TRUE(  ::NS(EndTracking_is_legal_marker_in_lattice_cobj)(
+            int_marker, int_mrk_idx, all_markers_buf.num_objects(),
+                size_type{ 0 }, index_type{ 0 } ) );
+
+        ASSERT_FALSE(  ::NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+            int_marker, int_mrk_idx, all_markers_buf.num_objects(),
+                size_type{ 0 }, index_type{ 0 } ) );
+    }
+
+    ASSERT_TRUE( ::NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+        all_markers_buf.const_indices_begin(),
+            all_markers_buf.num_objects(), size_type{ 0 }, index_type{ 0 } ) );
+
+    marker_indices.push_back( all_markers_buf.num_objects() );
+    eot_marker = ::NS(EndTracking_cbuffer_add)( all_markers_buf.as_c_api(),
+        index_type{ 0 }, size_type{ 0 }, true );
+
+    ASSERT_TRUE( eot_marker != nullptr );
+    ASSERT_TRUE( ::NS(EndTracking_ends_turn)( eot_marker ) );
+
+    ASSERT_TRUE( ::NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+        all_markers_buf.const_indices_begin(),
+            all_markers_buf.num_objects(), size_type{ 0 }, index_type{ 0 } ) );
+
+    ASSERT_TRUE( ::NS(EndTracking_find_next_eot_marker_index_in_lattice_cobj)(
+        all_markers_buf.const_indices_begin(), all_markers_buf.num_objects(),
+            size_type{ 0 }, index_type{ 0 } ) == marker_indices.back() );
+
+    /* --------------------------------------------------------------------- */
+
+    st::CBuffer illegal1_buf;
+
+    ::NS(Drift_cbuffer_new)( illegal1_buf.as_c_api() );
+    ::NS(Drift_cbuffer_new)( illegal1_buf.as_c_api() );
+    ::NS(Drift_cbuffer_new)( illegal1_buf.as_c_api() );
+
+    eot_mrk_idx = illegal1_buf.num_objects();
+    eot_marker = ::NS(EndTracking_cbuffer_add)( illegal1_buf.as_c_api(),
+        static_cast< index_type >( illegal1_buf.num_objects() + 1 ),
+        illegal1_buf.num_objects() + size_type{ 1 }, true );
+
+    ASSERT_TRUE( eot_marker != nullptr );
+    ASSERT_TRUE( ::NS(EndTracking_ends_turn)( eot_marker ) );
+
+    ASSERT_FALSE(  ::NS(EndTracking_is_legal_marker_in_lattice_cobj)(
+        eot_marker, eot_mrk_idx, illegal1_buf.num_objects(),
+            size_type{ 0 }, index_type{ 0 } ) );
+
+    ASSERT_FALSE(  ::NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+        eot_marker, eot_mrk_idx, illegal1_buf.num_objects(),
+            size_type{ 0 }, index_type{ 0 } ) );
+
+    ASSERT_FALSE( ::NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+        illegal1_buf.const_indices_begin(),
+            illegal1_buf.num_objects(), size_type{ 0 }, index_type{ 0 } ) );
+
+    ASSERT_TRUE( ::NS(EndTracking_find_next_eot_marker_index_in_lattice_cobj)(
+        illegal1_buf.const_indices_begin(), illegal1_buf.num_objects(),
+            size_type{ 0 }, index_type{ 0 } ) == illegal1_buf.num_objects() );
+
+//     st::CBuffer illegal_marker_buf;
+//     st::CBuffer all_plus_illegal_markers_buf;
+
+
+
 }
