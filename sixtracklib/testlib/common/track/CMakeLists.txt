@@ -1,7 +1,7 @@
 set( SIXTRL_TESTLIB_TRACK_C99_SOURCES
-    sixtrack_sequ_by_sequ.c cmp_elem_by_elem.c )
+    sixtrack_sequ_by_sequ.c cmp_elem_by_elem.c cmp_track_until.c )
 set( SIXTRL_TESTLIB_TRACK_C99_HEADERS
-    sixtrack_sequ_by_sequ.h cmp_elem_by_elem.h )
+    sixtrack_sequ_by_sequ.h cmp_elem_by_elem.h cmp_track_until.h )
 
 set( SIXTRL_TESTLIB_TRACK_CXX_HEADERS )
 set( SIXTRL_TESTLIB_TRACK_CXX_SOURCES )
@@ -9,9 +9,9 @@ set( SIXTRL_TESTLIB_TRACK_CXX_SOURCES )
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 add_library( sixtrack_testlib_common_track_c99 OBJECT
-             ${SIXTRL_TESTLIB_TRACK_CXX_HEADERS}
              ${SIXTRL_TESTLIB_TRACK_C99_HEADERS}
-             ${SIXTRL_TESTLIB_TRACK_CXX_SOURCES} )
+             ${SIXTRL_TESTLIB_TRACK_CXX_HEADERS}
+             ${SIXTRL_TESTLIB_TRACK_C99_SOURCES} )
 
 target_include_directories( sixtrack_testlib_common_track_c99 PRIVATE
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> $<INSTALL_INTERFACE:include> )
@@ -26,7 +26,7 @@ target_compile_options( sixtrack_testlib_common_track_c99 PRIVATE
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-set( SIXTRL_TESTLIB_OBJECT_LIBRARIES ${SIXTRL_TESTLIB_OBJECT_LIBRARIES}
+set( SIXTRL_TESTLIB_COMMON_OBJ_LIBRARIES ${SIXTRL_TESTLIB_COMMON_OBJ_LIBRARIES}
      $<TARGET_OBJECTS:sixtrack_testlib_common_track_c99> PARENT_SCOPE )
 
 # -----------------------------------------------------------------------------

@@ -43,7 +43,7 @@ target_compile_options( sixtrack_testlib_common_cobjects_c99 PRIVATE
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-set( SIXTRL_TESTLIB_OBJECT_LIBRARIES ${SIXTRL_TESTLIB_OBJECT_LIBRARIES}
+set( SIXTRL_TESTLIB_COMMON_OBJ_LIBRARIES ${SIXTRL_TESTLIB_COMMON_OBJ_LIBRARIES}
      $<TARGET_OBJECTS:sixtrack_testlib_common_cobjects_c99>
      $<TARGET_OBJECTS:sixtrack_testlib_common_cobjects_cxx> PARENT_SCOPE )
 
