@@ -63,6 +63,41 @@ if( GTEST_FOUND )
     add_test( C99_Common_Track_Compare_PySixTrack_View
         test_track_compare_pysixtrack_view_common_c99 )
 
+    # ==========================================================================
+    # test_track_until_turn_cmp_pysixtrack_common_c99:
+
+    add_executable( test_track_until_turn_cmp_pysixtrack_common_c99
+        test_track_cmp_track_until_c99.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+        test_track_until_turn_cmp_pysixtrack_common_c99 )
+
+    target_compile_definitions( test_track_until_turn_cmp_pysixtrack_common_c99
+        PRIVATE -DSIXTRL_TRACK_SPACECHARGE=2 )
+
+    add_test( C99_Common_Track_Compare_UntilTurn_PySixTrack
+        test_track_until_turn_cmp_pysixtrack_common_c99 )
+
+    # ==========================================================================
+    # test_track_until_turn_cmp_pysixtrack_view_common_c99:
+
+    add_executable( test_track_until_turn_cmp_pysixtrack_view_common_c99
+        test_track_cmp_track_until_c99.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+        test_track_until_turn_cmp_pysixtrack_view_common_c99 )
+
+    target_compile_definitions(
+        test_track_until_turn_cmp_pysixtrack_view_common_c99
+        PRIVATE -DSIXTRL_USE_SINGLE_PARTICLE_ADAPTER=1 )
+
+    target_compile_definitions(
+        test_track_until_turn_cmp_pysixtrack_view_common_c99
+        PRIVATE -DSIXTRL_TRACK_SPACECHARGE=2 )
+
+    add_test( C99_Common_Track_Compare_UntilTurn_PySixTrack_View
+        test_track_until_turn_cmp_pysixtrack_view_common_c99 )
+
 endif()
 
 if( UNIT_TEST_TARGETS )
