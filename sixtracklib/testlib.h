@@ -23,6 +23,7 @@
 
     #include "sixtracklib/testlib/common/track/sixtrack_sequ_by_sequ.h"
     #include "sixtracklib/testlib/common/track/cmp_elem_by_elem.h"
+    #include "sixtracklib/testlib/common/track/cmp_track_until.h"
 
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 

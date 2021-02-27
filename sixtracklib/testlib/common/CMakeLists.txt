@@ -6,7 +6,7 @@ set(   SIXTRL_TESTLIB_COMMON_C99_INSTALL_PREFIX
 set(   SIXTRL_TESTLIB_COMMON_CXX_INSTALL_PREFIX
     "${SIXTRL_TESTLIB_CXX_INSTALL_PREFIX}/common" )
 
-set( SIXTRL_TESTLIB_OBJECT_LIBRARIES )
+set( SIXTRL_TESTLIB_COMMON_OBJ_LIBRARIES )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -17,7 +17,7 @@ add_subdirectory( track )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-set(  SIXTRL_TESTLIB_OBJECT_LIBRARIES
-    ${SIXTRL_TESTLIB_OBJECT_LIBRARIES} PARENT_SCOPE )
+set(  SIXTRL_TESTLIB_OBJECT_LIBRARIES ${SIXTRL_TESTLIB_OBJECT_LIBRARIES}
+    ${SIXTRL_TESTLIB_COMMON_OBJ_LIBRARIES} PARENT_SCOPE )
 
 
