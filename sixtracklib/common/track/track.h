@@ -3,7 +3,6 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/track/definitions.h"
-    #include "sixtracklib/common/track/track_config.h"
     #include "sixtracklib/common/particles/particle.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
@@ -12,6 +11,7 @@ extern "C" {
 #endif /* !defined( _GPUCODE ) && defined( __cplusplus ) */
 
 struct NS(CObjIndex);
+struct NS(TrackConfig);
 
 SIXTRL_STATIC SIXTRL_FN NS(size_type)
 NS(Track_particle_beam_element_from_cobj_index)(
@@ -19,23 +19,37 @@ NS(Track_particle_beam_element_from_cobj_index)(
     SIXTRL_CBUFFER_OBJ_ARGPTR_DEC const struct NS(CObjIndex) *const
         SIXTRL_RESTRICT obj,
     NS(size_type) const obj_index, bool increment_index_and_at_element,
-    SIXTRL_TRACK_ARGPTR_DEC const NS(TrackConfig) *const SIXTRL_RESTRICT config
-) SIXTRL_NOEXCEPT;
+    SIXTRL_TRACK_ARGPTR_DEC const struct NS(TrackConfig) *const
+        SIXTRL_RESTRICT config ) SIXTRL_NOEXCEPT;
 
 SIXTRL_STATIC SIXTRL_FN NS(size_type)
 NS(Track_particle_over_line_or_until_end_of_turn_cobj)(
     SIXTRL_PARTICLE_ARGPTR_DEC NS(Particle)* SIXTRL_RESTRICT p,
     SIXTRL_CBUFFER_OBJ_ARGPTR_DEC struct NS(CObjIndex) const* SIXTRL_RESTRICT b,
     NS(size_type) obj_index, NS(size_type) const end_obj_index,
-    SIXTRL_TRACK_ARGPTR_DEC const NS(TrackConfig) *const SIXTRL_RESTRICT config
-) SIXTRL_NOEXCEPT;
+    SIXTRL_TRACK_ARGPTR_DEC const struct NS(TrackConfig) *const
+        SIXTRL_RESTRICT config ) SIXTRL_NOEXCEPT;
+
+SIXTRL_STATIC SIXTRL_FN NS(size_type)
+NS(Track_particle_until_turn_eot_marker_cobj)(
+    SIXTRL_PARTICLE_ARGPTR_DEC NS(Particle)* SIXTRL_RESTRICT p,
+    NS(particle_index_type) const until_turn,
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC struct NS(CObjIndex) const*
+        SIXTRL_RESTRICT lattice_indices_begin,
+    NS(size_type) const end_of_turn_marker_index,
+    NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element,
+    SIXTRL_TRACK_ARGPTR_DEC const struct NS(TrackConfig) *const
+        SIXTRL_RESTRICT config ) SIXTRL_NOEXCEPT;
 
 #if !defined( _GPUCODE ) && defined( __cplusplus )
 }
 #endif /* !defined( _GPUCODE ) && defined( __cplusplus ) */
 
 #if !defined( SIXTRL_NO_INCLUDES )
+    #include "sixtracklib/common/track/track_config.h"
     #include "sixtracklib/common/beam_elements/all_beam_elements.h"
+    #include "sixtracklib/common/beam_elements/end_tracking/end_tracking.h"
     #include "sixtracklib/common/beam_elements/all_tracking_maps.h"
     #include "sixtracklib/common/cobjects/index_object.h"
     #include "sixtracklib/common/generated/config.h"
@@ -205,15 +219,15 @@ SIXTRL_INLINE NS(size_type) NS(Track_particle_beam_element_from_cobj_index)(
 
             SIXTRL_ASSERT( NS(Particle_is_active)( p ) );
             SIXTRL_ASSERT( elem != SIXTRL_NULLPTR );
-
-            next_obj_index = ( st_size_t )SIXTRL_TRACK_ILLEGAL_OBJ_INDEX;
             increment_index_and_at_element = false;
+            next_obj_index = ( st_size_t )SIXTRL_TRACK_ILLEGAL_OBJ_INDEX;
 
             if( NS(EndTracking_ends_turn)( elem ) )
             {
+                next_obj_index = NS(EndTracking_next_buffer_idx)( elem );
+
                 NS(Particle_finish_turn)( p,
                     NS(EndTracking_next_at_element)( elem ) );
-                next_obj_index = obj_index;
             }
             else if( NS(EndTracking_next_buffer_idx)( elem ) > obj_index )
             {
@@ -365,6 +379,67 @@ NS(Track_particle_over_line_or_until_end_of_turn_cobj)(
     {
         obj_index = NS(Track_particle_beam_element_from_cobj_index)(
             p, &begin[ obj_index ], obj_index, true, config );
+    }
+
+    return obj_index;
+}
+
+SIXTRL_INLINE NS(size_type) NS(Track_particle_until_turn_eot_marker_cobj)(
+    SIXTRL_PARTICLE_ARGPTR_DEC NS(Particle)* SIXTRL_RESTRICT p,
+    NS(particle_index_type) const until_turn,
+    SIXTRL_CBUFFER_OBJ_ARGPTR_DEC NS(CObjIndex) const* SIXTRL_RESTRICT lattice,
+    NS(size_type) const eot_mk_index, NS(size_type) const line_start_index,
+    NS(particle_index_type) const line_start_at_element,
+    SIXTRL_TRACK_ARGPTR_DEC const NS(TrackConfig) *const SIXTRL_RESTRICT config
+) SIXTRL_NOEXCEPT
+{
+    NS(size_type) obj_index = line_start_index;
+
+    SIXTRL_ASSERT( NS(Particle_is_active)( p ) );
+    SIXTRL_ASSERT( lattice != SIXTRL_NULLPTR );
+    SIXTRL_ASSERT( line_start_index <= eot_mk_index );
+    SIXTRL_ASSERT( NS(CObjIndex_is_end_tracking)( &lattice[ eot_mk_index ] ) );
+
+    SIXTRL_ASSERT( NS(EndTracking_lattice_contains_no_illegal_markers_cobj)(
+        lattice, eot_mk_index + 1, line_start_index, line_start_at_element ) );
+
+    SIXTRL_ASSERT( NS(EndTracking_is_legal_eot_marker_in_lattice_cobj)(
+        NS(EndTracking_const_from_cobj_index)( &lattice[ eot_mk_index ] ),
+            eot_mk_index, eot_mk_index + 1u, line_start_index,
+                line_start_at_element ) );
+
+    SIXTRL_ASSERT( until_turn <= ( NS(particle_index_type)
+                        )SIXTRL_PARTICLE_MAX_LEGAL_AT_TURN );
+
+    SIXTRL_ASSERT( until_turn >= ( NS(particle_index_type)
+                        )SIXTRL_PARTICLE_MIN_LEGAL_AT_TURN );
+
+    SIXTRL_ASSERT( NS(Particle_at_turn)( p ) >= ( NS(particle_index_type)
+                        )SIXTRL_PARTICLE_MIN_LEGAL_AT_TURN );
+
+    SIXTRL_ASSERT( NS(Particle_at_turn)( p ) <= ( NS(particle_index_type)
+                        )SIXTRL_PARTICLE_MAX_LEGAL_AT_TURN );
+
+    SIXTRL_ASSERT( NS(Particle_at_element)( p ) >= (
+        ( ( NS(particle_index_type) )SIXTRL_PARTICLE_MIN_LEGAL_AT_ELEMENT ) +
+          ( NS(particle_index_type) )line_start_at_element ) );
+
+    SIXTRL_ASSERT( line_start_at_element < (
+        ( ( NS(particle_index_type) )SIXTRL_PARTICLE_MAX_LEGAL_AT_ELEMENT ) -
+        ( ( NS(particle_index_type) )eot_mk_index ) ) );
+
+    obj_index += ( NS(size_type) )(
+        NS(Particle_at_element)( p ) - line_start_at_element );
+
+    while( ( NS(Particle_at_turn)( p ) < until_turn ) &&
+           ( NS(Particle_is_active)( p ) ) )
+    {
+        SIXTRL_ASSERT( obj_index <= eot_mk_index );
+        SIXTRL_ASSERT( obj_index >= line_start_index );
+        SIXTRL_ASSERT( NS(Particle_at_element)( p ) >= line_start_at_element );
+
+        obj_index = NS(Track_particle_beam_element_from_cobj_index)(
+            p, &lattice[ obj_index ], obj_index, true, config );
     }
 
     return obj_index;
