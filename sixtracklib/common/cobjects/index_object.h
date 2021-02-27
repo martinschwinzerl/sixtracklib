@@ -218,6 +218,7 @@ SIXTRL_INLINE bool NS(CObjIndex_is_consistent_with_type)(
         NS(cobj_obj_id_type) )SIXTRL_COBJECTS_TYPE_ID_UNDEFINED );
     SIXTRL_ASSERT( min_size > ( NS(cobj_size_type) )0u );
     SIXTRL_ASSERT( ( obj == SIXTRL_NULLPTR ) ||
+                   ( requ_type_id != NS(CObjIndex_type_id)( obj ) ) ||
                    ( min_size <= NS(CObjIndex_size)( obj ) ) );
     ( void )min_size;
     return ( ( obj != SIXTRL_NULLPTR ) &&
