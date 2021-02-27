@@ -25,7 +25,7 @@ target_compile_options( sixtrack_testlib_common_particles_cxx PRIVATE
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-set( SIXTRL_TESTLIB_OBJECT_LIBRARIES ${SIXTRL_TESTLIB_OBJECT_LIBRARIES}
+set( SIXTRL_TESTLIB_COMMON_OBJ_LIBRARIES ${SIXTRL_TESTLIB_COMMON_OBJ_LIBRARIES}
      $<TARGET_OBJECTS:sixtrack_testlib_common_particles_cxx> PARENT_SCOPE )
 
 # -----------------------------------------------------------------------------

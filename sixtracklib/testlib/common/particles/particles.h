@@ -39,27 +39,27 @@ SIXTRL_STATIC SIXTRL_FN NS(status_type) NS(Particles_difference)(
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(Particles_print)(
     SIXTRL_PARTICLES_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT pset,
-    ::NS(particles_num_type) const index );
+    NS(particles_num_type) const index );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(Particles_print_difference)(
     SIXTRL_PARTICLES_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT lhs,
     SIXTRL_PARTICLES_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT rhs,
     SIXTRL_PARTICLES_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT diff,
-    ::NS(particles_num_type) const index );
+    NS(particles_num_type) const index );
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(Particles_fprint)(
     FILE* SIXTRL_RESTRICT fp,
     SIXTRL_PARTICLES_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT pset,
-    ::NS(particles_num_type) const index );
+    NS(particles_num_type) const index );
 
 SIXTRL_EXTERN SIXTRL_HOST_FN void NS(Particles_fprint_difference)(
     FILE* SIXTRL_RESTRICT fp,
     SIXTRL_PARTICLES_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT lhs,
     SIXTRL_PARTICLES_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT rhs,
     SIXTRL_PARTICLES_ARGPTR_DEC const NS(Particles) *const SIXTRL_RESTRICT diff,
-    ::NS(particles_num_type) const index );
+    NS(particles_num_type) const index );
 
 #endif /* !defined( _GPUCODE ) */
 
