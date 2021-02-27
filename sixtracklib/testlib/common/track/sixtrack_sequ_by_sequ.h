@@ -48,7 +48,6 @@ NS(Track_sixtrack_sequ_by_sequ_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer)
         *const SIXTRL_RESTRICT lattice_buffer,
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT diff_buffer,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT ptr_first_fail_idx,
     SIXTRL_TRACK_ARGPTR_DEC const NS(TrackConfig) *const SIXTRL_RESTRICT config );
 
 #endif /* !defined( _GPUCODE ) */
@@ -233,7 +232,7 @@ NS(Track_sixtrack_sequ_by_sequ_cobj_flat_buffer)(
             if( ( status == ( NS(status_type) )SIXTRL_STATUS_SUCCESS ) &&
                 ( has_diff_buffer ) )
             {
-                SIXTRL_ASSERT( pset_diff != nullptr );
+                SIXTRL_ASSERT( pset_diff != SIXTRL_NULLPTR );
 
                 status = NS(Particles_difference)(
                     pset_b, pset_track, pset_diff );
@@ -276,7 +275,7 @@ SIXTRL_INLINE NS(status_type) NS(Track_sixtrack_sequ_by_sequ_cbuffer)(
         SIXTRL_CBUFFER_DATAPTR_DEC unsigned char*
             diff_buffer_begin = SIXTRL_NULLPTR;
 
-        if( ( ( diff_buffer != nullptr ) &&
+        if( ( ( diff_buffer != SIXTRL_NULLPTR ) &&
             ( !NS(CBuffer_needs_remapping)( diff_buffer ) ) &&
             (  NS(CBuffer_slot_size)( diff_buffer ) ==
                NS(CBuffer_slot_size)( cmp_pbuffer ) ) &&
