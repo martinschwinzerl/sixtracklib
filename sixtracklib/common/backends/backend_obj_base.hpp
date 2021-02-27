@@ -31,8 +31,11 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN backend_id_type backend_id() const SIXTRL_NOEXCEPT {
             return this->m_backend_id; }
 
-        SIXTRL_HOST_FN std::string backend_str() const {
+        SIXTRL_HOST_FN std::string const& backend_str() const {
             return this->m_backend_str; }
+
+            SIXTRL_HOST_FN char const* backend_cstr() const {
+            return this->m_backend_str.c_str(); }
 
         SIXTRL_HOST_FN size_type required_backend_str_capacity() const {
             return ( !this->m_backend_str.empty() )
