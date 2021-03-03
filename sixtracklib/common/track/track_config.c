@@ -3,13 +3,13 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_TRACK_ARGPTR_DEC NS(TrackConfig) const*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(TrackConfig) const*
 NS(TrackConfig_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(TrackConfig_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_TRACK_ARGPTR_DEC NS(TrackConfig)* NS(TrackConfig_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(TrackConfig)* NS(TrackConfig_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(TrackConfig_from_cbuffer)( buffer, idx ); }
@@ -50,11 +50,11 @@ bool NS(TrackConfig_cobj_can_be_added)(
 ) SIXTRL_NOEXCEPT { return NS(TrackConfig_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
 
-SIXTRL_TRACK_ARGPTR_DEC NS(TrackConfig)* NS(TrackConfig_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(TrackConfig)* NS(TrackConfig_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(TrackConfig_cbuffer_new)( buffer ); }
 
-SIXTRL_TRACK_ARGPTR_DEC NS(TrackConfig)* NS(TrackConfig_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(TrackConfig)* NS(TrackConfig_cbuffer_add_ext)(
     SIXTRL_TRACK_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(particle_real_type) const x_min, NS(particle_real_type) const x_max,
     NS(particle_real_type) const y_min, NS(particle_real_type) const y_max,
@@ -65,8 +65,8 @@ SIXTRL_TRACK_ARGPTR_DEC NS(TrackConfig)* NS(TrackConfig_cbuffer_add_ext)(
         check_aperture_flags, min_drift_length );
 }
 
-SIXTRL_TRACK_ARGPTR_DEC NS(TrackConfig)* NS(TrackConfig_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(TrackConfig)*
+NS(TrackConfig_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_TRACK_ARGPTR_DEC const NS(TrackConfig) *const SIXTRL_RESTRICT orig ) {
     return NS(TrackConfig_cbuffer_add_copy)( buffer, orig ); }
-
