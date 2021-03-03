@@ -1,8 +1,13 @@
 # ==============================================================================
 # common/generated sixtracklib submodule
 
-set( GENERATED_INSTALL_PATH "include/sixtracklib/common/generated" )
-set( SIXTRACKL_COMMON_GENERATED_HEADERS )
+set( SIXTRL_COMMON_GENERATED_CXX_HEADERS )
+set( SIXTRL_COMMON_GENERATED_CXX_SOURCES )
+
+set( SIXTRL_COMMON_GENERATED_C99_HEADERS )
+set( SIXTRL_COMMON_GENERATED_C99_SOURCES helpers.c )
+
+set( GENERATED_INSTALL_PATH "${SIXTRL_COMMON_C99_INSTALL_PREFIX}/generated" )
 
 # ------------------------------------------------------------------------------
 # modules.h is a header file with pre-defined constants, allownig the user
@@ -16,7 +21,6 @@ else()
     set( PY_SIXTRACKL_MODULE_OPENCL "False" )
 endif()
 
-
 if( SIXTRACKL_ENABLE_CUDA )
     set( SIXTRACKL_ENABLE_MODULE_CUDA 1 )
     set( PY_SIXTRACKL_MODULE_CUDA "True" )
@@ -25,12 +29,15 @@ else()
     set( PY_SIXTRACKL_MODULE_CUDA "False" )
 endif()
 
+# =============================================================================
+
 set( MODULES_H_IN_PATH  "${CMAKE_CURRENT_SOURCE_DIR}/modules.h.template" )
 set( MODULES_H_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/modules.h" )
 
 configure_file( ${MODULES_H_IN_PATH} ${MODULES_H_OUT_PATH} @ONLY )
-set(   SIXTRACKL_COMMON_GENERATED_HEADERS
-     ${SIXTRACKL_COMMON_GENERATED_HEADERS} "generated/modules.h" )
+
+set( SIXTRL_COMMON_GENERATED_C99_HEADERS ${SIXTRL_COMMON_GENERATED_C99_HEADERS}
+     modules.h )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # prepare python related module list
@@ -46,8 +53,7 @@ endif()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # install:
 
-set( MODULES_H_INSTALL_PATH
-     "${CMAKE_INSTALL_PREFIX}/${GENERATED_INSTALL_PATH}/modules.h" )
+set( MODULES_H_INSTALL_PATH "${GENERATED_INSTALL_PATH}/modules.h" )
 
 set( MODULES_ENABLE_DISABLE_INFO
     "set( SIXTRACKL_ENABLE_MODULE_OPENCL ${SIXTRACKL_ENABLE_MODULE_OPENCL} )
@@ -78,14 +84,13 @@ set( PATH_H_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/path.h" )
 
 configure_file( ${PATH_H_IN_PATH} ${PATH_H_OUT_PATH} @ONLY )
 
-set(  SIXTRACKL_COMMON_GENERATED_HEADERS
-    ${SIXTRACKL_COMMON_GENERATED_HEADERS} "generated/path.h" )
+set( SIXTRL_COMMON_GENERATED_C99_HEADERS ${SIXTRL_COMMON_GENERATED_C99_HEADERS}
+     path.h )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # install:
 
-set( PATH_H_INSTALL_PATH
-     "${CMAKE_INSTALL_PREFIX}/${GENERATED_INSTALL_PATH}/path.h" )
+set( PATH_H_INSTALL_PATH "${GENERATED_INSTALL_PATH}/path.h" )
 
 install( CODE "
          set( SIXTRACKLIB_BASE_DIR \"${CMAKE_INSTALL_PREFIX}/\" )
@@ -104,15 +109,13 @@ set( CONFIG_H_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config.h" )
 
 configure_file( ${CONFIG_H_IN_PATH} ${CONFIG_H_OUT_PATH} @ONLY )
 
-set(  SIXTRACKL_COMMON_GENERATED_HEADERS
-    ${SIXTRACKL_COMMON_GENERATED_HEADERS} "generated/config.h" )
+set( SIXTRL_COMMON_GENERATED_C99_HEADERS ${SIXTRL_COMMON_GENERATED_C99_HEADERS}
+     config.h )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # install:
 
-set( CONFIG_H_INSTALL_PATH
-     "${CMAKE_INSTALL_PREFIX}/${GENERATED_INSTALL_PATH}/config.h" )
-
+set( CONFIG_H_INSTALL_PATH "${GENERATED_INSTALL_PATH}/config.h" )
 install( CODE "${SIXTRL_TRACK_FEATURES_INSTALL_STR}
                ${SIXTRL_APERTURE_CHECK_FEATURES_INSTALL_STR}
                ${SIXTRL_AUX_FEATURES_INSTALL_STR}
@@ -144,8 +147,8 @@ set( NAMESPACE_H_OUT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/namespace.h" )
 
 configure_file( ${NAMESPACE_H_IN_PATH} ${NAMESPACE_H_OUT_PATH} @ONLY )
 
-set(  SIXTRACKL_COMMON_GENERATED_HEADERS
-    ${SIXTRACKL_COMMON_GENERATED_HEADERS} "generated/namespace.h" )
+set( SIXTRL_COMMON_GENERATED_C99_HEADERS ${SIXTRL_COMMON_GENERATED_C99_HEADERS}
+     namespace.h )
 
 
 if( SIXTRACKL_ENABLE_PYTHON )
@@ -167,8 +170,7 @@ endif()
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # install:
 
-set( NAMESPACE_H_INSTALL_PATH
-     "${CMAKE_INSTALL_PREFIX}/${GENERATED_INSTALL_PATH}/namespace.h" )
+set( NAMESPACE_H_INSTALL_PATH "${GENERATED_INSTALL_PATH}/namespace.h" )
 
 install( CODE "
          set( SIXTRL_GENERATED_C99_NAMESPACE \"${SIXTRL_GENERATED_C99_NAMESPACE}\" )
@@ -204,10 +206,35 @@ install( CODE "
                          \"${SIXTRACKL_PKG_INSTALL_CONFIG}\" @ONLY )" )
 
 # ------------------------------------------------------------------------------
+# add sixtrack_common_generated_c99
 
-set(   SIXTRACKLIB_COMMON_C99_HEADERS
-     ${SIXTRACKLIB_COMMON_C99_HEADERS}
-     ${SIXTRACKL_COMMON_GENERATED_HEADERS} PARENT_SCOPE )
+set( SIXTRL_COMMON_NONGENERATED_C99_HEADERS helpers.h )
 
+add_library( sixtrack_common_generated_c99 OBJECT
+    ${SIXTRL_COMMON_NONGENERATED_C99_HEADERS}
+    ${SIXTRL_COMMON_GENERATED_C99_HEADERS}
+    ${SIXTRL_COMMON_GENERATED_CXX_HEADERS}
+    ${SIXTRL_COMMON_GENERATED_C99_SOURCES} )
 
-#end: sixtracklib/common/generated/CMakeLists.txt
+target_include_directories( sixtrack_common_generated_c99 PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include> )
+
+set_target_properties( sixtrack_common_generated_c99 PROPERTIES C_STANDARD 99
+    LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON C_STANDARD_REQUIRED ON )
+
+target_compile_options( sixtrack_common_generated_c99
+    PRIVATE ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS}
+    ${SIXTRACKL_C99_AUTOVEC_FLAGS} )
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# pass on sixtrack_common_generated_c99 as a module for sixtracklib:
+
+set( SIXTRL_COMMON_MODULES ${SIXTRL_COMMON_MODULES}
+    $<TARGET_OBJECTS:sixtrack_common_generated_c99> PARENT_SCOPE )
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# install:
+
+install( FILES ${SIXTRL_COMMON_NONGENERATED_C99_HEADERS}
+         DESTINATION ${GENERATED_INSTALL_PATH} )
