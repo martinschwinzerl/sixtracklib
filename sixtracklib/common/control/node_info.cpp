@@ -13,6 +13,17 @@ namespace SIXTRL_CXX_NAMESPACE
         using node_id_type = st::NodeId;
     }
 
+    constexpr ninfo_type::backend_id_type
+    st::BackendObjTraits< ninfo_type >::BACKEND_ID;
+
+    constexpr ninfo_type::class_id_type
+    st::BackendObjTraits< ninfo_type >::BASE_CLASS_ID;
+
+    constexpr ninfo_type::class_id_type
+    st::BackendObjTraits< ninfo_type >::DERIVED_CLASS_ID;
+
+    /* ---------------------------------------------------------------------- */
+
     ninfo_type::status_type ninfo_type::do_print_to_stream(
         std::ostream& SIXTRL_RESTRICT_REF output,
         node_id_type::str_format_type const node_id_str_format,

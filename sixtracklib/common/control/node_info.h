@@ -241,6 +241,25 @@ namespace SIXTRL_CXX_NAMESPACE
         std::string     m_device_name;
         std::string     m_description;
     };
+
+    template<> struct BackendObjTraits< SIXTRL_CXX_NAMESPACE::NodeInfoBase >
+    {
+        static constexpr backend_id_type BACKEND_ID =
+            SIXTRL_CXX_NAMESPACE::BACKEND_ID_NONE;
+
+        static constexpr derived_class_id_type BASE_CLASS_ID =
+            SIXTRL_CXX_NAMESPACE::NODE_INFO_BASE_CLASS_ID;
+
+        static constexpr derived_class_id_type DERIVED_CLASS_ID =
+            SIXTRL_CXX_NAMESPACE::NODE_INFO_BASE_CLASS_ID;
+    };
+
+    template<> struct BackendObjInvTraits<
+        SIXTRL_CXX_NAMESPACE::BACKEND_ID_NONE,
+        SIXTRL_CXX_NAMESPACE::NODE_INFO_BASE_CLASS_ID >
+    {
+        typedef SIXTRL_CXX_NAMESPACE::NodeInfoBase backend_obj_type;
+    };
 }
 #endif /* C++, Host */
 
