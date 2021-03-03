@@ -1,23 +1,21 @@
 #ifndef SIXTRACKLIB_COMMON_BACKENDS_HELPER_METHODS_H__
 #define SIXTRACKLIB_COMMON_BACKENDS_HELPER_METHODS_H__
 
-#if !defined( SIXTRL_NO_INCLUDE )
+#if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/common/backends/definitions.h"
-#endif /* !defined( SIXTRL_NO_INCLUDE ) */
+#endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#if !defined( SIXTRL_NO_SYSTEM_INCLUDE )
-    #if defined( __cplusplus )
-        #if !defined( _GPUCODE )
-            #include <algorithm>
-        #endif /* !defined( _GPUCODE ) */
+#if !defined( SIXTRL_NO_SYSTEM_INCLUDES ) && defined( __cplusplus )
+        #include <algorithm>
         #include <cstddef>
         #include <cstdlib>
         #include <cstring>
-    #else
-        #include <stddef.h>
-        #include <stdlib.h>
-        #include <string.h>
-    #endif /* __cplusplus */
+#endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) && defined( __cplusplus ) */
+
+#if !defined( SIXTRL_NO_SYSTEM_INCLUDES ) && !defined( __cplusplus )
+    #include <stddef.h>
+    #include <stdlib.h>
+    #include <string.h>
     #include <stdint.h>
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDE ) */
 
@@ -33,7 +31,7 @@
             #define SIXTRACKLIB_COPY_VALUES( T, destination, source, n ) \
             do \
             {  \
-                SIXTRL_INT64_T ii = ( SIXTRL_INT64_T )0; \
+                SIXTRL_INT64_TYPE ii = ( SIXTRL_INT64_TYPE )0; \
                 for( ; ii < ( n ) ; ++ii ) \
                 {   \
                     *( ( destination ) + ii ) = *( ( source ) + ii );\
@@ -61,8 +59,8 @@
         {  \
            if( ( ( uintptr_t )( source ) ) < ( ( uintptr_t )( destination ) ) ) \
            {    \
-                SIXTRL_INT64_T const end_idx = ( SIXTRL_INT64_T )-1; \
-                SIXTRL_INT64_T ii = ( SIXTRL_INT64_T )( n ) - end_idx; \
+                SIXTRL_INT64_TYPE const end_idx = ( SIXTRL_INT64_TYPE )-1; \
+                SIXTRL_INT64_TYPE ii = ( SIXTRL_INT64_TYPE )( n ) - end_idx; \
                 \
                 for( ; ii > end_idx ; --ii ) \
                 {   \
@@ -71,7 +69,7 @@
            }    \
            else \
            {    \
-                SIXTRL_INT64_T ii = ( SIXTRL_INT64_T )0; \
+                SIXTRL_INT64_TYPE ii = ( SIXTRL_INT64_TYPE )0; \
                 \
                 for( ; ii < ( n ) ; ++ii ) \
                 {   \
@@ -89,8 +87,8 @@
             {  \
                if( ( ( uintptr_t )( source ) ) < ( ( uintptr_t )( destination ) ) ) \
                {    \
-                    SIXTRL_INT64_T const end_idx = ( SIXTRL_INT64_T )-1; \
-                    SIXTRL_INT64_T ii = ( SIXTRL_INT64_T )( n ) - end_idx; \
+                    SIXTRL_INT64_TYPE const end_idx = ( SIXTRL_INT64_TYPE )-1; \
+                    SIXTRL_INT64_TYPE ii = ( SIXTRL_INT64_TYPE )( n ) - end_idx; \
                     \
                     for( ; ii > end_idx ; --ii ) \
                     {   \
@@ -99,7 +97,7 @@
                }    \
                else \
                {    \
-                    SIXTRL_INT64_T ii = ( SIXTRL_INT64_T )0; \
+                    SIXTRL_INT64_TYPE ii = ( SIXTRL_INT64_TYPE )0; \
                     \
                     for( ; ii < ( n ) ; ++ii ) \
                     {   \
@@ -126,8 +124,8 @@
         #define SIXTRACKLIB_SET_VALUES( T, destination, n, value ) \
         do \
         {  \
-           SIXTRL_INT64_T ii = ( SIXTRL_INT64_T )0; \
-           SIXTRL_INT64_T const end_idx = ( SIXTRL_INT64_T )( n ); \
+           SIXTRL_INT64_TYPE ii = ( SIXTRL_INT64_TYPE )0; \
+           SIXTRL_INT64_TYPE const end_idx = ( SIXTRL_INT64_TYPE )( n ); \
            \
            for( ; ii < end_idx ; ++ii ) \
            {  \
