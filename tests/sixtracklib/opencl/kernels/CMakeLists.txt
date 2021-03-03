@@ -4,25 +4,35 @@ if( GTEST_FOUND )
          ${SIXTRACKL_GTEST_LIBRARIES} )
 
     # ==========================================================================
-    # test_node_id_from_string_common_cxx:
+    # test_kernel_cobj_flat_buffer_remap_opencl_cxx:
 
-    add_executable( test_node_id_from_string_common_cxx
-        test_node_id_from_string_cxx.cpp )
+    add_executable( test_kernel_cobj_flat_buffer_remap_opencl_cxx
+        test_kernel_cobj_flat_buffer_remap_cxx.cpp )
 
     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-        test_node_id_from_string_common_cxx )
+        test_kernel_cobj_flat_buffer_remap_opencl_cxx )
 
-    add_test( CXX_Common_Control_NodeId_FromString
-        test_node_id_from_string_common_cxx )
+    add_test( CXX_OpenCL_Kernels_CObjFlatBufferRemap
+        test_kernel_cobj_flat_buffer_remap_opencl_cxx )
+
+    set_tests_properties( CXX_OpenCL_Kernels_CObjFlatBufferRemap
+        PROPERTIES DEPENDS CXX_OpenCL_Control_RunTimeCompileProgramItem )
 
     # ==========================================================================
-    # test_node_id_common_c99:
+    # test_kernel_track_particle_until_turn_cobj_flat_buffer_opencl_cxx:
 
-    add_executable( test_node_id_common_c99 test_node_id_c99.cpp )
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_node_id_common_c99 )
-    add_test( C99_Common_Control_NodeId test_node_id_common_c99 )
-    set_tests_properties( C99_Common_Control_NodeId PROPERTIES DEPENDS
-                          CXX_Common_Control_NodeId_FromString )
+    add_executable(
+        test_kernel_track_particle_until_turn_cobj_flat_buffer_opencl_cxx
+        test_kernel_particle_track_until_cobj_flat_buffer_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
+        test_kernel_track_particle_until_turn_cobj_flat_buffer_opencl_cxx )
+
+    add_test( CXX_OpenCL_Kernels_ParticleTrackUntilCobjFlatBuffer
+        test_kernel_track_particle_until_turn_cobj_flat_buffer_opencl_cxx )
+
+    set_tests_properties( CXX_OpenCL_Kernels_ParticleTrackUntilCobjFlatBuffer
+        PROPERTIES DEPENDS CXX_OpenCL_Control_RunTimeCompileProgramItem )
 
     # *************************************************************************
     # Set all properties:

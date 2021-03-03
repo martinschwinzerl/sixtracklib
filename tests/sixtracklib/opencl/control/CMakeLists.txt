@@ -4,25 +4,28 @@ if( GTEST_FOUND )
          ${SIXTRACKL_GTEST_LIBRARIES} )
 
     # ==========================================================================
-    # test_node_id_from_string_common_cxx:
+    # test_context_opencl_cxx:
 
-    add_executable( test_node_id_from_string_common_cxx
-        test_node_id_from_string_cxx.cpp )
-
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS}
-        test_node_id_from_string_common_cxx )
-
-    add_test( CXX_Common_Control_NodeId_FromString
-        test_node_id_from_string_common_cxx )
+    add_executable( test_context_opencl_cxx test_context_cxx.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_context_opencl_cxx )
+    add_test( CXX_OpenCL_Control_Context test_context_opencl_cxx )
 
     # ==========================================================================
-    # test_node_id_common_c99:
+    # test_controller_opencl_cxx:
 
-    add_executable( test_node_id_common_c99 test_node_id_c99.cpp )
-    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_node_id_common_c99 )
-    add_test( C99_Common_Control_NodeId test_node_id_common_c99 )
-    set_tests_properties( C99_Common_Control_NodeId PROPERTIES DEPENDS
-                          CXX_Common_Control_NodeId_FromString )
+    add_executable( test_controller_opencl_cxx test_controller_cxx.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_controller_opencl_cxx )
+    add_test( CXX_OpenCL_Control_Controller test_controller_opencl_cxx )
+
+    # ==========================================================================
+    # test_rtc_program_item_opencl_cxx:
+
+    add_executable( test_rtc_program_item_opencl_cxx
+                    test_rtc_program_item_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_rtc_program_item_opencl_cxx )
+    add_test( CXX_OpenCL_Control_RunTimeCompileProgramItem
+              test_rtc_program_item_opencl_cxx )
 
     # *************************************************************************
     # Set all properties:
