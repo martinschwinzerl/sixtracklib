@@ -238,6 +238,7 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( !only_enabled ) ||
             ( st::Backends_is_enabled( st::BACKEND_ID_OPENMP ) ) )
         {
+            if( num_used_backends > st::size_type{ 0 } ) a2str << "|";
             temp = st::Backends_string_by_id( st::BACKEND_ID_OPENMP );
             if( !temp.empty() ) { a2str << temp; ++num_used_backends; }
         }
@@ -245,6 +246,7 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( !only_enabled ) ||
             ( st::Backends_is_enabled( st::BACKEND_ID_OPENCL ) ) )
         {
+            if( num_used_backends > st::size_type{ 0 } ) a2str << "|";
             temp = st::Backends_string_by_id( st::BACKEND_ID_OPENCL );
             if( !temp.empty() ) { a2str << temp; ++num_used_backends; }
         }
@@ -252,6 +254,7 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( !only_enabled ) ||
             ( st::Backends_is_enabled( st::BACKEND_ID_CUDA ) ) )
         {
+            if( num_used_backends > st::size_type{ 0 } ) a2str << "|";
             temp = st::Backends_string_by_id( st::BACKEND_ID_CUDA );
             if( !temp.empty() ) { a2str << temp; ++num_used_backends; }
         }
@@ -259,6 +262,7 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( !only_enabled ) ||
             ( st::Backends_is_enabled( st::BACKEND_ID_HIP ) ) )
         {
+            if( num_used_backends > st::size_type{ 0 } ) a2str << "|";
             temp = st::Backends_string_by_id( st::BACKEND_ID_HIP );
             if( !temp.empty() ) { a2str << temp; ++num_used_backends; }
         }
@@ -266,6 +270,7 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( !only_enabled ) ||
             ( st::Backends_is_enabled( st::BACKEND_ID_DPCPP ) ) )
         {
+            if( num_used_backends > st::size_type{ 0 } ) a2str << "|";
             temp = st::Backends_string_by_id( st::BACKEND_ID_DPCPP );
             if( !temp.empty() ) { a2str << temp; ++num_used_backends; }
         }
