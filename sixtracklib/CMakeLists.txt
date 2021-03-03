@@ -12,51 +12,27 @@
 
 message( STATUS "---- processing sixtracklib/CMakeLists.txt" )
 
-# ------------------------------------------------------------------------------
+set( SIXTRL_C99_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/include/sixtracklib" )
+set( SIXTRL_CXX_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}/include/sixtracklib" )
 
-set( SIXTRACKL_LINK_LIBRARIES  "" CACHE INTERNAL "" FORCE )
-set( SIXTRACKL_LIBRARY_MODULES "" CACHE INTERNAL "" FORCE )
+# ==============================================================================
+# testlib:
 
-set( SIXTRL_PYTHON_BINDINGS_MODULES )
-set( SIXTRL_TESTLIB_PYTHON_BINDINGS_MODULES )
+add_subdirectory( testlib )
 
-# ------------------------------------------------------------------------------
+# ==============================================================================
+# sixtracklib:
 
-set( SIXTRACKLIB_C99_INSTALL_PREFIX
-     "${CMAKE_INSTALL_PREFIX}/include/sixtracklib" )
+set( SIXTRL_C99_HEADERS sixtracklib.h testlib.h )
+set( SIXTRL_CXX_HEADERS sixtracklib.hpp testlib.hpp )
 
-set( SIXTRACKLIB_CXX_INSTALL_PREFIX ${SIXTRACKLIB_C99_INSTALL_PREFIX} )
-
-# ------------------------------------------------------------------------------
-
-set( SIXTRACKLIB_C99_HEADERS )
-set( SIXTRACKLIB_CXX_HEADERS )
-
-set( SIXTRACKL_LOCAL_C99_HEADERS
-     sixtracklib.h
-)
-
-set( SIXTRACKL_LOCAL_CXX_HEADERS
-     sixtracklib.hpp
-)
+set( SIXTRL_MODULES )
+set( SIXTRL_LINK_LIBRARIES )
 
 add_subdirectory( common )
 
-# ------------------------------------------------------------------------------
-
-# if( SIXTRACKL_ENABLE_MANUAL_SIMD )
-#
-#     add_subdirectory( simd )
-#
-#     set( SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
-#          $<TARGET_OBJECTS:sixtrack_simd> )
-#
-# endif()
-
-# ------------------------------------------------------------------------------
-
 if( SIXTRACKL_ENABLE_OPENCL )
-#     add_subdirectory( opencl )
+    add_subdirectory( opencl )
 endif()
 
 if( SIXTRACKL_ENABLE_CUDA )
@@ -64,93 +40,86 @@ if( SIXTRACKL_ENABLE_CUDA )
 endif()
 
 # ------------------------------------------------------------------------------
+# shared sixtracklib :
 
-set( SIXTRACKL_LINK_LIBRARIES ${SIXTRACKL_LINK_LIBRARIES} m )
+set( SIXTRL_LINK_LIBRARIES ${SIXTRL_LINK_LIBRARIES} m )
 
 add_library( sixtrack SHARED
-             ${SIXTRACKLIB_C99_HEADERS}
-             ${SIXTRACKL_LOCAL_C99_HEADERS}
-             ${SIXTRACKLIB_CXX_HEADERS}
-             ${SIXTRACKL_LOCAL_CXX_HEADERS}
-             ${SIXTRACKL_LIBRARY_MODULES}
-)
+             ${SIXTRL_C99_HEADERS} ${SIXTRL_CXX_HEADERS}
+             ${SIXTRL_MODULES} )
 
-if( SIXTRACKL_LINK_LIBRARIES )
-    target_link_libraries( sixtrack ${SIXTRACKL_LINK_LIBRARIES} )
+if( SIXTRL_LINK_LIBRARIES )
+    target_link_libraries( sixtrack ${SIXTRL_LINK_LIBRARIES} )
 endif()
 
 target_include_directories(
     sixtrack PUBLIC $<INSTALL_INTERFACE:include>
              PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> )
 
-if( TARGET sixtrack_cuda_host )
-    target_include_directories( sixtrack
-        PUBLIC $<BUILD_INTERFACE:${SIXTRACKL_CUDA_INCLUDE_DIRS}> )
-endif()
-
 if( TARGET sixtrack_opencl )
     target_include_directories( sixtrack
         PUBLIC $<BUILD_INTERFACE:${SIXTRL_OPENCL_INCLUDE_DIRS}> )
 endif()
 
+# if( TARGET sixtrack_cuda_host )
+#     target_include_directories( sixtrack
+#         PUBLIC $<BUILD_INTERFACE:${SIXTRACKL_CUDA_INCLUDE_DIRS}> )
+# endif()
+
+# if( TARGET sixtrack_cuda_device )
+#     set_target_properties( sixtrack PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON )
+# endif()
+
 set_target_properties( sixtrack PROPERTIES
     LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON C_STANDARD 99
     DEBUG_POSTFIX d C_STANDARD_REQUIRED ON )
-
-if( TARGET sixtrack_cuda_device )
-    set_target_properties( sixtrack PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON )
-endif()
 
 target_compile_options( sixtrack PRIVATE
     ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS}
     ${SIXTRACKL_C99_AUTOVEC_FLAGS} )
 
 # ------------------------------------------------------------------------------
+message( STATUS "****" )
+message( STATUS "****" )
+message( STATUS "SIXTRL_MODULES:" )
+message( STATUS "${SIXTRL_MODULES}" )
+message( STATUS "****" )
+message( STATUS "****" )
 
-set( SIXTRACKL_LINK_LIBRARIES ${SIXTRACKL_LINK_LIBRARIES} m )
 
 add_library( sixtrack_static STATIC
-             ${SIXTRACKLIB_C99_HEADERS}
-             ${SIXTRACKL_LOCAL_C99_HEADERS}
-             ${SIXTRACKLIB_CXX_HEADERS}
-             ${SIXTRACKL_LOCAL_CXX_HEADERS}
-             ${SIXTRACKL_LIBRARY_MODULES}
-)
+              ${SIXTRL_C99_HEADERS} ${SIXTRL_CXX_HEADERS} ${SIXTRL_MODULES} )
 
-if( SIXTRACKL_LINK_LIBRARIES )
-    target_link_libraries( sixtrack_static ${SIXTRACKL_LINK_LIBRARIES} )
+if( SIXTRL_LINK_LIBRARIES )
+    target_link_libraries( sixtrack_static ${SIXTRL_LINK_LIBRARIES} )
 endif()
 
 target_include_directories( sixtrack_static
     PUBLIC $<INSTALL_INTERFACE:include>
     PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> )
 
-if( TARGET sixtrack_cuda_host )
-    target_include_directories( sixtrack_static
-        PUBLIC $<BUILD_INTERFACE:${SIXTRACKL_CUDA_INCLUDE_DIRS}> )
-endif()
-
 if( TARGET sixtrack_opencl )
     target_include_directories( sixtrack_static
         PUBLIC $<BUILD_INTERFACE:${SIXTRL_OPENCL_INCLUDE_DIRS}> )
 endif()
 
+# if( TARGET sixtrack_cuda_host )
+#     target_include_directories( sixtrack_static
+#         PUBLIC $<BUILD_INTERFACE:${SIXTRACKL_CUDA_INCLUDE_DIRS}> )
+# endif()
+
+# if( TARGET sixtrack_cuda_device )
+#     set_target_properties( sixtrack_static PROPERTIES
+#               CUDA_RESOLVE_DEVICE_SYMBOLS ON )
+# endif()
+
 set_target_properties( sixtrack_static PROPERTIES
     LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON C_STANDARD 99
     DEBUG_POSTFIX d C_STANDARD_REQUIRED ON )
 
-if( TARGET sixtrack_cuda_device )
-    set_target_properties( sixtrack_static PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON )
-endif()
-
 target_compile_options( sixtrack_static PRIVATE
     ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS}
     ${SIXTRACKL_C99_AUTOVEC_FLAGS} )
-
-# ==============================================================================
-# testlib:
-
-add_subdirectory( testlib )
 
 # ------------------------------------------------------------------------------
 # install :
@@ -164,23 +133,14 @@ install( TARGETS sixtrack
 install( EXPORT SixTracklib-targets
          FILE   SixTracklibTargets.cmake
          NAMESPACE SixTracklib::
-         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake
-)
+         DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake )
 
-if( SIXTRACKL_LOCAL_C99_HEADERS )
-
-    set( SIXTRACKLIB_C99_INSTALL_PATH include/sixtracklib )
-
-    install( FILES ${SIXTRACKL_LOCAL_C99_HEADERS}
-             DESTINATION ${SIXTRACKLIB_C99_INSTALL_PATH} )
+if( SIXTRL_C99_HEADERS )
+    install( FILES ${SIXTRL_C99_HEADERS}
+             DESTINATION ${SIXTRL_C99_INSTALL_PREFIX} )
 endif()
 
-if( SIXTRACKL_LOCAL_CXX_HEADERS )
-
-    set( SIXTRACKLIB_CXX_INSTALL_PATH include/sixtracklib )
-
-    install( FILES ${SIXTRACKL_LOCAL_CXX_HEADERS}
-             DESTINATION ${SIXTRACKLIB_CXX_INSTALL_PATH} )
+if( SIXTRL_CXX_HEADERS )
+    install( FILES ${SIXTRL_CXX_HEADERS}
+             DESTINATION ${SIXTRL_CXX_INSTALL_PREFIX} )
 endif()
-
-# ------------------------------------------------------------------------------
