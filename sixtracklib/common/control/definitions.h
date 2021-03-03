@@ -24,6 +24,22 @@
     #define SIXTRL_NODE_INFO_BASE_CLASS_ID 100
 #endif /* !defined( SIXTRL_NODE_INFO_BASE_CLASS_ID ) */
 
+#if !defined( SIXTRL_CONTROLLER_BASE_CLASS_ID )
+    #define SIXTRL_CONTROLLER_BASE_CLASS_ID 101
+#endif /* !defined( SIXTRL_CONTROLLER_BASE_CLASS_ID ) */
+
+#if !defined( SIXTRL_ARGUMENT_BASE_CLASS_ID )
+    #define SIXTRL_ARGUMENT_BASE_CLASS_ID 102
+#endif /* !defined( SIXTRL_ARGUMENT_BASE_CLASS_ID ) */
+
+#if !defined( SIXTRL_PROGRAM_ITEM_BASE_CLASS_ID )
+    #define SIXTRL_PROGRAM_ITEM_BASE_CLASS_ID 103
+#endif /* !defined( SIXTRL_PROGRAM_ITEM_BASE_CLASS_ID ) */
+
+#if !defined( SIXTRL_PROGRAM_STORE_BASE_CLASS_ID )
+    #define SIXTRL_PROGRAM_STORE_BASE_CLASS_ID 105
+#endif /* !defined( SIXTRL_PROGRAM_STORE_BASE_CLASS_ID ) */
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 #if !defined( SIXTRL_NODE_ID_STR_FORMAT_MINIMAL)
@@ -189,6 +205,18 @@ SIXTRL_STATIC_VAR NS(ctrl_arg_mapsto_id_type) const NS(ARGUMENT_MAPS_TO_NONE) =
 SIXTRL_STATIC_VAR NS(derived_class_id_type) const NS(NODE_INFO_BASE_CLASS_ID) =
     ( NS(derived_class_id_type) )SIXTRL_NODE_INFO_BASE_CLASS_ID;
 
+SIXTRL_STATIC_VAR NS(derived_class_id_type) const NS(CONTROLLER_BASE_CLASS_ID) =
+    ( NS(derived_class_id_type) )SIXTRL_CONTROLLER_BASE_CLASS_ID;
+
+SIXTRL_STATIC_VAR NS(derived_class_id_type) const NS(ARGUMENT_BASE_CLASS_ID) =
+    ( NS(derived_class_id_type) )SIXTRL_ARGUMENT_BASE_CLASS_ID;
+
+SIXTRL_STATIC_VAR NS(derived_class_id_type) const NS(PROGRAM_ITEM_BASE_CLASS_ID)
+    = ( NS(derived_class_id_type) )SIXTRL_PROGRAM_ITEM_BASE_CLASS_ID;
+
+SIXTRL_STATIC_VAR NS(derived_class_id_type) const NS(PROGRAM_STORE_BASE_CLASS_ID)
+    = ( NS(derived_class_id_type) )SIXTRL_PROGRAM_STORE_BASE_CLASS_ID;
+
 #endif /* !defined( _GPUCODE ) */
 
 #if defined( __cplusplus )
@@ -273,6 +301,18 @@ namespace SIXTRL_CXX_NAMESPACE
 
     static constexpr derived_class_id_type NODE_INFO_BASE_CLASS_ID =
         derived_class_id_type{ SIXTRL_NODE_INFO_BASE_CLASS_ID };
+
+    static constexpr derived_class_id_type CONTROLLER_BASE_CLASS_ID =
+        derived_class_id_type{ SIXTRL_CONTROLLER_BASE_CLASS_ID };
+
+    static constexpr derived_class_id_type ARGUMENT_BASE_CLASS_ID =
+        derived_class_id_type{ SIXTRL_ARGUMENT_BASE_CLASS_ID };
+
+    static constexpr derived_class_id_type PROGRAM_ITEM_BASE_CLASS_ID =
+        derived_class_id_type{ SIXTRL_PROGRAM_ITEM_BASE_CLASS_ID };
+
+    static constexpr derived_class_id_type PROGRAM_STORE_BASE_CLASS_ID =
+        derived_class_id_type{ SIXTRL_PROGRAM_STORE_BASE_CLASS_ID };
 
     #endif /* !defined( _GPUCODE ) */
 } /* end: namespace SIXTRL_CXX_NAMESPACE */
