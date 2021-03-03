@@ -81,7 +81,7 @@
 #endif /* !defined( SIXTRL_PRIVATE_DEC ) */
 
 #if !defined( SIXTRL_LOCAL_DEC )
-    #define SIXTRL_SHARED_DEC
+    #define SIXTRL_LOCAL_DEC
 #endif /* !defined( SIXTRL_LOCAL_DEC ) */
 
 #if !defined( SIXTRL_GLOBAL_DEC )
@@ -298,5 +298,4 @@ namespace SIXTRL_CXX_NAMESPACE
 #if !defined( SIXTRL_NO_INCLUDE )
     #include "sixtracklib/common/backends/compiler_compability.h"
 #endif /* !defined( SIXTRL_NO_INCLUDE ) */
-
 #endif /* SIXTRACKLIB_COMMON_BACKENDS_DEFINITIONS_H__ */
