@@ -2,10 +2,13 @@
 # sixtracklib/common/beam_elements/CMakeLists.txt
 
 set( SIXTRL_COMMON_CXX_INSTALL_PREFIX
-   ${SIXTRL_COMMON_CXX_INSTALL_PREFIX}/beam_elements )
+   "${SIXTRL_COMMON_CXX_INSTALL_PREFIX}/beam_elements" )
 
 set( SIXTRL_COMMON_CXX_INSTALL_PREFIX
-   ${SIXTRL_COMMON_CXX_INSTALL_PREFIX}/beam_elements )
+   "${SIXTRL_COMMON_CXX_INSTALL_PREFIX}/beam_elements" )
+
+set( SIXTRL_COMMON_BEAM_ELEMENTS_LINK_LIBRARIES )
+set( SIXTRL_COMMON_BEAM_ELEMENTS_MODULES )
 
 add_subdirectory( beamfields )
 add_subdirectory( cavity )
@@ -19,7 +22,7 @@ add_subdirectory( rf_multipole )
 add_subdirectory( srotation )
 add_subdirectory( xy_shift )
 
-# -----------------------------------------------------------------------------
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 set( SIXTRL_COMMON_BEAM_ELEMS_CXX_HEADERS )
 set( SIXTRL_COMMON_BEAM_ELEMS_CXX_SOURCES )
@@ -39,10 +42,12 @@ endif()
 
 add_library( sixtrack_common_beam_elems_c99 OBJECT
     ${SIXTRL_COMMON_BEAM_ELEMS_C99_HEADERS}
+    ${SIXTRL_COMMON_BEAM_ELEMS_CXX_HEADERS}
     ${SIXTRL_COMMON_BEAM_ELEMS_C99_SOURCES} )
 
 target_include_directories( sixtrack_common_beam_elems_c99 PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> $<INSTALL_INTERFACE:include> )
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include> )
 
 set_target_properties( sixtrack_common_beam_elems_c99 PROPERTIES
     POSITION_INDEPENDENT_CODE ON LINKER_LANGUAGE C C_STANDARD 99
@@ -52,14 +57,15 @@ target_compile_options( sixtrack_common_beam_elems_c99 PRIVATE
     ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS}
     ${SIXTRACKL_C99_AUTOVEC_FLAGS} )
 
-set(  SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
-    $<TARGET_OBJECTS:sixtrack_common_beam_elems_c99> CACHE INTERNAL "" FORCE )
+set( SIXTRL_COMMON_BEAM_ELEMENTS_MODULES ${SIXTRL_COMMON_BEAM_ELEMENTS_MODULES}
+   $<TARGET_OBJECTS:sixtrack_common_beam_elems_c99> )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 if( SIXTRL_COMMON_BEAM_ELEMS_CXX_SOURCES )
     add_library( sixtrack_common_beam_elems_cxx OBJECT
         ${SIXTRL_COMMON_BEAM_ELEMS_CXX_HEADERS}
+        ${SIXTRL_COMMON_BEAM_ELEMS_C99_HEADERS}
         ${SIXTRL_COMMON_BEAM_ELEMS_CXX_SOURCES} )
 
     target_include_directories( sixtrack_common_beam_elems_cxx PRIVATE
@@ -70,13 +76,21 @@ if( SIXTRL_COMMON_BEAM_ELEMS_CXX_SOURCES )
         CXX_STANDARD_REQUIRED ON )
 
     target_compile_options( sixtrack_common_beam_elems_cxx PRIVATE
-        ${SIXTRACKLIB_C99_FLAGS} ${SIXTRACKLIB_CPU_FLAGS}
-        ${SIXTRACKL_C99_AUTOVEC_FLAGS} )
+        ${SIXTRACKLIB_CXX_FLAGS} ${SIXTRACKLIB_CPU_FLAGS}
+        ${SIXTRACKL_CXX_AUTOVEC_FLAGS} )
 
-    set(  SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
-        $<TARGET_OBJECTS:sixtrack_common_beam_elems_cxx>
-        CACHE INTERNAL "" FORCE )
+    set( SIXTRL_COMMON_BEAM_ELEMENTS_MODULES
+         ${SIXTRL_COMMON_BEAM_ELEMENTS_MODULES}
+         $<TARGET_OBJECTS:sixtrack_common_beam_elems_cxx> )
 endif()
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+set( SIXTRL_COMMON_LINK_LIBRARIES ${SIXTRL_COMMON_LINK_LIBRARIES}
+   ${SIXTRL_COMMON_BEAM_ELEMENTS_LINK_LIBRARIES} PARENT_SCOPE )
+
+set( SIXTRL_COMMON_MODULES ${SIXTRL_COMMON_MODULES}
+   ${SIXTRL_COMMON_BEAM_ELEMENTS_MODULES} PARENT_SCOPE )
 
 # ==============================================================================
 # Handle install:
@@ -86,7 +100,7 @@ if( SIXTRL_COMMON_BEAM_ELEMS_C99_HEADERS )
              DESTINATION ${SIXTRL_COMMON_C99_INSTALL_PREFIX} )
 endif()
 
-if( SIXTRACKL_CXX_ENABLE AND SIXTRL_COMMON_BEAM_ELEMS_CXX_HEADERS )
+if( SIXTRL_COMMON_BEAM_ELEMS_CXX_HEADERS )
     install( FILES ${SIXTRL_COMMON_BEAM_ELEMS_CXX_HEADERS}
              DESTINATION ${SIXTRL_COMMON_CXX_INSTALL_PREFIX} )
 endif()
