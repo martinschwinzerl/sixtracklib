@@ -25,13 +25,13 @@ NS(size_type) NS(ParticlesAddr_cobj_required_num_bytes_ext)(
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_CBUFFER_DATAPTR_DEC NS(ParticlesAddr) const*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(ParticlesAddr) const*
 NS(ParticlesAddr_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT b,
     NS(size_type) const index ) SIXTRL_NOEXCEPT {
         return NS(ParticlesAddr_const_from_cbuffer)( b, index ); }
 
-SIXTRL_CBUFFER_DATAPTR_DEC NS(ParticlesAddr)* NS(ParticlesAddr_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(ParticlesAddr)* NS(ParticlesAddr_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT b,
     NS(size_type) const index ) SIXTRL_NOEXCEPT {
         return NS(ParticlesAddr_from_cbuffer)( b, index ); }
@@ -173,12 +173,12 @@ bool NS(ParticlesAddr_cbuffer_can_be_added_ext)(
 ) SIXTRL_NOEXCEPT { return NS(ParticlesAddr_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_slots, requ_objects, requ_dataptrs ); }
 
-SIXTRL_PARTICLES_ADDR_ARGPTR_DEC NS(ParticlesAddr)*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(ParticlesAddr)*
 NS(ParticlesAddr_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(ParticlesAddr_cbuffer_new)( buffer ); }
 
-SIXTRL_PARTICLES_ADDR_ARGPTR_DEC NS(ParticlesAddr)*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(ParticlesAddr)*
 NS(ParticlesAddr_cbuffer_add_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(particles_num_type) const num_particles,
@@ -209,7 +209,7 @@ NS(ParticlesAddr_cbuffer_add_ext)(
         delta_addr, rpp_addr, rvv_addr, chi_addr, charge_ratio_addr,
         id_addr, at_element_addr, at_turn_addr, state_addr ); }
 
-SIXTRL_PARTICLES_ADDR_ARGPTR_DEC NS(ParticlesAddr)*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(ParticlesAddr)*
 NS(ParticlesAddr_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_PARTICLES_ADDR_ARGPTR_DEC const NS(ParticlesAddr) *const

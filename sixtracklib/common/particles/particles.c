@@ -3,13 +3,13 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_PARTICLES_ARGPTR_DEC NS(Particles) const*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Particles) const*
 NS(Particles_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT b,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
     return NS(Particles_const_from_cbuffer)( b, idx ); }
 
-SIXTRL_PARTICLES_ARGPTR_DEC NS(Particles)* NS(Particles_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Particles)* NS(Particles_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
     return NS(Particles_from_cbuffer)( buffer, idx ); }
@@ -27,12 +27,12 @@ bool NS(Particles_cbuffer_can_be_added_ext)(
     buffer, max_num_particles, ptr_requ_buffer_size, ptr_requ_slots,
         ptr_requ_objects, ptr_requ_dataptrs ); }
 
-SIXTRL_PARTICLES_ARGPTR_DEC NS(Particles)* NS(Particles_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Particles)* NS(Particles_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(particles_num_type) const max_num_particles ) {
     return NS(Particles_cbuffer_new)( buffer, max_num_particles ); }
 
-SIXTRL_PARTICLES_ARGPTR_DEC NS(Particles)* NS(Particles_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Particles)* NS(Particles_cbuffer_add_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(particles_num_type) const max_num_particles,
     NS(particles_num_type) const num_particles,
@@ -102,7 +102,8 @@ NS(size_type) NS(Particles_cobj_required_num_bytes_ext)(
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-NS(Particles)* NS(Particles_preset_ext)( SIXTRL_PARTICLES_ARGPTR_DEC
+SIXTRL_PARTICLES_ARGPTR_DEC NS(Particles)*
+NS(Particles_preset_ext)( SIXTRL_PARTICLES_ARGPTR_DEC
     NS(Particles)* SIXTRL_RESTRICT p ) SIXTRL_NOEXCEPT {
     return NS(Particles_preset)( p ); }
 

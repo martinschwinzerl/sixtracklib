@@ -22,13 +22,13 @@ NS(cobj_size_type) NS(Particle_cobj_required_num_bytes_ext)(
     NS(cobj_size_type) slot_size ) SIXTRL_NOEXCEPT {
         return NS(Particle_cobj_required_num_bytes)( p, slot_size ); }
 
-SIXTRL_PARTICLE_ARGPTR_DEC NS(Particle) const*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Particle) const*
 NS(Particle_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buf,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
     return NS(Particle_const_from_cbuffer)( buf, idx ); }
 
-SIXTRL_PARTICLE_ARGPTR_DEC NS(Particle)* NS(Particle_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Particle)* NS(Particle_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buf,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
     return NS(Particle_from_cbuffer)( buf, idx ); }
@@ -43,11 +43,11 @@ bool NS(Particle_cbuffer_can_be_added_ext)(
     ptr_requ_buffer_size, ptr_requ_slots, ptr_requ_objects, ptr_requ_dataptrs );
 }
 
-SIXTRL_PARTICLE_ARGPTR_DEC NS(Particle)* NS(Particle_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Particle)* NS(Particle_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buf ) {
     return NS(Particle_cbuffer_new)( buf ); }
 
-SIXTRL_PARTICLE_ARGPTR_DEC NS(Particle)* NS(Particle_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Particle)* NS(Particle_cbuffer_add_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buf,
     NS(particle_real_type)  const x,       NS(particle_real_type)  const y,
     NS(particle_real_type)  const px,      NS(particle_real_type)  const py,
@@ -65,7 +65,7 @@ SIXTRL_PARTICLE_ARGPTR_DEC NS(Particle)* NS(Particle_cbuffer_add_ext)(
     x, y, px, py, zeta, delta, state, at_element, at_turn, id, psigma, rpp, rvv,
         chi, charge_ratio, charge0, mass0, beta0, gamma0, p0c, s ); }
 
-SIXTRL_PARTICLE_ARGPTR_DEC NS(Particle)* NS(Particle_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Particle)* NS(Particle_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_PARTICLE_ARGPTR_DEC const NS(Particle) *const SIXTRL_RESTRICT orig
 ) { return NS(Particle_cbuffer_add_copy)( buffer, orig ); }
