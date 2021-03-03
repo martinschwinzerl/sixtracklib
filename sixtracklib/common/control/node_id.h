@@ -140,7 +140,8 @@ namespace SIXTRL_CXX_NAMESPACE
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN cmp_result_type compare(
-            NodeId const& SIXTRL_RESTRICT_REF rhs ) const SIXTRL_NOEXCEPT;
+            NodeId const& SIXTRL_RESTRICT_REF rhs,
+            bool const use_node_index_for_cmp = true ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN bool operator<( NodeId const& SIXTRL_RESTRICT_REF rhs
             ) const SIXTRL_NOEXCEPT {
@@ -170,8 +171,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* ----------------------------------------------------------------- */
 
-        SIXTRL_HOST_FN status_type to_stream( std::ostream& ostr,
-            str_format_type const format, backend_id_type const backend_id =
+        SIXTRL_HOST_FN status_type to_stream(
+            std::ostream& ostr, str_format_type format,
+            backend_id_type const backend_id =
                 SIXTRL_CXX_NAMESPACE::BACKEND_ID_NONE ) const;
 
         SIXTRL_HOST_FN friend std::ostream& operator<<(
@@ -332,6 +334,7 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(status_type) NS(NodeId_from_string)(
 SIXTRL_EXTERN SIXTRL_HOST_FN NS(status_type) NS(NodeId_from_string_detailed)(
     SIXTRL_ARGPTR_DEC NS(NodeId)* SIXTRL_RESTRICT node_id,
     SIXTRL_ARGPTR_DEC const char *const SIXTRL_RESTRICT node_id_str,
+    NS(node_id_str_fmt_type) const node_id_str_fmt,
     SIXTRL_ARGPTR_DEC NS(backend_id_type)* ptr_backend_id );
 
 /* ------------------------------------------------------------------------- */

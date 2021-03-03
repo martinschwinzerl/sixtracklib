@@ -35,6 +35,14 @@ namespace SIXTRL_CXX_NAMESPACE
             ( str_format == st::NODE_ID_STR_FORMAT_AUTO ) )
               str_format =  st::NodeId::GET_STR_FORMAT_TYPE( node_id_str );
 
+        if(  ptr_platform_id != nullptr )
+            *ptr_platform_id = st::NodeId::ILLEGAL_PLATFORM_ID;
+
+        if(  ptr_device_id != nullptr )
+            *ptr_device_id = st::NodeId::ILLEGAL_DEVICE_ID;
+
+        if( ptr_backend_id != nullptr ) *ptr_backend_id = st::BACKEND_ID_NONE;
+
         if( ( !node_id_str.empty() ) &&
             ( str_format != st::NODE_ID_STR_FORMAT_ILLEGAL ) )
         {
@@ -125,10 +133,10 @@ namespace SIXTRL_CXX_NAMESPACE
                         if( nn == st::size_type{ 3 } )
                         {
                             platform_id = std::stoi(
-                                std::ssub_match( matched_parts[ 2 ] ).str() );
+                                std::ssub_match( matched_parts[ 1 ] ).str() );
 
                             device_id = std::stoi(
-                                std::ssub_match( matched_parts[ 3 ] ).str() );
+                                std::ssub_match( matched_parts[ 2 ] ).str() );
 
                             status = st::STATUS_SUCCESS;
                         }
@@ -160,6 +168,8 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         NodeId::str_format_type format = st::NODE_ID_STR_FORMAT_ILLEGAL;
 
+        if( ptr_backend_id != nullptr ) *ptr_backend_id = st::BACKEND_ID_NONE;
+
         if( !node_id_str.empty() )
         {
             std::regex const MINIMAL_REGEX = std::regex( "([0-9]+)\\.([0-9]+)" );
@@ -167,25 +177,61 @@ namespace SIXTRL_CXX_NAMESPACE
             std::ostringstream a2str;
             a2str << st::Backends_backend_id_regex( false );
             a2str << "\\:([0-9]+)\\.([0-9]+)";
-            std::regex const BACKEND_ID_REGEX = std::regex( a2str.str() );
+            std::string regex_str = a2str.str();
+            std::regex const BACKEND_ID_REGEX = std::regex( regex_str );
 
             a2str.str( "" );
             a2str << st::Backends_backend_str_regex( false );
             a2str << "\\:([0-9]+)\\.([0-9]+)";
-
-            std::regex const BACKEND_STR_REGEX = std::regex( a2str.str() );
+            regex_str = a2str.str();
+            std::regex const BACKEND_STR_REGEX = std::regex( regex_str );
 
             if( std::regex_match( node_id_str, BACKEND_STR_REGEX ) )
             {
-                format = st::NODE_ID_STR_FORMAT_BACKEND_STR;
+                std::smatch matched_parts;
+                if( std::regex_match( node_id_str, matched_parts,
+                        BACKEND_STR_REGEX ) )
+                {
+                    NodeId::backend_id_type backend_id = st::BACKEND_ID_NONE;
+                    st::size_type const nn = matched_parts.size();
+                    if( nn == st::size_type{ 4 } )
+                    {
+                        backend_id = st::Backends_id_by_string(
+                            std::ssub_match( matched_parts[ 1 ] ).str() );
+
+                        format = st::NODE_ID_STR_FORMAT_BACKEND_STR;
+
+                        if( ptr_backend_id != nullptr )
+                            *ptr_backend_id = backend_id;
+                    }
+                }
             }
             else if( std::regex_match( node_id_str, BACKEND_ID_REGEX ) )
             {
-                format = st::NODE_ID_STR_FORMAT_BACKEND_ID;
+                std::smatch matched_parts;
+                if( std::regex_match( node_id_str, matched_parts,
+                        BACKEND_ID_REGEX ) )
+                {
+                    NodeId::backend_id_type backend_id = st::BACKEND_ID_NONE;
+                    st::size_type const nn = matched_parts.size();
+                    if( nn == st::size_type{ 4 } )
+                    {
+                        backend_id = std::stoi( std::ssub_match(
+                            matched_parts[ 1 ] ).str() );
+
+                        format = st::NODE_ID_STR_FORMAT_BACKEND_ID;
+
+                        if( ptr_backend_id != nullptr )
+                            *ptr_backend_id = backend_id;
+                    }
+                }
             }
             else if( std::regex_match( node_id_str, MINIMAL_REGEX ) )
             {
                 format = st::NODE_ID_STR_FORMAT_MINIMAL;
+
+                if(  ptr_backend_id != nullptr )
+                    *ptr_backend_id = st::BACKEND_ID_NONE;
             }
         }
 
@@ -204,14 +250,14 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     NodeId::status_type NodeId::to_stream( std::ostream& ostr,
-        NodeId::str_format_type const format,
-        NodeId::backend_id_type backend_id ) const
+        NodeId::str_format_type format,
+        NodeId::backend_id_type const backend_id ) const
     {
         NodeId::status_type status = st::STATUS_GENERAL_FAILURE;
         if( !this->is_legal() ) return status;
 
-        if( backend_id == st::NODE_ID_STR_FORMAT_AUTO )
-            backend_id =  st::NODE_ID_STR_FORMAT_DEFAULT;
+        if( format == st::NODE_ID_STR_FORMAT_AUTO )
+            format =  st::NODE_ID_STR_FORMAT_DEFAULT;
 
         switch( format )
         {
@@ -258,7 +304,8 @@ namespace SIXTRL_CXX_NAMESPACE
     }
 
     NodeId::cmp_result_type NodeId::compare(
-        NodeId const& SIXTRL_RESTRICT_REF rhs ) const SIXTRL_NOEXCEPT
+        NodeId const& SIXTRL_RESTRICT_REF rhs,
+        bool const use_node_index_for_cmp ) const SIXTRL_NOEXCEPT
     {
         using cmp_result_t = st::NodeId::cmp_result_type;
         cmp_result_t result = cmp_result_t{ 0 };
@@ -278,7 +325,7 @@ namespace SIXTRL_CXX_NAMESPACE
                     ? cmp_result_t{ +1 } : cmp_result_t{ -1 };
             }
 
-            if( ( result == cmp_result_t{ 0 } ) &&
+            if( ( result == cmp_result_t{ 0 } ) && ( use_node_index_for_cmp ) &&
                 ( this->m_node_index != rhs.m_node_index ) )
             {
                 result = ( this->m_node_index > rhs.m_node_index )
@@ -329,14 +376,14 @@ bool NS(NodeId_is_legal)(
 ::NS(node_device_id_type) NS(NodeId_device_id)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node ) {
     return ( node != nullptr )
-        ? node->platform_id()
+        ? node->device_id()
         : SIXTRL_CXX_NAMESPACE::NodeId::ILLEGAL_DEVICE_ID; }
 
-bool NS(NodeId_has_node_index)(
+bool NS(NodeId_has_index)(
     SIXTRL_ARGPTR_DEC const ::NS(NodeId) *const SIXTRL_RESTRICT node ) {
     return ( ( node != nullptr ) && ( node->has_index() ) ); }
 
-NS(node_index_type) NS(NodeId_node_index)(
+::NS(node_index_type) NS(NodeId_node_index)(
     SIXTRL_ARGPTR_DEC const NS(NodeId) *const SIXTRL_RESTRICT node ) {
     return ( node != nullptr )
         ? node->index()
@@ -396,13 +443,13 @@ void NS(NodeId_set_index)( SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
         ? node->from_string( node_id_str )
         : ::NS(STATUS_GENERAL_FAILURE); }
 
-::NS(status_type) NS(NodeId_from_string)(
+::NS(status_type) NS(NodeId_from_string_detailed)(
     SIXTRL_ARGPTR_DEC ::NS(NodeId)* SIXTRL_RESTRICT node,
     SIXTRL_ARGPTR_DEC const char *const SIXTRL_RESTRICT node_id_str,
+    ::NS(node_id_str_fmt_type) const node_id_str_fmt,
     SIXTRL_ARGPTR_DEC ::NS(backend_id_type)* SIXTRL_RESTRICT ptr_backend_id ) {
     return ( node != nullptr )
-        ? node->from_string(
-            node_id_str, ::NS(NODE_ID_STR_FORMAT_AUTO), ptr_backend_id )
+        ? node->from_string( node_id_str, node_id_str_fmt, ptr_backend_id )
         : ::NS(STATUS_GENERAL_FAILURE); }
 
 /* ------------------------------------------------------------------------- */
