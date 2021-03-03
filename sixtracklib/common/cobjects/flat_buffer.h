@@ -11,9 +11,9 @@
     #endif /* C++ */
 #endif /* !defined(  SIXTRL_NO_SYSTEM_INCLUDES ) */
 
-#if defined( _cplusplus ) && !defined( GPUCODE )
+#if defined( _cplusplus ) && !defined( _GPUCODE )
 extern "C" {
-#endif /* defined( _cplusplus ) && !defined( GPUCODE ) */
+#endif /* defined( _cplusplus ) && !defined( _GPUCODE ) */
 
 /* ************************************************************************* */
 /* *******               Minimal Flat Buffer Interface              ******** */
@@ -656,9 +656,9 @@ NS(CObjFlatBuffer_add_copy_of_trivial_object)(
     NS(cobj_obj_id_type) const type_id,
     bool const init_space_with_zeros ) SIXTRL_NOEXCEPT;
 
-#if defined( _cplusplus ) && !defined( GPUCODE )
+#if defined( _cplusplus ) && !defined( _GPUCODE )
 }
-#endif /* defined( _cplusplus ) && !defined( GPUCODE ) */
+#endif /* defined( _cplusplus ) && !defined( _GPUCODE ) */
 
 /* ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| */
 /* ||||||||||            implementation of inline methods          ||||||||| */
@@ -670,9 +670,9 @@ NS(CObjFlatBuffer_add_copy_of_trivial_object)(
     #include "sixtracklib/common/cobjects/garbage_range.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#if defined( _cplusplus ) && !defined( GPUCODE )
+#if defined( _cplusplus ) && !defined( _GPUCODE )
 extern "C" {
-#endif /* defined( _cplusplus ) && !defined( GPUCODE ) */
+#endif /* defined( _cplusplus ) && !defined( _GPUCODE ) */
 
 /* ************************************************************************* */
 /* *******         Additional internal functions and helpers        ******** */
@@ -746,9 +746,9 @@ NS(_CObjFlatBuffer_add_copy_of_object_update_buffer_params)(
     NS(cobj_size_type) const requ_num_objects,
     NS(cobj_size_type) const requ_num_ptrs ) SIXTRL_NOEXCEPT;
 
-#if defined( _cplusplus ) && !defined( GPUCODE )
+#if defined( _cplusplus ) && !defined( _GPUCODE )
 }
-#endif /* defined( _cplusplus ) && !defined( GPUCODE ) */
+#endif /* defined( _cplusplus ) && !defined( _GPUCODE ) */
 
 /* ************************************************************************* */
 /* *******               Minimal Flat Buffer Interface              ******** */
@@ -758,9 +758,9 @@ NS(_CObjFlatBuffer_add_copy_of_object_update_buffer_params)(
     #include "sixtracklib/common/cobjects/index_object.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-#if defined( _cplusplus ) && !defined( GPUCODE )
+#if defined( _cplusplus ) && !defined( _GPUCODE )
 extern "C" {
-#endif /* defined( _cplusplus ) && !defined( GPUCODE ) */
+#endif /* defined( _cplusplus ) && !defined( _GPUCODE ) */
 
 SIXTRL_INLINE NS(cobj_size_type) NS(CObjFlatBuffer_slot_based_size)(
     NS(cobj_size_type) const in_length,
@@ -4116,7 +4116,7 @@ NS(_CObjFlatBuffer_memcpy_from_argptr_to_dataptr)(
 
         if( num_bytes_to_copy > ( st_size_type )0u )
         {
-            #if !defined( GPUCODE )
+            #if !defined( _GPUCODE )
                 #if defined( _cplusplus )
                 typedef NS(cobj_raw_type) st_raw_type;
                 typedef SIXTRL_CBUFFER_ARGPTR_DEC st_raw_type const* ptr_raw_src_t;
@@ -4132,7 +4132,7 @@ NS(_CObjFlatBuffer_memcpy_from_argptr_to_dataptr)(
 
                 #endif /* C++ */
 
-            #else /* defined( GPUCODE ) */
+            #else /* defined( _GPUCODE ) */
             typedef NS(cobj_raw_type) st_raw_type;
             typedef SIXTRL_CBUFFER_ARGPTR_DEC st_raw_type const* ptr_raw_src_t;
             typedef SIXTRL_CBUFFER_DATAPTR_DEC st_raw_type*      ptr_raw_dest_t;
@@ -4143,10 +4143,10 @@ NS(_CObjFlatBuffer_memcpy_from_argptr_to_dataptr)(
 
             for( ; src_it != src_end ; ++src_it, ++dest_it )
             {
-                *src_it = *dest_it;
+                *dest_it = *src_it;
             }
 
-            #endif /* GPUCODE ) */
+            #endif /* _GPUCODE ) */
         }
     }
 
@@ -4172,7 +4172,7 @@ NS(_CObjFlatBuffer_memcpy_from_dataptr_to_argptr)(
 
         if( num_bytes_to_copy > ( st_size_type )0u )
         {
-            #if !defined( GPUCODE )
+            #if !defined( _GPUCODE )
                 #if defined( _cplusplus )
                 typedef NS(cobj_raw_type) st_raw_type;
                 typedef SIXTRL_CBUFFER_ARGPTR_DEC st_raw_type* ptr_raw_dest_t;
@@ -4193,23 +4193,23 @@ NS(_CObjFlatBuffer_memcpy_from_dataptr_to_argptr)(
 
                 #endif /* C++ */
 
-            #else /* defined( GPUCODE ) */
+            #else /* defined( _GPUCODE ) */
             typedef NS(cobj_raw_type) st_raw_type;
-            typedef SIXTRL_CBUFFER_ARGPTR_DEC st_raw_type const* ptr_raw_src_t;
-            typedef SIXTRL_CBUFFER_DATAPTR_DEC st_raw_type*      ptr_raw_dest_t;
+            typedef SIXTRL_CBUFFER_DATAPTR_DEC st_raw_type const* ptr_raw_src_t;
+            typedef SIXTRL_CBUFFER_ARGPTR_DEC st_raw_type* ptr_raw_dest_t;
 
             ptr_raw_dest_t dest_it =
                 ( ptr_raw_dest_t )( uintptr_t )destination;
 
-            ptr_raw_src_t  src_it  = source;
-            ptr_raw_src_t  src_end = src_it + num_bytes_to_copy;
+            ptr_raw_src_t src_it  = source;
+            ptr_raw_src_t src_end = src_it + num_bytes_to_copy;
 
             for( ; src_it != src_end ; ++src_it, ++dest_it )
             {
-                *src_it = *dest_it;
+                *dest_it = *src_it;
             }
 
-            #endif /* GPUCODE ) */
+            #endif /* _GPUCODE ) */
         }
     }
 
@@ -4676,7 +4676,7 @@ NS(_CObjFlatBuffer_add_copy_of_object_update_buffer_params)(
     return status;
 }
 
-#if !defined( GPUCODE ) && defined( _cplusplus )
+#if !defined( _GPUCODE ) && defined( _cplusplus )
 }
-#endif /* !defined( GPUCODE ) && defined( _cplusplus ) */
+#endif /* !defined( _GPUCODE ) && defined( _cplusplus ) */
 #endif /* SIXTRACKLIB_COMMON_COBJECTS_FLAT_BUFFER_C99_H__ */
