@@ -10,8 +10,8 @@ set( SIXTRL_COMMON_PARTICLES_C99_HEADERS definitions.h particles_undef.h
 set( SIXTRL_COMMON_PARTICLES_CXX_SOURCES particles.cpp)
 set( SIXTRL_COMMON_PARTICLES_CXX_HEADERS )
 
-set( SIXTRL_COMMON_BE_PARENT_CXX_HEADERS )
-set( SIXTRL_COMMON_BE_PARENT_C99_HEADERS ../definitions.h )
+set( SIXTRL_COMMON_PARTICLES_PARENT_CXX_HEADERS )
+set( SIXTRL_COMMON_PARTICLES_PARENT_C99_HEADERS ../definitions.h )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -23,8 +23,8 @@ endif()
 add_library( sixtrack_common_particles_c99 OBJECT
     ${SIXTRL_COMMON_PARTICLES_C99_HEADERS}
     ${SIXTRL_COMMON_PARTICLES_CXX_HEADERS}
-    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
-    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
+    ${SIXTRL_COMMON_PARTICLES_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_PARTICLES_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_PARTICLES_C99_SOURCES} )
 
 target_include_directories( sixtrack_common_particles_c99 PRIVATE
@@ -43,8 +43,8 @@ target_compile_options( sixtrack_common_particles_c99 PRIVATE
 add_library( sixtrack_common_particles_cxx OBJECT
     ${SIXTRL_COMMON_PARTICLES_CXX_HEADERS}
     ${SIXTRL_COMMON_PARTICLES_C99_HEADERS}
-    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
-    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
+    ${SIXTRL_COMMON_PARTICLES_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_PARTICLES_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_PARTICLES_CXX_SOURCES} )
 
 target_include_directories( sixtrack_common_particles_cxx PRIVATE
