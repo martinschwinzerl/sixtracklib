@@ -3,12 +3,14 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_BE_ARGPTR_DEC NS(SCCoasting) const* NS(SCCoasting_const_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCCoasting) const*
+NS(SCCoasting_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(SCCoasting_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SCCoasting)* NS(SCCoasting_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCCoasting)*
+NS(SCCoasting_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(SCCoasting_from_cbuffer)( buffer, idx ); }
@@ -49,11 +51,11 @@ bool NS(SCCoasting_cobj_can_be_added)(
 ) SIXTRL_NOEXCEPT { return NS(SCCoasting_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SCCoasting)* NS(SCCoasting_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCCoasting)* NS(SCCoasting_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(SCCoasting_cbuffer_new)( buffer ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SCCoasting)* NS(SCCoasting_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCCoasting)* NS(SCCoasting_cbuffer_add_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(be_real_type) const number_of_particles,
     NS(be_real_type) const circumference,
@@ -65,8 +67,8 @@ SIXTRL_BE_ARGPTR_DEC NS(SCCoasting)* NS(SCCoasting_cbuffer_add_ext)(
             number_of_particles, circumference, sigma_x, sigma_y, length,
                 x_co, y_co, min_sigma_diff, enabled ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SCCoasting)* NS(SCCoasting_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCCoasting)*
+NS(SCCoasting_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(SCCoasting) *const SIXTRL_RESTRICT orig ) {
     return NS(SCCoasting_cbuffer_add_copy)( buffer, orig ); }
-

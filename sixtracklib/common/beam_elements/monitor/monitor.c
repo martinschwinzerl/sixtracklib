@@ -3,12 +3,13 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_BE_ARGPTR_DEC NS(Monitor) const* NS(Monitor_const_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Monitor) const*
+NS(Monitor_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(Monitor_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(Monitor)* NS(Monitor_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Monitor)* NS(Monitor_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(Monitor_from_cbuffer)( buffer, idx ); }
@@ -49,11 +50,11 @@ bool NS(Monitor_cobj_can_be_added)(
 ) SIXTRL_NOEXCEPT { return NS(Monitor_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(Monitor)* NS(Monitor_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Monitor)* NS(Monitor_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(Monitor_cbuffer_new)( buffer ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(Monitor)* NS(Monitor_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Monitor)* NS(Monitor_cbuffer_add_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(particle_index_type) const num_stores,
     NS(particle_index_type) const start, NS(particle_index_type) const skip,
@@ -66,7 +67,7 @@ SIXTRL_BE_ARGPTR_DEC NS(Monitor)* NS(Monitor_cbuffer_add_ext)(
         min_particle_id, max_particle_id, is_rolling, is_turn_ordered,
             out_addr ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(Monitor)* NS(Monitor_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Monitor)* NS(Monitor_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(Monitor) *const SIXTRL_RESTRICT orig ) {
     return NS(Monitor_cbuffer_add_copy)( buffer, orig ); }

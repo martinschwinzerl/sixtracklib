@@ -3,12 +3,12 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_BE_ARGPTR_DEC NS(Drift) const* NS(Drift_const_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Drift) const* NS(Drift_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(Drift_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Drift)* NS(Drift_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(Drift_from_cbuffer)( buffer, idx ); }
@@ -49,28 +49,29 @@ bool NS(Drift_cobj_can_be_added)(
 ) SIXTRL_NOEXCEPT { return NS(Drift_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Drift)* NS(Drift_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(Drift_cbuffer_new)( buffer ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Drift)* NS(Drift_cbuffer_add_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(be_real_type) const length ) {
         return NS(Drift_cbuffer_add)( buffer, length ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(Drift)* NS(Drift_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(Drift)* NS(Drift_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(Drift) *const SIXTRL_RESTRICT orig ) {
     return NS(Drift_cbuffer_add_copy)( buffer, orig ); }
 
 /* ------------------------------------------------------------------------- */
 
-SIXTRL_BE_ARGPTR_DEC NS(DriftExact) const* NS(DriftExact_const_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(DriftExact) const*
+NS(DriftExact_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(DriftExact_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(DriftExact)* NS(DriftExact_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(DriftExact)* NS(DriftExact_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(DriftExact_from_cbuffer)( buffer, idx ); }
@@ -111,16 +112,17 @@ bool NS(DriftExact_cobj_can_be_added)(
 ) SIXTRL_NOEXCEPT { return NS(DriftExact_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(DriftExact)* NS(DriftExact_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(DriftExact)* NS(DriftExact_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(DriftExact_cbuffer_new)( buffer ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(DriftExact)* NS(DriftExact_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(DriftExact)* NS(DriftExact_cbuffer_add_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(be_real_type) const length ) {
         return NS(DriftExact_cbuffer_add)( buffer, length ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(DriftExact)* NS(DriftExact_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(DriftExact)*
+NS(DriftExact_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(DriftExact) *const SIXTRL_RESTRICT orig ) {
     return NS(DriftExact_cbuffer_add_copy)( buffer, orig ); }

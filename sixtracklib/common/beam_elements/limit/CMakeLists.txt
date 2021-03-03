@@ -2,14 +2,24 @@ set( SIXTRL_COMMON_BE_LIMIT_CXX_HEADERS )
 set( SIXTRL_COMMON_BE_LIMIT_CXX_SOURCES limit.cpp )
 
 set( SIXTRL_COMMON_BE_LIMIT_C99_HEADERS
-     limit_rect.h limit_ellipse.h limit_rect_ellipse.h track.h )
+     limit_rect.h limit_rect_cobj.h
+     limit_ellipse.h limit_ellipse_cobj.h
+     limit_rect_ellipse.h limit_rect_ellipse_cobj.h track.h )
 
 set( SIXTRL_COMMON_BE_LIMIT_C99_SOURCES
     limit_rect.c limit_ellipse.c limit_rect_ellipse.c track.c )
 
+set( SIXTRL_COMMON_BE_PARENT_CXX_HEADERS )
+set( SIXTRL_COMMON_BE_PARENT_C99_HEADERS ../../definitions.h
+     ../definitions.h ../beam_elements.h ../cobj_type_ids.h )
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 add_library( sixtrack_common_be_limit_cxx OBJECT
     ${SIXTRL_COMMON_BE_LIMIT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_LIMIT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_LIMIT_CXX_SOURCES} )
 
 target_include_directories( sixtrack_common_be_limit_cxx PRIVATE
@@ -28,6 +38,8 @@ target_compile_options( sixtrack_common_be_limit_cxx PRIVATE
 add_library( sixtrack_common_be_limit_c99 OBJECT
     ${SIXTRL_COMMON_BE_LIMIT_C99_HEADERS}
     ${SIXTRL_COMMON_BE_LIMIT_CXX_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_LIMIT_C99_SOURCES} )
 
 target_include_directories( sixtrack_common_be_limit_c99 PRIVATE
@@ -44,8 +56,9 @@ target_compile_options( sixtrack_common_be_limit_c99 PRIVATE
 # ------------------------------------------------------------------------------
 # pass on sixtrack_common_be_beambeam as a module for sixtracklib:
 
-set( SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
-    $<TARGET_OBJECTS:sixtrack_common_be_limit_c99> CACHE INTERNAL "" FORCE )
+set( SIXTRL_COMMON_BEAM_ELEMENTS_MODULES ${SIXTRL_COMMON_BEAM_ELEMENTS_MODULES}
+    $<TARGET_OBJECTS:sixtrack_common_be_limit_cxx>
+    $<TARGET_OBJECTS:sixtrack_common_be_limit_c99> PARENT_SCOPE )
 
 # ==============================================================================
 # Installation:
@@ -55,7 +68,7 @@ if( SIXTRL_COMMON_BE_LIMIT_C99_HEADERS )
              DESTINATION "${SIXTRACKLIB_C99_INSTALL_PREFIX}/limit" )
 endif()
 
-if( SIXTRACKL_ENABLE_CXX AND SIXTRL_COMMON_BE_LIMIT_CXX_HEADERS )
+if( SIXTRL_COMMON_BE_LIMIT_CXX_HEADERS )
     install( FILES ${SIXTRL_COMMON_BE_LIMIT_CXX_HEADERS}
              DESTINATION "${SIXTRACKLIB_CXX_INSTALL_PREFIX}/limit" )
 endif()

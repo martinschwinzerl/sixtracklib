@@ -1,14 +1,21 @@
 set( SIXTRL_COMMON_BE_RFMULTIPOLE_CXX_HEADERS )
 set( SIXTRL_COMMON_BE_RFMULTIPOLE_CXX_SOURCES rf_multipole.cpp )
 
-set( SIXTRL_COMMON_BE_RFMULTIPOLE_C99_HEADERS rf_multipole.h track.h )
 set( SIXTRL_COMMON_BE_RFMULTIPOLE_C99_SOURCES rf_multipole.c track.c )
+set( SIXTRL_COMMON_BE_RFMULTIPOLE_C99_HEADERS
+    rf_multipole.h rf_multipole_cobj.h track.h )
+
+set( SIXTRL_COMMON_BE_PARENT_CXX_HEADERS )
+set( SIXTRL_COMMON_BE_PARENT_C99_HEADERS ../../definitions.h
+     ../definitions.h ../beam_elements.h ../cobj_type_ids.h )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 add_library( sixtrack_common_be_rfmultipole_cxx OBJECT
     ${SIXTRL_COMMON_BE_RFMULTIPOLE_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_RFMULTIPOLE_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_RFMULTIPOLE_CXX_SOURCES} )
 
 target_include_directories( sixtrack_common_be_rfmultipole_cxx PRIVATE
@@ -26,6 +33,9 @@ target_compile_options( sixtrack_common_be_rfmultipole_cxx PRIVATE
 
 add_library( sixtrack_common_be_rfmultipole_c99 OBJECT
     ${SIXTRL_COMMON_BE_RFMULTIPOLE_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_RFMULTIPOLE_CXX_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_RFMULTIPOLE_C99_SOURCES} )
 
 target_include_directories( sixtrack_common_be_rfmultipole_c99 PRIVATE
@@ -42,10 +52,9 @@ target_compile_options( sixtrack_common_be_rfmultipole_c99 PRIVATE
 # ------------------------------------------------------------------------------
 # pass on sixtrack_common_be_beambeam as a module for sixtracklib:
 
-set(  SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
+set(  SIXTRL_COMMON_BEAM_ELEMENTS_MODULES ${SIXTRL_COMMON_BEAM_ELEMENTS_MODULES}
     $<TARGET_OBJECTS:sixtrack_common_be_rfmultipole_cxx>
-    $<TARGET_OBJECTS:sixtrack_common_be_rfmultipole_c99>
-    CACHE INTERNAL "" FORCE )
+    $<TARGET_OBJECTS:sixtrack_common_be_rfmultipole_c99> PARENT_SCOPE )
 
 # ----------------------------------------------------------------------------
 # install :
@@ -55,7 +64,7 @@ if( SIXTRL_COMMON_BE_RFMULTIPOLE_C99_HEADERS )
              DESTINATION "${SIXTRL_COMMON_C99_INSTALL_PREFIX}/rf_multipole" )
 endif()
 
-if( SIXTRACKL_ENABLE_CXX AND SIXTRL_COMMON_BE_RFMULTIPOLE_CXX_HEADERS )
+if( SIXTRL_COMMON_BE_RFMULTIPOLE_CXX_HEADERS )
     install( FILES ${SIXTRL_COMMON_BE_RFMULTIPOLE_CXX_HEADERS}
              DESTINATION "${SIXTRL_COMMON_CXX_INSTALL_PREFIX}/rf_multipole" )
  endif()

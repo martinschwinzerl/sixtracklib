@@ -1,14 +1,20 @@
 set( SIXTRL_COMMON_BE_XYSHIFT_CXX_HEADERS )
 set( SIXTRL_COMMON_BE_XYSHIFT_CXX_SOURCES xy_shift.cpp )
 
-set( SIXTRL_COMMON_BE_XYSHIFT_C99_HEADERS xy_shift.h track.h )
+set( SIXTRL_COMMON_BE_XYSHIFT_C99_HEADERS xy_shift.h xy_shift_cobj.h track.h )
 set( SIXTRL_COMMON_BE_XYSHIFT_C99_SOURCES xy_shift.c track.c )
+
+set( SIXTRL_COMMON_BE_PARENT_CXX_HEADERS )
+set( SIXTRL_COMMON_BE_PARENT_C99_HEADERS ../../definitions.h
+     ../definitions.h ../beam_elements.h ../cobj_type_ids.h )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 add_library( sixtrack_common_be_xyshift_cxx OBJECT
     ${SIXTRL_COMMON_BE_XYSHIFT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_XYSHIFT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_XYSHIFT_CXX_SOURCES} )
 
 target_include_directories( sixtrack_common_be_xyshift_cxx PRIVATE
@@ -27,6 +33,8 @@ target_compile_options( sixtrack_common_be_xyshift_cxx PRIVATE
 add_library( sixtrack_common_be_xyshift_c99 OBJECT
     ${SIXTRL_COMMON_BE_XYSHIFT_C99_HEADERS}
     ${SIXTRL_COMMON_BE_XYSHIFT_CXX_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_XYSHIFT_C99_SOURCES} )
 
 target_include_directories( sixtrack_common_be_xyshift_c99 PRIVATE
@@ -43,10 +51,9 @@ target_compile_options( sixtrack_common_be_xyshift_c99 PRIVATE
 # ------------------------------------------------------------------------------
 # pass on sixtrack_common_be_beambeam as a module for sixtracklib:
 
-set(  SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
+set(  SIXTRL_COMMON_BEAM_ELEMENTS_MODULES ${SIXTRL_COMMON_BEAM_ELEMENTS_MODULES}
     $<TARGET_OBJECTS:sixtrack_common_be_xyshift_cxx>
-    $<TARGET_OBJECTS:sixtrack_common_be_xyshift_c99>
-    CACHE INTERNAL "" FORCE )
+    $<TARGET_OBJECTS:sixtrack_common_be_xyshift_c99> PARENT_SCOPE )
 
 # ----------------------------------------------------------------------------
 # install :
@@ -56,8 +63,7 @@ if( SIXTRL_COMMON_BE_XYSHIFT_C99_HEADERS )
              DESTINATION "${SIXTRL_COMMON_C99_INSTALL_PREFIX}/xy_shift" )
 endif()
 
-if( SIXTRACKL_ENABLE_CXX AND SIXTRL_COMMON_BE_XYSHIFT_CXX_HEADERS )
+if( SIXTRL_COMMON_BE_XYSHIFT_CXX_HEADERS )
     install( FILES ${SIXTRL_COMMON_BE_XYSHIFT_CXX_HEADERS}
              DESTINATION "${SIXTRL_COMMON_CXX_INSTALL_PREFIX}/xy_shift" )
  endif()
-

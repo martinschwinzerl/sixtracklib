@@ -3,12 +3,13 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_BE_ARGPTR_DEC NS(SRotation) const* NS(SRotation_const_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SRotation) const*
+NS(SRotation_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(SRotation_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SRotation)* NS(SRotation_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SRotation)* NS(SRotation_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(SRotation_from_cbuffer)( buffer, idx ); }
@@ -49,17 +50,16 @@ bool NS(SRotation_cobj_can_be_added)(
 ) SIXTRL_NOEXCEPT { return NS(SRotation_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SRotation)* NS(SRotation_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SRotation)* NS(SRotation_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(SRotation_cbuffer_new)( buffer ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SRotation)* NS(SRotation_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SRotation)* NS(SRotation_cbuffer_add_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(be_real_type) const cos_z, NS(be_real_type) const sin_z ) {
         return NS(SRotation_cbuffer_add)( buffer, cos_z, sin_z ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SRotation)* NS(SRotation_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SRotation)* NS(SRotation_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(SRotation) *const SIXTRL_RESTRICT orig ) {
     return NS(SRotation_cbuffer_add_copy)( buffer, orig ); }
-

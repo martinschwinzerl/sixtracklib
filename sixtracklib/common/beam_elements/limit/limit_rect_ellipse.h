@@ -135,114 +135,54 @@ NS(LimitRectEllipse_cobj_required_num_bytes)(
     SIXTRL_BE_ARGPTR_DEC const NS(LimitRectEllipse) *const SIXTRL_RESTRICT limit,
     NS(cobj_size_type) slot_size ) SIXTRL_NOEXCEPT;
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_preset)( SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-    SIXTRL_RESTRICT limit ) SIXTRL_NOEXCEPT;
-
 /* ------------------------------------------------------------------------- */
 
 SIXTRL_STATIC SIXTRL_FN bool NS(CObjIndex_is_limit_rect_ellipse)(
     SIXTRL_CBUFFER_OBJ_ARGPTR_DEC const struct NS(CObjIndex) *const
         SIXTRL_RESTRICT obj ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) const*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse) const*
 NS(LimitRectEllipse_const_from_cobj_index)( SIXTRL_CBUFFER_OBJ_ARGPTR_DEC
     const struct NS(CObjIndex) *const obj ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse)*
 NS(LimitRectEllipse_from_cobj_index)(
     SIXTRL_CBUFFER_OBJ_ARGPTR_DEC struct NS(CObjIndex)* obj ) SIXTRL_NOEXCEPT;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) const*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse) const*
 NS(LimitRectEllipse_const_from_cobj_flat_buffer)(
     SIXTRL_CBUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT pbuffer,
     NS(size_type) const idx, NS(size_type) const slot_size ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse)*
 NS(LimitRectEllipse_from_cobj_flat_buffer)(
     SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT pbuffer,
     NS(size_type) const idx, NS(size_type) const slot_size ) SIXTRL_NOEXCEPT;
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) const*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse) const*
 NS(LimitRectEllipse_const_from_cbuffer)(
     SIXTRL_CBUFFER_ARGPTR_DEC const struct NS(CBuffer) *const SIXTRL_RESTRICT b,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT;
 
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
+SIXTRL_STATIC SIXTRL_FN SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse)*
 NS(LimitRectEllipse_from_cbuffer)(
     SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT b,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT;
 
-/* -------------------------------------------------------------------------- */
-
-SIXTRL_STATIC SIXTRL_FN bool NS(LimitRectEllipse_cobj_flat_buffer_can_be_added)(
-    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT buffer,
-    NS(cobj_size_type) const slot_size,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_buffer_size,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_objects,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_slots,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_dataptrs
-) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_CBUFFER_DATAPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cobj_flat_buffer_new)(
-    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT buffer,
-    NS(size_type) const slot_size ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_CBUFFER_DATAPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cobj_flat_buffer_add)(
-    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT buffer_begin,
-    NS(size_type) const slot_size,
-    NS(be_real_type) const x_max, NS(be_real_type) const y_max,
-    NS(be_real_type) const a_squ, NS(be_real_type) const b_squ ) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_CBUFFER_DATAPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cobj_flat_buffer_add_copy)(
-    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT buffer_begin,
-    NS(size_type) const slot_size,
-    SIXTRL_BE_ARGPTR_DEC const NS(LimitRectEllipse) *const SIXTRL_RESTRICT orig
-) SIXTRL_NOEXCEPT;
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_STATIC SIXTRL_FN bool NS(LimitRectEllipse_cbuffer_can_be_added)(
-    SIXTRL_CBUFFER_ARGPTR_DEC const struct NS(CBuffer) *const SIXTRL_RESTRICT b,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_buffer_size,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_slots,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_objects,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_dataptrs
-) SIXTRL_NOEXCEPT;
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cbuffer_new)(
-    SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT buffer );
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cbuffer_add)(
-    SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT b,
-    NS(be_real_type) const x_max, NS(be_real_type) const y_max,
-    NS(be_real_type) const a_squ, NS(be_real_type) const b_squ  );
-
-SIXTRL_STATIC SIXTRL_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cbuffer_add_copy)(
-    SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT b,
-    SIXTRL_BE_ARGPTR_DEC const NS(LimitRectEllipse) *const
-        SIXTRL_RESTRICT orig );
-
 #if !defined( _GPUCODE )
 
-SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) const*
+SIXTRL_EXTERN SIXTRL_HOST_FN
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse) const*
 NS(LimitRectEllipse_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const struct NS(CBuffer) *const SIXTRL_RESTRICT b,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT;
 
-SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
+SIXTRL_EXTERN SIXTRL_HOST_FN
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse)*
 NS(LimitRectEllipse_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT b,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT;
@@ -279,32 +219,6 @@ SIXTRL_EXTERN SIXTRL_HOST_FN NS(status_type) NS(LimitRectEllipse_clear_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)* SIXTRL_RESTRICT limit
 ) SIXTRL_NOEXCEPT;
 
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_EXTERN SIXTRL_HOST_FN bool NS(LimitRectEllipse_cbuffer_can_be_added_ext)(
-    SIXTRL_CBUFFER_ARGPTR_DEC const struct NS(CBuffer) *const SIXTRL_RESTRICT b,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_buffer_size,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_slots,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_objects,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_dataptrs
-) SIXTRL_NOEXCEPT;
-
-SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cbuffer_new_ext)(
-    SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT b );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cbuffer_add_ext)(
-    SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT b,
-    NS(be_real_type) const x_max, NS(be_real_type) const y_max,
-    NS(be_real_type) const a_squ, NS(be_real_type) const b_squ );
-
-SIXTRL_EXTERN SIXTRL_HOST_FN SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cobj_add_copy_ext)(
-    SIXTRL_CBUFFER_ARGPTR_DEC struct NS(CBuffer)* SIXTRL_RESTRICT buffer,
-    SIXTRL_BE_ARGPTR_DEC const NS(LimitRectEllipse) *const
-        SIXTRL_RESTRICT limit );
-
 #endif /* !defined( _GPUCODE ) */
 #if !defined(  _GPUCODE ) && defined( __cplusplus )
 }
@@ -336,10 +250,13 @@ namespace SIXTRL_CXX_NAMESPACE
     #include "sixtracklib/common/generated/config.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
+#if !defined( SIXTRL_NO_INCLUDES ) && !defined( _GPUCODE )
+    #include "sixtracklib/common/beam_elements/limit/limit_rect_ellipse_cobj.h"
+#endif /* !defined( SIXTRL_NO_INCLUDES ) && !defined( _GPUCODE ) */
+
 #if !defined(  _GPUCODE ) && defined( __cplusplus )
 extern "C" {
 #endif /* !defined(  _GPUCODE ) && defined( __cplusplus ) */
-
 
 SIXTRL_INLINE NS(status_type) NS(LimitRectEllipse_clear)(
     SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)* SIXTRL_RESTRICT limit
@@ -567,133 +484,46 @@ SIXTRL_INLINE bool NS(CObjIndex_is_limit_rect_ellipse)(
         NS(LimitRectEllipse_cobj_actual_handle_size)( ( NS(cobj_size_type)
             )SIXTRL_DEFAULT_ALIGN ) ); }
 
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) const*
+SIXTRL_INLINE SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse) const*
 NS(LimitRectEllipse_const_from_cobj_index)(
     SIXTRL_CBUFFER_OBJ_ARGPTR_DEC const NS(CObjIndex) *const SIXTRL_RESTRICT obj
 ) SIXTRL_NOEXCEPT { return ( NS(CObjIndex_is_limit_rect_ellipse)( obj ) )
-        ? ( SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) const* )(
+        ? ( SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse) const* )(
             uintptr_t )NS(CObjIndex_begin_addr)( obj ) : SIXTRL_NULLPTR; }
 
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
+SIXTRL_INLINE SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse)*
 NS(LimitRectEllipse_from_cobj_index)(
     SIXTRL_CBUFFER_OBJ_ARGPTR_DEC NS(CObjIndex)* obj ) SIXTRL_NOEXCEPT {
-    return ( SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
+    return ( SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse)*
         )NS(LimitRectEllipse_const_from_cobj_index)( obj ); }
 
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) const*
+SIXTRL_INLINE SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse) const*
 NS(LimitRectEllipse_const_from_cobj_flat_buffer)(
     SIXTRL_CBUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT buffer,
     NS(size_type) const idx, NS(size_type) const slot_size ) SIXTRL_NOEXCEPT {
     return NS(LimitRectEllipse_const_from_cobj_index)(
         NS(CObjFlatBuffer_const_index)( buffer, idx, slot_size ) ); }
 
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
+SIXTRL_INLINE SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse)*
 NS(LimitRectEllipse_from_cobj_flat_buffer)(
     SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT buffer,
     NS(size_type) const idx, NS(size_type) const slot_size ) SIXTRL_NOEXCEPT {
     return NS(LimitRectEllipse_from_cobj_index)(
         NS(CObjFlatBuffer_index)( buffer, idx, slot_size ) ); }
 
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) const*
+SIXTRL_INLINE SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse) const*
 NS(LimitRectEllipse_const_from_cbuffer)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(size_type) const idx ) SIXTRL_NOEXCEPT {
     return NS(LimitRectEllipse_const_from_cobj_index)(
         NS(CBuffer_const_index_at)( buffer, idx ) ); }
 
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
+SIXTRL_INLINE SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(LimitRectEllipse)*
 NS(LimitRectEllipse_from_cbuffer)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(size_type) const idx ) SIXTRL_NOEXCEPT {
     return NS(LimitRectEllipse_from_cobj_index)(
         NS(CBuffer_index_at)( buffer, idx ) ); }
-
-/* -------------------------------------------------------------------------- */
-
-SIXTRL_INLINE bool NS(LimitRectEllipse_cobj_flat_buffer_can_be_added)(
-    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char const* SIXTRL_RESTRICT buffer,
-    NS(cobj_size_type) const slot_size,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_buffer_size,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_n_slots,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_n_objects,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_n_dataptrs
-) SIXTRL_NOEXCEPT {
-    return NS(CObjFlatBuffer_can_add_copy_of_trivial_object)( buffer, slot_size,
-        NS(LimitRectEllipse_cobj_reserved_handle_size)( slot_size ),
-            requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
-
-SIXTRL_INLINE SIXTRL_CBUFFER_DATAPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cobj_flat_buffer_new)(
-    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT buffer,
-    NS(size_type) const slot_size ) SIXTRL_NOEXCEPT {
-    SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) elem;
-    NS(LimitRectEllipse_clear)( &elem );
-    return NS(LimitRectEllipse_cobj_flat_buffer_add_copy)(
-        buffer, slot_size, &elem ); }
-
-SIXTRL_INLINE SIXTRL_CBUFFER_DATAPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cobj_flat_buffer_add)(
-    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT buffer,
-    NS(size_type) const slot_size,
-    NS(be_real_type) const x_max, NS(be_real_type) const y_max,
-    NS(be_real_type) const a_squ, NS(be_real_type) const b_squ ) SIXTRL_NOEXCEPT
-{
-    SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) elem;
-    NS(LimitRectEllipse_init)( &elem, x_max, y_max, a_squ, b_squ );
-    return NS(LimitRectEllipse_cobj_flat_buffer_add_copy)(
-        buffer, slot_size, &elem ); }
-
-SIXTRL_INLINE SIXTRL_CBUFFER_DATAPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cobj_flat_buffer_add_copy)(
-    SIXTRL_CBUFFER_DATAPTR_DEC unsigned char* SIXTRL_RESTRICT buffer,
-    NS(size_type) const slot_size,
-    SIXTRL_BE_ARGPTR_DEC const NS(LimitRectEllipse) *const SIXTRL_RESTRICT orig
-) SIXTRL_NOEXCEPT {
-    return ( SIXTRL_CBUFFER_DATAPTR_DEC NS(LimitRectEllipse)* )( uintptr_t
-        )NS(CObjIndex_begin_addr)( NS(CObjFlatBuffer_add_copy_of_trivial_object)(
-            buffer, slot_size, orig,
-            NS(LimitRectEllipse_cobj_reserved_handle_size)( slot_size ),
-            NS(LimitRectEllipse_cobj_type_id)(), false ) ); }
-
-/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-SIXTRL_INLINE bool NS(LimitRectEllipse_cbuffer_can_be_added)(
-    SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT b,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_buffer_size,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_n_slots,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_n_objects,
-    SIXTRL_ARGPTR_DEC NS(cobj_size_type)* SIXTRL_RESTRICT requ_n_dataptrs
-) SIXTRL_NOEXCEPT { return NS(CBuffer_can_add_copy_of_trivial_object)( b,
-    NS(LimitRectEllipse_cobj_reserved_handle_size)( NS(CBuffer_slot_size)( b ) ),
-        requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
-
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cbuffer_new)(
-    SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
-    SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) elem;
-    NS(LimitRectEllipse_clear)( &elem );
-    return NS(LimitRectEllipse_cbuffer_add_copy)( buffer, &elem ); }
-
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cbuffer_add)(
-    SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
-    NS(be_real_type) const x_max, NS(be_real_type) const y_max,
-    NS(be_real_type) const a_squ, NS(be_real_type) const b_squ ) {
-    SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse) elem;
-    NS(LimitRectEllipse_init)( &elem, x_max, y_max, a_squ, b_squ );
-    return NS(LimitRectEllipse_cbuffer_add_copy)( buffer, &elem ); }
-
-SIXTRL_INLINE SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)*
-NS(LimitRectEllipse_cbuffer_add_copy)(
-    SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
-    SIXTRL_BE_ARGPTR_DEC const NS(LimitRectEllipse) *const
-        SIXTRL_RESTRICT orig ){
-    return ( SIXTRL_BE_ARGPTR_DEC NS(LimitRectEllipse)* )( uintptr_t
-        )NS(CObjIndex_begin_addr)( NS(CBuffer_add_copy_of_trivial_object)(
-            buffer, orig,
-            NS(LimitRectEllipse_cobj_reserved_handle_size)(
-                NS(CBuffer_slot_size)( buffer ) ),
-            NS(LimitRectEllipse_cobj_type_id)(), false ) ); }
 
 #if !defined(  _GPUCODE ) && defined( __cplusplus )
 }

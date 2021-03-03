@@ -3,13 +3,13 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_BE_ARGPTR_DEC NS(EndTracking) const*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(EndTracking) const*
 NS(EndTracking_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(EndTracking_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(EndTracking)*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(EndTracking)*
 NS(EndTracking_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
@@ -42,7 +42,7 @@ NS(status_type) NS(EndTracking_clear_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(EndTracking)* SIXTRL_RESTRICT elem ) SIXTRL_NOEXCEPT
 { return NS(EndTracking_clear)( elem ); }
 
-NS(status_type) NS(v)(
+NS(status_type) NS(EndTracking_terminate_lattice_with_eot_marker_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT lattice_buffer,
     NS(size_type) const line_start_index,
     NS(particle_index_type) const line_start_at_element,
@@ -61,18 +61,19 @@ bool NS(EndTracking_cobj_can_be_added)(
 ) SIXTRL_NOEXCEPT { return NS(EndTracking_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(EndTracking)* NS(EndTracking_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(EndTracking)* NS(EndTracking_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(EndTracking_cbuffer_new)( buffer ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(EndTracking)* NS(EndTracking_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(EndTracking)* NS(EndTracking_cbuffer_add_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(particle_index_type) const next_at_element,
     NS(size_type) const next_buffer_idx,
     bool const ends_turn ) { return NS(EndTracking_cbuffer_add)(
         buffer, next_at_element, next_buffer_idx, ends_turn ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(EndTracking)* NS(EndTracking_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(EndTracking)*
+NS(EndTracking_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(EndTracking) *const SIXTRL_RESTRICT orig ) {
     return NS(EndTracking_cbuffer_add_copy)( buffer, orig ); }

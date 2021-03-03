@@ -3,13 +3,21 @@ set( SIXTRL_COMMON_BE_BEAMFIELDS_CXX_HEADERS )
 
 set( SIXTRL_COMMON_BE_BEAMFIELDS_C99_SOURCES sc_coasting.c track.c )
 set( SIXTRL_COMMON_BE_BEAMFIELDS_C99_HEADERS definitions.h
-    faddeeva_cern.h  gauss_fields.h sc_coasting.h track.h )
+    faddeeva_cern.h  gauss_fields.h
+    sc_qgauss.h sc_qgauss_cobj.h
+    sc_coasting.h sc_coasting_cobj.h track.h )
+
+set( SIXTRL_COMMON_BE_PARENT_CXX_HEADERS )
+set( SIXTRL_COMMON_BE_PARENT_C99_HEADERS ../../definitions.h
+     ../definitions.h ../beam_elements.h ../cobj_type_ids.h )
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 add_library( sixtrack_common_be_beamfields_cxx OBJECT
     ${SIXTRL_COMMON_BE_BEAMFIELDS_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_BEAMFIELDS_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_BEAMFIELDS_CXX_SOURCES} )
 
 target_include_directories( sixtrack_common_be_beamfields_cxx PRIVATE
@@ -28,6 +36,8 @@ target_compile_options( sixtrack_common_be_beamfields_cxx PRIVATE
 add_library( sixtrack_common_be_beamfields_c99 OBJECT
     ${SIXTRL_COMMON_BE_BEAMFIELDS_C99_HEADERS}
     ${SIXTRL_COMMON_BE_BEAMFIELDS_CXX_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_C99_HEADERS}
+    ${SIXTRL_COMMON_BE_PARENT_CXX_HEADERS}
     ${SIXTRL_COMMON_BE_BEAMFIELDS_C99_SOURCES} )
 
 target_include_directories( sixtrack_common_be_beamfields_c99 PRIVATE
@@ -44,10 +54,9 @@ target_compile_options( sixtrack_common_be_beamfields_c99 PRIVATE
 # ------------------------------------------------------------------------------
 # pass on sixtrack_common_be_beamfields as a module for sixtracklib:
 
-set(  SIXTRACKL_LIBRARY_MODULES ${SIXTRACKL_LIBRARY_MODULES}
+set(  SIXTRL_COMMON_BEAM_ELEMENTS_MODULES ${SIXTRL_COMMON_BEAM_ELEMENTS_MODULES}
     $<TARGET_OBJECTS:sixtrack_common_be_beamfields_cxx>
-    $<TARGET_OBJECTS:sixtrack_common_be_beamfields_c99>
-    CACHE INTERNAL "" FORCE )
+    $<TARGET_OBJECTS:sixtrack_common_be_beamfields_c99> PARENT_SCOPE )
 
 # ------------------------------------------------------------------------------
 # install :
@@ -57,7 +66,7 @@ if( SIXTRL_COMMON_BE_BEAMFIELDS_C99_HEADERS )
              DESTINATION "${SIXTRL_COMMON_C99_INSTALL_PREFIX}/beamfields" )
 endif()
 
-if( SIXTRACKL_ENABLE_CXX AND SIXTRL_COMMON_BE_BEAMFIELDS_CXX_HEADERS )
+if( SIXTRL_COMMON_BE_BEAMFIELDS_CXX_HEADERS )
     install( FILES ${SIXTRL_COMMON_BE_BEAMFIELDS_CXX_HEADERS}
              DESTINATION "${SIXTRL_COMMON_CXX_INSTALL_PREFIX}/beamfields" )
 endif()

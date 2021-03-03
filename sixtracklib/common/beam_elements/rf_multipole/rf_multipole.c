@@ -3,13 +3,14 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_BE_ARGPTR_DEC NS(RFMultipole) const*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(RFMultipole) const*
 NS(RFMultipole_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(RFMultipole_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(RFMultipole)* NS(RFMultipole_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(RFMultipole)*
+NS(RFMultipole_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(RFMultipole_from_cbuffer)( buffer, idx ); }
@@ -52,12 +53,12 @@ bool NS(RFMultipole_cobj_can_be_added)(
     max_order, requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs );
 }
 
-SIXTRL_BE_ARGPTR_DEC NS(RFMultipole)* NS(RFMultipole_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(RFMultipole)* NS(RFMultipole_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(be_order_type) const max_order ) {
     return NS(RFMultipole_cbuffer_new)( buffer, max_order ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(RFMultipole)* NS(RFMultipole_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(RFMultipole)* NS(RFMultipole_cbuffer_add_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(be_order_type) const max_order, NS(be_order_type) const order,
     NS(be_real_type) const voltage, NS(be_real_type) const frequency,
@@ -66,7 +67,8 @@ SIXTRL_BE_ARGPTR_DEC NS(RFMultipole)* NS(RFMultipole_cbuffer_add_ext)(
         return NS(RFMultipole_cbuffer_add)( buffer, max_order, order,
             voltage, frequency, lag, bal_addr, phase_addr ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(RFMultipole)* NS(RFMultipole_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(RFMultipole)*
+NS(RFMultipole_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(RFMultipole) *const SIXTRL_RESTRICT orig ) {
     return NS(RFMultipole_cbuffer_add_copy)( buffer, orig ); }

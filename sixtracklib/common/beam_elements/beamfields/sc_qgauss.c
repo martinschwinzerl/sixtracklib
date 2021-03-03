@@ -3,13 +3,14 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_BE_ARGPTR_DEC NS(SCQGaussProfile) const*
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCQGaussProfile) const*
 NS(SCQGaussProfile_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(SCQGaussProfile_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SCQGaussProfile)* NS(SCQGaussProfile_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCQGaussProfile)*
+NS(SCQGaussProfile_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(SCQGaussProfile_from_cbuffer)( buffer, idx ); }
@@ -50,11 +51,13 @@ bool NS(SCQGaussProfile_cobj_can_be_added)(
 ) SIXTRL_NOEXCEPT { return NS(SCQGaussProfile_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SCQGaussProfile)* NS(SCQGaussProfile_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCQGaussProfile)*
+NS(SCQGaussProfile_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(SCQGaussProfile_cbuffer_new)( buffer ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SCQGaussProfile)* NS(SCQGaussProfile_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCQGaussProfile)*
+NS(SCQGaussProfile_cbuffer_add_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(be_real_type) const number_of_particles,
     NS(be_real_type) const circumference,
@@ -67,8 +70,8 @@ SIXTRL_BE_ARGPTR_DEC NS(SCQGaussProfile)* NS(SCQGaussProfile_cbuffer_add_ext)(
             number_of_particles, circumference, sigma_x, sigma_y, length,
                 x_co, y_co, min_sigma_diff, q_param, enabled ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(SCQGaussProfile)* NS(SCQGaussProfile_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(SCQGaussProfile)*
+NS(SCQGaussProfile_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(SCQGaussProfile) *const SIXTRL_RESTRICT orig ) {
     return NS(SCQGaussProfile_cbuffer_add_copy)( buffer, orig ); }
-

@@ -3,12 +3,13 @@
     #include "sixtracklib/common/cobjects/cbuffer.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
-SIXTRL_BE_ARGPTR_DEC NS(XYShift) const* NS(XYShift_const_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(XYShift) const*
+NS(XYShift_const_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC const NS(CBuffer) *const SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(XYShift_const_from_cbuffer)( buffer, idx ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(XYShift)* NS(XYShift_from_cbuffer_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(XYShift)* NS(XYShift_from_cbuffer_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(cobj_size_type) const idx ) SIXTRL_NOEXCEPT {
         return NS(XYShift_from_cbuffer)( buffer, idx ); }
@@ -49,16 +50,16 @@ bool NS(XYShift_cobj_can_be_added)(
 ) SIXTRL_NOEXCEPT { return NS(XYShift_cbuffer_can_be_added)( buffer,
     requ_buffer_size, requ_n_slots, requ_n_objects, requ_n_dataptrs ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(XYShift)* NS(XYShift_cbuffer_new_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(XYShift)* NS(XYShift_cbuffer_new_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer ) {
     return NS(XYShift_cbuffer_new)( buffer ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(XYShift)* NS(XYShift_cbuffer_add_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(XYShift)* NS(XYShift_cbuffer_add_ext)(
     SIXTRL_BE_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     NS(be_real_type) const dx, NS(be_real_type) const dy ) {
         return NS(XYShift_cbuffer_add)( buffer, dx, dy ); }
 
-SIXTRL_BE_ARGPTR_DEC NS(XYShift)* NS(XYShift_cbuffer_add_copy_ext)(
+SIXTRL_CBUFFER_OBJ_DATAPTR_DEC NS(XYShift)* NS(XYShift_cbuffer_add_copy_ext)(
     SIXTRL_CBUFFER_ARGPTR_DEC NS(CBuffer)* SIXTRL_RESTRICT buffer,
     SIXTRL_BE_ARGPTR_DEC const NS(XYShift) *const SIXTRL_RESTRICT orig ) {
     return NS(XYShift_cbuffer_add_copy)( buffer, orig ); }
