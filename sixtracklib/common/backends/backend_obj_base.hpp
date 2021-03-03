@@ -56,9 +56,11 @@ namespace SIXTRL_CXX_NAMESPACE
 
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
+        SIXTRL_HOST_FN virtual ~BackendObjBase() = default;
+
         protected:
 
-        SIXTRL_HOST_FN explicit BackendObjBase(
+        SIXTRL_HOST_FN BackendObjBase(
             backend_id_type const backend_id,
             class_id_type const base_class_id,
             class_id_type const derived_class_id ) :
@@ -69,6 +71,13 @@ namespace SIXTRL_CXX_NAMESPACE
         {
 
         }
+
+        SIXTRL_HOST_FN BackendObjBase( BackendObjBase const& ) = default;
+        SIXTRL_HOST_FN BackendObjBase( BackendObjBase&& ) = default;
+
+        SIXTRL_HOST_FN BackendObjBase& operator=( BackendObjBase&& ) = default;
+        SIXTRL_HOST_FN BackendObjBase& operator=(
+            BackendObjBase const& ) = default;
 
         SIXTRL_HOST_FN void set_backend_id(
             backend_id_type const id ) SIXTRL_NOEXCEPT;
@@ -154,7 +163,84 @@ namespace SIXTRL_CXX_NAMESPACE
                         >::backend_obj_type >::value );
     }
 
+    /* --------------------------------------------------------------------- */
+
+    template< class BaseT, class DerivedT >
+    SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_INLINE constexpr bool
+    BackendObjBase_can_cast_base_to_derived() SIXTRL_NOEXCEPT
+    {
+        return (
+            ( std::is_base_of< DerivedT, BaseT >::value ) &&
+            ( BackendObjTraits< BaseT >::BASE_CLASS_ID !=
+              SIXTRL_CXX_NAMESPACE::DERIVED_CLASS_ID_NONE ) &&
+            ( BackendObjTraits< DerivedT >::BASE_CLASS_ID !=
+              SIXTRL_CXX_NAMESPACE::DERIVED_CLASS_ID_NONE ) );
+    }
+
+    template< class BaseT, class DerivedT >
+    SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_INLINE bool
+    BackendObjBase_is_derived( BaseT const& base_elem ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        using traits_t = st::BackendObjTraits< DerivedT >;
+
+        SIXTRL_ASSERT( base_elem.backend_id() ==
+                       st::BackendObjTraits< BaseT >::BACKEND_ID );
+
+        SIXTRL_ASSERT( base_elem.base_class_id() ==
+                       st::BackendObjTraits< BaseT >::BASE_CLASS_ID );
+
+        SIXTRL_ASSERT( base_elem.derived_class_id() ==
+                       st::BackendObjTraits< BaseT >::DERIVED_CLASS_ID );
+
+        return ( traits_t::BACKEND_ID == base_elem.backend_id() ) &&
+               ( traits_t::BASE_CLASS_ID == base_elem.base_class_id() ) &&
+               ( traits_t::DERIVED_CLASS_ID == base_elem.derived_class_id() );
+    }
+
+    template< class BaseT, class DerivedT >
+    SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_INLINE
+    typename std::enable_if<
+        SIXTRL_CXX_NAMESPACE::BackendObjBase_can_cast_base_to_derived<
+            BaseT, DerivedT >(), DerivedT const* >::type
+    BackendObjBase_cast_to_derived(
+        const BaseT *const SIXTRL_RESTRICT ptr ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        return ( ( ptr != nullptr ) && ( st::BackendObjBase_is_derived( *ptr ) ) )
+            ? static_cast< DerivedT const* >( ptr ) : nullptr;
+    }
+
+    template< class BaseT, class DerivedT >
+    SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_INLINE
+    typename std::enable_if<
+        !SIXTRL_CXX_NAMESPACE::BackendObjBase_can_cast_base_to_derived<
+            BaseT, DerivedT >(), DerivedT const* >::type
+    BackendObjBase_cast_to_derived(
+        const BaseT *const SIXTRL_RESTRICT SIXTRL_UNUSED( ptr ) ) SIXTRL_NOEXCEPT
+    {
+        return nullptr;
+    }
+
+    template< class BaseT, class DerivedT >
+    SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_INLINE DerivedT const*
+    BackendObjBase_cast_to_const_derived( BaseT* SIXTRL_RESTRICT ptr
+        ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        return st::BackendObjBase_cast_to_derived< BaseT, DerivedT >(
+            static_cast< BaseT const* >( ptr ) );
+    }
+
+    template< class BaseT, class DerivedT >
+    SIXTRL_STATIC SIXTRL_HOST_FN SIXTRL_INLINE DerivedT*
+    BackendObjBase_cast_to_derived( BaseT* SIXTRL_RESTRICT ptr ) SIXTRL_NOEXCEPT
+    {
+        namespace st = SIXTRL_CXX_NAMESPACE;
+        return const_cast< DerivedT* >( st::BackendObjBase_cast_to_const_derived<
+            BaseT, DerivedT >( ptr ) );
+    }
+
 } /* end: namespace SIXTRL_CXX_NAMESPACE */
 #endif /* C++, Host */
-
 #endif /* SIXTRACKLIB_COMMON_BACKENDS_BACKEND_OBJ_BASE_H__ */
