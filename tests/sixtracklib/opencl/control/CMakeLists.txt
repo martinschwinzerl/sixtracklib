@@ -34,6 +34,16 @@ if( GTEST_FOUND )
                           PROPERTIES DEPENDS CXX_OpenCL_Control_Controller )
 
     # ==========================================================================
+    # test_kernel_item_opencl_cxx:
+
+    add_executable( test_kernel_item_opencl_cxx test_kernel_item_cxx.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_kernel_item_opencl_cxx )
+    add_test( CXX_OpenCL_Control_KernelItem test_kernel_item_opencl_cxx )
+
+    set_tests_properties( CXX_OpenCL_Control_KernelItem PROPERTIES
+                          DEPENDS CXX_OpenCL_Control_RunTimeCompileProgramItem )
+
+    # ==========================================================================
     # test_program_store_opencl_cxx:
 
     add_executable( test_program_store_opencl_cxx test_program_store_cxx.cpp )

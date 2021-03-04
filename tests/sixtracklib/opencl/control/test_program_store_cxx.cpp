@@ -6,12 +6,10 @@
 
 #include <gtest/gtest.h>
 
-#include "sixtracklib/opencl/control/argument.h"
 #include "sixtracklib/common/control/node_id.h"
 #include "sixtracklib/opencl/control/controller.h"
 #include "sixtracklib/opencl/control/program_store.h"
 #include "sixtracklib/common/generated/path.h"
-#include "sixtracklib/common/cobjects/cbuffer.hpp"
 
 TEST( CXXOpenCLControlProgramStore, NormalUsage )
 {
