@@ -140,6 +140,9 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN program_key_type const&
         program_key() const SIXTRL_NOEXCEPT { return this->m_program_key; }
 
+        SIXTRL_HOST_FN program_key_type const&
+        key() const SIXTRL_NOEXCEPT { return this->m_program_key; }
+
         SIXTRL_HOST_FN cl::Program const& cl_program() const SIXTRL_NOEXCEPT {
             return this->m_cl_program; }
 
