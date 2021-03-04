@@ -165,7 +165,6 @@ int main( int argc, char* argv[] )
     auto program_store = std::make_shared< st::OclProgramStore >();
     st::OclContext ctx( node_id );
     st::OclController controller( node_id, ctx, program_store );
-    auto& queue = controller.cmd_queue( 0 );
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     /* remap program -> move to Controller */
@@ -250,24 +249,41 @@ int main( int argc, char* argv[] )
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     /* Create buffers */
 
-    st::OclArgument pbuffer_arg( pbuffer.as_c_api(), controller );
-    st::OclArgument lattice_arg( lattice.as_c_api(), controller );
-    st::OclArgument config_arg( config_buffer.as_c_api(), controller );
+    cl::CommandQueue queue( ctx.cl_context(), 0, &ret );
+    if( ret != CL_SUCCESS ) { std::cout << "error queue ret = " << ret << std::endl; return 0; }
+
+    cl::Buffer pbuffer_arg( ctx.cl_context(), CL_MEM_READ_WRITE, pbuffer.size(), nullptr, &ret );
+    if( ret != CL_SUCCESS ) { std::cout << "error pbuffer ret = " << ret << std::endl; return 0; }
+    ret = queue.enqueueWriteBuffer( pbuffer_arg, true, ::size_t{ 0 }, pbuffer.size(), pbuffer.p_const_base_begin() );
+    if( ret != CL_SUCCESS ) { std::cout << "error write pbuffer ret = " << ret << std::endl; return 0; }
+
+    cl::Buffer lattice_arg( ctx.cl_context(), CL_MEM_READ_WRITE, lattice.size(), nullptr, &ret );
+    if( ret != CL_SUCCESS ) { std::cout << "error lattice ret = " << ret << std::endl; return 0; }
+    ret = queue.enqueueWriteBuffer( lattice_arg, true, ::size_t{ 0 }, lattice.size(), lattice.p_const_base_begin() );
+    if( ret != CL_SUCCESS ) { std::cout << "error write lattice ret = " << ret << std::endl; return 0; }
+
+    cl::Buffer config_arg( ctx.cl_context(), CL_MEM_READ_WRITE, config_buffer.size(), nullptr, &ret );
+    if( ret != CL_SUCCESS ) { std::cout << "error config ret = " << ret << std::endl; return 0; }
+    ret = queue.enqueueWriteBuffer( config_arg, true, ::size_t{ 0 }, config_buffer.size(), config_buffer.p_const_base_begin() );
+    if( ret != CL_SUCCESS ) { std::cout << "error write config_buffer ret = " << ret << std::endl; return 0; }
+
+
+
+//     st::OclArgument pbuffer_arg( pbuffer.as_c_api(), controller );
+//     st::OclArgument lattice_arg( lattice.as_c_api(), controller );
+//     st::OclArgument config_arg( config_buffer.as_c_api(), controller );
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     /* remap buffers on the device side */
 
     SIXTRL_UINT64_TYPE const slot_size_arg = pbuffer.slot_size();
-    ret = remap_kernel.cl_kernel().setArg( 0, pbuffer_arg.cl_buffer() );
+    ret = remap_kernel.cl_kernel().setArg( 0, pbuffer_arg );
     ret = remap_kernel.cl_kernel().setArg( 1, slot_size_arg );
 
-    auto const queue_lock = queue.create_lock();
-
-    ret = queue.cl_command_queue( queue_lock ).enqueueNDRangeKernel(
-        remap_kernel.cl_kernel(), cl::NullRange,
+    ret = queue.enqueueNDRangeKernel( remap_kernel.cl_kernel(), cl::NullRange,
             cl::NDRange( remap_max_wg_size ), cl::NullRange );
 
-    ret = queue.cl_command_queue( queue_lock ).flush();
+    ret = queue.flush();
 
     if( ret != CL_SUCCESS )
     {
@@ -276,14 +292,14 @@ int main( int argc, char* argv[] )
     }
 
 
-    ret = remap_kernel.cl_kernel().setArg( 0, lattice_arg.cl_buffer() );
+    ret = remap_kernel.cl_kernel().setArg( 0, lattice_arg );
     ret = remap_kernel.cl_kernel().setArg( 1, slot_size_arg );
 
-    ret = queue.cl_command_queue( queue_lock ).enqueueNDRangeKernel(
+    ret = queue.enqueueNDRangeKernel(
         remap_kernel.cl_kernel(), cl::NullRange,
             cl::NDRange( remap_max_wg_size ), cl::NullRange );
 
-    ret = queue.cl_command_queue( queue_lock ).flush();
+    ret = queue.flush();
 
     if( ret != CL_SUCCESS )
     {
@@ -292,14 +308,14 @@ int main( int argc, char* argv[] )
     }
 
 
-    ret = remap_kernel.cl_kernel().setArg( 0, config_arg.cl_buffer() );
+    ret = remap_kernel.cl_kernel().setArg( 0, config_arg );
     ret = remap_kernel.cl_kernel().setArg( 1, slot_size_arg );
 
-    ret = queue.cl_command_queue( queue_lock ).enqueueNDRangeKernel(
+    ret = queue.enqueueNDRangeKernel(
         remap_kernel.cl_kernel(), cl::NullRange,
             cl::NDRange( remap_max_wg_size ), cl::NullRange );
 
-    ret = queue.cl_command_queue( queue_lock ).flush();
+    ret = queue.flush();
 
     if( ret != CL_SUCCESS )
     {
@@ -320,14 +336,14 @@ int main( int argc, char* argv[] )
     SIXTRL_UINT64_TYPE const line_start_index_arg = 0u;
     SIXTRL_UINT64_TYPE const track_config_idx_arg = 0u;
 
-    ret = track_kernel.cl_kernel().setArg( 0, pbuffer_arg.cl_buffer() );
+    ret = track_kernel.cl_kernel().setArg( 0, pbuffer_arg );
     ret = track_kernel.cl_kernel().setArg( 1, pset_idx_arg );
     ret = track_kernel.cl_kernel().setArg( 2, line_start_at_element );
     ret = track_kernel.cl_kernel().setArg( 3, until_turn_arg );
-    ret = track_kernel.cl_kernel().setArg( 4, lattice_arg.cl_buffer() );
+    ret = track_kernel.cl_kernel().setArg( 4, lattice_arg );
     ret = track_kernel.cl_kernel().setArg( 5, eot_marker_idx_arg );
     ret = track_kernel.cl_kernel().setArg( 6, line_start_index_arg );
-    ret = track_kernel.cl_kernel().setArg( 7, config_arg.cl_buffer() );
+    ret = track_kernel.cl_kernel().setArg( 7, config_arg );
     ret = track_kernel.cl_kernel().setArg( 8, track_config_idx_arg );
     ret = track_kernel.cl_kernel().setArg( 9, slot_size_arg );
 
@@ -340,17 +356,17 @@ int main( int argc, char* argv[] )
               << "             : num_work_items = " << num_work_items << "\r\n"
               << std::endl;
 
-    queue.cl_command_queue( queue_lock ).finish();
+    queue.finish();
 
     auto t_start = std::chrono::steady_clock::now();
 
     cl::Event run_event;
 
-    ret = queue.cl_command_queue( queue_lock ).enqueueNDRangeKernel(
+    ret = queue.enqueueNDRangeKernel(
         track_kernel.cl_kernel(), cl::NullRange, cl::NDRange( num_work_items ),
             cl::NullRange, nullptr, &run_event );
 
-    ret = queue.cl_command_queue( queue_lock ).flush();
+    ret = queue.flush();
 
     run_event.wait();
     auto t_stop = std::chrono::steady_clock::now();
@@ -363,9 +379,8 @@ int main( int argc, char* argv[] )
                 NUM_PARTICLES * TRACK_UNTIL_TURN ) << " sec / particle / turn\r\n"
               << std::endl;
 
-    ret = queue.cl_command_queue( queue_lock ).enqueueReadBuffer(
-        pbuffer_arg.cl_buffer(), true, ::size_t{ 0 }, pbuffer.size(),
-            pbuffer.p_base_begin() );
+    ret = queue.enqueueReadBuffer( pbuffer_arg, true, ::size_t{ 0 },
+            pbuffer.size(), pbuffer.p_base_begin() );
 
     status = pbuffer.remap();
 
