@@ -115,6 +115,46 @@ namespace SIXTRL_CXX_NAMESPACE
                     output_str << "CL_INVALID_DEVICE";
                     break;
                 }
+                case CL_INVALID_PROGRAM_EXECUTABLE: {
+                    output_str << "CL_INVALID_PROGRAM_EXECUTABLE";
+                    break; }
+
+                case CL_INVALID_KERNEL: {
+                    output_str << "CL_INVALID_KERNEL";
+                    break;
+                }
+
+                case CL_INVALID_KERNEL_NAME: {
+                    output_str << "CL_INVALID_KERNEL_NAME";
+                    break; }
+
+                case CL_INVALID_KERNEL_DEFINITION: {
+                    output_str << "CL_INVALID_KERNEL_DEFINITION";
+                    break; }
+
+                case CL_INVALID_ARG_INDEX: {
+                    output_str << "CL_INVALID_ARG_INDEX";
+                    break; }
+
+                case CL_INVALID_ARG_SIZE: {
+                    output_str << "CL_INVALID_ARG_SIZE";
+                    break; }
+
+                case CL_INVALID_ARG_VALUE: {
+                    output_str << "CL_INVALID_ARG_VALUE";
+                    break; }
+
+                case CL_KERNEL_ARG_INFO_NOT_AVAILABLE: {
+                    output_str << "CL_KERNEL_ARG_INFO_NOT_AVAILABLE";
+                    break; }
+
+                case CL_INVALID_MEM_OBJECT: {
+                    output_str << "CL_INVALID_MEM_OBJECT";
+                    break; }
+
+                case CL_INVALID_SAMPLER: {
+                    output_str << "CL_INVALID_SAMPLER";
+                    break; }
 
                 default:
                 {
