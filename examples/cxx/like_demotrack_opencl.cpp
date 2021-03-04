@@ -9,6 +9,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <chrono>
 
 #include "like_demotrack_helpers.hpp"
 
@@ -109,8 +110,6 @@ int main( int argc, char* argv[] )
         return 0;
     }
 
-
-
     /* --------------------------------------------------------------------- */
     /* Prepare particles data */
 
@@ -126,6 +125,22 @@ int main( int argc, char* argv[] )
         std::cout << "error :: unable to prepare particle data" << std::endl;
         return 0;
     }
+
+    st::CBuffer diff_pbuffer( pbuffer.num_slots(), pbuffer.num_objects(),
+        pbuffer.num_pointers(), pbuffer.num_garbage(), pbuffer.slot_size() );
+
+    st::CBuffer track_cpu_pbuffer;
+
+    status = st::examples::Prepare_particle_data_cobj(
+        in_pbuffer, track_cpu_pbuffer, NUM_PARTICLES, nullptr );
+
+    if( status != st::STATUS_SUCCESS )
+    {
+        std::cout << "error :: unable to prepare cmp particle data" << std::endl;
+        return 0;
+    }
+
+    st::CBuffer config_buffer;
 
     /* --------------------------------------------------------------------- */
     /* Prepare lattice data */
@@ -147,7 +162,15 @@ int main( int argc, char* argv[] )
     std::string const flags = a2str.str();
     a2str.str( "" );
 
+    auto program_store = std::make_shared< st::OclProgramStore >();
     st::OclContext ctx( node_id );
+    st::OclController controller( node_id, ctx, program_store );
+    auto& queue = controller.cmd_queue( 0 );
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* remap program -> move to Controller */
+
+    st::OclRtcProgramItem remap_program;
 
     a2str << ::NS(PATH_TO_BASE_DIR) << "sixtracklib/opencl/kernels/";
     std::string const ocl_kernel_base_dir = a2str.str();
@@ -157,39 +180,268 @@ int main( int argc, char* argv[] )
     std::string const path_remap_program = a2str.str();
     a2str.str( "" );
 
-    st::OclRtcProgramItem remap_program;
+    a2str  << SIXTRL_C99_NAMESPACE_STR << "CObjFlatBuffer_remap_opencl";
+    std::string const remap_kernel_name = a2str.str();
+    a2str.str( "" );
+
     remap_program.set_compile_flags( flags );
     status  = remap_program.create_from_source_file( ctx, path_remap_program );
     status |= remap_program.build( ctx, remap_program_name );
 
     st::OclKernelItem remap_kernel;
-    a2str  << SIXTRL_C99_NAMESPACE_STR << "CObjFlatBuffer_remap_opencl";
-    std::string const remap_kernel_name = a2str.str();
-    a2str.str( "" );
-
     status |= remap_kernel.init( remap_program, 0, remap_kernel_name );
+
     if( status != st::STATUS_SUCCESS )
     {
         std::cout << "unable to build remap program & kernel" << std::endl;
         return 0;
     }
 
-    std::string const track_progam_name =
+    ::size_t remap_max_wg_size = ::cl_uint{ 0 };
+    ::cl_int ret = remap_kernel.cl_kernel().getWorkGroupInfo(
+        controller.cl_selected_device(), CL_KERNEL_WORK_GROUP_SIZE,
+            &remap_max_wg_size );
+
+    if( ( ret != CL_SUCCESS ) || ( remap_max_wg_size == ::size_t{ 0 } ) )
+    {
+        std::cout << "unable to retrieve wg size for remap kernel" << std::endl;
+        return 0;
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* track program -> move to Controller */
+
+    st::OclRtcProgramItem track_program;
+
+    std::string const track_program_name =
         "particle_track_until_cobj_flat_buffer.cl";
     a2str << ocl_kernel_base_dir << track_program_name;
     std::string const path_track_program = a2str.str();
     a2str.str( "" );
+    a2str << SIXTRL_C99_NAMESPACE_STR
+           << "Track_until_particle_cobj_flat_buffer_opencl";
+    std::string const track_kernel_name = a2str.str();
+    a2str.str( "" );
+
+    track_program.set_compile_flags( flags );
+    status  = track_program.create_from_source_file( ctx, path_track_program );
+    status |= track_program.build( ctx, track_kernel_name );
+
+    st::OclKernelItem track_kernel;
+    status |= track_kernel.init( track_program, 1, track_kernel_name );
+
+    if( status != st::STATUS_SUCCESS )
+    {
+        std::cout << "unable to build track program & kernel" << std::endl;
+        return 0;
+    }
+
+    ::size_t track_max_wg_size = ::cl_uint{ 0 };
+    ret = track_kernel.cl_kernel().getWorkGroupInfo(
+        controller.cl_selected_device(), CL_KERNEL_WORK_GROUP_SIZE,
+            &track_max_wg_size );
+
+    if( ( ret != CL_SUCCESS ) || ( track_max_wg_size == ::size_t{ 0 } ) )
+    {
+        std::cout << "unable to retrieve wg size for remap kernel" << std::endl;
+        return 0;
+    }
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* Create buffers */
+
+    st::OclArgument pbuffer_arg( pbuffer.as_c_api(), controller );
+    st::OclArgument lattice_arg( lattice.as_c_api(), controller );
+    st::OclArgument config_arg( config_buffer.as_c_api(), controller );
+
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* remap buffers on the device side */
+
+    SIXTRL_UINT64_TYPE const slot_size_arg = pbuffer.slot_size();
+    ret = remap_kernel.cl_kernel().setArg( 0, pbuffer_arg.cl_buffer() );
+    ret = remap_kernel.cl_kernel().setArg( 1, slot_size_arg );
+
+    auto const queue_lock = queue.create_lock();
+
+    ret = queue.cl_command_queue( queue_lock ).enqueueNDRangeKernel(
+        remap_kernel.cl_kernel(), cl::NullRange,
+            cl::NDRange( remap_max_wg_size ), cl::NullRange );
+
+    ret = queue.cl_command_queue( queue_lock ).flush();
+
+    if( ret != CL_SUCCESS )
+    {
+        std::cout << "Unable to remap particles buffer" << std::endl;
+        return 0;
+    }
 
 
+    ret = remap_kernel.cl_kernel().setArg( 0, lattice_arg.cl_buffer() );
+    ret = remap_kernel.cl_kernel().setArg( 1, slot_size_arg );
+
+    ret = queue.cl_command_queue( queue_lock ).enqueueNDRangeKernel(
+        remap_kernel.cl_kernel(), cl::NullRange,
+            cl::NDRange( remap_max_wg_size ), cl::NullRange );
+
+    ret = queue.cl_command_queue( queue_lock ).flush();
+
+    if( ret != CL_SUCCESS )
+    {
+        std::cout << "Unable to remap lattices buffer" << std::endl;
+        return 0;
+    }
 
 
+    ret = remap_kernel.cl_kernel().setArg( 0, config_arg.cl_buffer() );
+    ret = remap_kernel.cl_kernel().setArg( 1, slot_size_arg );
 
+    ret = queue.cl_command_queue( queue_lock ).enqueueNDRangeKernel(
+        remap_kernel.cl_kernel(), cl::NullRange,
+            cl::NDRange( remap_max_wg_size ), cl::NullRange );
 
+    ret = queue.cl_command_queue( queue_lock ).flush();
 
+    if( ret != CL_SUCCESS )
+    {
+        std::cout << "Unable to remap config_buffer" << std::endl;
+        return 0;
+    }
 
-//     st::CBuffer pbuffer( path_to_particle_data );
-//     st::CBuffer lattice( path_to_lattice_data );
+    /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+    /* prepare tracking */
 
+     std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n"
+               << "OPENCL TIMING: \r\n";
 
+    SIXTRL_UINT64_TYPE const pset_idx_arg = pset_idx;
+    SIXTRL_INT64_TYPE  const line_start_at_element = 0;
+    SIXTRL_INT64_TYPE  const until_turn_arg = TRACK_UNTIL_TURN;
+    SIXTRL_UINT64_TYPE const eot_marker_idx_arg = eot_marker_idx;
+    SIXTRL_UINT64_TYPE const line_start_index_arg = 0u;
+    SIXTRL_UINT64_TYPE const track_config_idx_arg = 0u;
 
+    ret = track_kernel.cl_kernel().setArg( 0, pbuffer_arg.cl_buffer() );
+    ret = track_kernel.cl_kernel().setArg( 1, pset_idx_arg );
+    ret = track_kernel.cl_kernel().setArg( 2, line_start_at_element );
+    ret = track_kernel.cl_kernel().setArg( 3, until_turn_arg );
+    ret = track_kernel.cl_kernel().setArg( 4, lattice_arg.cl_buffer() );
+    ret = track_kernel.cl_kernel().setArg( 5, eot_marker_idx_arg );
+    ret = track_kernel.cl_kernel().setArg( 6, line_start_index_arg );
+    ret = track_kernel.cl_kernel().setArg( 7, config_arg.cl_buffer() );
+    ret = track_kernel.cl_kernel().setArg( 8, track_config_idx_arg );
+    ret = track_kernel.cl_kernel().setArg( 9, slot_size_arg );
+
+    st::size_type num_blocks = NUM_PARTICLES / track_max_wg_size;
+    if( num_blocks * track_max_wg_size < NUM_PARTICLES ) ++num_blocks;
+    st::size_type const num_work_items = num_blocks * track_max_wg_size;
+
+    std::cout << "track_kernel : max_wg_size    = " << track_max_wg_size << "\r\n"
+              << "             : num_blocks     = " << num_blocks << "\r\n"
+              << "             : num_work_items = " << num_work_items << "\r\n"
+              << std::endl;
+
+    queue.cl_command_queue( queue_lock ).finish();
+
+    auto t_start = std::chrono::steady_clock::now();
+
+    cl::Event run_event;
+
+    ret = queue.cl_command_queue( queue_lock ).enqueueNDRangeKernel(
+        track_kernel.cl_kernel(), cl::NullRange, cl::NDRange( num_work_items ),
+            cl::NullRange, nullptr, &run_event );
+
+    ret = queue.cl_command_queue( queue_lock ).flush();
+
+    run_event.wait();
+    auto t_stop = std::chrono::steady_clock::now();
+
+    double const t_opencl_elapsed = std::chrono::duration_cast<
+        std::chrono::seconds >( t_stop - t_start ).count ();
+
+    std::cout << "elapsed time : " << t_opencl_elapsed << " sec\r\n"
+              << "             : " << t_opencl_elapsed / static_cast< double >(
+                NUM_PARTICLES * TRACK_UNTIL_TURN ) << " sec / particle / turn\r\n"
+              << std::endl;
+
+    ret = queue.cl_command_queue( queue_lock ).enqueueReadBuffer(
+        pbuffer_arg.cl_buffer(), true, ::size_t{ 0 }, pbuffer.size(),
+            pbuffer.p_base_begin() );
+
+    status = pbuffer.remap();
+
+    std::cout << std::endl
+              << "Perform comparison tracking on CPU:\r\n";
+
+    t_start = std::chrono::steady_clock::now();
+
+    status = ::NS(Track_testlib_until_turn_cbuffer)(
+        track_cpu_pbuffer.as_c_api(), pbuffer.as_const_c_api(),
+            lattice.as_c_api(), diff_pbuffer.as_c_api(),
+                TRACK_UNTIL_TURN, st::particle_index_type{ 0 },
+                    st::size_type{ 0 }, nullptr );
+
+    t_stop = std::chrono::steady_clock::now();
+
+    if( status == st::STATUS_SUCCESS )
+    {
+        double const t_cpu_elapsed = std::chrono::duration_cast<
+            std::chrono::seconds >( t_stop - t_start ).count();
+
+        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n"
+                  << "SINGLE CPU TIMING: \r\n"
+                  << "elapsed time : " << t_cpu_elapsed << " sec\r\n"
+                  << "             : " << t_cpu_elapsed / static_cast< double >(
+                     NUM_PARTICLES * TRACK_UNTIL_TURN )
+                  << " sec / particle / turn\r\n";
+
+        if( t_opencl_elapsed > double{ 1e-9 } )
+        {
+            std::cout << "speedup      : " << t_cpu_elapsed / t_opencl_elapsed
+                      << " x times" << std::endl;
+        }
+
+        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n";
+    }
+    else
+    {
+        std::cout << "Error: can't track particles on single core CPU!"
+                  << std::endl;
+
+        return 0;
+    }
+
+    double const ABS_TOLERANCE = double{ 1e-15 };
+    double const REL_TOLERANCE = double{ 0.0 };
+
+    st::cobj_size_type first_fail_pset_idx = 0u;
+    st::particles_num_type first_fail_particle_idx = 0;
+
+     if( st::STATUS_SUCCESS ==
+         ::NS(Track_testlib_compare_all_particle_sets_cbuffer)(
+            track_cpu_pbuffer.as_c_api(), pbuffer.as_c_api(), REL_TOLERANCE,
+            ABS_TOLERANCE, &first_fail_pset_idx, &first_fail_particle_idx ) )
+    {
+        std::cout << "\r\n"
+                  << "CPU and OpenCL results are identical within \r\n"
+                  << "abs tolerance : " << ABS_TOLERANCE << "\r\n"
+                  << "rel tolerance : " << REL_TOLERANCE << "\r\n"
+                  << std::endl;
+    }
+    else
+    {
+        auto pset_cmp = pbuffer.get_const_object< ::NS(Particles) >(
+            first_fail_pset_idx );
+
+        auto pset_track = track_cpu_pbuffer.get_const_object< ::NS(Particles) >(
+            first_fail_pset_idx );
+
+        auto pset_diff = diff_pbuffer.get_const_object< ::NS(Particles) >(
+            first_fail_pset_idx );
+
+        std::cout << "first_fail_elem_idx = " << first_fail_pset_idx << "\r\n";
+        st::testlib::Particles_diff_to_stream( std::cout,
+            *pset_cmp, *pset_track, *pset_diff, first_fail_particle_idx );
+    }
+
+    return 0;
 }

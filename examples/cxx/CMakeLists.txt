@@ -1,0 +1,2 @@
+add_executable( like_demotrack_opencl_cxx like_demotrack_opencl.cpp )
+target_link_libraries( like_demotrack_opencl_cxx sixtrack_test sixtrack )
