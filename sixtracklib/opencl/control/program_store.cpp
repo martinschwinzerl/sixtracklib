@@ -153,9 +153,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
     ocl_base_prg_item_type const* store_type::program_item( st_prog_id_t const id,
         st_guard_t const& SIXTRL_RESTRICT_REF lock ) const {
-        base_prg_item_type const* ptr = base_store_type::program_item( id, lock );
         ocl_base_prg_item_type const* derived = nullptr;
-        if( ptr != nullptr ) return derived;
+
+        base_prg_item_type const* ptr = base_store_type::program_item( id, lock );
+        if( ptr == nullptr ) return derived;
 
         if( st::BackendObjBase_is_derived<
                 item_base_type, ocl_rtc_prg_item_type >( *ptr ) )
@@ -166,6 +167,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
         return derived;
     }
+
+    ocl_base_prg_item_type const* store_type::program_item(
+        st_prog_id_t const id,
+        st_guard_t const& SIXTRL_RESTRICT_REF lock ) {
+        return static_cast< store_type const& >(
+            *this ).program_item( id, lock ); }
 
     ocl_base_prg_item_type const* store_type::program_item( st_key_t const& key,
         st_guard_t const& SIXTRL_RESTRICT_REF lock ) const {

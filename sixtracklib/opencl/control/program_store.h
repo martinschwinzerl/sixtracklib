@@ -85,6 +85,18 @@ namespace SIXTRL_CXX_NAMESPACE
             guard_type const& SIXTRL_RESTRICT_REF guard ) const override;
 
         SIXTRL_HOST_FN ocl_program_item_type const* program_item(
+            program_id_type const id,
+            guard_type const& SIXTRL_RESTRICT_REF guard ) override;
+
+        SIXTRL_HOST_FN ocl_program_item_type const* program_item(
+            key_type const& key,
+            guard_type const& SIXTRL_RESTRICT_REF guard )
+        {
+            return static_cast< OclProgramStore const& >( *this ).program_item(
+                key, guard );
+        }
+
+        SIXTRL_HOST_FN ocl_program_item_type const* program_item(
             key_type const& key,
             guard_type const& SIXTRL_RESTRICT_REF guard ) const;
 
