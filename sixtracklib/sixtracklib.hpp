@@ -9,6 +9,14 @@
 
 #include "sixtracklib/sixtracklib.h"
 
+#include "sixtracklib/common/backends/backend_obj_base.hpp"
+#include "sixtracklib/common/backends/mt_backend_obj_base.hpp"
+
+#include "sixtracklib/common/internal/stl_buffer_helper.hpp"
+#include "sixtracklib/common/internal/stl_buffer_helper.hpp"
+
+
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 // #if defined( SIXTRACKLIB_ENABLE_MODULE_OPENCL ) && \
