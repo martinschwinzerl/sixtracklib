@@ -2,11 +2,11 @@ set( SIXTRL_OCL_CONTROL_C99_HEADERS )
 set( SIXTRL_OCL_CONTROL_C99_SOURCES )
 
 set( SIXTRL_OCL_CONTROL_CXX_SOURCES
-    controller.cpp context.cpp cmd_queue.cpp node_info.cpp
+    argument.cpp controller.cpp context.cpp cmd_queue.cpp node_info.cpp
     program_item.cpp program_store.cpp )
 
 set( SIXTRL_OCL_CONTROL_CXX_HEADERS
-    controller.h context.h cmd_queue.h node_info.h
+    argument.h controller.h context.h cmd_queue.h node_info.h
     program_item.h program_store.h )
 
 set( SIXTRL_OCL_PARENT_C99_HEADERS ../definitions.h ../opencl.h )
