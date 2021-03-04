@@ -59,6 +59,51 @@ namespace SIXTRL_CXX_NAMESPACE
         mutable lockable_type m_lockable;
     };
 
+    class MTBackendObjBaseExtLockable : public BackendObjBase
+    {
+        public:
+
+        using thread_id_type = SIXTRL_CXX_NAMESPACE::ThreadId;
+        using lockable_type  = SIXTRL_CXX_NAMESPACE::ThreadLockable;
+        using guard_type     = SIXTRL_CXX_NAMESPACE::ThreadUniqueLock;
+
+        SIXTRL_HOST_FN lockable_type* ptr_lockable() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN lockable_type& lockable() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN guard_type create_lock() const;
+
+        SIXTRL_HOST_FN bool is_locked( guard_type const&
+            SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT;
+
+        SIXTRL_HOST_FN virtual ~MTBackendObjBaseExtLockable() = default;
+
+        protected:
+
+        SIXTRL_HOST_FN MTBackendObjBaseExtLockable(
+            lockable_type& SIXTRL_RESTRICT_REF ext_lockable,
+            backend_id_type const backend_id,
+            class_id_type const base_class_id,
+            class_id_type const derived_class_id ) :
+            BackendObjBase( backend_id, base_class_id, derived_class_id ),
+            m_ext_lockable( ext_lockable )
+        {
+        }
+
+        SIXTRL_HOST_FN MTBackendObjBaseExtLockable(
+            MTBackendObjBaseExtLockable const& ) = delete;
+        SIXTRL_HOST_FN MTBackendObjBaseExtLockable(
+            MTBackendObjBaseExtLockable&& ) = delete;
+
+        SIXTRL_HOST_FN MTBackendObjBaseExtLockable& operator=(
+            MTBackendObjBaseExtLockable&& ) = delete;
+
+        SIXTRL_HOST_FN MTBackendObjBaseExtLockable& operator=(
+            MTBackendObjBaseExtLockable const& ) = delete;
+
+        private:
+
+        lockable_type& m_ext_lockable;
+    };
+
 } /* end: namespace SIXTRL_CXX_NAMESPACE */
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
