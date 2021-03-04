@@ -2,6 +2,7 @@
     #include "sixtracklib/opencl/control/controller.h"
     #include "sixtracklib/opencl/control/context.h"
     #include "sixtracklib/opencl/control/cmd_queue.h"
+    #include "sixtracklib/opencl/internal/helpers.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES )  */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES ) && defined( __cplusplus )
@@ -56,21 +57,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         if( ret != CL_SUCCESS )
         {
-            if( ret == CL_INVALID_VALUE )
-            {
-                throw std::runtime_error(
-                    "invalid return value during probing of clGetPlatformIDs" );
-            }
-            else if( ret == CL_OUT_OF_HOST_MEMORY )
-            {
-                throw std::runtime_error(
-                    "out of memory error during probing of clGetPlatformIDs" );
-            }
-            else
-            {
-                throw std::runtime_error(
-                    "unknown error during probing of clGetPlatformIDs" );
-            }
+            st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                "OclController", "GET_ALL_CL_PLATFORMS", "",
+                    st_size_t{ __LINE__ } );
 
             status = st::STATUS_GENERAL_FAILURE;
         }
@@ -89,21 +78,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         if( ret != CL_SUCCESS )
         {
-            if( ret == CL_INVALID_VALUE )
-            {
-                throw std::runtime_error(
-                    "invalid return value during clGetPlatformIDs" );
-            }
-            else if( ret == CL_OUT_OF_HOST_MEMORY )
-            {
-                throw std::runtime_error(
-                    "out of memory error during clGetPlatformIDs" );
-            }
-            else
-            {
-                throw std::runtime_error(
-                    "unknown error during clGetPlatformIDs" );
-            }
+            st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                "OclController", "GET_ALL_CL_PLATFORMS", "",
+                    st_size_t{ __LINE__ } );
 
             status = st::STATUS_GENERAL_FAILURE;
         }
@@ -136,27 +113,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         if( ( ret != CL_SUCCESS ) && ( ret != CL_DEVICE_NOT_FOUND ) )
         {
-            if( ret == CL_INVALID_PLATFORM )
-            {
-                throw std::runtime_error(
-                    "illegal platform used during probing  clGetDeviceIDs" );
-            }
-            else if( ret == CL_INVALID_DEVICE )
-            {
-                throw std::runtime_error(
-                    "invalid device encountered during probing  clGetDeviceIDs" );
-            }
-            else if( ret == CL_OUT_OF_RESOURCES )
-            {
-                throw std::runtime_error( "out of resources error encountered "
-                    "during probing  clGetDeviceIDs" );
-            }
-            else if( ret == CL_OUT_OF_HOST_MEMORY )
-            {
-                throw std::runtime_error(
-                    "out of host memory error encountered "
-                    "during probing  clGetDeviceIDs" );
-            }
+            st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                "OclController", "GET_CL_DEVICES_FOR_CL_PLATFORM", "",
+                    st_size_t{ __LINE__ } );
 
             status = st::STATUS_GENERAL_FAILURE;
         }
@@ -182,26 +141,11 @@ namespace SIXTRL_CXX_NAMESPACE
                     avail_devices.emplace_back( dev_id, true );
                 }
             }
-            else if( ret == CL_INVALID_PLATFORM )
+            else
             {
-                throw std::runtime_error( " clGetDeviceIDs: illegal platform" );
-            }
-            else if( ret == CL_INVALID_DEVICE )
-            {
-                throw std::runtime_error( " clGetDeviceIDs: illegal device" );
-            }
-            else if( ret == CL_OUT_OF_RESOURCES )
-            {
-                throw std::runtime_error( " clGetDeviceIDs: out of resources" );
-            }
-            else if( ret == CL_OUT_OF_HOST_MEMORY )
-            {
-                throw std::runtime_error( " clGetDeviceIDs: out of host memory" );
-            }
-
-            if( ret != CL_SUCCESS )
-            {
-                status = st::STATUS_GENERAL_FAILURE;
+                st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                    "OclController", "GET_CL_DEVICES_FOR_CL_PLATFORM", "",
+                        st_size_t{ __LINE__ } );
             }
         }
 
@@ -221,6 +165,12 @@ namespace SIXTRL_CXX_NAMESPACE
             a2str << "vendor_id : " << std::hex << vendor_id << "\r\n"
                   << std::dec;
             status = st::STATUS_SUCCESS;
+        }
+        else
+        {
+            st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                "OclController", "GET_NODE_DESCRIPTION_FROM_CL_DEVICE", "",
+                    st_size_t{ __LINE__ } );
         }
 
         if( status == st::STATUS_SUCCESS )
@@ -252,47 +202,22 @@ namespace SIXTRL_CXX_NAMESPACE
 
         ::cl_int ret = platform.getInfo( CL_PLATFORM_NAME, &platform_name );
 
-        if( CL_SUCCESS != ret )
+        if( CL_SUCCESS == ret )
         {
-            if( ret == CL_INVALID_PLATFORM )
+            ret = device.getInfo( CL_DEVICE_NAME, &device_name );
+
+            if( ret != CL_SUCCESS )
             {
-                throw std::runtime_error(
-                    "clGetPlatformInfo: CL_INVALID_PLATFORM" );
-            }
-            else if( ret == CL_INVALID_VALUE )
-            {
-                throw std::runtime_error( "clGetPlatformInfo: CL_INVALID_VALUE" );
-            }
-            else
-            {
-                SIXTRL_ASSERT( ret == CL_OUT_OF_HOST_MEMORY );
-                throw std::runtime_error(
-                    "clGetPlatformInfo: CL_OUT_OF_HOST_MEMORY" );
+                st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                    "OclController", "CREATE_NODE_INFO_FOR_CL_DEVICE", "",
+                        st_size_t{ __LINE__ } );
             }
         }
-
-        ret = device.getInfo( CL_DEVICE_NAME, &device_name );
-
-        if( CL_SUCCESS != CL_SUCCESS )
+        else
         {
-            if( ret == CL_INVALID_DEVICE )
-            {
-                throw std::runtime_error( "clGetDeviceInfo: CL_INVALID_DEVICE" );
-            }
-            else if( ret == CL_INVALID_VALUE )
-            {
-                throw std::runtime_error( "clGetDeviceInfo: CL_INVALID_VALUE" );
-            }
-            else if( ret == CL_OUT_OF_RESOURCES )
-            {
-                throw std::runtime_error( "clGetDeviceInfo: CL_OUT_OF_RESOURCES" );
-            }
-            else
-            {
-                SIXTRL_ASSERT( ret == CL_OUT_OF_HOST_MEMORY );
-                throw std::runtime_error(
-                    "clGetDeviceInfo: CL_OUT_OF_HOST_MEMORY" );
-            }
+            st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                "OclController", "CREATE_NODE_INFO_FOR_CL_DEVICE", "",
+                    st_size_t{ __LINE__ } );
         }
 
         if( ocl_ctrl_type::GET_NODE_DESCRIPTION_FROM_CL_DEVICE(
@@ -537,7 +462,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
     ocl_ctrl_type::OclController(
         node_id_type const& SIXTRL_RESTRICT_REF node_id,
-        std::shared_ptr< ocl_context_type >& SIXTRL_RESTRICT_REF context,
+        ocl_context_type& SIXTRL_RESTRICT_REF context,
         std::shared_ptr< ocl_prog_store_type >& SIXTRL_RESTRICT_REF prog_store ) :
         st::ControllerBase( st::BACKEND_ID_OPENCL, ocl_ctrl_type::CLASS_ID ),
         m_selected_node_id(),
@@ -546,13 +471,23 @@ namespace SIXTRL_CXX_NAMESPACE
         m_kernels(),
         m_cmd_queues(),
         m_program_store( nullptr ),
-        m_context( nullptr ),
+        m_context( context ),
         m_selected_cl_platform(),
         m_selected_cl_device()
     {
+        if( !this->m_context.key().is_legal() )
+        {
+            throw std::runtime_error( "illegal context supplied" );
+        }
+
         if( !node_id.is_legal() )
         {
             throw std::runtime_error( "illegal node_id supplied" );
+        }
+
+        if( !this->m_context.key().contains_node_id( node_id ) )
+        {
+            throw std::runtime_error( "node_id and context mismatch" );
         }
 
         if( prog_store.get() != nullptr )
@@ -564,28 +499,12 @@ namespace SIXTRL_CXX_NAMESPACE
             this->m_program_store = std::make_shared< ocl_prog_store_type >();
         }
 
-        if( context.get() != nullptr )
-        {
-            this->m_context = context;
-        }
-        else
-        {
-            this->m_context = std::make_shared< ocl_context_type >( node_id );
-        }
-
-        if( (  this->m_context.get() == nullptr ) ||
-            ( !this->m_context->key().is_legal() ) ||
-            ( !this->m_context->key().contains_node_id( node_id ) ) )
-        {
-            throw std::runtime_error( "node_id and context_id do not agree" );
-        }
-
         this->m_selected_node_id = node_id;
         this->m_selected_node_id.set_index(
-            this->m_context->node_index_for_node_id( node_id ) );
+            this->m_context.node_index_for_node_id( node_id ) );
 
         this->m_cmd_queues.emplace_back(
-            new ocl_cmd_queue_type( *this->m_context ) );
+            new ocl_cmd_queue_type( this->m_context ) );
     }
 
     ocl_ctrl_type::size_type ocl_ctrl_type::num_cmd_queues() const SIXTRL_NOEXCEPT

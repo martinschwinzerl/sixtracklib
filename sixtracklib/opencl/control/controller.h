@@ -84,7 +84,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN OclController(
             node_id_type const& SIXTRL_RESTRICT_REF node_id,
-            std::shared_ptr< context_type >& SIXTRL_RESTRICT_REF context,
+            context_type& SIXTRL_RESTRICT_REF context,
             std::shared_ptr< program_store_type >&
                 SIXTRL_RESTRICT_REF program_store );
 
@@ -113,8 +113,11 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN cmd_queue_type const* ptr_cmd_queue(
             size_type const id ) const SIXTRL_NOEXCEPT;
 
-        SIXTRL_HOST_FN std::shared_ptr< context_type >&
-        share_context() { return this->m_context; }
+        SIXTRL_HOST_FN context_type& context() {
+            return this->m_context; }
+
+        SIXTRL_HOST_FN context_type const& context() const {
+            return this->m_context; }
 
         SIXTRL_HOST_FN std::shared_ptr< program_store_type >&
         share_program_store() { return this->m_program_store; }
@@ -128,7 +131,7 @@ namespace SIXTRL_CXX_NAMESPACE
         std::vector< kernel_data_type > m_kernels;
         std::vector< std::unique_ptr< cmd_queue_type > > m_cmd_queues;
         std::shared_ptr< program_store_type > m_program_store;
-        std::shared_ptr< context_type > m_context;
+        context_type& m_context;
 
         cl::Platform m_selected_cl_platform;
         cl::Device   m_selected_cl_device;
