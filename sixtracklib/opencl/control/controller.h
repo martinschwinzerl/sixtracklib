@@ -5,7 +5,6 @@
     #include "sixtracklib/opencl/definitions.h"
     #include "sixtracklib/opencl/control/program_store.h"
     #include "sixtracklib/opencl/control/program_item.h"
-    #include "sixtracklib/opencl/control/kernel.h"
     #include "sixtracklib/opencl/control/node_info.h"
     #include "sixtracklib/opencl/control/context.h"
     #include "sixtracklib/opencl/control/cmd_queue.h"
@@ -31,7 +30,6 @@ namespace SIXTRL_CXX_NAMESPACE
         using node_info_type     = SIXTRL_CXX_NAMESPACE::OclNodeInfo;
         using program_store_type = SIXTRL_CXX_NAMESPACE::OclProgramStore;
         using kernel_id_type     = SIXTRL_CXX_NAMESPACE::ctrl_kernel_id_type;
-        using kernel_data_type   = SIXTRL_CXX_NAMESPACE::OclKernel;
         using cmd_queue_type     = SIXTRL_CXX_NAMESPACE::OclCommandQueue;
         using context_type       = SIXTRL_CXX_NAMESPACE::OclContext;
         using platform_id_type   = node_id_type::platform_id_type;
@@ -132,9 +130,6 @@ namespace SIXTRL_CXX_NAMESPACE
 
         node_id_type m_selected_node_id;
 
-        std::vector< std::string > m_kernel_names;
-        std::map< std::string, kernel_id_type > m_kernel_name_to_id_map;
-        std::vector< kernel_data_type > m_kernels;
         std::vector< std::unique_ptr< cmd_queue_type > > m_cmd_queues;
         std::shared_ptr< program_store_type > m_program_store;
         context_type& m_context;

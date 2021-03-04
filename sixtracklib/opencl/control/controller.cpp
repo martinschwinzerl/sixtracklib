@@ -466,9 +466,6 @@ namespace SIXTRL_CXX_NAMESPACE
         std::shared_ptr< ocl_prog_store_type >& SIXTRL_RESTRICT_REF prog_store ) :
         st::ControllerBase( st::BACKEND_ID_OPENCL, ocl_ctrl_type::CLASS_ID ),
         m_selected_node_id(),
-        m_kernel_names(),
-        m_kernel_name_to_id_map(),
-        m_kernels(),
         m_cmd_queues(),
         m_program_store( nullptr ),
         m_context( context ),
