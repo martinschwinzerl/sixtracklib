@@ -38,6 +38,10 @@ namespace SIXTRL_CXX_NAMESPACE
             program_id_type const id,
             guard_type const& SIXTRL_RESTRICT_REF guard ) const;
 
+        SIXTRL_HOST_FN virtual item_base_type const* program_item(
+            program_id_type const id,
+            guard_type const& SIXTRL_RESTRICT_REF guard );
+
         /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
         SIXTRL_HOST_FN program_id_type program_id(

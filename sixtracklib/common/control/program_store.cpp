@@ -78,7 +78,13 @@ namespace SIXTRL_CXX_NAMESPACE
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
     store_type::item_base_type const* store_type::program_item(
-        st_prog_id_t const id, st_guard_t const& SIXTRL_RESTRICT_REF guard ) const {
+        st_prog_id_t const id,
+        st_guard_t const& SIXTRL_RESTRICT_REF guard ) const {
+        return ( this->is_stored( id, guard ) )
+            ? this->m_items[ id ].get() : nullptr; }
+
+    store_type::item_base_type const* store_type::program_item(
+        st_prog_id_t const id, st_guard_t const& SIXTRL_RESTRICT_REF guard ) {
         return ( this->is_stored( id, guard ) )
             ? this->m_items[ id ].get() : nullptr; }
 
