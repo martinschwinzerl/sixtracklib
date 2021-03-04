@@ -102,6 +102,12 @@ namespace SIXTRL_CXX_NAMESPACE
         selected_node_id() const SIXTRL_NOEXCEPT {
             return this->m_selected_node_id; }
 
+        SIXTRL_HOST_FN cl::Device const& cl_selected_device(
+            ) const SIXTRL_NOEXCEPT { return this->m_selected_cl_device; }
+
+        SIXTRL_HOST_FN cl::Device& cl_selected_device(
+            ) SIXTRL_NOEXCEPT { return this->m_selected_cl_device; }
+
         SIXTRL_HOST_FN size_type num_cmd_queues() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN cmd_queue_type& cmd_queue( size_type const id );
         SIXTRL_HOST_FN cmd_queue_type const& cmd_queue(
