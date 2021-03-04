@@ -61,8 +61,7 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( cbuffer != nullptr ) && ( this->m_context.key().is_legal() ) &&
             ( this->m_ptr_controller != nullptr ) &&
             ( &( this->m_ptr_controller->context() ) == &this->m_context ) &&
-            ( ::NS(CBuffer_size)( cbuffer ) >
-              st::CBufferView::MIN_BUFFER_SIZE(
+            ( ::NS(CBuffer_size)( cbuffer ) >= st::CBufferView::MIN_BUFFER_SIZE(
                 ::NS(CBuffer_slot_size)( cbuffer ) ) ) )
         {
             st_size_t const requ_size = ::NS(CBuffer_size)( cbuffer );

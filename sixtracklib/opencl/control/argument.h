@@ -52,6 +52,12 @@ namespace SIXTRL_CXX_NAMESPACE
         using SIXTRL_CXX_NAMESPACE::ArgumentBase::collect;
 
 
+        SIXTRL_HOST_FN cl::Buffer const& cl_buffer() const SIXTRL_NOEXCEPT {
+            return this->m_cl_buffer; };
+
+        SIXTRL_HOST_FN cl::Buffer& cl_buffer() SIXTRL_NOEXCEPT {
+            return this->m_cl_buffer; }
+
         protected:
 
         SIXTRL_HOST_FN status_type _init_from_cbuffer(
