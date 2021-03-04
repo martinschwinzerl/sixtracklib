@@ -355,8 +355,8 @@ int main( int argc, char* argv[] )
     run_event.wait();
     auto t_stop = std::chrono::steady_clock::now();
 
-    double const t_opencl_elapsed = std::chrono::duration_cast<
-        std::chrono::seconds >( t_stop - t_start ).count ();
+    double const t_opencl_elapsed = double{ 1e-6 } * std::chrono::duration_cast<
+        std::chrono::microseconds >( t_stop - t_start ).count ();
 
     std::cout << "elapsed time : " << t_opencl_elapsed << " sec\r\n"
               << "             : " << t_opencl_elapsed / static_cast< double >(
@@ -384,8 +384,8 @@ int main( int argc, char* argv[] )
 
     if( status == st::STATUS_SUCCESS )
     {
-        double const t_cpu_elapsed = std::chrono::duration_cast<
-            std::chrono::seconds >( t_stop - t_start ).count();
+        double const t_cpu_elapsed = double{ 1e-6 } * std::chrono::duration_cast<
+            std::chrono::microseconds >( t_stop - t_start ).count();
 
         std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n"
                   << "SINGLE CPU TIMING: \r\n"
