@@ -123,6 +123,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 auto it = this->m_key_to_id_map.find( key );
                 SIXTRL_ASSERT( it != this->m_key_to_id_map.end() );
                 SIXTRL_ASSERT( it->second == stored_prog_id );
+                ( void )it;
                 this->remove( stored_prog_id );
                 stored_prog_id = base_store_type::ILLEGAL_PROGRAM_ID;
             }
