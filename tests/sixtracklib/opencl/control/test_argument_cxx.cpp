@@ -6,16 +6,25 @@
 
 #include <gtest/gtest.h>
 
+#include "sixtracklib/opencl/control/argument.h"
 #include "sixtracklib/common/control/node_id.h"
 #include "sixtracklib/opencl/control/controller.h"
 #include "sixtracklib/opencl/control/program_store.h"
+#include "sixtracklib/common/generated/path.h"
+#include "sixtracklib/common/cobjects/cbuffer.hpp"
 
-TEST( CXXOpenCLControlController, NormalUsage )
+TEST( CXXOpenCLControlArgument, NormalUsage )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
+    using arg_type = st::OclArgument;
     using ctrl_type = st::OclController;
     using ctx_type = st::OclContext;
     using program_store_type = st::OclProgramStore;
+
+    std::ostringstream a2str;
+    a2str << ::NS(PATH_TO_BASE_DIR) << "tests/testdata/lhc_no_bb/"
+          << "cobj_particles_elem_by_elem_pysixtrack.bin";
+    std::string const path_to_cbuffer_dump = a2str.str();
 
     std::vector< st::NodeId > available_nodes;
 
@@ -32,15 +41,10 @@ TEST( CXXOpenCLControlController, NormalUsage )
 
     for( auto const& node_id : available_nodes )
     {
+        st::CBuffer cbuffer( path_to_cbuffer_dump );
+
         ctx_type ctx( node_id );
         ctrl_type ctrl( node_id, ctx, program_store );
-
-        ASSERT_TRUE(  ctrl.selected_node_id().compare( node_id ) == 0 );
-        ASSERT_TRUE( &ctrl.context() == &ctx );
-        ASSERT_TRUE(  ctrl.num_cmd_queues() == st::size_type{ 1 } );
-        ASSERT_TRUE(  ctrl.ptr_cmd_queue( 0u ) != nullptr );
+        arg_type argument( cbuffer.as_c_api(), ctrl );
     }
-
-
-
 }

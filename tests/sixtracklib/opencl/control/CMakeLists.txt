@@ -17,6 +17,9 @@ if( GTEST_FOUND )
     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_controller_opencl_cxx )
     add_test( CXX_OpenCL_Control_Controller test_controller_opencl_cxx )
 
+    set_tests_properties( CXX_OpenCL_Control_Controller PROPERTIES DEPENDS
+                          CXX_OpenCL_Control_Context )
+
     # ==========================================================================
     # test_rtc_program_item_opencl_cxx:
 
@@ -26,6 +29,30 @@ if( GTEST_FOUND )
     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_rtc_program_item_opencl_cxx )
     add_test( CXX_OpenCL_Control_RunTimeCompileProgramItem
               test_rtc_program_item_opencl_cxx )
+
+    set_tests_properties( CXX_OpenCL_Control_RunTimeCompileProgramItem
+                          PROPERTIES DEPENDS CXX_OpenCL_Control_Controller )
+
+    # ==========================================================================
+    # test_program_store_opencl_cxx:
+
+    add_executable( test_program_store_opencl_cxx test_program_store_cxx.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_program_store_opencl_cxx )
+    add_test( CXX_OpenCL_Control_ProgramStore test_program_store_opencl_cxx )
+    set_tests_properties( CXX_OpenCL_Control_ProgramStore PROPERTIES
+                          DEPENDS CXX_OpenCL_Control_Context
+                          DEPENDS CXX_OpenCL_Control_Controller
+                          DEPENDS CXX_OpenCL_Control_RunTimeCompileProgramItem )
+
+    # ==========================================================================
+    # test_argument_opencl_cxx:
+
+    add_executable( test_argument_opencl_cxx test_argument_cxx.cpp )
+
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_argument_opencl_cxx )
+    add_test( CXX_OpenCL_Control_Argument test_argument_opencl_cxx )
+    set_tests_properties( CXX_OpenCL_Control_Argument
+                          PROPERTIES DEPENDS CXX_OpenCL_Control_ProgramStore )
 
     # *************************************************************************
     # Set all properties:
