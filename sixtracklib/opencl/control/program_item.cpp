@@ -1,6 +1,7 @@
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/opencl/control/node_info.h"
     #include "sixtracklib/opencl/control/controller.h"
+    #include "sixtracklib/opencl/internal/helpers.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES )  */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
@@ -54,9 +55,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         if( context.key().is_legal() )
         {
-            this->m_program_key.m_ctx_key = context.key();
-            this->m_program_key.m_name    = name;
-            this->m_program_key.m_options = options;
+            this->m_program_key.ctx_key = context.key();
+            this->m_program_key.name    = name;
+            this->m_program_key.options = options;
             status = st::STATUS_SUCCESS;
         }
 
@@ -126,31 +127,8 @@ namespace SIXTRL_CXX_NAMESPACE
             }
             else
             {
-                if( ret == CL_INVALID_CONTEXT )
-                {
-                    throw std::runtime_error(
-                        "OclRtcProgramItem::create_from_source: "
-                        "CL_INVALID_CONTEXT" );
-                }
-                else if( ret == CL_INVALID_VALUE )
-                {
-                    throw std::runtime_error(
-                        "OclRtcProgramItem::create_from_source: "
-                        "CL_INVALID_VALUE" );
-                }
-                else if( ret == CL_OUT_OF_RESOURCES )
-                {
-                    throw std::runtime_error(
-                        "OclRtcProgramItem::create_from_source: "
-                        "CL_OUT_OF_RESOURCES" );
-                }
-                else
-                {
-                    SIXTRL_ASSERT( ret == CL_OUT_OF_HOST_MEMORY );
-                    throw std::runtime_error(
-                        "OclRtcProgramItem::create_from_source: "
-                        "CL_OUT_OF_HOST_MEMORY" );
-                }
+                st::OpenCL_ret_value_to_exception< std::runtime_error >(
+                    ret, "OclRtcProgramItem", "create_from_source" );
             }
         }
 

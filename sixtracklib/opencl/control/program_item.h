@@ -27,30 +27,30 @@ namespace SIXTRL_CXX_NAMESPACE
         using cmp_result_type = ::NS(cmp_result_type);
 
         SIXTRL_HOST_FN void clear() {
-            this->m_ctx_key.clear();
-            this->m_name.clear();
-            this->m_options.clear(); }
+            this->ctx_key.clear();
+            this->name.clear();
+            this->options.clear(); }
 
         SIXTRL_HOST_FN cmp_result_type compare(
             OclProgramKey const& rhs ) const SIXTRL_NOEXCEPT
         {
-            cmp_result_type ret = this->m_ctx_key.compare( rhs.m_ctx_key );
+            cmp_result_type ret = this->ctx_key.compare( rhs.ctx_key );
 
             if( ret == 0 )
             {
-                if( !this->m_name.empty() )
+                if( !this->name.empty() )
                 {
-                    if( this->m_name.size() == rhs.m_name.size() )
+                    if( this->name.size() == rhs.name.size() )
                     {
-                        ret = this->m_name.compare( rhs.m_name );
+                        ret = this->name.compare( rhs.name );
                     }
                     else
                     {
-                        ret = ( this->m_name.size() > rhs.m_name.size() )
+                        ret = ( this->name.size() > rhs.name.size() )
                             ? cmp_result_type{ 1 } : cmp_result_type{ -1 };
                     }
                 }
-                else if( !rhs.m_name.empty() )
+                else if( !rhs.name.empty() )
                 {
                     ret = cmp_result_type{ -1 };
                 }
@@ -58,19 +58,19 @@ namespace SIXTRL_CXX_NAMESPACE
 
             if( ret == 0 )
             {
-                if( !this->m_options.empty() )
+                if( !this->options.empty() )
                 {
-                    if( this->m_options.size() == rhs.m_options.size() )
+                    if( this->options.size() == rhs.options.size() )
                     {
-                        ret = this->m_options.compare( rhs.m_options );
+                        ret = this->options.compare( rhs.options );
                     }
                     else
                     {
-                        ret = ( this->m_options.size() > rhs.m_options.size() )
+                        ret = ( this->options.size() > rhs.options.size() )
                             ? cmp_result_type{ 1 } : cmp_result_type{ -1 };
                     }
                 }
-                else if( !rhs.m_options.empty() )
+                else if( !rhs.options.empty() )
                 {
                     ret = cmp_result_type{ -1 };
                 }
@@ -80,8 +80,8 @@ namespace SIXTRL_CXX_NAMESPACE
         }
 
         SIXTRL_HOST_FN bool is_legal() const SIXTRL_NOEXCEPT {
-            return ( ( this->m_ctx_key.is_legal() ) &&
-                     ( !this->m_name.empty() ) ); }
+            return ( ( this->ctx_key.is_legal() ) &&
+                     ( !this->name.empty() ) ); }
 
         SIXTRL_HOST_FN bool operator<(
             OclProgramKey const& rhs ) const SIXTRL_NOEXCEPT {
@@ -95,9 +95,9 @@ namespace SIXTRL_CXX_NAMESPACE
             OclProgramKey const& rhs ) const SIXTRL_NOEXCEPT {
             return ( this->compare( rhs ) != cmp_result_type{ 0 } ); }
 
-        ctx_key_type m_ctx_key;
-        std::string  m_name;
-        std::string  m_options;
+        ctx_key_type ctx_key;
+        std::string  name;
+        std::string  options;
     };
 
     class OclProgramItemBase : public SIXTRL_CXX_NAMESPACE::ProgramItemBase
@@ -137,8 +137,8 @@ namespace SIXTRL_CXX_NAMESPACE
                 : nullptr;
         }
 
-        SIXTRL_HOST_FN program_key_type program_key() const SIXTRL_NOEXCEPT {
-            return this->m_program_key; }
+        SIXTRL_HOST_FN program_key_type const&
+        program_key() const SIXTRL_NOEXCEPT { return this->m_program_key; }
 
         SIXTRL_HOST_FN cl::Program const& cl_program() const SIXTRL_NOEXCEPT {
             return this->m_cl_program; }
