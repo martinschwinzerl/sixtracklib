@@ -39,6 +39,14 @@
     #define SIXTRL_OPENCL_CONTEXT_STORE_CLASS_ID 208
 #endif /* !defined( SIXTRL_OPENCL_CONTEXT_STORE_CLASS_ID ) */
 
+#if !defined( SIXTRL_OPENCL_KERNEL_ITEM_CLASS_ID )
+    #define SIXTRL_OPENCL_KERNEL_ITEM_CLASS_ID 209
+#endif /* !defined( SIXTRL_OPENCL_KERNEL_ITEM_CLASS_ID ) */
+
+#if !defined( SIXTRL_OPENCL_KERNEL_STORE_CLASS_ID )
+    #define SIXTRL_OPENCL_KERNEL_STORE_CLASS_ID 210
+#endif /* !defined( SIXTRL_OPENCL_KERNEL_STORE_CLASS_ID ) */
+
 #if !defined( _GPUCODE )
 
 SIXTRL_STATIC_VAR NS(derived_class_id_type) const NS(OPENCL_NODE_INFO_CLASS_ID)
@@ -70,6 +78,14 @@ SIXTRL_STATIC_VAR NS(derived_class_id_type) const
     NS(OPENCL_CONTEXT_STORE_CLASS_ID) = ( NS(derived_class_id_type)
         )SIXTRL_OPENCL_CONTEXT_STORE_CLASS_ID;
 
+SIXTRL_STATIC_VAR NS(derived_class_id_type) const
+    NS(OPENCL_KERNEL_ITEM_CLASS_ID) = ( NS(derived_class_id_type)
+        )SIXTRL_OPENCL_KERNEL_ITEM_CLASS_ID;
+
+SIXTRL_STATIC_VAR NS(derived_class_id_type) const
+    NS(OPENCL_KERNEL_STORE_CLASS_ID) = ( NS(derived_class_id_type)
+        )SIXTRL_OPENCL_KERNEL_STORE_CLASS_ID;
+
 #endif /* !defined( _GPUCODE ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
@@ -98,6 +114,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
     static constexpr derived_class_id_type OPENCL_CONTEXT_STORE_CLASS_ID =
         derived_class_id_type{ SIXTRL_OPENCL_CONTEXT_STORE_CLASS_ID };
+
+    static constexpr derived_class_id_type OPENCL_KERNEL_ITEM_CLASS_ID =
+        derived_class_id_type{ SIXTRL_OPENCL_KERNEL_ITEM_CLASS_ID};
+
+    static constexpr derived_class_id_type OPENCL_KERNEL_STORE_CLASS_ID =
+        derived_class_id_type{ SIXTRL_OPENCL_KERNEL_STORE_CLASS_ID };
 
 } /* end: namespace SIXTRL_CXX_NAMESPACE */
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
