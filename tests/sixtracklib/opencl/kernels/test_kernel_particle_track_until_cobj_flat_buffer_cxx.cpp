@@ -35,6 +35,7 @@ TEST( CXXOpenCLKernelsParticleTrackUntilCObFlatBuffer, RunTimeCompileKernel )
     a2str << SIXTRL_C99_NAMESPACE_PREFIX_STR
           << "Track_until_particle_cobj_flat_buffer_opencl";
     std::string const kernel_name = a2str.str();
+    a2str.str( "" );
 
     auto node_store = std::make_shared< st::OclNodeStore >();
     SIXTRL_ASSERT( node_store.get() != nullptr );

@@ -34,6 +34,7 @@ TEST( CXXOpenCLKernelsCobjFlatBufferRemap, RunTimeCompileKernel )
 
     a2str << SIXTRL_C99_NAMESPACE_PREFIX_STR << "CObjFlatBuffer_remap_opencl";
     std::string const kernel_name = a2str.str();
+    a2str.str( "" );
 
     auto node_store = std::make_shared< st::OclNodeStore >();
     SIXTRL_ASSERT( node_store.get() != nullptr );
