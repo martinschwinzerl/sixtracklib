@@ -329,7 +329,7 @@ SIXTRL_INLINE NS(size_type) NS(Track_particle_beam_element_from_cobj_index)(
             break; }
 
         case NS(COBJECTS_TYPE_ID_SC_QGAUSSIAN_PROFILE): {
-            Particle_mark_as_lost
+            NS(Particle_mark_as_lost)( p );
             increment_index_and_at_element = false;
             break; }
 
