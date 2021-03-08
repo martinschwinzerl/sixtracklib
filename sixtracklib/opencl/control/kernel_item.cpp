@@ -57,13 +57,10 @@ namespace SIXTRL_CXX_NAMESPACE
             return status;
         }
 
-        auto const lock = program_store.create_lock();
-
-        if( ( program_store.num_stored_items( lock ) > st_size_t{ 0 } ) &&
-            ( program_store.is_stored( prog_id, lock ) ) )
+        if( ( program_store.num_stored_items() > st_size_t{ 0 } ) &&
+            ( program_store.is_stored( prog_id ) ) )
         {
-            auto prog_item = program_store.program_item( prog_id, lock );
-
+            auto prog_item = program_store.program_item( prog_id );
             if( prog_item != nullptr )
             {
                 status = this->init(
@@ -99,75 +96,60 @@ namespace SIXTRL_CXX_NAMESPACE
             }
 
             if( !has_kernel ) return status;
-
             ::cl_int ret = CL_SUCCESS;
 
-            #if defined( SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG ) && \
-                    SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG == 1
+            #if defined( CL_HPP_ENABLE_EXCEPTIONS )
             try
-            #endif /* OpenCL 1.x C++ Host Exceptions enabled */
+            #endif /* defined( CL_HPP_ENABLE_EXCEPTIONS ) */
             {
                 cl::Kernel k( program_item.cl_program(), kernel_name.c_str(),
                                 &ret );
-
-                if( ret == CL_SUCCESS )
-                {
-                    this->m_cl_kernel = std::move( k );
-                }
-
+                if( ret == CL_SUCCESS ) this->m_cl_kernel = std::move( k );
             }
-            #if defined( SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG ) && \
-                        SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG == 1
+            #if defined( CL_HPP_ENABLE_EXCEPTIONS )
             catch( cl::Error& e )
             {
                 st::OpenCL_ret_value_to_exception< std::runtime_error >(
                     e.err(), "OclKernelItem", "init", e.what(),
                         st_size_t{ __LINE__ } );
             }
-            #endif /* OpenCL 1.x C++ Host Exceptions enabled */
-
+            #else  /* !defined( CL_HPP_ENABLE_EXCEPTIONS ) */
             if( ret != CL_SUCCESS )
             {
                 st::OpenCL_ret_value_to_exception< std::runtime_error >(
                     ret, "OclKernelItem", "init",
                         "unable to create cl::Kernel from program",
                             st_size_t{ __LINE__ } );
-
                 return status;
             }
+            #endif /* defined( CL_HPP_ENABLE_EXCEPTIONS ) */
 
             SIXTRL_ASSERT( ret == CL_SUCCESS );
             st_size_t num_kernel_args = st_size_t{ 0 };
 
-            #if defined( SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG ) && \
-                    SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG == 1
+            #if defined( CL_HPP_ENABLE_EXCEPTIONS )
             try
-            #endif /* OpenCL 1.x C++ Host Exceptions enabled */
+            #endif /* defined( CL_HPP_ENABLE_EXCEPTIONS ) */
             {
                 ::cl_uint temp_num_kernel_args = ::cl_uint{ 0 };
-                ret = this->m_cl_kernel.getInfo(
-                    CL_KERNEL_NUM_ARGS, &temp_num_kernel_args );
+                ret = this->m_cl_kernel.getInfo( CL_KERNEL_NUM_ARGS,
+                    &temp_num_kernel_args );
 
                 if( ret == CL_SUCCESS )
                 {
                     num_kernel_args = temp_num_kernel_args;
+                    status = st::STATUS_SUCCESS;
                 }
             }
-            #if defined( SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG ) && \
-                        SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG == 1
+            #if defined( CL_HPP_ENABLE_EXCEPTIONS )
             catch( cl::Error& e )
             {
                 st::OpenCL_ret_value_to_exception< std::runtime_error >(
                     e.err(), "OclKernelItem", "init", e.what(),
                         st_size_t{ __LINE__ } );
             }
-            #endif /* OpenCL 1.x C++ Host Exceptions enabled */
-
-            if( ret == CL_SUCCESS )
-            {
-                status = st::STATUS_SUCCESS;
-            }
-            else
+            #else  /* !defined( CL_HPP_ENABLE_EXCEPTIONS ) */
+            if( ret != CL_SUCCESS )
             {
                 st::OpenCL_ret_value_to_exception< std::runtime_error >(
                     ret, "OclKernelItem", "init",
@@ -176,6 +158,7 @@ namespace SIXTRL_CXX_NAMESPACE
 
                 return status;
             }
+            #endif /* OpenCL 1.x C++ Host Exceptions enabled */
 
             if( status == st::STATUS_SUCCESS )
             {
