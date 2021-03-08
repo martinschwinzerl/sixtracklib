@@ -27,10 +27,11 @@ namespace SIXTRL_CXX_NAMESPACE
         public:
 
         using node_id_type       = SIXTRL_CXX_NAMESPACE::NodeId;
+        using node_store_type    = SIXTRL_CXX_NAMESPACE::OclNodeStore;
         using node_info_type     = SIXTRL_CXX_NAMESPACE::OclNodeInfo;
         using program_store_type = SIXTRL_CXX_NAMESPACE::OclProgramStore;
         using kernel_id_type     = SIXTRL_CXX_NAMESPACE::ctrl_kernel_id_type;
-        using cmd_queue_type     = SIXTRL_CXX_NAMESPACE::OclCommandQueue;
+        using cmd_queue_type     = SIXTRL_CXX_NAMESPACE::OclCmdQueue;
         using context_type       = SIXTRL_CXX_NAMESPACE::OclContext;
         using platform_id_type   = node_id_type::platform_id_type;
         using device_id_type     = node_id_type::device_id_type;
@@ -39,52 +40,12 @@ namespace SIXTRL_CXX_NAMESPACE
         static constexpr class_id_type CLASS_ID =
             SIXTRL_CXX_NAMESPACE::OPENCL_CONTROLLER_CLASS_ID;
 
-        static SIXTRL_HOST_FN status_type GET_ALL_CL_PLATFORMS(
-            std::vector< cl::Platform >& SIXTRL_RESTRICT_REF avail_platforms );
-
-        static SIXTRL_HOST_FN status_type GET_CL_DEVICES_FOR_CL_PLATFORM(
-            cl::Platform const& SIXTRL_RESTRICT_REF platform,
-            std::vector< cl::Device >& SIXTRL_RESTRICT_REF avail_devices,
-            ::cl_device_type const only_type_of_device = CL_DEVICE_TYPE_ALL );
-
-        static SIXTRL_HOST_FN status_type GET_NODE_DESCRIPTION_FROM_CL_DEVICE(
-            cl::Device const& SIXTRL_RESTRICT_REF cl_device,
-            std::string& SIXTRL_RESTRICT_REF device_description );
-
-        static SIXTRL_HOST_FN node_info_type CREATE_NODE_INFO_FOR_CL_DEVICE(
-            cl::Platform const& SIXTRL_RESTRICT_REF cl_platform,
-            cl::Device const& SIXTRL_RESTRICT_REF cl_device,
-            platform_id_type const platform_id, device_id_type const device_id,
-            node_index_type const node_index );
-
-        static SIXTRL_HOST_FN status_type GET_ALL_AVAILABLE_NODES(
-            std::vector< cl::Platform>& SIXTRL_RESTRICT_REF available_platforms,
-            std::vector< cl::Device >&  SIXTRL_RESTRICT_REF available_devices,
-            std::vector< node_id_type >*   SIXTRL_RESTRICT available_nodes_id,
-            std::vector< node_info_type >* SIXTRL_RESTRICT available_nodes_info );
-
-        static SIXTRL_HOST_FN status_type GET_ALLOWED_NODES_FROM_ENV_VARIABLE(
-            char const* SIXTRL_RESTRICT env_variable_name,
-            std::vector< node_id_type >& SIXTRL_RESTRICT_REF node_ids );
-
-        static SIXTRL_HOST_FN status_type GET_AVAILABLE_NODES(
-            std::vector< node_id_type >& SIXTRL_RESTRICT_REF available_nodes_id,
-            std::vector< node_info_type >* SIXTRL_RESTRICT available_nodes_info,
-            std::vector< cl::Device >* SIXTRL_RESTRICT ptr_available_devices,
-            char const* SIXTRL_RESTRICT env_variable_name = nullptr ,
-            char const* SIXTRL_RESTRICT filter_str = nullptr );
-
-        static SIXTRL_HOST_FN status_type GET_ALLOWED_NODES_FROM_ENV_VARIABLE(
-            std::vector< node_id_type >& SIXTRL_RESTRICT allowed_node_ids,
-            char const* SIXTRL_RESTRICT env_variable_name = nullptr );
-
         /* ----------------------------------------------------------------- */
 
         SIXTRL_HOST_FN OclController(
             node_id_type const& SIXTRL_RESTRICT_REF node_id,
             context_type& SIXTRL_RESTRICT_REF context,
-            std::shared_ptr< program_store_type >&
-                SIXTRL_RESTRICT_REF program_store );
+            std::shared_ptr< program_store_type >& SIXTRL_RESTRICT_REF prg_store );
 
         SIXTRL_HOST_FN OclController( OclController const& ) = default;
         SIXTRL_HOST_FN OclController( OclController&& ) = default;
@@ -100,11 +61,7 @@ namespace SIXTRL_CXX_NAMESPACE
         selected_node_id() const SIXTRL_NOEXCEPT {
             return this->m_selected_node_id; }
 
-        SIXTRL_HOST_FN cl::Device const& cl_selected_device(
-            ) const SIXTRL_NOEXCEPT { return this->m_selected_cl_device; }
-
-        SIXTRL_HOST_FN cl::Device& cl_selected_device(
-            ) SIXTRL_NOEXCEPT { return this->m_selected_cl_device; }
+        SIXTRL_HOST_FN cl::Device const& cl_selected_device() const;
 
         SIXTRL_HOST_FN size_type num_cmd_queues() const SIXTRL_NOEXCEPT;
         SIXTRL_HOST_FN cmd_queue_type& cmd_queue( size_type const id );
@@ -126,16 +83,17 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN std::shared_ptr< program_store_type >&
         share_program_store() { return this->m_program_store; }
 
+        SIXTRL_HOST_FN std::shared_ptr< node_store_type >&
+        share_node_store() { return this->m_node_store; }
+
         private:
 
         node_id_type m_selected_node_id;
 
         std::vector< std::unique_ptr< cmd_queue_type > > m_cmd_queues;
         std::shared_ptr< program_store_type > m_program_store;
+        std::shared_ptr< node_store_type > m_node_store;
         context_type& m_context;
-
-        cl::Platform m_selected_cl_platform;
-        cl::Device   m_selected_cl_device;
     };
 
     template<> struct BackendObjTraits< SIXTRL_CXX_NAMESPACE::OclController >
