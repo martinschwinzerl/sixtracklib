@@ -1,0 +1,14 @@
+[opencl]
+    compile_default_ipaths = true
+
+    [opencl.0]
+        compile_flags = [ "-Werror", "-cl-strict-aliasign" ]
+
+    [opencl.1]
+        active = false
+
+    [opencl.2]
+        active = false
+
+    [opencl.3]
+        active = false
