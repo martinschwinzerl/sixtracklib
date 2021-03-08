@@ -112,7 +112,7 @@ namespace SIXTRL_CXX_NAMESPACE
             st::status_type const status = this->update_default_config_item(
                 st::OclProgramConfigItem{} );
 
-            if( status == st::STATUS_SUCCESS )
+            if( status != st::STATUS_SUCCESS )
                 throw std::runtime_error( "unable to add default config item" );
         }
 
