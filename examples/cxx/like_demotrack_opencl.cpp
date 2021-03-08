@@ -115,7 +115,16 @@ int main( int argc, char* argv[] )
     }
 
     st::OclProgramConfigStore config_options;
-    config_options.update_from_file( std::string{ "./opencl.toml" } );
+    if( st::STATUS_SUCCESS == config_options.update_from_file(
+            std::string{ "./opencl.toml" } ) )
+    {
+        std::ifstream input_file( "./opencl.toml" );
+
+        std::cout << "INFO :: read config options from input file ./opencl.toml"
+                  << std::endl
+                  << "INFO :: content of opencl.toml file:\r\n"
+                  << input_file.rdbuf() << std::endl;
+    }
 
     /* --------------------------------------------------------------------- */
     /* Prepare particles data */
@@ -130,20 +139,6 @@ int main( int argc, char* argv[] )
     if( status != st::STATUS_SUCCESS )
     {
         std::cout << "error :: unable to prepare particle data" << std::endl;
-        return 0;
-    }
-
-    st::CBuffer diff_pbuffer( pbuffer.num_slots(), pbuffer.num_objects(),
-        pbuffer.num_pointers(), pbuffer.num_garbage(), pbuffer.slot_size() );
-
-    st::CBuffer track_cpu_pbuffer;
-
-    status = st::examples::Prepare_particle_data_cobj(
-        in_pbuffer, track_cpu_pbuffer, NUM_PARTICLES, nullptr );
-
-    if( status != st::STATUS_SUCCESS )
-    {
-        std::cout << "error :: unable to prepare cmp particle data" << std::endl;
         return 0;
     }
 
@@ -190,14 +185,14 @@ int main( int argc, char* argv[] )
     std::string const remap_kernel_name = a2str.str();
     a2str.str( "" );
 
-    auto config = config_options.find( 
+    auto config = config_options.find(
         st::OclProgramKey{ ctx.key(), remap_program_name } );
     SIXTRL_ASSERT( config != nullptr );
     a2str << *config;
-    
+
     remap_program.set_compile_flags( a2str.str() );
     a2str.str( "" );
-    
+
     status  = remap_program.create_from_source_file( ctx, path_remap_program );
     status |= remap_program.build( ctx, remap_program_name );
 
@@ -226,9 +221,9 @@ int main( int argc, char* argv[] )
 
     st::OclRtcProgramItem track_program;
 
-    std::string const track_program_name = 
+    std::string const track_program_name =
         "particle_track_until_cobj_flat_buffer";
-    
+
     a2str << ocl_kernel_base_dir << track_program_name << ".cl";
     std::string const path_track_program = a2str.str();
     a2str.str( "" );
@@ -237,14 +232,16 @@ int main( int argc, char* argv[] )
     std::string const track_kernel_name = a2str.str();
     a2str.str( "" );
 
-    config = config_options.find( 
+    config = config_options.find(
         st::OclProgramKey{ ctx.key(), remap_program_name } );
     SIXTRL_ASSERT( config != nullptr );
     a2str << *config;
-    
+
     track_program.set_compile_flags( a2str.str() );
+    std::cout << "INFO :: compiling kernel: " << track_kernel_name << "\r\n"
+              << "INFO :: compile flags   : " << a2str.str() << std::endl;
     a2str.str( "" );
-    
+
     status  = track_program.create_from_source_file( ctx, path_track_program );
     status |= track_program.build( ctx, track_kernel_name );
 
@@ -388,78 +385,9 @@ int main( int argc, char* argv[] )
 
     status = pbuffer.remap();
 
-    std::cout << std::endl
-              << "Perform comparison tracking on CPU:\r\n";
-
-    t_start = std::chrono::steady_clock::now();
-
-    status = ::NS(Track_testlib_until_turn_cbuffer)(
-        track_cpu_pbuffer.as_c_api(), pbuffer.as_const_c_api(),
-            lattice.as_c_api(), diff_pbuffer.as_c_api(),
-                TRACK_UNTIL_TURN, st::particle_index_type{ 0 },
-                    st::size_type{ 0 }, nullptr );
-
-    t_stop = std::chrono::steady_clock::now();
-
-    if( status == st::STATUS_SUCCESS )
+    if( !path_to_output_data.empty() )
     {
-        double const t_cpu_elapsed = double{ 1e-6 } * std::chrono::duration_cast<
-            std::chrono::microseconds >( t_stop - t_start ).count();
-
-        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n"
-                  << "SINGLE CPU TIMING: \r\n"
-                  << "elapsed time : " << t_cpu_elapsed << " sec\r\n"
-                  << "             : " << t_cpu_elapsed / static_cast< double >(
-                     NUM_PARTICLES * TRACK_UNTIL_TURN )
-                  << " sec / particle / turn\r\n";
-
-        if( t_opencl_elapsed > double{ 1e-9 } )
-        {
-            std::cout << "speedup      : " << t_cpu_elapsed / t_opencl_elapsed
-                      << " x times" << std::endl;
-        }
-
-        std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\r\n";
-    }
-    else
-    {
-        std::cout << "Error: can't track particles on single core CPU!"
-                  << std::endl;
-
-        return 0;
-    }
-
-    double const ABS_TOLERANCE = double{ 1e-15 };
-    double const REL_TOLERANCE = double{ 0.0 };
-
-    st::cobj_size_type first_fail_pset_idx = 0u;
-    st::particles_num_type first_fail_particle_idx = 0;
-
-     if( st::STATUS_SUCCESS ==
-         ::NS(Track_testlib_compare_all_particle_sets_cbuffer)(
-            track_cpu_pbuffer.as_c_api(), pbuffer.as_c_api(), REL_TOLERANCE,
-            ABS_TOLERANCE, &first_fail_pset_idx, &first_fail_particle_idx ) )
-    {
-        std::cout << "\r\n"
-                  << "CPU and OpenCL results are identical within \r\n"
-                  << "abs tolerance : " << ABS_TOLERANCE << "\r\n"
-                  << "rel tolerance : " << REL_TOLERANCE << "\r\n"
-                  << std::endl;
-    }
-    else
-    {
-        auto pset_cmp = pbuffer.get_const_object< ::NS(Particles) >(
-            first_fail_pset_idx );
-
-        auto pset_track = track_cpu_pbuffer.get_const_object< ::NS(Particles) >(
-            first_fail_pset_idx );
-
-        auto pset_diff = diff_pbuffer.get_const_object< ::NS(Particles) >(
-            first_fail_pset_idx );
-
-        std::cout << "first_fail_elem_idx = " << first_fail_pset_idx << "\r\n";
-        st::testlib::Particles_diff_to_stream( std::cout,
-            *pset_cmp, *pset_track, *pset_diff, first_fail_particle_idx );
+        pbuffer.to_file_normalised( path_to_output_data, 0x1000 );
     }
 
     return 0;
