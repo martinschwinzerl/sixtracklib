@@ -9,17 +9,16 @@
 
 #include "sixtracklib/common/generated/path.h"
 #include "sixtracklib/common/control/node_id.h"
-#include "sixtracklib/opencl/control/controller.h"
 #include "sixtracklib/opencl/control/program_store.h"
 
 TEST( CXXOpenCLControlRtcProgamItem, CompileDummyKernel )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
-    using ctrl_type = st::OclController;
     using ctx_type = st::OclContext;
     using program_item_type = st::OclRtcProgramItem;
 
-    std::string const program_name = "dummy.cl";
+    std::string const program_name = "dummy";
+    std::string const program_file = "dummy.cl";
 
     std::ostringstream a2str;
     a2str << "-I" << ::NS(PATH_TO_SIXTRL_INCLUDE_DIR) << " -Werror";
@@ -54,27 +53,24 @@ TEST( CXXOpenCLControlRtcProgamItem, CompileDummyKernel )
     std::string const kernel_source_code = a2str.str();
     a2str.str( "" );
 
-    a2str << "./" << program_name;
+    a2str << "./" << program_file;
     std::string const path_to_program = a2str.str();
 
     std::ofstream write_to_this_file( path_to_program.c_str() );
     write_to_this_file << kernel_source_code << "\r\n";
     write_to_this_file.close();
 
-    std::vector< st::NodeId > available_nodes;
+    auto node_store = std::make_shared< st::OclNodeStore >();
 
-    ASSERT_TRUE( st::STATUS_SUCCESS == ctrl_type::GET_AVAILABLE_NODES(
-        available_nodes, nullptr, nullptr ) );
-
-    if( available_nodes.empty() )
+    if( ( node_store.get() == nullptr ) || ( node_store->empty() ) )
     {
         std::cout << "No OpenCL nodes found -> skipping tests" << std::endl;
         return;
     }
 
-    for( auto const& node_id : available_nodes )
+    for( auto const& node_id : node_store->node_ids() )
     {
-        auto ctx = std::make_shared< ctx_type >( node_id );
+        auto ctx = std::make_shared< ctx_type >( node_store, node_id );
         ASSERT_TRUE( ctx->key().is_legal() );
         ASSERT_TRUE( ctx->key().num_devices == st::size_type{ 1 } );
         ASSERT_TRUE( ctx->key().contains_node_id( node_id ) );

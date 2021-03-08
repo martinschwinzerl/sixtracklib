@@ -8,20 +8,18 @@
 
 #include "sixtracklib/common/control/node_id.h"
 #include "sixtracklib/opencl/control/kernel_item.h"
-#include "sixtracklib/opencl/control/controller.h"
 #include "sixtracklib/common/generated/path.h"
 
 TEST( CXXOpenCLControlKernelItem, NormalUsage )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
     using context_type        = st::OclContext;
-    using controller_type     = st::OclController;
-//     using prog_item_base_type = st::OclProgramItemBase;
     using prog_item_type      = st::OclRtcProgramItem;
     using kernel_item_type    = st::OclKernelItem;
     using st_size_t           = kernel_item_type::size_type;
 
-    std::string const program_a_name = "a.cl";
+    std::string const program_a_name = "a";
+//     std::string const program_a_file = "a.cl";
 
     std::ostringstream a2str;
     a2str << "-I" << ::NS(PATH_TO_SIXTRL_INCLUDE_DIR) << " -Werror";
@@ -81,7 +79,9 @@ TEST( CXXOpenCLControlKernelItem, NormalUsage )
 
     /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
 
-    std::string const program_b_name = "b.cl";
+    std::string const program_b_name = "b";
+//     std::string const program_b_file = "b.cl";
+
     a2str.str( "" );
     a2str << SIXTRL_C99_NAMESPACE_PREFIX_STR
           << "CObjFlatBuffer_print_num_objects_opencl";
@@ -115,20 +115,17 @@ TEST( CXXOpenCLControlKernelItem, NormalUsage )
 
     /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
 
-    std::vector< st::NodeId > available_nodes;
+    auto node_store = std::make_shared< st::OclNodeStore >();
 
-    ASSERT_TRUE( st::STATUS_SUCCESS == controller_type::GET_AVAILABLE_NODES(
-        available_nodes, nullptr, nullptr ) );
-
-    if( available_nodes.empty() )
+    if( ( node_store.get() == nullptr ) || ( node_store->empty() ) )
     {
         std::cout << "No OpenCL nodes found -> skipping tests" << std::endl;
         return;
     }
 
-    for( auto const& node_id : available_nodes )
+    for( auto const& node_id : node_store->node_ids() )
     {
-        context_type ctx( node_id );
+        context_type ctx( node_store, node_id );
         ASSERT_TRUE( ctx.key().is_legal() );
         ASSERT_TRUE( ctx.key().num_devices == st::size_type{ 1 } );
         ASSERT_TRUE( ctx.key().contains_node_id( node_id ) );

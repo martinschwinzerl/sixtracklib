@@ -9,13 +9,11 @@
 
 #include "sixtracklib/common/generated/path.h"
 #include "sixtracklib/common/control/node_id.h"
-#include "sixtracklib/opencl/control/controller.h"
 #include "sixtracklib/opencl/control/program_store.h"
 
 TEST( CXXOpenCLKernelsParticleTrackUntilCObFlatBuffer, RunTimeCompileKernel )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
-    using ctrl_type = st::OclController;
     using ctx_type = st::OclContext;
     using program_item_type = st::OclRtcProgramItem;
 
@@ -34,20 +32,18 @@ TEST( CXXOpenCLKernelsParticleTrackUntilCObFlatBuffer, RunTimeCompileKernel )
           << "Track_until_particle_cobj_flat_buffer_opencl";
     std::string const kernel_name = a2str.str();
 
-    std::vector< st::NodeId > available_nodes;
+    auto node_store = std::make_shared< st::OclNodeStore >();
+    SIXTRL_ASSERT( node_store.get() != nullptr );
 
-    ASSERT_TRUE( st::STATUS_SUCCESS == ctrl_type::GET_AVAILABLE_NODES(
-        available_nodes, nullptr, nullptr ) );
-
-    if( available_nodes.empty() )
+    if( node_store->empty() )
     {
         std::cout << "No OpenCL nodes found -> skipping tests" << std::endl;
         return;
     }
 
-    for( auto const& node_id : available_nodes )
+    for( auto const& node_id : node_store->node_ids() )
     {
-        auto ctx = std::make_shared< ctx_type >( node_id );
+        auto ctx = std::make_shared< ctx_type >( node_store, node_id );
         ASSERT_TRUE( ctx->key().is_legal() );
         ASSERT_TRUE( ctx->key().num_devices == st::size_type{ 1 } );
         ASSERT_TRUE( ctx->key().contains_node_id( node_id ) );

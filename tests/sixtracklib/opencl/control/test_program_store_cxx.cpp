@@ -15,12 +15,10 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
     using context_type       = st::OclContext;
-    using controller_type    = st::OclController;
     using program_store_type = st::OclProgramStore;
-//     using prog_item_type     = st::OclProgramItemBase;
     using rtc_prog_item_type = st::OclRtcProgramItem;
 
-    std::string const program_a_name = "a.cl";
+    std::string const program_a_name = "a";
 
     std::ostringstream a2str;
     a2str << "-I" << ::NS(PATH_TO_SIXTRL_INCLUDE_DIR) << " -Werror";
@@ -78,7 +76,8 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
 
     /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
 
-    std::string const program_b_name = "b.cl";
+    std::string const program_b_name = "b";
+
     a2str.str( "" );
     a2str << SIXTRL_C99_NAMESPACE_PREFIX_STR
           << "CObjFlatBuffer_print_num_objects_opencl";
@@ -112,12 +111,9 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
 
     /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
 
-    std::vector< st::NodeId > available_nodes;
+    auto node_store = std::make_shared< st::OclNodeStore >();
 
-    ASSERT_TRUE( st::STATUS_SUCCESS == controller_type::GET_AVAILABLE_NODES(
-        available_nodes, nullptr, nullptr ) );
-
-    if( available_nodes.empty() )
+    if( ( node_store.get() == nullptr ) || ( node_store->empty() ) )
     {
         std::cout << "No OpenCL nodes found -> skipping tests" << std::endl;
         return;
@@ -126,9 +122,9 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
     auto program_store = std::make_shared< program_store_type >();
     st::size_type expected_num_programs = st::size_type{ 0 };
 
-    for( auto const& node_id : available_nodes )
+    for( auto const& node_id : node_store->node_ids() )
     {
-        context_type ctx( node_id );
+        context_type ctx( node_store, node_id );
         ASSERT_TRUE( ctx.key().is_legal() );
         ASSERT_TRUE( ctx.key().num_devices == st::size_type{ 1 } );
         ASSERT_TRUE( ctx.key().contains_node_id( node_id ) );
@@ -175,42 +171,33 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
         ASSERT_TRUE( program_store->is_stored( prog_a_key ) );
         ASSERT_TRUE( prog_a_id == program_store->program_id( prog_a_key ) );
 
+        ASSERT_TRUE( program_store->program_item( prog_a_id ) != nullptr );
+        ASSERT_TRUE( program_store->program_item( prog_a_id ) == prog_a_weak_ptr );
+        ASSERT_TRUE( program_store->program_item( prog_a_key ) == prog_a_weak_ptr );
+
+        auto prog_a_stored_ptr = st::BackendObjBase_cast_to_derived<
+            st::ProgramItemBase, rtc_prog_item_type >(
+                program_store->program_item( prog_a_id ) );
+
+        ASSERT_TRUE( prog_a_stored_ptr != nullptr );
+        ASSERT_TRUE( prog_a_stored_ptr == prog_a_weak_ptr );
+        ASSERT_TRUE( prog_a_stored_ptr->is_compiled() );
+        ASSERT_TRUE( program_a_source.compare(
+            prog_a_stored_ptr->source_code() ) == 0 );
+        ASSERT_TRUE( prog_a_stored_ptr->num_kernels() ==
+                    program_a_kernel_names.size() );
+
+        for( st::size_type ii = 0u ; ii < program_a_kernel_names.size() ;
+                ++ii )
         {
-            auto const lock = program_store->create_lock();
-
-            ASSERT_TRUE( program_store->program_item( prog_a_id, lock ) !=
-                         nullptr );
-
-            ASSERT_TRUE( program_store->program_item( prog_a_id, lock ) ==
-                        prog_a_weak_ptr );
-
-            ASSERT_TRUE( program_store->program_item( prog_a_key, lock ) ==
-                        prog_a_weak_ptr );
-
-            auto prog_a_stored_ptr = st::BackendObjBase_cast_to_derived<
-                st::ProgramItemBase, rtc_prog_item_type >(
-                    program_store->program_item( prog_a_id, lock ) );
-
-            ASSERT_TRUE( prog_a_stored_ptr != nullptr );
-            ASSERT_TRUE( prog_a_stored_ptr == prog_a_weak_ptr );
-            ASSERT_TRUE( prog_a_stored_ptr->is_compiled() );
-            ASSERT_TRUE( program_a_source.compare(
-                prog_a_stored_ptr->source_code() ) == 0 );
-            ASSERT_TRUE( prog_a_stored_ptr->num_kernels() ==
-                        program_a_kernel_names.size() );
-
-            for( st::size_type ii = 0u ; ii < program_a_kernel_names.size() ;
-                 ++ii )
-            {
-                ASSERT_TRUE( program_a_kernel_names[ ii ].compare(
-                    prog_a_stored_ptr->kernel_name( ii ) ) == 0 );
-            }
-
-            ASSERT_TRUE( prog_a_stored_ptr->program_key().is_legal() );
-            ASSERT_TRUE( prog_a_stored_ptr->program_key().ctx_key == ctx.key() );
-            ASSERT_TRUE( prog_a_stored_ptr->program_key().name.compare(
-                program_a_name ) == 0 );
+            ASSERT_TRUE( program_a_kernel_names[ ii ].compare(
+                prog_a_stored_ptr->kernel_name( ii ) ) == 0 );
         }
+
+        ASSERT_TRUE( prog_a_stored_ptr->program_key().is_legal() );
+        ASSERT_TRUE( prog_a_stored_ptr->program_key().ctx_key == ctx.key() );
+        ASSERT_TRUE( prog_a_stored_ptr->program_key().name.compare(
+            program_a_name ) == 0 );
 
         std::unique_ptr< rtc_prog_item_type > prog_b( new rtc_prog_item_type );
         auto prog_b_weak_ptr = prog_b.get();
@@ -252,42 +239,34 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
         ASSERT_TRUE( program_store->is_stored( prog_b_key ) );
         ASSERT_TRUE( prog_b_id == program_store->program_id( prog_b_key ) );
 
+
+        ASSERT_TRUE( program_store->program_item( prog_a_id ) != nullptr );
+        ASSERT_TRUE( program_store->program_item( prog_b_id ) == prog_b_weak_ptr );
+        ASSERT_TRUE( program_store->program_item( prog_b_key ) == prog_b_weak_ptr );
+
+        auto prog_b_stored_ptr = st::BackendObjBase_cast_to_derived<
+            st::ProgramItemBase, rtc_prog_item_type >(
+                program_store->program_item( prog_b_id ) );
+
+        ASSERT_TRUE( prog_b_stored_ptr != nullptr );
+        ASSERT_TRUE( prog_b_stored_ptr == prog_b_weak_ptr );
+        ASSERT_TRUE( prog_b_stored_ptr->is_compiled() );
+        ASSERT_TRUE( program_b_source.compare(
+            prog_b_stored_ptr->source_code() ) == 0 );
+        ASSERT_TRUE( prog_b_stored_ptr->num_kernels() ==
+                    program_b_kernel_names.size() );
+
+        for( st::size_type ii = 0u ; ii < program_b_kernel_names.size() ;
+                ++ii )
         {
-            auto const lock = program_store->create_lock();
-
-            ASSERT_TRUE( program_store->program_item( prog_a_id, lock ) !=
-                         nullptr );
-
-            ASSERT_TRUE( program_store->program_item( prog_b_id, lock ) ==
-                        prog_b_weak_ptr );
-
-            ASSERT_TRUE( program_store->program_item( prog_b_key, lock ) ==
-                        prog_b_weak_ptr );
-
-            auto prog_b_stored_ptr = st::BackendObjBase_cast_to_derived<
-                st::ProgramItemBase, rtc_prog_item_type >(
-                    program_store->program_item( prog_b_id, lock ) );
-
-            ASSERT_TRUE( prog_b_stored_ptr != nullptr );
-            ASSERT_TRUE( prog_b_stored_ptr == prog_b_weak_ptr );
-            ASSERT_TRUE( prog_b_stored_ptr->is_compiled() );
-            ASSERT_TRUE( program_b_source.compare(
-                prog_b_stored_ptr->source_code() ) == 0 );
-            ASSERT_TRUE( prog_b_stored_ptr->num_kernels() ==
-                        program_b_kernel_names.size() );
-
-            for( st::size_type ii = 0u ; ii < program_b_kernel_names.size() ;
-                 ++ii )
-            {
-                ASSERT_TRUE( program_b_kernel_names[ ii ].compare(
-                    prog_b_stored_ptr->kernel_name( ii ) ) == 0 );
-            }
-
-            ASSERT_TRUE( prog_b_stored_ptr->program_key().is_legal() );
-            ASSERT_TRUE( prog_b_stored_ptr->program_key().ctx_key == ctx.key() );
-            ASSERT_TRUE( prog_b_stored_ptr->program_key().name.compare(
-                program_b_name ) == 0 );
+            ASSERT_TRUE( program_b_kernel_names[ ii ].compare(
+                prog_b_stored_ptr->kernel_name( ii ) ) == 0 );
         }
+
+        ASSERT_TRUE( prog_b_stored_ptr->program_key().is_legal() );
+        ASSERT_TRUE( prog_b_stored_ptr->program_key().ctx_key == ctx.key() );
+        ASSERT_TRUE( prog_b_stored_ptr->program_key().name.compare(
+            program_b_name ) == 0 );
 
 //         auto removed_prog = program_store->remove( prog_a_key );
 //
@@ -300,14 +279,10 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
 //         ASSERT_FALSE( program_store->is_stored( prog_a_id ) );
 //         ASSERT_FALSE( program_store->is_stored( prog_a_key ) );
 //
-//         {
-//             auto const lock = program_store->create_lock();
+//         ASSERT_TRUE( program_store->program_item( prog_a_id ) ==
+//                      nullptr );
 //
-//             ASSERT_TRUE( program_store->program_item( prog_a_id, lock ) ==
-//                          nullptr );
-//
-//             ASSERT_TRUE( program_store->program_item( prog_a_key, lock ) ==
-//                          nullptr );
-//         }
+//         ASSERT_TRUE( program_store->program_item( prog_a_key ) ==
+//                      nullptr );
     }
 }

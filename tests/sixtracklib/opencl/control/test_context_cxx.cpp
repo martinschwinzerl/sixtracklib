@@ -2,36 +2,31 @@
 #include <cstdint>
 #include <iostream>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
 
 #include "sixtracklib/common/control/node_id.h"
 #include "sixtracklib/opencl/control/context.h"
-#include "sixtracklib/opencl/control/controller.h"
 
 TEST( CXXOpenCLControlContext, NormalUsage )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
-    using ctrl_type = st::OclController;
+    using node_store_type = st::OclNodeStore;
     using ctx_type = st::OclContext;
 
-    std::vector< st::NodeId > available_nodes;
+    auto node_store = std::make_shared< node_store_type >();
+    SIXTRL_ASSERT( node_store.get() != nullptr );
 
-    ASSERT_TRUE( st::STATUS_SUCCESS == ctrl_type::GET_AVAILABLE_NODES(
-        available_nodes, nullptr, nullptr ) );
-
-    if( available_nodes.empty() )
+    if( node_store->empty() )
     {
         std::cout << "No OpenCL nodes found -> skipping tests" << std::endl;
         return;
     }
 
-    for( auto const& node_id : available_nodes )
+    for( auto const& node_id : node_store->node_ids() )
     {
-        ctx_type ctx( node_id );
+        ctx_type ctx( node_store, node_id );
     }
-
-
-
 }

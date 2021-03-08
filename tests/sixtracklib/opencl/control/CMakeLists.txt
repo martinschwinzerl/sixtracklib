@@ -6,9 +6,19 @@ if( GTEST_FOUND )
     # ==========================================================================
     # test_context_opencl_cxx:
 
+    add_executable( test_node_store_opencl_cxx test_node_store_cxx.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_node_store_opencl_cxx )
+    add_test( CXX_OpenCL_Control_NodeStore test_node_store_opencl_cxx )
+
+    # ==========================================================================
+    # test_context_opencl_cxx:
+
     add_executable( test_context_opencl_cxx test_context_cxx.cpp )
     set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_context_opencl_cxx )
     add_test( CXX_OpenCL_Control_Context test_context_opencl_cxx )
+
+    set_tests_properties( CXX_OpenCL_Control_Context PROPERTIES DEPENDS
+                          CXX_OpenCL_Control_NodeStore )
 
     # ==========================================================================
     # test_controller_opencl_cxx:
@@ -19,6 +29,16 @@ if( GTEST_FOUND )
 
     set_tests_properties( CXX_OpenCL_Control_Controller PROPERTIES DEPENDS
                           CXX_OpenCL_Control_Context )
+
+    # ==========================================================================
+    # test_program_config_opencl_cxx:
+
+    add_executable( test_program_config_opencl_cxx test_program_config_cxx.cpp )
+    set( UNIT_TEST_TARGETS ${UNIT_TEST_TARGETS} test_program_config_opencl_cxx )
+    add_test( CXX_OpenCL_Control_ProgramConfig  test_program_config_opencl_cxx )
+
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/opencl_01.toml
+                    ${CMAKE_CURRENT_BINARY_DIR}/opencl_01.toml COPYONLY )
 
     # ==========================================================================
     # test_rtc_program_item_opencl_cxx:

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
+#include <utility>
 
 #include <gtest/gtest.h>
 
@@ -14,25 +15,21 @@ TEST( CXXOpenCLControlController, NormalUsage )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
     using ctrl_type = st::OclController;
-    using ctx_type = st::OclContext;
     using program_store_type = st::OclProgramStore;
+    using ctx_type = st::OclContext;
 
-    std::vector< st::NodeId > available_nodes;
+    auto node_store = std::make_shared< st::OclNodeStore >();
+    auto program_store = std::make_shared< program_store_type >();
 
-    ASSERT_TRUE( st::STATUS_SUCCESS == ctrl_type::GET_AVAILABLE_NODES(
-        available_nodes, nullptr, nullptr ) );
-
-    if( available_nodes.empty() )
+    if( ( node_store.get() == nullptr ) || ( node_store->empty() ) )
     {
         std::cout << "No OpenCL nodes found -> skipping tests" << std::endl;
         return;
     }
 
-    auto program_store = std::make_shared< program_store_type >();
-
-    for( auto const& node_id : available_nodes )
+    for( auto const& node_id : node_store->node_ids() )
     {
-        ctx_type ctx( node_id );
+        ctx_type ctx( node_store, node_id );
         ctrl_type ctrl( node_id, ctx, program_store );
 
         ASSERT_TRUE(  ctrl.selected_node_id().compare( node_id ) == 0 );
@@ -40,7 +37,5 @@ TEST( CXXOpenCLControlController, NormalUsage )
         ASSERT_TRUE(  ctrl.num_cmd_queues() == st::size_type{ 1 } );
         ASSERT_TRUE(  ctrl.ptr_cmd_queue( 0u ) != nullptr );
     }
-
-
 
 }
