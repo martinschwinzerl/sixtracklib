@@ -303,8 +303,8 @@ namespace SIXTRL_CXX_NAMESPACE
         key.name.clear();
         key.options.clear();
 
-        this->m_items.emplace( std::make_pair( key, item ) );
-        return st::STATUS_SUCCESS;
+        auto ret = this->m_items.emplace( std::make_pair( key, item ) );
+        return ( ret.second ) ? st::STATUS_SUCCESS : st::STATUS_GENERAL_FAILURE;
     }
 
     st_status_t OclProgramConfigItem_update_from_toml_table(
@@ -350,17 +350,18 @@ namespace SIXTRL_CXX_NAMESPACE
         if( ( ocl_value.contains( "compile_default_ipaths" ) ) ||
             ( ocl_value.contains( "compile_flags" ) ) )
         {
-            ocl_prg_config_item_type const* default_conf =
-                config_store.default_config_item();
+            ocl_prg_config_item_type* default_conf = const_cast<
+                ocl_prg_config_item_type* >(
+                    config_store.default_config_item() );
 
-            if( default_conf != nullptr ) next_item = *default_conf;
-            else next_item.clear();
-
-            status = st::OclProgramConfigItem_update_from_toml_table(
-                next_item, ocl_value );
-
-            if( status == st::STATUS_SUCCESS )
+            if( default_conf != nullptr )
             {
+                status = st::OclProgramConfigItem_update_from_toml_table(
+                    *default_conf, ocl_value );
+            }
+            else
+            {
+                next_item.clear();
                 status = config_store.update_default_config_item( next_item );
             }
 
