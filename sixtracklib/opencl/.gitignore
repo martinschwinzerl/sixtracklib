@@ -1,3 +1,5 @@
 opencl.h
 opencl.hpp
 
+kernels/add_cobj_elem_defines.h
+kernels/default_defines.h
