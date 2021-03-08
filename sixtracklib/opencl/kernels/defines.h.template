@@ -1,0 +1,164 @@
+#ifndef SIXTRACKLIB_OPENCL_KERNELS_DEFAULT_DEFINES_H__
+#define SIXTRACKLIB_OPENCL_KERNELS_DEFAULT_DEFINES_H__
+
+#if defined( __OPENCL_C_VERSION__ )
+    /* ===================================================================== */
+    /* preample for all GPU kernels */
+
+    #if !defined( _GPUCODE )
+        #define _GPUCODE 1
+    #endif /* !defined( _GPUCODE ) */
+
+    #if !defined( SIXTRL_NO_SYSTEM_INCLUDES )
+        #define SIXTRL_NO_SYSTEM_INCLUDES @SIXTRL_NO_SYSTEM_INCLUDES_VALUE@
+    #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) */
+
+    /* ===================================================================== */
+    /* SixTrackLib feature defaults */
+
+    /* --------------------------------------------------------------------- */
+    /* Options influencing the behaviour and performance of tracking         */
+
+    #if !defined( SIXTRL_USE_SINGLE_PARTICLE_ADAPTER )
+        #define SIXTRL_USE_SINGLE_PARTICLE_ADAPTER @SIXTRL_USE_SINGLE_PARTICLE_ADAPTER_FLAG@
+    #endif /* !defined( SIXTRL_USE_SINGLE_PARTICLE_ADAPTER ) */
+
+    #if !defined( SIXTRL_PARTICLE_USE_S_FIELD )
+        #define SIXTRL_PARTICLE_USE_S_FIELD @SIXTRL_PARTICLE_USE_S_FIELD_FLAG@
+    #endif /* !defined( SIXTRL_PARTICLE_USE_S_FIELD ) */
+
+    #if !defined( SIXTRL_PARTICLE_USE_PSIGMA_FIELD )
+        #define SIXTRL_PARTICLE_USE_PSIGMA_FIELD @SIXTRL_PARTICLE_USE_PSIGMA_FIELD_FLAG@
+    #endif /* !defined( SIXTRL_PARTICLE_USE_PSIGMA_FIELD ) */
+
+    /* --------------------------------------------------------------------- */
+    /* Track features: allowed values are enabled, disabled, or skip:        */
+
+    #if !defined( SIXTRL_TRACK_BEAMBEAM4D )
+        #define SIXTRL_TRACK_BEAMBEAM4D @SIXTRL_TRACK_BEAMBEAM4D_FLAG@
+    #endif /* !defined( SIXTRL_TRACK_BEAMBEAM4D ) */
+
+    #if !defined( SIXTRL_TRACK_BEAMBEAM6D )
+        #define SIXTRL_TRACK_BEAMBEAM6D @SIXTRL_TRACK_BEAMBEAM6D_FLAG@
+    #endif /* !defined( SIXTRL_TRACK_BEAMBEAM6D ) */
+
+    #if !defined( SIXTRL_TRACK_SPACECHARGE )
+        #define SIXTRL_TRACK_SPACECHARGE @SIXTRL_TRACK_SC_FLAG@
+    #endif /* !defined( SIXTRL_TRACK_SPACECHARGE ) */
+
+    #if !defined( SIXTRL_TRACK_TRICUB )
+        #define SIXTRL_TRACK_TRICUB @SIXTRL_TRACK_TRICUB_FLAG@
+    #endif /* !defined( SIXTRL_TRACK_TRICUB ) */
+
+    /* --------------------------------------------------------------------- */
+    /* Global aperture check settings:                                       *
+     * perform after Drift, DriftExact elements                              */
+
+    #if !defined( SIXTRL_APERTURE_CHECK_AT_DRIFT )
+        #define SIXTRL_APERTURE_CHECK_AT_DRIFT @SIXTRL_APERTURE_CHECK_AT_DRIFT_FLAG@
+    #endif /* !defined( SIXTRL_APERTURE_CHECK_AT_DRIFT ) */
+
+    #if !defined( SIXTRL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH )
+        #define SIXTRL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH @SIXTRL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH_VALUE@
+    #endif /* !defined( SIXTRL_APERTURE_CONDITIONAL_MIN_DRIFT_LENGTH ) */
+
+    #if !defined( SIXTRL_APERTURE_X_LIMIT )
+        #define SIXTRL_APERTURE_X_LIMIT @SIXTRACKL_APERTURE_X_LIMIT_VALUE@
+    #endif /* !defined( SIXTRL_APERTURE_X_LIMIT ) */
+
+    #if !defined( SIXTRL_APERTURE_Y_LIMIT )
+        #define SIXTRL_APERTURE_Y_LIMIT @SIXTRACKL_APERTURE_Y_LIMIT_VALUE@
+    #endif /* SIXTRL_APERTURE_Y_LIMIT */
+
+    /* ===================================================================== */
+    /* memory region decorators. */
+
+    /* --------------------------------------------------------------------- */
+    /* common: */
+
+    #if !defined( SIXTRL_ARGPTR_DEC )
+        #define SIXTRL_ARGPTR_DEC @SIXTRL_ARGPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_ARGPTR_DEC ) */
+
+    #if !defined( SIXTRL_DATAPTR_DEC )
+        #define SIXTRL_DATAPTR_DEC @SIXTRL_DATAPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_DATAPTR_DEC ) */
+
+    /* --------------------------------------------------------------------- */
+    /* cobjects: */
+
+    #if !defined( SIXTRL_CBUFFER_ARGPTR_DEC )
+        #define SIXTRL_CBUFFER_ARGPTR_DEC @SIXTRL_CBUFFER_ARGPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_CBUFFER_ARGPTR_DEC ) */
+
+    #if !defined( SIXTRL_CBUFFER_DATAPTR_DEC )
+        #define SIXTRL_CBUFFER_DATAPTR_DEC @SIXTRL_CBUFFER_DATAPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_CBUFFER_DATAPTR_DEC ) */
+
+    #if !defined( SIXTRL_CBUFFER_OBJ_ARGPTR_DEC )
+        #define SIXTRL_CBUFFER_OBJ_ARGPTR_DEC @SIXTRL_CBUFFER_OBJ_ARGPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_CBUFFER_OBJ_ARGPTR_DEC ) */
+
+    #if !defined( SIXTRL_CBUFFER_OBJ_DATAPTR_DEC )
+        #define SIXTRL_CBUFFER_OBJ_DATAPTR_DEC @SIXTRL_CBUFFER_OBJ_DATAPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_CBUFFER_OBJ_DATAPTR_DEC ) */
+
+    #if !defined( SIXTRL_CBUFFER_GARBAGE_ARGPTR_DEC )
+        #define SIXTRL_CBUFFER_GARBAGE_ARGPTR_DEC @SIXTRL_CBUFFER_GARBAGE_ARGPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_CBUFFER_GARBAGE_ARGPTR_DEC ) */
+
+    #if !defined( SIXTRL_CBUFFER_GARBAGE_DATAPTR_DEC )
+        #define SIXTRL_CBUFFER_GARBAGE_DATAPTR_DEC @SIXTRL_CBUFFER_GARBAGE_DATAPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_CBUFFER_GARBAGE_DATAPTR_DEC ) */
+
+    /* --------------------------------------------------------------------- */
+    /* beam_elements: */
+
+    #if !defined( SIXTRL_BE_ARGPTR_DEC )
+        #define SIXTRL_BE_ARGPTR_DEC @SIXTRL_BE_ARGPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_BE_ARGPTR_DEC ) */
+
+    #if !defined( SIXTRL_BE_DATAPTR_DEC )
+        #define SIXTRL_BE_DATAPTR_DEC @SIXTRL_BE_DATAPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_BE_DATAPTR_DEC ) */
+
+    /* --------------------------------------------------------------------- */
+    /* particless: */
+
+    #if !defined( SIXTRL_PARTICLE_ARGPTR_DEC )
+        #define SIXTRL_PARTICLE_ARGPTR_DEC @SIXTRL_PARTICLE_ARGPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_PARTICLE_ARGPTR_DEC ) */
+
+    #if !defined( SIXTRL_PARTICLE_DATAPTR_DEC )
+        #define SIXTRL_PARTICLE_DATAPTR_DEC @SIXTRL_PARTICLE_DATAPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_PARTICLE_DATAPTR_DEC ) */
+
+    #if !defined( SIXTRL_PARTICLES_ARGPTR_DEC )
+        #define SIXTRL_PARTICLES_ARGPTR_DEC @SIXTRL_PARTICLES_ARGPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_PARTICLES_ARGPTR_DEC ) */
+
+    #if !defined( SIXTRL_PARTICLES_DATAPTR_DEC )
+        #define SIXTRL_PARTICLES_DATAPTR_DEC @SIXTRL_PARTICLES_DATAPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_PARTICLES_DATAPTR_DEC ) */
+
+    #if !defined( SIXTRL_PARTICLES_ADDR_ARGPTR_DEC )
+        #define SIXTRL_PARTICLES_ADDR_ARGPTR_DEC @SIXTRL_PARTICLES_ADDR_ARGPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_PARTICLES_ADDR_ARGPTR_DEC ) */
+
+    #if !defined( SIXTRL_PARTICLES_ADDR_DATAPTR_DEC )
+        #define SIXTRL_PARTICLES_ADDR_DATAPTR_DEC @SIXTRL_PARTICLES_ADDR_DATAPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_PARTICLES_ADDR_DATAPTR_DEC ) */
+
+    /* --------------------------------------------------------------------- */
+    /* track: */
+
+    #if !defined( SIXTRL_TRACK_ARGPTR_DEC )
+        #define SIXTRL_TRACK_ARGPTR_DEC @SIXTRL_TRACK_ARGPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_TRACK_ARGPTR_DEC ) */
+
+    #if !defined( SIXTRL_TRACK_DATAPTR_DEC )
+        #define SIXTRL_TRACK_DATAPTR_DEC @SIXTRL_TRACK_DATAPTR_DEC_VALUE@
+    #endif /* !defined( SIXTRL_TRACK_DATAPTR_DEC ) */
+
+#endif /* __OPENCL_C_VERSION__ */
+#endif /* SIXTRACKLIB_OPENCL_KERNELS_DEFAULT_DEFINES_H__ */
