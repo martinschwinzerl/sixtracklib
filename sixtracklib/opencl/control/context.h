@@ -3,19 +3,22 @@
 
 #if !defined( SIXTRL_NO_INCLUDES )
     #include "sixtracklib/opencl/definitions.h"
+    #include "sixtracklib/opencl/control/node_store.h"
     #include "sixtracklib/common/control/definitions.h"
     #include "sixtracklib/common/control/node_id.h"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) */
 
 #if !defined( SIXTRL_NO_INCLUDES ) && defined( __cplusplus )
     #include "sixtracklib/opencl/opencl.hpp"
-    #include "sixtracklib/common/backends/mt_backend_obj_base.hpp"
+    #include "sixtracklib/common/backends/backend_obj_base.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) && defined( __cplusplus ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES ) && defined( __cplusplus )
     #include <algorithm>
     #include <iterator>
     #include <map>
+    #include <memory>
+    #include <utility>
     #include <vector>
 #endif /* !defined( SIXTRL_NO_SYSTEM_INCLUDES ) && defined( __cplusplus ) */
 
@@ -202,9 +205,12 @@ namespace SIXTRL_CXX_NAMESPACE
     {
         public:
 
-        using node_id_type = SIXTRL_CXX_NAMESPACE::NodeId;
-        using key_type = SIXTRL_CXX_NAMESPACE::OclContextKey;
-        using node_index_type = SIXTRL_CXX_NAMESPACE::NodeId::index_type;
+        using node_id_type     = SIXTRL_CXX_NAMESPACE::NodeId;
+        using platform_id_type = node_id_type::platform_id_type;
+        using device_id_type   = node_id_type::device_id_type;
+        using node_index_type  = node_id_type::index_type;
+        using node_store_type  = SIXTRL_CXX_NAMESPACE::OclNodeStore;
+        using key_type         = SIXTRL_CXX_NAMESPACE::OclContextKey;
 
         static constexpr class_id_type BASE_CLASS_ID =
             SIXTRL_CXX_NAMESPACE::OPENCL_CONTEXT_CLASS_ID;
@@ -212,29 +218,37 @@ namespace SIXTRL_CXX_NAMESPACE
         static constexpr class_id_type CLASS_ID =
             SIXTRL_CXX_NAMESPACE::OPENCL_CONTEXT_CLASS_ID;
 
-        SIXTRL_HOST_FN explicit OclContext(
+        SIXTRL_HOST_FN OclContext(
+            std::shared_ptr< node_store_type >& SIXTRL_RESTRICT_REF node_store,
             node_id_type const& SIXTRL_RESTRICT_REF node_id,
             size_type const key_identifier = size_type{ 0 } );
 
         SIXTRL_HOST_FN OclContext(
+            std::shared_ptr< node_store_type >& SIXTRL_RESTRICT_REF node_store,
+            platform_id_type const platform_id,
+            device_id_type const* SIXTRL_RESTRICT device_ids_begin,
+            size_type const num_devices,
+            size_type const key_identifier = size_type{ 0 } );
+
+        SIXTRL_HOST_FN OclContext(
+            std::shared_ptr< node_store_type >& SIXTRL_RESTRICT_REF node_store,
             node_id_type const* SIXTRL_RESTRICT node_ids_begin,
-            size_type const num_node_ids,
+            size_type const num_devices,
             size_type const key_identifier = size_type{ 0 } );
 
         template< typename NodeIdIter >
-        SIXTRL_HOST_FN OclContext( NodeIdIter begin, NodeIdIter end,
+        SIXTRL_HOST_FN OclContext(
+            std::shared_ptr< node_store_type >& SIXTRL_RESTRICT_REF node_store,
+            NodeIdIter begin, NodeIdIter end,
             size_type const key_identifier = size_type{ 0 } ) :
             BackendObjBase( SIXTRL_CXX_NAMESPACE::BACKEND_ID_OPENCL,
-                BASE_CLASS_ID, CLASS_ID ),
-            m_key(), m_cl_devices( key_type::NUM_MAX_DEVICES, cl::Device{} ),
-            m_cl_context()
+                BASE_CLASS_ID, CLASS_ID ), m_key(), m_node_store( node_store )
         {
             namespace st = SIXTRL_CXX_NAMESPACE;
 
             static_assert( std::is_same<
-                typename std::decay< typename std::iterator_traits<
-                    NodeIdIter >::value_type >::value_type,
-                node_id_type >::value,
+                typename std::decay< typename std::iterator_traits< NodeIdIter
+                    >::value_type >::value_type, node_id_type >::value,
                 "NodeIdIter has required to be iterators for sixtrack::NodeId" );
 
             std::vector< node_id_type > temp_node_ids( begin, end );
@@ -257,26 +271,26 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN key_type const& key() const SIXTRL_NOEXCEPT {
             return this->m_key; }
 
-        SIXTRL_HOST_FN size_type idx_for_node_id(
-            node_id_type const& SIXTRL_RESTRICT_REF node_id ) const SIXTRL_NOEXCEPT
-        {
+        SIXTRL_HOST_FN size_type idx_for_node_id( node_id_type const&
+            SIXTRL_RESTRICT_REF node_id ) const SIXTRL_NOEXCEPT {
             size_type idx = key_type::NUM_MAX_DEVICES;
-
             if( ( this->m_key.is_legal() ) && ( node_id.is_legal() ) &&
                 ( this->m_key.platform_id == node_id.platform_id() ) &&
-                ( this->m_key.num_devices == this->m_cl_devices.size() ) &&
-                ( this->m_key.num_devices > size_type{ 0 } ) )
+                ( this->m_key.num_devices > size_type{ 0 } ) &&
+                ( this->m_node_store.get() != nullptr ) &&
+                ( this->m_node_store->has_platform_id(
+                    node_id.platform_id() ) ) )
             {
-                for( size_type ii = 0u ; ii < this->m_key.num_devices ; ++ii )
-                {
-                    if( this->m_key.device_ids[ ii ] == node_id.device_id() )
-                    {
+                SIXTRL_ASSERT( this->m_node_store->num_nodes(
+                    node_id.platform_id() ) >= this->m_key.num_devices );
+
+                for( size_type ii = 0u ; ii < this->m_key.num_devices ; ++ii ) {
+                    if( this->m_key.device_ids[ ii ] == node_id.device_id() ) {
                         idx = ii;
                         break;
                     }
                 }
             }
-
             return idx;
         }
 
@@ -287,16 +301,18 @@ namespace SIXTRL_CXX_NAMESPACE
 
             if( ( this->m_key.is_legal() ) && ( node_id.is_legal() ) &&
                 ( this->m_key.platform_id == node_id.platform_id() ) &&
-                ( this->m_key.num_devices == this->m_cl_devices.size() ) &&
-                ( this->m_key.num_devices > size_type{ 0 } ) )
+                ( this->m_key.num_devices > size_type{ 0 } ) &&
+                ( this->m_node_store.get() != nullptr ) &&
+                ( this->m_node_store->has_platform_id(
+                    node_id.platform_id() ) ) )
             {
-                for( size_type ii = 0u ; ii < this->m_key.num_devices ; ++ii )
-                {
-                    if( this->m_key.device_ids[ ii ] == node_id.device_id() )
-                    {
+                SIXTRL_ASSERT( this->m_node_store->num_nodes(
+                    node_id.platform_id() ) >= this->m_key.num_devices );
+
+                for( size_type ii = 0u ; ii < this->m_key.num_devices ; ++ii ) {
+                    if( this->m_key.device_ids[ ii ] == node_id.device_id() ) {
                         SIXTRL_ASSERT( this->m_node_indices[ ii ] !=
                             node_id_type::ILLEGAL_INDEX );
-
                         node_index = this->m_node_indices[ ii ];
                         break;
                     }
@@ -308,8 +324,12 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN size_type num_node_ids() const SIXTRL_NOEXCEPT
         {
-            SIXTRL_ASSERT( this->m_cl_devices.size() ==
-                           this->m_key.num_devices );
+            SIXTRL_ASSERT( this->m_node_store.get() != nullptr );
+            SIXTRL_ASSERT( this->m_node_store->has_platform_id(
+                this->m_key.platform_id ) );
+            SIXTRL_ASSERT( this->m_node_store->num_nodes(
+                this->m_key.platform_id ) >= this->m_key.num_devices );
+
             return this->m_key.num_devices;
         }
 
@@ -320,10 +340,28 @@ namespace SIXTRL_CXX_NAMESPACE
             size_type const id ) const SIXTRL_NOEXCEPT;
 
         SIXTRL_HOST_FN status_type node_ids(
-            std::vector< node_id_type >& SIXTRL_RESTRICT_REF node_ids );
+            std::vector< node_id_type >& SIXTRL_RESTRICT_REF node_ids ) const;
 
-        SIXTRL_HOST_FN std::vector< cl::Device > const&
-        cl_devices() const SIXTRL_NOEXCEPT;
+        SIXTRL_HOST_FN status_type cl_devices(
+            std::vector< cl::Device >& SIXTRL_RESTRICT_REF cl_devices ) const;
+
+        SIXTRL_HOST_FN cl::Device const& cl_device(
+            node_id_type const& SIXTRL_RESTRICT_REF node_id ) const {
+                return this->cl_device( node_id.platform_id(),
+                    node_id.device_id() ); }
+
+        SIXTRL_HOST_FN cl::Device const& cl_device(
+            platform_id_type const platform_id,
+            device_id_type const device_id ) const {
+            if( this->m_node_store.get() == nullptr )
+                throw std::runtime_error( "no node_store available" );
+            return this->m_node_store->cl_device( platform_id, device_id ); }
+
+        SIXTRL_HOST_FN cl::Device const& cl_device(
+            node_index_type const node_index  ) const {
+            if( this->m_node_store.get() == nullptr )
+                throw std::runtime_error( "no node_store available" );
+            return this->m_node_store->cl_device( node_index ); }
 
         SIXTRL_HOST_FN cl::Context& cl_context() SIXTRL_NOEXCEPT {
             return this->m_cl_context; }
@@ -334,13 +372,18 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_HOST_FN void clear()
         {
             this->m_key.clear();
-            this->m_cl_devices.clear();
             this->m_cl_context = cl::Context();
 
             std::fill( &this->m_node_indices[ 0 ],
                        &this->m_node_indices[ key_type::NUM_MAX_DEVICES ],
                        node_id_type::ILLEGAL_INDEX );
         }
+
+        SIXTRL_HOST_FN std::shared_ptr< node_store_type > const&
+        shared_node_store() const SIXTRL_NOEXCEPT { return this->m_node_store; }
+
+        SIXTRL_HOST_FN std::shared_ptr< node_store_type >&
+        shared_node_store() SIXTRL_NOEXCEPT { return this->m_node_store; }
 
         private:
 
@@ -349,9 +392,9 @@ namespace SIXTRL_CXX_NAMESPACE
             size_type const num_node_ids, size_type const key_identifier );
 
         key_type m_key;
-        std::vector< cl::Device > m_cl_devices;
         node_index_type m_node_indices[ key_type::NUM_MAX_DEVICES ];
         cl::Context m_cl_context;
+        std::shared_ptr< node_store_type > m_node_store;
     };
 
     template<> struct BackendObjTraits< SIXTRL_CXX_NAMESPACE::OclContext >
@@ -375,11 +418,10 @@ namespace SIXTRL_CXX_NAMESPACE
 
     /* ********************************************************************* */
 
-    class OclContextStore : public SIXTRL_CXX_NAMESPACE::MTBackendObjBase
-    {
+    class OclContextStore : public SIXTRL_CXX_NAMESPACE::BackendObjBase {
         public:
-
         using context_type = SIXTRL_CXX_NAMESPACE::OclContext;
+        using node_store_type = SIXTRL_CXX_NAMESPACE::OclNodeStore;
         using key_type = SIXTRL_CXX_NAMESPACE::OclContextKey;
         using node_id_type = key_type::node_id_type;
         using platform_id_type = key_type::platform_id_type;
@@ -390,7 +432,8 @@ namespace SIXTRL_CXX_NAMESPACE
         static constexpr class_id_type CLASS_ID =
             SIXTRL_CXX_NAMESPACE::OPENCL_CONTEXT_STORE_CLASS_ID;
 
-        SIXTRL_HOST_FN OclContextStore();
+        SIXTRL_HOST_FN OclContextStore( std::shared_ptr< node_store_type >&
+            SIXTRL_RESTRICT_REF ptr_node_store );
 
         SIXTRL_HOST_FN OclContextStore( OclContextStore const& ) = delete;
         SIXTRL_HOST_FN OclContextStore( OclContextStore&& ) = delete;
@@ -401,73 +444,28 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN virtual ~OclContextStore();
 
-        SIXTRL_HOST_FN bool empty() const {
-            return this->empty( this->create_lock() ); }
+        SIXTRL_HOST_FN bool empty() const SIXTRL_NOEXCEPT {
+            return this->m_stored_ctx.empty(); }
 
-        SIXTRL_HOST_FN size_type size() const {
-            return this->size( this->create_lock() ); }
+        SIXTRL_HOST_FN size_type size() const SIXTRL_NOEXCEPT {
+            return this->m_stored_ctx.size(); }
 
         SIXTRL_HOST_FN void keys(
             std::vector< key_type >& SIXTRL_RESTRICT_REF key_array,
             node_id_type const node_id ) {
-            this->keys( key_array, node_id, this->create_lock() ); }
+            return this->keys( key_array, &node_id, size_type{ 1 } ); }
 
         SIXTRL_HOST_FN void keys(
             std::vector< key_type >& SIXTRL_RESTRICT_REF key_array,
-            node_id_type const* node_ids_begin, size_type const num_node_ids ) {
-            this->keys( key_array, node_ids_begin, num_node_ids,
-                        this->create_lock() ); }
+            node_id_type const* node_ids_begin, size_type const num_node_ids );
+
+        SIXTRL_HOST_FN std::shared_ptr< node_store_type >&
+        share_node_store() SIXTRL_NOEXCEPT { return this->m_node_store; }
 
         template< typename NodeIdIter >
         SIXTRL_HOST_FN void keys(
             std::vector< key_type >& SIXTRL_RESTRICT_REF key_array,
-            NodeIdIter node_ids_begin, NodeIdIter node_ids_end ) {
-            this->keys( key_array, node_ids_begin, node_ids_end,
-                        this->create_lock() ); }
-
-        SIXTRL_HOST_FN bool has_context( key_type const& SIXTRL_RESTRICT key
-            ) const { return this->has_context( key, this->create_lock() ); }
-
-        SIXTRL_HOST_FN std::shared_ptr< context_type > shared_context(
-            key_type const& SIXTRL_RESTRICT key ) const {
-            return this->shared_context( key, this->create_lock() ); }
-
-        SIXTRL_HOST_FN status_type store_context(
-            std::shared_ptr< context_type >& SIXTRL_RESTRICT_REF ptr_ctx ) {
-            return this->store_context( ptr_ctx, this->create_lock() ); }
-
-        SIXTRL_HOST_FN status_type remove_context(
-            key_type const& SIXTRL_RESTRICT_REF key ) {
-            return this->remove_context( key, this->create_lock() ); }
-
-        /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
-
-        SIXTRL_HOST_FN bool empty(
-            guard_type const& SIXTRL_RESTRICT_REF lock ) const {
-            return ( ( this->is_locked( lock ) ) &&
-                     ( this->m_stored_ctx.empty() ) ); }
-
-        SIXTRL_HOST_FN size_type size(
-            guard_type const& SIXTRL_RESTRICT_REF lock ) const {
-            return ( this->is_locked( lock ) )
-                ? this->m_stored_ctx.size() : size_type{ 0 }; }
-
-        SIXTRL_HOST_FN void keys(
-            std::vector< key_type >& SIXTRL_RESTRICT_REF key_array,
-            node_id_type const node_id,
-            guard_type const& SIXTRL_RESTRICT lock ) {
-            return this->keys( key_array, &node_id, size_type{ 1 }, lock ); }
-
-        SIXTRL_HOST_FN void keys(
-            std::vector< key_type >& SIXTRL_RESTRICT_REF key_array,
-            node_id_type const* node_ids_begin, size_type const num_node_ids,
-            guard_type const& SIXTRL_RESTRICT_REF lock );
-
-        template< typename NodeIdIter >
-        SIXTRL_HOST_FN void keys(
-            std::vector< key_type >& SIXTRL_RESTRICT_REF key_array,
-            NodeIdIter node_ids_begin, NodeIdIter node_ids_end,
-            guard_type const& SIXTRL_RESTRICT_REF lock )
+            NodeIdIter node_ids_begin, NodeIdIter node_ids_end )
         {
             std::vector< node_id_type > temp_node_ids(
                 node_ids_begin, node_ids_end );
@@ -476,98 +474,64 @@ namespace SIXTRL_CXX_NAMESPACE
             temp_node_ids.erase( std::unique( temp_node_ids.begin(),
                 temp_node_ids.end() ), temp_node_ids.end() );
 
-            this->keys( key_array, temp_node_ids.data(),
-                        temp_node_ids.size(), lock );
+            this->keys( key_array, temp_node_ids.data(), temp_node_ids.size() );
         }
 
-        SIXTRL_HOST_FN bool has_context( key_type const& SIXTRL_RESTRICT key,
-            guard_type const& SIXTRL_RESTRICT_REF lock ) const SIXTRL_NOEXCEPT
-        {
+        SIXTRL_HOST_FN bool has_context(
+            key_type const& SIXTRL_RESTRICT key ) const SIXTRL_NOEXCEPT {
             bool is_stored = false;
-
-            if( ( this->is_locked( lock ) ) && ( !this->m_stored_ctx.empty() ) )
-            {
+            if( !this->m_stored_ctx.empty() ) {
                 auto it = this->m_stored_ctx.find( key );
                 is_stored = ( ( it != this->m_stored_ctx.end() ) &&
-                              ( it->second.get() != nullptr ) );
-            }
-
-            return is_stored;
-        }
+                              ( it->second.get() != nullptr ) ); }
+            return is_stored; }
 
         SIXTRL_HOST_FN std::shared_ptr< context_type > shared_context(
-            key_type const& SIXTRL_RESTRICT key,
-            guard_type const& SIXTRL_RESTRICT_REF lock ) const
-        {
-            if( ( this->is_locked( lock ) ) && ( !this->m_stored_ctx.empty() ) )
-            {
+            key_type const& SIXTRL_RESTRICT key ) const {
+            if( !this->m_stored_ctx.empty() ) {
                 auto it = this->m_stored_ctx.find( key );
-                if( it !=  this->m_stored_ctx.end() )
-                {
-                    return it->second;
-                }
-            }
-
-            return std::shared_ptr< context_type >( nullptr );
-        }
+                if( it !=  this->m_stored_ctx.end() ) { return it->second; } }
+            return std::shared_ptr< context_type >( nullptr ); }
 
         SIXTRL_HOST_FN status_type store_context(
-            std::shared_ptr< context_type >& SIXTRL_RESTRICT_REF ptr_ctx,
-            guard_type const& SIXTRL_RESTRICT_REF lock )
-        {
+            std::shared_ptr< context_type >& SIXTRL_RESTRICT_REF ptr_ctx ) {
             namespace st = SIXTRL_CXX_NAMESPACE;
             st::status_type status = st::STATUS_GENERAL_FAILURE;
-
-            if( ( this->is_locked( lock ) ) && ( ptr_ctx.get() != nullptr ) )
-            {
+            if( ptr_ctx.get() != nullptr ) {
                 key_type const& key = ptr_ctx->key();
 
                 if( ( key.platform_id != node_id_type::ILLEGAL_PLATFORM_ID ) &&
-                    ( key.num_devices > size_type{ 0 } ) )
-                {
+                    ( key.num_devices > size_type{ 0 } ) ) {
                     auto it = this->m_stored_ctx.find( key );
-
-                    if( it == this->m_stored_ctx.end() )
-                    {
+                    if( it == this->m_stored_ctx.end() ) {
                         auto ret = this->m_stored_ctx.emplace(
                             std::make_pair( key, ptr_ctx ) );
-
-                        if( ret.second )
-                        {
-                            status = st::STATUS_SUCCESS;
-                        }
-                    }
+                        if( ret.second ) status = st::STATUS_SUCCESS; }
                 }
             }
-
             return status;
         }
 
         SIXTRL_HOST_FN status_type remove_context(
-            key_type const& SIXTRL_RESTRICT_REF key,
-            guard_type const& SIXTRL_RESTRICT_REF lock )
-        {
+            key_type const& SIXTRL_RESTRICT_REF key ) {
             namespace st = SIXTRL_CXX_NAMESPACE;
             st::status_type status = st::STATUS_GENERAL_FAILURE;
-
-            if( ( this->is_locked( lock ) ) && ( !this->m_stored_ctx.empty() ) )
-            {
+            if( !this->m_stored_ctx.empty() ) {
                 auto it = this->m_stored_ctx.find( key );
                 if( ( it != this->m_stored_ctx.end() ) &&
-                    ( it->second.get() != nullptr ) )
-                {
+                    ( it->second.get() != nullptr ) ) {
                     it->second.reset();
                     this->m_stored_ctx.erase( it );
                     status = st::STATUS_SUCCESS;
                 }
             }
-
             return status;
         }
 
         private:
 
         std::map< key_type, std::shared_ptr< context_type > > m_stored_ctx;
+        std::shared_ptr< node_store_type > m_node_store;
     };
 
     template<> struct BackendObjTraits< SIXTRL_CXX_NAMESPACE::OclContextStore >
