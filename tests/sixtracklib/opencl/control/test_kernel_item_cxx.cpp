@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include "sixtracklib/common/control/node_id.h"
+#include "sixtracklib/opencl/control/program_store.h"
 #include "sixtracklib/opencl/control/kernel_item.h"
 #include "sixtracklib/common/generated/path.h"
 
@@ -15,15 +16,19 @@ TEST( CXXOpenCLControlKernelItem, NormalUsage )
     namespace st = SIXTRL_CXX_NAMESPACE;
     using context_type        = st::OclContext;
     using prog_item_type      = st::OclRtcProgramItem;
+    using prog_key_type       = st::OclProgramKey;
     using kernel_item_type    = st::OclKernelItem;
     using st_size_t           = kernel_item_type::size_type;
 
-    std::string const program_a_name = "a";
-//     std::string const program_a_file = "a.cl";
-
     std::ostringstream a2str;
-    a2str << "-I" << ::NS(PATH_TO_SIXTRL_INCLUDE_DIR) << " -Werror";
-    std::string const compile_options = a2str.str();
+    a2str << ::NS(PATH_TO_BASE_DIR) << "tests/sixtracklib/opencl/control/"
+          << "opencl.toml";
+
+    st::OclProgramConfigStore program_configs;
+    program_configs.update_from_file( a2str.str() );
+    a2str.str( "" );
+
+    std::string const program_a_name = "a";
 
     a2str.str( "" );
     a2str << SIXTRL_C99_NAMESPACE_PREFIX_STR << "CObjFlatBuffer_check_remap_opencl";
@@ -112,6 +117,7 @@ TEST( CXXOpenCLControlKernelItem, NormalUsage )
           << "}";
 
     std::string const program_b_source = a2str.str();
+    a2str.str( "" );
 
     /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
 
@@ -130,19 +136,28 @@ TEST( CXXOpenCLControlKernelItem, NormalUsage )
         ASSERT_TRUE( ctx.key().num_devices == st::size_type{ 1 } );
         ASSERT_TRUE( ctx.key().contains_node_id( node_id ) );
 
+        auto config = program_configs.find( prog_key_type{ ctx.key(), program_a_name } );
+        ASSERT_TRUE( config != nullptr );
+        a2str << *config;
+
         prog_item_type prog_a;
-        prog_a.set_compile_flags( compile_options );
 
         ASSERT_TRUE( prog_a.create_from_source( ctx, program_a_source ) ==
                      st::STATUS_SUCCESS );
+        prog_a.set_compile_flags( a2str.str() );
         ASSERT_TRUE( prog_a.build( ctx, program_a_name ) == st::STATUS_SUCCESS );
+        a2str.str( "" );
+
+        config = program_configs.find( prog_key_type{ ctx.key(), program_b_name } );
+        ASSERT_TRUE( config != nullptr );
+        a2str << *config;
 
         prog_item_type prog_b;
-        prog_b.set_compile_flags( compile_options );
-
         ASSERT_TRUE( prog_b.create_from_source( ctx, program_b_source ) ==
                      st::STATUS_SUCCESS );
+        prog_b.set_compile_flags( a2str.str() );
         ASSERT_TRUE( prog_b.build( ctx, program_b_name ) == st::STATUS_SUCCESS );
+        a2str.str( "" );
 
         kernel_item_type kernel_a01;
 

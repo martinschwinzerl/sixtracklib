@@ -15,27 +15,31 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
     using context_type       = st::OclContext;
+    using prog_key_type      = st::OclProgramKey;
     using program_store_type = st::OclProgramStore;
     using rtc_prog_item_type = st::OclRtcProgramItem;
 
-    std::string const program_a_name = "a";
 
     std::ostringstream a2str;
-    a2str << "-I" << ::NS(PATH_TO_SIXTRL_INCLUDE_DIR) << " -Werror";
-    std::string const compile_options = a2str.str();
+    a2str << ::NS(PATH_TO_BASE_DIR) << "tests/sixtracklib/opencl/control/"
+          << "opencl.toml";
 
+    st::OclProgramConfigStore program_configs;
+    program_configs.update_from_file( a2str.str() );
     a2str.str( "" );
+
+    std::string const program_a_name = "a";
     a2str << SIXTRL_C99_NAMESPACE_PREFIX_STR << "CObjFlatBuffer_check_remap_opencl";
     std::string const kernel_a01_name = a2str.str();
-
     a2str.str( "" );
+
     a2str << SIXTRL_C99_NAMESPACE_PREFIX_STR << "CObjFlatBuffer_remap_opencl";
     std::string const kernel_a02_name = a2str.str();
+    a2str.str( "" );
 
     std::vector< std::string > const program_a_kernel_names = {
         kernel_a01_name, kernel_a02_name };
 
-    a2str.str( "" );
     a2str << "#if !defined( SIXTRL_NO_INCLUDES )\r\n"
           << "    #include \"sixtracklib/opencl/kernels/default_defines.h\"\r\n"
           << "    #include \"sixtracklib/common/cobjects/flat_buffer.h\"\r\n"
@@ -73,18 +77,17 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
           << "}\r\n";
 
     std::string const program_a_source = a2str.str();
+    a2str.str( "" );
 
     /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
 
     std::string const program_b_name = "b";
-
-    a2str.str( "" );
     a2str << SIXTRL_C99_NAMESPACE_PREFIX_STR
           << "CObjFlatBuffer_print_num_objects_opencl";
     std::string const kernel_b_name = a2str.str();
-    std::vector< std::string > const program_b_kernel_names = { kernel_b_name };
-
     a2str.str( "" );
+
+    std::vector< std::string > const program_b_kernel_names = { kernel_b_name };
     a2str << "#if !defined( SIXTRL_NO_INCLUDES )\r\n"
           << "    #include \"sixtracklib/opencl/kernels/default_defines.h\"\r\n"
           << "    #include \"sixtracklib/common/cobjects/flat_buffer.h\"\r\n"
@@ -108,6 +111,7 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
           << "}";
 
     std::string const program_b_source = a2str.str();
+    a2str.str( "" );
 
     /* -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --  */
 
@@ -129,6 +133,11 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
         ASSERT_TRUE( ctx.key().num_devices == st::size_type{ 1 } );
         ASSERT_TRUE( ctx.key().contains_node_id( node_id ) );
 
+        auto config = program_configs.find( prog_key_type{
+            ctx.key(), program_a_name } );
+        ASSERT_TRUE( config != nullptr );
+        a2str << *config;
+
         ASSERT_TRUE( program_store->num_stored_items() == expected_num_programs );
 
         std::unique_ptr< rtc_prog_item_type > prog_a( new rtc_prog_item_type );
@@ -137,7 +146,8 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
 
         ASSERT_TRUE( st::STATUS_SUCCESS == prog_a->create_from_source(
             ctx, program_a_source ) );
-        prog_a->set_compile_flags( compile_options );
+        prog_a->set_compile_flags( a2str.str() );
+        a2str.str( "" );
 
         ASSERT_TRUE( st::STATUS_SUCCESS == prog_a->build( ctx, program_a_name ) );
         ASSERT_TRUE( prog_a->is_compiled() );
@@ -203,9 +213,14 @@ TEST( CXXOpenCLControlProgramStore, NormalUsage )
         auto prog_b_weak_ptr = prog_b.get();
         ASSERT_TRUE( prog_b_weak_ptr != nullptr );
 
+        config = program_configs.find( prog_key_type{ ctx.key(), program_b_name } );
+        ASSERT_TRUE( config != nullptr );
+        a2str << *config;
+
         ASSERT_TRUE( st::STATUS_SUCCESS == prog_b->create_from_source(
             ctx, program_b_source ) );
-        prog_b->set_compile_flags( compile_options );
+        prog_b->set_compile_flags( a2str.str() );
+        a2str.str( "" );
 
         ASSERT_TRUE( st::STATUS_SUCCESS == prog_b->build( ctx, program_b_name ) );
         ASSERT_TRUE( prog_b->is_compiled() );

@@ -15,14 +15,19 @@ TEST( CXXOpenCLControlRtcProgamItem, CompileDummyKernel )
 {
     namespace st = SIXTRL_CXX_NAMESPACE;
     using ctx_type = st::OclContext;
+    using prog_key_type = st::OclProgramKey;
     using program_item_type = st::OclRtcProgramItem;
+
+    std::ostringstream a2str;
+    a2str << ::NS(PATH_TO_BASE_DIR) << "tests/sixtracklib/opencl/control/"
+          << "opencl.toml";
+
+    st::OclProgramConfigStore program_configs;
+    program_configs.update_from_file( a2str.str() );
+    a2str.str( "" );
 
     std::string const program_name = "dummy";
     std::string const program_file = "dummy.cl";
-
-    std::ostringstream a2str;
-    a2str << "-I" << ::NS(PATH_TO_SIXTRL_INCLUDE_DIR) << " -Werror";
-    std::string const compile_options = a2str.str();
 
     a2str.str( "" );
     a2str << SIXTRL_C99_NAMESPACE_PREFIX_STR << "CObjFlatBuffer_check_remap";
@@ -55,6 +60,7 @@ TEST( CXXOpenCLControlRtcProgamItem, CompileDummyKernel )
 
     a2str << "./" << program_file;
     std::string const path_to_program = a2str.str();
+    a2str.str( "" );
 
     std::ofstream write_to_this_file( path_to_program.c_str() );
     write_to_this_file << kernel_source_code << "\r\n";
@@ -80,7 +86,13 @@ TEST( CXXOpenCLControlRtcProgamItem, CompileDummyKernel )
         ASSERT_TRUE( program_from_source.create_from_source(
             *ctx, kernel_source_code ) == st::STATUS_SUCCESS );
 
-        program_from_source.set_compile_flags( compile_options );
+        auto config = program_configs.find( prog_key_type{
+            ctx->key(), program_name } );
+        ASSERT_TRUE( config != nullptr );
+        a2str << *config;
+
+        program_from_source.set_compile_flags( a2str.str() );
+        a2str.str( "" );
 
         ASSERT_FALSE( program_from_source.is_compiled() );
         ASSERT_FALSE( program_from_source.created_from_file() );
@@ -99,11 +111,17 @@ TEST( CXXOpenCLControlRtcProgamItem, CompileDummyKernel )
         ASSERT_TRUE( program_from_file.create_from_source_file(
             *ctx, path_to_program ) == st::STATUS_SUCCESS );
 
-        program_from_file.set_compile_flags( compile_options );
 
         ASSERT_FALSE( program_from_file.is_compiled() );
         ASSERT_TRUE(  program_from_file.created_from_file() );
         ASSERT_TRUE(  program_from_file.num_devices() == ctx->key().num_devices );
+
+        config = program_configs.find( prog_key_type{
+            ctx->key(), program_name } );
+        ASSERT_TRUE( config != nullptr );
+        a2str << *config;
+        program_from_file.set_compile_flags( a2str.str() );
+        a2str.str( "" );
 
         ASSERT_TRUE( st::STATUS_SUCCESS == program_from_file.build(
             *ctx, program_name ) );
