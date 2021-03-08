@@ -79,20 +79,16 @@ namespace SIXTRL_CXX_NAMESPACE
 
             ::cl_int ret = CL_SUCCESS;
 
-            #if defined( SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG ) && \
-                         SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG == 1
+            #if defined( CL_HPP_ENABLE_EXCEPTIONS )
             try
+            #endif /* CL_HPP_ENABLE_EXCEPTIONS */
             {
-            #endif /* OpenCL 1.x C++ Host Exceptions enabled */
+                cl::Buffer b( this->m_context.cl_context(),
+                    CL_MEM_READ_WRITE, requ_size, nullptr, &ret );
 
-            cl::Buffer b( this->m_context.cl_context(),
-                CL_MEM_READ_WRITE, requ_size, nullptr, &ret );
-
-            this->m_cl_buffer = std::move( b );
-
-            #if defined( SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG ) && \
-                         SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG == 1
+                this->m_cl_buffer = std::move( b );
             }
+            #if defined( CL_HPP_ENABLE_EXCEPTIONS )
             catch( cl::Error& e )
             {
                 ret = e.err();
@@ -100,60 +96,48 @@ namespace SIXTRL_CXX_NAMESPACE
                     "OclRtcProgramItem", "_init_from_cbuffer", e.what(),
                         st_size_t{ __LINE__ } );
             }
-            #endif /* OpenCL 1.x C++ Host Exceptions enabled */
-
-            if( ret == CL_SUCCESS )
-            {
-                status = st::STATUS_SUCCESS;
-            }
-            else
-            {
+            #else  /* CL_HPP_ENABLE_EXCEPTIONS */
+            if( ret != CL_SUCCESS ) {
                 st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
                     "OclRtcProgramItem", "_init_from_cbuffer",
-                        "error during allocation of buffer",
-                            st_size_t{ __LINE__ } );
+                    "error during allocation of buffer", st_size_t{ __LINE__ } );
             }
+            #endif /* CL_HPP_ENABLE_EXCEPTIONS */
 
+            if( ret == CL_SUCCESS ) status = st::STATUS_SUCCESS;
             if( status != st::STATUS_SUCCESS ) return status;
 
-            #if defined( SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG ) && \
-                        SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG == 1
+            #if defined( CL_HPP_ENABLE_EXCEPTIONS )
             try
+            #endif /* CL_HPP_ENABLE_EXCEPTIONS */
             {
-            #endif /* OpenCL 1.x C++ Host Exceptions enabled */
+                auto& q = this->m_ptr_controller->cmd_queue(
+                    this->m_push_queue_id );
 
-                auto& q = this->m_ptr_controller->cmd_queue( this->m_push_queue_id );
-                auto const lock = q.create_lock();
-                ret = q.cl_command_queue( lock ).enqueueWriteBuffer(
+                ret = q.cl_command_queue().enqueueWriteBuffer(
                     this->m_cl_buffer, true, ::size_t{ 0 }, requ_size,
                         ::NS(CBuffer_p_const_base_begin)( cbuffer ) );
-
-            #if defined( SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG ) && \
-                         SIXTRL_OPENCL_ENABLES_EXCEPTION_FLAG == 1
             }
+            #if defined( CL_HPP_ENABLE_EXCEPTIONS )
             catch( cl::Error& e )
             {
-                status = st::STATUS_GENERAL_FAILURE;
-
-                ret = e.err();
-                st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                st::OpenCL_ret_value_to_exception< std::runtime_error >( e.err(),
                     "OclRtcProgramItem", "_init_from_cbuffer", e.what(),
                         st_size_t{ __LINE__ } );
             }
-            #endif /* OpenCL 1.x C++ Host Exceptions enabled */
-
+            #else /* !defined( CL_HPP_ENABLE_EXCEPTIONS ) */
             if( ret != CL_SUCCESS )
             {
+                status = st::STATUS_GENERAL_FAILURE;
                 st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
                     "OclRtcProgramItem", "_init_from_cbuffer",
-                        "error during push of cbuffer to device side",
-                            st_size_t{ __LINE__ } );
+                        "unable to enqueue buffer write", st_size_t{ __LINE__ }
+                );
             }
+            #endif /* defined( CL_HPP_ENABLE_EXCEPTIONS ) */
         }
 
         return status;
     }
-
-
 }
 #endif /* C++, Host */
