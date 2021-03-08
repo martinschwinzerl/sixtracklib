@@ -79,14 +79,6 @@ target_compile_options( sixtrack PRIVATE
     ${SIXTRACKL_C99_AUTOVEC_FLAGS} )
 
 # ------------------------------------------------------------------------------
-message( STATUS "****" )
-message( STATUS "****" )
-message( STATUS "SIXTRL_MODULES:" )
-message( STATUS "${SIXTRL_MODULES}" )
-message( STATUS "****" )
-message( STATUS "****" )
-
-
 add_library( sixtrack_static STATIC
               ${SIXTRL_C99_HEADERS} ${SIXTRL_CXX_HEADERS} ${SIXTRL_MODULES} )
 
