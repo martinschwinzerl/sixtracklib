@@ -8,7 +8,7 @@
 
 #if !defined( SIXTRL_NO_INCLUDES ) && defined( __cplusplus )
     #include "sixtracklib/opencl/opencl.hpp"
-    #include "sixtracklib/common/backends/mt_backend_obj_base.hpp"
+    #include "sixtracklib/common/backends/backend_obj_base.hpp"
 #endif /* !defined( SIXTRL_NO_INCLUDES ) && defined( __cplusplus ) */
 
 #if !defined( SIXTRL_NO_SYSTEM_INCLUDES ) && defined( __cplusplus )
@@ -21,11 +21,12 @@ namespace SIXTRL_CXX_NAMESPACE
 {
     class OclContext;
 
-    class OclCommandQueue : public SIXTRL_CXX_NAMESPACE::MTBackendObjBase
+    class OclCmdQueue : public SIXTRL_CXX_NAMESPACE::BackendObjBase
     {
         public:
 
         using context_type = SIXTRL_CXX_NAMESPACE::OclContext;
+        using options_type = SIXTRL_CXX_NAMESPACE::ocl_cmd_queue_properties_type;
 
         static constexpr class_id_type BASE_CLASS_ID =
             SIXTRL_CXX_NAMESPACE::OPENCL_COMMAND_QUEUE_CLASS_ID;
@@ -33,65 +34,47 @@ namespace SIXTRL_CXX_NAMESPACE
         static constexpr class_id_type CLASS_ID =
             SIXTRL_CXX_NAMESPACE::OPENCL_COMMAND_QUEUE_CLASS_ID;
 
+        static constexpr options_type FLAGS_NONE =
+            SIXTRL_CXX_NAMESPACE::OPENCL_CMD_QUEUE_NONE_FLAGS;
 
-        SIXTRL_HOST_FN explicit OclCommandQueue(
-            context_type const& SIXTRL_RESTRICT_REF context );
+        SIXTRL_HOST_FN explicit OclCmdQueue(
+            context_type const& SIXTRL_RESTRICT_REF context,
+            options_type const options = FLAGS_NONE );
 
-        SIXTRL_HOST_FN explicit OclCommandQueue(
-            cl::Context const& SIXTRL_RESTRICT_REF context );
+        SIXTRL_HOST_FN OclCmdQueue( OclCmdQueue const& ) = default;
+        SIXTRL_HOST_FN OclCmdQueue( OclCmdQueue&& ) = default;
 
-        SIXTRL_HOST_FN OclCommandQueue( OclCommandQueue const& ) = delete;
-        SIXTRL_HOST_FN OclCommandQueue( OclCommandQueue&& ) = delete;
+        SIXTRL_HOST_FN OclCmdQueue& operator=( OclCmdQueue&& ) = default;
+        SIXTRL_HOST_FN OclCmdQueue& operator=( OclCmdQueue const& ) = default;
 
-        SIXTRL_HOST_FN OclCommandQueue& operator=( OclCommandQueue&& ) = delete;
-        SIXTRL_HOST_FN OclCommandQueue& operator=(
-            OclCommandQueue const& ) = delete;
+        SIXTRL_HOST_FN virtual ~OclCmdQueue() = default;
 
-        SIXTRL_HOST_FN virtual ~OclCommandQueue() = default;
+        SIXTRL_HOST_FN status_type flush() const;
+        SIXTRL_HOST_FN status_type finish() const;
 
-        SIXTRL_HOST_FN status_type flush(
-            guard_type const& SIXTRL_RESTRICT_REF guard ) const {
-            if( !this->is_locked( guard ) ) throw std::runtime_error(
-                    "cl_command_queue const: illegal lock" );
-            return ( CL_SUCCESS == this->m_cl_command_queue.flush() )
-                ? SIXTRL_CXX_NAMESPACE::STATUS_SUCCESS
-                : SIXTRL_CXX_NAMESPACE::STATUS_GENERAL_FAILURE;
+        SIXTRL_HOST_FN bool execs_out_of_order() const SIXTRL_NOEXCEPT {
+            return ( CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE == (
+                     this->m_flags & CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE ) );
         }
 
-        SIXTRL_HOST_FN status_type flush() const {
-            return this->flush( this->create_lock() ); }
-
-        SIXTRL_HOST_FN status_type finish(
-            guard_type const& SIXTRL_RESTRICT_REF guard ) const {
-            if( !this->is_locked( guard ) ) throw std::runtime_error(
-                    "cl_command_queue const: illegal lock" );
-            return ( CL_SUCCESS == this->m_cl_command_queue.finish() )
-                ? SIXTRL_CXX_NAMESPACE::STATUS_SUCCESS
-                : SIXTRL_CXX_NAMESPACE::STATUS_GENERAL_FAILURE; }
-
-        SIXTRL_HOST_FN status_type finish() const {
-            return this->finish( this->create_lock() ); }
+        SIXTRL_HOST_FN bool supports_profiling() const SIXTRL_NOEXCEPT {
+            return ( ( this->m_flags & CL_QUEUE_PROFILING_ENABLE ) ==
+                       CL_QUEUE_PROFILING_ENABLE );
+        }
 
         SIXTRL_HOST_FN cl::CommandQueue const& cl_command_queue(
-            guard_type const& SIXTRL_RESTRICT_REF guard ) const {
-            if( !this->is_locked( guard ) ) throw std::runtime_error(
-                    "cl_command_queue const: illegal lock" );
-            return this->m_cl_command_queue;
-        }
+            ) const SIXTRL_NOEXCEPT { return this->m_cl_cmd_queue; }
 
         SIXTRL_HOST_FN cl::CommandQueue& cl_command_queue(
-            guard_type const& SIXTRL_RESTRICT_REF guard ) {
-            if( !this->is_locked( guard ) ) throw std::runtime_error(
-                    "cl_command_queue: illegal lock" );
-            return this->m_cl_command_queue;
-        }
+            ) SIXTRL_NOEXCEPT { return this->m_cl_cmd_queue; }
 
         private:
 
-        cl::CommandQueue m_cl_command_queue;
+        cl::CommandQueue m_cl_cmd_queue;
+        ::cl_command_queue_properties m_flags;
     };
 
-    template<> struct BackendObjTraits< SIXTRL_CXX_NAMESPACE::OclCommandQueue >
+    template<> struct BackendObjTraits< SIXTRL_CXX_NAMESPACE::OclCmdQueue >
     {
         static constexpr backend_id_type BACKEND_ID =
             SIXTRL_CXX_NAMESPACE::BACKEND_ID_OPENCL;
@@ -107,7 +90,7 @@ namespace SIXTRL_CXX_NAMESPACE
         SIXTRL_CXX_NAMESPACE::BACKEND_ID_OPENCL,
         SIXTRL_CXX_NAMESPACE::OPENCL_COMMAND_QUEUE_CLASS_ID >
     {
-        typedef SIXTRL_CXX_NAMESPACE::OclCommandQueue backend_obj_type;
+        typedef SIXTRL_CXX_NAMESPACE::OclCmdQueue backend_obj_type;
     };
 }
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
@@ -117,9 +100,9 @@ extern "C" {
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
-typedef SIXTRL_CXX_NAMESPACE::OclCommandQueue NS(OclCommandQueue);
+typedef SIXTRL_CXX_NAMESPACE::OclCmdQueue NS(OclCmdQueue);
 #else  /* !defined( __cplusplus ) || defined( _GPUCODE ) */
-typedef void NS(OclCommandQueue);
+typedef void NS(OclCmdQueue);
 #endif /* defined( __cplusplus ) && !defined( _GPUCODE ) */
 
 #if defined( __cplusplus ) && !defined( _GPUCODE )
