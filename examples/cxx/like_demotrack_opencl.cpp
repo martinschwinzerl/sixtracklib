@@ -180,9 +180,9 @@ int main( int argc, char* argv[] )
 
     a2str << ::NS(PATH_TO_BASE_DIR) << "sixtracklib/opencl/kernels/";
     std::string const ocl_kernel_base_dir = a2str.str();
-    std::string const remap_program_name = "cobj_flat_buffer_remap.cl";
+    std::string const remap_program_name = "cobj_flat_buffer_remap";
 
-    a2str << remap_program_name;
+    a2str << remap_program_name << ".cl";
     std::string const path_remap_program = a2str.str();
     a2str.str( "" );
 
@@ -190,7 +190,14 @@ int main( int argc, char* argv[] )
     std::string const remap_kernel_name = a2str.str();
     a2str.str( "" );
 
-    remap_program.set_compile_flags( flags );
+    auto config = config_options.find( 
+        st::OclProgramKey{ ctx.key(), remap_program_name } );
+    SIXTRL_ASSERT( config != nullptr );
+    a2str << *config;
+    
+    remap_program.set_compile_flags( a2str.str() );
+    a2str.str( "" );
+    
     status  = remap_program.create_from_source_file( ctx, path_remap_program );
     status |= remap_program.build( ctx, remap_program_name );
 
@@ -219,9 +226,10 @@ int main( int argc, char* argv[] )
 
     st::OclRtcProgramItem track_program;
 
-    std::string const track_program_name =
-        "particle_track_until_cobj_flat_buffer.cl";
-    a2str << ocl_kernel_base_dir << track_program_name;
+    std::string const track_program_name = 
+        "particle_track_until_cobj_flat_buffer";
+    
+    a2str << ocl_kernel_base_dir << track_program_name << ".cl";
     std::string const path_track_program = a2str.str();
     a2str.str( "" );
     a2str << SIXTRL_C99_NAMESPACE_STR
@@ -229,7 +237,14 @@ int main( int argc, char* argv[] )
     std::string const track_kernel_name = a2str.str();
     a2str.str( "" );
 
-    track_program.set_compile_flags( flags );
+    config = config_options.find( 
+        st::OclProgramKey{ ctx.key(), remap_program_name } );
+    SIXTRL_ASSERT( config != nullptr );
+    a2str << *config;
+    
+    track_program.set_compile_flags( a2str.str() );
+    a2str.str( "" );
+    
     status  = track_program.create_from_source_file( ctx, path_track_program );
     status |= track_program.build( ctx, track_kernel_name );
 
