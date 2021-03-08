@@ -39,6 +39,15 @@ int main( int argc, char* argv[] )
         return 0;
     }
 
+    auto node_store = std::make_shared< st::OclNodeStore >();
+    SIXTRL_ASSERT( node_store.get() != nullptr );
+
+    if( node_store->empty() )
+    {
+        std::cout << "No OpenCL nodes found -> skipping tests" << std::endl;
+        return 0;
+    }
+
     if( argc >= 2 )
     {
         node_id_str = argv[ 1 ];
@@ -77,7 +86,8 @@ int main( int argc, char* argv[] )
 
     st::NodeId node_id( node_id_str );
 
-    if( ( !node_id.is_legal() ) || ( argc < 2 ) )
+    if( ( !node_id.is_legal() ) || ( argc < 2 ) ||
+        ( !node_store->has_node_id( node_id ) ) )
     {
         std::cout << "Usage : " << argv[ 0 ] << "node_id_str "
                   << " [NUM_PARTICLES] [TRACK_UNTIL_TURN]"
@@ -92,13 +102,7 @@ int main( int argc, char* argv[] )
                   << "PATH_TO_OUTPUT_DATA       : " << path_to_output_data << "\r\n"
                   << std::endl;
 
-        std::vector< st::NodeId      > all_node_ids;
-        std::vector< st::OclNodeInfo > all_node_infos;
-
-        st::OclController::GET_AVAILABLE_NODES(
-            all_node_ids, &all_node_infos, nullptr );
-
-        for( auto const& node_info : all_node_infos )
+        for( auto const& node_info : node_store->node_infos() )
         {
             node_info.to_stream( std::cout,
                 st::NODE_ID_STR_FORMAT_BACKEND_STR, nullptr, &node_id );
@@ -109,6 +113,9 @@ int main( int argc, char* argv[] )
         std::cout << std::endl;
         return 0;
     }
+
+    st::OclProgramConfigStore config_options;
+    config_options.update_from_file( std::string{ "./opencl.toml" } );
 
     /* --------------------------------------------------------------------- */
     /* Prepare particles data */
@@ -163,7 +170,7 @@ int main( int argc, char* argv[] )
     a2str.str( "" );
 
     auto program_store = std::make_shared< st::OclProgramStore >();
-    st::OclContext ctx( node_id );
+    st::OclContext ctx( node_store, node_id );
     st::OclController controller( node_id, ctx, program_store );
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -249,35 +256,17 @@ int main( int argc, char* argv[] )
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     /* Create buffers */
 
-    cl::CommandQueue queue( ctx.cl_context(), 0, &ret );
-    if( ret != CL_SUCCESS ) { std::cout << "error queue ret = " << ret << std::endl; return 0; }
-
-    cl::Buffer pbuffer_arg( ctx.cl_context(), CL_MEM_READ_WRITE, pbuffer.size(), nullptr, &ret );
-    if( ret != CL_SUCCESS ) { std::cout << "error pbuffer ret = " << ret << std::endl; return 0; }
-    ret = queue.enqueueWriteBuffer( pbuffer_arg, true, ::size_t{ 0 }, pbuffer.size(), pbuffer.p_const_base_begin() );
-    if( ret != CL_SUCCESS ) { std::cout << "error write pbuffer ret = " << ret << std::endl; return 0; }
-
-    cl::Buffer lattice_arg( ctx.cl_context(), CL_MEM_READ_WRITE, lattice.size(), nullptr, &ret );
-    if( ret != CL_SUCCESS ) { std::cout << "error lattice ret = " << ret << std::endl; return 0; }
-    ret = queue.enqueueWriteBuffer( lattice_arg, true, ::size_t{ 0 }, lattice.size(), lattice.p_const_base_begin() );
-    if( ret != CL_SUCCESS ) { std::cout << "error write lattice ret = " << ret << std::endl; return 0; }
-
-    cl::Buffer config_arg( ctx.cl_context(), CL_MEM_READ_WRITE, config_buffer.size(), nullptr, &ret );
-    if( ret != CL_SUCCESS ) { std::cout << "error config ret = " << ret << std::endl; return 0; }
-    ret = queue.enqueueWriteBuffer( config_arg, true, ::size_t{ 0 }, config_buffer.size(), config_buffer.p_const_base_begin() );
-    if( ret != CL_SUCCESS ) { std::cout << "error write config_buffer ret = " << ret << std::endl; return 0; }
-
-
-
-//     st::OclArgument pbuffer_arg( pbuffer.as_c_api(), controller );
-//     st::OclArgument lattice_arg( lattice.as_c_api(), controller );
-//     st::OclArgument config_arg( config_buffer.as_c_api(), controller );
+    st::OclArgument pbuffer_arg( pbuffer.as_c_api(), controller );
+    st::OclArgument lattice_arg( lattice.as_c_api(), controller );
+    st::OclArgument config_arg( config_buffer.as_c_api(), controller );
 
     /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
     /* remap buffers on the device side */
 
+    auto& queue = controller.cmd_queue( 0u ).cl_command_queue();
+
     SIXTRL_UINT64_TYPE const slot_size_arg = pbuffer.slot_size();
-    ret = remap_kernel.cl_kernel().setArg( 0, pbuffer_arg );
+    ret = remap_kernel.cl_kernel().setArg( 0, pbuffer_arg.cl_buffer() );
     ret = remap_kernel.cl_kernel().setArg( 1, slot_size_arg );
 
     ret = queue.enqueueNDRangeKernel( remap_kernel.cl_kernel(), cl::NullRange,
@@ -292,7 +281,7 @@ int main( int argc, char* argv[] )
     }
 
 
-    ret = remap_kernel.cl_kernel().setArg( 0, lattice_arg );
+    ret = remap_kernel.cl_kernel().setArg( 0, lattice_arg.cl_buffer() );
     ret = remap_kernel.cl_kernel().setArg( 1, slot_size_arg );
 
     ret = queue.enqueueNDRangeKernel(
@@ -308,7 +297,7 @@ int main( int argc, char* argv[] )
     }
 
 
-    ret = remap_kernel.cl_kernel().setArg( 0, config_arg );
+    ret = remap_kernel.cl_kernel().setArg( 0, config_arg.cl_buffer() );
     ret = remap_kernel.cl_kernel().setArg( 1, slot_size_arg );
 
     ret = queue.enqueueNDRangeKernel(
@@ -336,14 +325,14 @@ int main( int argc, char* argv[] )
     SIXTRL_UINT64_TYPE const line_start_index_arg = 0u;
     SIXTRL_UINT64_TYPE const track_config_idx_arg = 0u;
 
-    ret = track_kernel.cl_kernel().setArg( 0, pbuffer_arg );
+    ret = track_kernel.cl_kernel().setArg( 0, pbuffer_arg.cl_buffer() );
     ret = track_kernel.cl_kernel().setArg( 1, pset_idx_arg );
     ret = track_kernel.cl_kernel().setArg( 2, line_start_at_element );
     ret = track_kernel.cl_kernel().setArg( 3, until_turn_arg );
-    ret = track_kernel.cl_kernel().setArg( 4, lattice_arg );
+    ret = track_kernel.cl_kernel().setArg( 4, lattice_arg.cl_buffer() );
     ret = track_kernel.cl_kernel().setArg( 5, eot_marker_idx_arg );
     ret = track_kernel.cl_kernel().setArg( 6, line_start_index_arg );
-    ret = track_kernel.cl_kernel().setArg( 7, config_arg );
+    ret = track_kernel.cl_kernel().setArg( 7, config_arg.cl_buffer() );
     ret = track_kernel.cl_kernel().setArg( 8, track_config_idx_arg );
     ret = track_kernel.cl_kernel().setArg( 9, slot_size_arg );
 
@@ -379,7 +368,7 @@ int main( int argc, char* argv[] )
                 NUM_PARTICLES * TRACK_UNTIL_TURN ) << " sec / particle / turn\r\n"
               << std::endl;
 
-    ret = queue.enqueueReadBuffer( pbuffer_arg, true, ::size_t{ 0 },
+    ret = queue.enqueueReadBuffer( pbuffer_arg.cl_buffer(), true, ::size_t{ 0 },
             pbuffer.size(), pbuffer.p_base_begin() );
 
     status = pbuffer.remap();
