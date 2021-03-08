@@ -3,11 +3,12 @@ set( SIXTRL_OCL_CONTROL_C99_SOURCES )
 
 set( SIXTRL_OCL_CONTROL_CXX_SOURCES
     argument.cpp controller.cpp context.cpp cmd_queue.cpp
-    kernel_item.cpp node_info.cpp
+    kernel_item.cpp node_info.cpp node_store.cpp
     program_item.cpp program_store.cpp )
 
 set( SIXTRL_OCL_CONTROL_CXX_HEADERS
-    argument.h controller.h context.h cmd_queue.h kernel_item.h node_info.h
+    argument.h controller.h context.h cmd_queue.h
+    kernel_item.h node_info.h node_store.h
     program_item.h program_store.h )
 
 set( SIXTRL_OCL_PARENT_C99_HEADERS ../definitions.h ../opencl.h )
@@ -24,7 +25,9 @@ target_link_libraries( sixtrack_opencl_control_cxx
     PRIVATE ${SIXTRL_OPENCL_LIBRARIES} )
 
 target_include_directories( sixtrack_opencl_control_cxx PRIVATE
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}> $<INSTALL_INTERFACE:include> )
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${SIXTRACKL_TOML_INCLUDE_DIRS}>
+    $<INSTALL_INTERFACE:include> )
 
 set_target_properties( sixtrack_opencl_control_cxx PROPERTIES CXX_STANDARD 11
     LINKER_LANGUAGE C POSITION_INDEPENDENT_CODE ON CXX_STANDARD_REQUIRED ON )
