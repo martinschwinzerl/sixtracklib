@@ -255,8 +255,9 @@ namespace SIXTRL_CXX_NAMESPACE
 
         SIXTRL_HOST_FN status_type _build_report_to_stream(
             std::ostream& SIXTRL_RESTRICT_REF ostr,
-            platform_id_type const platform_id, device_id_type const device_id,
-            cl::Device const& SIXTRL_RESTRICT_REF build_device );
+            context_type const& SIXTRL_RESTRICT_REF context,
+            platform_id_type const platform_id,
+            device_id_type const device_id );
 
         std::string m_source_code   = std::string{};
         std::string m_path_to_file  = std::string{};

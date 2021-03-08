@@ -23,6 +23,7 @@ namespace SIXTRL_CXX_NAMESPACE
         using base_prog_type = st::OclProgramItemBase;
         using st_status_t    = rtc_prog_type::status_type;
         using st_size_t      = rtc_prog_type::size_type;
+        using st_node_id_t   = rtc_prog_type::node_id_type;
     }
 
     constexpr rtc_prog_type::class_id_type rtc_prog_type::CLASS_ID;
@@ -193,8 +194,7 @@ namespace SIXTRL_CXX_NAMESPACE
                 for( st_size_t ii = st_size_t{ 0 } ; ii < num_devices ; ++ii )
                 {
                     status |= this->_build_report_to_stream(
-                        a2str, key.platform_id, key.device_ids[ ii ],
-                            ctx.cl_devices()[ ii ] );
+                        a2str, ctx, key.platform_id, key.device_ids[ ii ] );
                     this->m_build_log.push_back( a2str.str() );
                     a2str.str( "" );
                 }
@@ -221,8 +221,7 @@ namespace SIXTRL_CXX_NAMESPACE
             for( st_size_t ii = st_size_t{ 0 } ; ii < num_devices ; ++ii )
             {
                 status |= this->_build_report_to_stream(
-                    a2str, key.platform_id, key.device_ids[ ii ],
-                        ctx.cl_devices()[ ii ] );
+                    a2str, ctx, key.platform_id, key.device_ids[ ii ] );
                 this->m_build_log.push_back( a2str.str() );
                 a2str.str( "" );
             }
@@ -334,21 +333,57 @@ namespace SIXTRL_CXX_NAMESPACE
 
     st_status_t rtc_prog_type::_build_report_to_stream(
         std::ostream& SIXTRL_RESTRICT_REF ostr,
+        context_type const& SIXTRL_RESTRICT_REF context,
         rtc_prog_type::platform_id_type const platform_id,
-        rtc_prog_type::device_id_type const device_id,
-        cl::Device const& SIXTRL_RESTRICT_REF build_device )
+        rtc_prog_type::device_id_type const device_id )
     {
-        rtc_prog_type::node_id_type node_id( platform_id, device_id );
+        auto node_store = context.shared_node_store();
+        if( node_store.get() == nullptr ) throw std::runtime_error(
+            "no node store available" );
+
+        st_node_id_t const node_id = st_node_id_t{ platform_id, device_id,
+            node_store->node_index( platform_id, device_id ) };
+
         ostr << "build device      : ";
         st::status_type status = node_id.to_stream( ostr,
             st::NODE_ID_STR_FORMAT_BACKEND_STR, st::BACKEND_ID_OPENCL );
         ostr << "\r\n";
 
-        ::cl_build_status build_status = CL_BUILD_NONE;
-        ::cl_int ret = this->cl_program().getBuildInfo(
-            build_device, CL_PROGRAM_BUILD_STATUS, &build_status );
+        cl::Device const& build_device =
+            node_store->cl_device( platform_id, device_id );
 
-        if( CL_SUCCESS == ret )
+        ::cl_build_status build_status = CL_BUILD_NONE;
+        ::cl_int ret = CL_SUCCESS;
+
+        #if defined( CL_HPP_ENABLE_EXCEPTIONS )
+        try
+        #endif /* defined( CL_HPP_ENABLE_EXCEPTIONS ) */
+        {
+            ret = this->cl_program().getBuildInfo( build_device,
+                CL_PROGRAM_BUILD_STATUS, &build_status );
+        }
+        #if defined( CL_HPP_ENABLE_EXCEPTIONS )
+        catch( cl::Error const& e )
+        {
+            st::OpenCL_ret_value_to_exception< std::runtime_error >( e.err(),
+                "OclRtcProgramItem", "_build_report_to_stream", e.what(),
+                    st_size_t{ __LINE__ } );
+            status = st::STATUS_GENERAL_FAILURE;
+        }
+        #else /* !defined( CL_HPP_ENABLE_EXCEPTIONS ) */
+        if( CL_SUCCESS != ret )
+        {
+            st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                "OclRtcProgramItem", "_build_report_to_stream", "",
+                    st_size_t{ __LINE__ } );
+            status = st::STATUS_GENERAL_FAILURE;
+        }
+        #endif /* defined( CL_HPP_ENABLE_EXCEPTIONS ) */
+
+        if( ret != CL_SUCCESS ) status = st::STATUS_GENERAL_FAILURE;
+        if( status != st::STATUS_SUCCESS ) return status;
+
+        if( status == st::STATUS_SUCCESS )
         {
             ostr << "build_status      : ";
             switch( build_status )
@@ -359,26 +394,37 @@ namespace SIXTRL_CXX_NAMESPACE
                 default: { ostr << "NONE\r\n"; }
             };
         }
-        else
-        {
-           status = st::STATUS_GENERAL_FAILURE;
-        }
 
-        if( CL_SUCCESS == ret )
+        #if defined( CL_HPP_ENABLE_EXCEPTIONS )
+        try
+        #endif /* defined( CL_HPP_ENABLE_EXCEPTIONS ) */
         {
             std::string build_log_str;
-            ret = this->cl_program().getBuildInfo(
-                build_device, CL_PROGRAM_BUILD_LOG, &build_log_str );
+            ret = this->cl_program().getBuildInfo( build_device,
+                CL_PROGRAM_BUILD_LOG, &build_log_str );
 
             if( ( ret == CL_SUCCESS ) && ( !build_log_str.empty() ) )
             {
                 ostr << "build log         :\r\n" << build_log_str << "\r\n";
             }
         }
-        else
+        #if defined( CL_HPP_ENABLE_EXCEPTIONS )
+        catch( cl::Error const& e )
         {
+            st::OpenCL_ret_value_to_exception< std::runtime_error >( e.err(),
+                "OclRtcProgramItem", "_build_report_to_stream", e.what(),
+                    st_size_t{ __LINE__ } );
             status = st::STATUS_GENERAL_FAILURE;
         }
+        #else /* !defined( CL_HPP_ENABLE_EXCEPTIONS ) */
+        if( CL_SUCCESS != ret )
+        {
+            st::OpenCL_ret_value_to_exception< std::runtime_error >( ret,
+                "OclRtcProgramItem", "_build_report_to_stream", "",
+                    st_size_t{ __LINE__ } );
+            status = st::STATUS_GENERAL_FAILURE;
+        }
+        #endif /* defined( CL_HPP_ENABLE_EXCEPTIONS ) */
 
         return status;
     }
